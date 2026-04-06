@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/projects/{projectsId}/traces:batchWrite
 /// Batch writes new spans to new or existing traces. You cannot update existing spans. If a span ID already exists, an additional copy of the span will be stored.
@@ -109,6 +111,15 @@ pub fn cloudtrace_projects_traces_batch_write_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtrace_projects_traces_batch_write`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtraceProjectsTracesBatchWriteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: BatchWriteSpansRequest,
+}
+
 /// GET v2/projects/{projectsId}/traces:batchWrite
 /// Batch writes new spans to new or existing traces. You cannot update existing spans. If a span ID already exists, an additional copy of the span will be stored.
 ///
@@ -121,13 +132,12 @@ pub fn cloudtrace_projects_traces_batch_write_execute(
 
 pub fn cloudtrace_projects_traces_batch_write(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &BatchWriteSpansRequest,
+    args: &CloudtraceProjectsTracesBatchWriteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudtrace_projects_traces_batch_write_builder(client, name, body)?;
+    let builder = cloudtrace_projects_traces_batch_write_builder(client, &args.name, &args.body)?;
     cloudtrace_projects_traces_batch_write_execute(builder)
 }
 
@@ -224,6 +234,15 @@ pub fn cloudtrace_projects_traces_spans_create_span_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtrace_projects_traces_spans_create_span`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtraceProjectsTracesSpansCreateSpanArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: Span,
+}
+
 /// GET v2/projects/{projectsId}/traces/{tracesId}/spans/{spansId}
 /// Creates a new span. If a span ID already exists, an additional copy of the span will be stored.
 ///
@@ -236,12 +255,12 @@ pub fn cloudtrace_projects_traces_spans_create_span_execute(
 
 pub fn cloudtrace_projects_traces_spans_create_span(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &Span,
+    args: &CloudtraceProjectsTracesSpansCreateSpanArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Span>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudtrace_projects_traces_spans_create_span_builder(client, name, body)?;
+    let builder =
+        cloudtrace_projects_traces_spans_create_span_builder(client, &args.name, &args.body)?;
     cloudtrace_projects_traces_spans_create_span_execute(builder)
 }

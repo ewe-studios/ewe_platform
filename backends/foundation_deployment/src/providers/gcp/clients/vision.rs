@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/files:annotate
 /// Service that performs image detection and annotation for a batch of files. Now only "`application/pdf`", "`image/tiff`" and "`image/gif`" are supported. This service will extract at most 5 (customers can specify which 5 in AnnotateFileRequest.pages) frames (gif) or pages (pdf or tiff) from each file provided and perform detection and annotation for each image extracted.
@@ -109,6 +111,13 @@ pub fn vision_files_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_files_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionFilesAnnotateArgs {
+    /// Request body.
+    pub body: BatchAnnotateFilesRequest,
+}
+
 /// GET v1/files:annotate
 /// Service that performs image detection and annotation for a batch of files. Now only "`application/pdf`", "`image/tiff`" and "`image/gif`" are supported. This service will extract at most 5 (customers can specify which 5 in AnnotateFileRequest.pages) frames (gif) or pages (pdf or tiff) from each file provided and perform detection and annotation for each image extracted.
 ///
@@ -121,7 +130,7 @@ pub fn vision_files_annotate_execute(
 
 pub fn vision_files_annotate(
     client: &SimpleHttpClient,
-    body: &BatchAnnotateFilesRequest,
+    args: &VisionFilesAnnotateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchAnnotateFilesResponse>, ApiError>,
@@ -130,7 +139,7 @@ pub fn vision_files_annotate(
         + 'static,
     ApiError,
 > {
-    let builder = vision_files_annotate_builder(client, body)?;
+    let builder = vision_files_annotate_builder(client, &args.body)?;
     vision_files_annotate_execute(builder)
 }
 
@@ -223,6 +232,13 @@ pub fn vision_files_async_batch_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_files_async_batch_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionFilesAsyncBatchAnnotateArgs {
+    /// Request body.
+    pub body: AsyncBatchAnnotateFilesRequest,
+}
+
 /// GET v1/files:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of generic files, such as PDF files, which may contain multiple pages and multiple images per page. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateFilesResponse (results).
 ///
@@ -235,12 +251,12 @@ pub fn vision_files_async_batch_annotate_execute(
 
 pub fn vision_files_async_batch_annotate(
     client: &SimpleHttpClient,
-    body: &AsyncBatchAnnotateFilesRequest,
+    args: &VisionFilesAsyncBatchAnnotateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_files_async_batch_annotate_builder(client, body)?;
+    let builder = vision_files_async_batch_annotate_builder(client, &args.body)?;
     vision_files_async_batch_annotate_execute(builder)
 }
 
@@ -337,6 +353,13 @@ pub fn vision_images_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_images_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionImagesAnnotateArgs {
+    /// Request body.
+    pub body: BatchAnnotateImagesRequest,
+}
+
 /// GET v1/images:annotate
 /// Run image detection and annotation for a batch of images.
 ///
@@ -349,7 +372,7 @@ pub fn vision_images_annotate_execute(
 
 pub fn vision_images_annotate(
     client: &SimpleHttpClient,
-    body: &BatchAnnotateImagesRequest,
+    args: &VisionImagesAnnotateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchAnnotateImagesResponse>, ApiError>,
@@ -358,7 +381,7 @@ pub fn vision_images_annotate(
         + 'static,
     ApiError,
 > {
-    let builder = vision_images_annotate_builder(client, body)?;
+    let builder = vision_images_annotate_builder(client, &args.body)?;
     vision_images_annotate_execute(builder)
 }
 
@@ -451,6 +474,13 @@ pub fn vision_images_async_batch_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_images_async_batch_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionImagesAsyncBatchAnnotateArgs {
+    /// Request body.
+    pub body: AsyncBatchAnnotateImagesRequest,
+}
+
 /// GET v1/images:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of images. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateImagesResponse (results). This service will write image annotation outputs to json files in customer GCS bucket, each json file containing BatchAnnotateImagesResponse proto.
 ///
@@ -463,12 +493,12 @@ pub fn vision_images_async_batch_annotate_execute(
 
 pub fn vision_images_async_batch_annotate(
     client: &SimpleHttpClient,
-    body: &AsyncBatchAnnotateImagesRequest,
+    args: &VisionImagesAsyncBatchAnnotateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_images_async_batch_annotate_builder(client, body)?;
+    let builder = vision_images_async_batch_annotate_builder(client, &args.body)?;
     vision_images_async_batch_annotate_execute(builder)
 }
 
@@ -562,6 +592,13 @@ pub fn vision_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -574,12 +611,12 @@ pub fn vision_locations_operations_get_execute(
 
 pub fn vision_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VisionLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_locations_operations_get_builder(client, name)?;
+    let builder = vision_locations_operations_get_builder(client, &args.name)?;
     vision_locations_operations_get_execute(builder)
 }
 
@@ -676,6 +713,15 @@ pub fn vision_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -688,13 +734,12 @@ pub fn vision_operations_cancel_execute(
 
 pub fn vision_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &VisionOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_operations_cancel_builder(client, name, body)?;
+    let builder = vision_operations_cancel_builder(client, &args.name, &args.body)?;
     vision_operations_cancel_execute(builder)
 }
 
@@ -785,6 +830,13 @@ pub fn vision_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -797,12 +849,12 @@ pub fn vision_operations_delete_execute(
 
 pub fn vision_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VisionOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_operations_delete_builder(client, name)?;
+    let builder = vision_operations_delete_builder(client, &args.name)?;
     vision_operations_delete_execute(builder)
 }
 
@@ -893,6 +945,13 @@ pub fn vision_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -905,12 +964,12 @@ pub fn vision_operations_get_execute(
 
 pub fn vision_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VisionOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_operations_get_builder(client, name)?;
+    let builder = vision_operations_get_builder(client, &args.name)?;
     vision_operations_get_execute(builder)
 }
 
@@ -1027,6 +1086,21 @@ pub fn vision_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1039,11 +1113,7 @@ pub fn vision_operations_list_execute(
 
 pub fn vision_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &VisionOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1052,11 +1122,11 @@ pub fn vision_operations_list(
 > {
     let builder = vision_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     vision_operations_list_execute(builder)
 }
@@ -1158,6 +1228,15 @@ pub fn vision_projects_files_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_files_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsFilesAnnotateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchAnnotateFilesRequest,
+}
+
 /// GET v1/projects/{projectsId}/files:annotate
 /// Service that performs image detection and annotation for a batch of files. Now only "`application/pdf`", "`image/tiff`" and "`image/gif`" are supported. This service will extract at most 5 (customers can specify which 5 in AnnotateFileRequest.pages) frames (gif) or pages (pdf or tiff) from each file provided and perform detection and annotation for each image extracted.
 ///
@@ -1170,8 +1249,7 @@ pub fn vision_projects_files_annotate_execute(
 
 pub fn vision_projects_files_annotate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchAnnotateFilesRequest,
+    args: &VisionProjectsFilesAnnotateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchAnnotateFilesResponse>, ApiError>,
@@ -1180,7 +1258,7 @@ pub fn vision_projects_files_annotate(
         + 'static,
     ApiError,
 > {
-    let builder = vision_projects_files_annotate_builder(client, parent, body)?;
+    let builder = vision_projects_files_annotate_builder(client, &args.parent, &args.body)?;
     vision_projects_files_annotate_execute(builder)
 }
 
@@ -1277,6 +1355,15 @@ pub fn vision_projects_files_async_batch_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_files_async_batch_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsFilesAsyncBatchAnnotateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AsyncBatchAnnotateFilesRequest,
+}
+
 /// GET v1/projects/{projectsId}/files:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of generic files, such as PDF files, which may contain multiple pages and multiple images per page. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateFilesResponse (results).
 ///
@@ -1289,13 +1376,13 @@ pub fn vision_projects_files_async_batch_annotate_execute(
 
 pub fn vision_projects_files_async_batch_annotate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AsyncBatchAnnotateFilesRequest,
+    args: &VisionProjectsFilesAsyncBatchAnnotateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_projects_files_async_batch_annotate_builder(client, parent, body)?;
+    let builder =
+        vision_projects_files_async_batch_annotate_builder(client, &args.parent, &args.body)?;
     vision_projects_files_async_batch_annotate_execute(builder)
 }
 
@@ -1396,6 +1483,15 @@ pub fn vision_projects_images_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_images_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsImagesAnnotateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchAnnotateImagesRequest,
+}
+
 /// GET v1/projects/{projectsId}/images:annotate
 /// Run image detection and annotation for a batch of images.
 ///
@@ -1408,8 +1504,7 @@ pub fn vision_projects_images_annotate_execute(
 
 pub fn vision_projects_images_annotate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchAnnotateImagesRequest,
+    args: &VisionProjectsImagesAnnotateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchAnnotateImagesResponse>, ApiError>,
@@ -1418,7 +1513,7 @@ pub fn vision_projects_images_annotate(
         + 'static,
     ApiError,
 > {
-    let builder = vision_projects_images_annotate_builder(client, parent, body)?;
+    let builder = vision_projects_images_annotate_builder(client, &args.parent, &args.body)?;
     vision_projects_images_annotate_execute(builder)
 }
 
@@ -1515,6 +1610,15 @@ pub fn vision_projects_images_async_batch_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_images_async_batch_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsImagesAsyncBatchAnnotateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AsyncBatchAnnotateImagesRequest,
+}
+
 /// GET v1/projects/{projectsId}/images:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of images. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateImagesResponse (results). This service will write image annotation outputs to json files in customer GCS bucket, each json file containing BatchAnnotateImagesResponse proto.
 ///
@@ -1527,13 +1631,13 @@ pub fn vision_projects_images_async_batch_annotate_execute(
 
 pub fn vision_projects_images_async_batch_annotate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AsyncBatchAnnotateImagesRequest,
+    args: &VisionProjectsImagesAsyncBatchAnnotateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_projects_images_async_batch_annotate_builder(client, parent, body)?;
+    let builder =
+        vision_projects_images_async_batch_annotate_builder(client, &args.parent, &args.body)?;
     vision_projects_images_async_batch_annotate_execute(builder)
 }
 
@@ -1634,6 +1738,15 @@ pub fn vision_projects_locations_files_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_files_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsFilesAnnotateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchAnnotateFilesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/files:annotate
 /// Service that performs image detection and annotation for a batch of files. Now only "`application/pdf`", "`image/tiff`" and "`image/gif`" are supported. This service will extract at most 5 (customers can specify which 5 in AnnotateFileRequest.pages) frames (gif) or pages (pdf or tiff) from each file provided and perform detection and annotation for each image extracted.
 ///
@@ -1646,8 +1759,7 @@ pub fn vision_projects_locations_files_annotate_execute(
 
 pub fn vision_projects_locations_files_annotate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchAnnotateFilesRequest,
+    args: &VisionProjectsLocationsFilesAnnotateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchAnnotateFilesResponse>, ApiError>,
@@ -1656,7 +1768,8 @@ pub fn vision_projects_locations_files_annotate(
         + 'static,
     ApiError,
 > {
-    let builder = vision_projects_locations_files_annotate_builder(client, parent, body)?;
+    let builder =
+        vision_projects_locations_files_annotate_builder(client, &args.parent, &args.body)?;
     vision_projects_locations_files_annotate_execute(builder)
 }
 
@@ -1753,6 +1866,15 @@ pub fn vision_projects_locations_files_async_batch_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_files_async_batch_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsFilesAsyncBatchAnnotateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AsyncBatchAnnotateFilesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/files:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of generic files, such as PDF files, which may contain multiple pages and multiple images per page. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateFilesResponse (results).
 ///
@@ -1765,14 +1887,16 @@ pub fn vision_projects_locations_files_async_batch_annotate_execute(
 
 pub fn vision_projects_locations_files_async_batch_annotate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AsyncBatchAnnotateFilesRequest,
+    args: &VisionProjectsLocationsFilesAsyncBatchAnnotateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vision_projects_locations_files_async_batch_annotate_builder(client, parent, body)?;
+    let builder = vision_projects_locations_files_async_batch_annotate_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     vision_projects_locations_files_async_batch_annotate_execute(builder)
 }
 
@@ -1873,6 +1997,15 @@ pub fn vision_projects_locations_images_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_images_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsImagesAnnotateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchAnnotateImagesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/images:annotate
 /// Run image detection and annotation for a batch of images.
 ///
@@ -1885,8 +2018,7 @@ pub fn vision_projects_locations_images_annotate_execute(
 
 pub fn vision_projects_locations_images_annotate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchAnnotateImagesRequest,
+    args: &VisionProjectsLocationsImagesAnnotateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchAnnotateImagesResponse>, ApiError>,
@@ -1895,7 +2027,8 @@ pub fn vision_projects_locations_images_annotate(
         + 'static,
     ApiError,
 > {
-    let builder = vision_projects_locations_images_annotate_builder(client, parent, body)?;
+    let builder =
+        vision_projects_locations_images_annotate_builder(client, &args.parent, &args.body)?;
     vision_projects_locations_images_annotate_execute(builder)
 }
 
@@ -1992,6 +2125,15 @@ pub fn vision_projects_locations_images_async_batch_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_images_async_batch_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsImagesAsyncBatchAnnotateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AsyncBatchAnnotateImagesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/images:asyncBatchAnnotate
 /// Run asynchronous image detection and annotation for a list of images. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains OperationMetadata (metadata). Operation.response contains AsyncBatchAnnotateImagesResponse (results). This service will write image annotation outputs to json files in customer GCS bucket, each json file containing BatchAnnotateImagesResponse proto.
 ///
@@ -2004,14 +2146,16 @@ pub fn vision_projects_locations_images_async_batch_annotate_execute(
 
 pub fn vision_projects_locations_images_async_batch_annotate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AsyncBatchAnnotateImagesRequest,
+    args: &VisionProjectsLocationsImagesAsyncBatchAnnotateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vision_projects_locations_images_async_batch_annotate_builder(client, parent, body)?;
+    let builder = vision_projects_locations_images_async_batch_annotate_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     vision_projects_locations_images_async_batch_annotate_execute(builder)
 }
 
@@ -2105,6 +2249,13 @@ pub fn vision_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2117,12 +2268,12 @@ pub fn vision_projects_locations_operations_get_execute(
 
 pub fn vision_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VisionProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_projects_locations_operations_get_builder(client, name)?;
+    let builder = vision_projects_locations_operations_get_builder(client, &args.name)?;
     vision_projects_locations_operations_get_execute(builder)
 }
 
@@ -2219,6 +2370,15 @@ pub fn vision_projects_locations_product_sets_add_product_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_product_sets_add_product`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsAddProductArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AddProductToProductSetRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}:addProduct
 /// Adds a Product to the specified ProductSet. If the Product is already present, no change is made. One Product can be added to at most 100 ProductSets. Possible errors: * Returns NOT_FOUND if the Product or the ProductSet doesn't exist.
 ///
@@ -2231,13 +2391,13 @@ pub fn vision_projects_locations_product_sets_add_product_execute(
 
 pub fn vision_projects_locations_product_sets_add_product(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AddProductToProductSetRequest,
+    args: &VisionProjectsLocationsProductSetsAddProductArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_projects_locations_product_sets_add_product_builder(client, name, body)?;
+    let builder =
+        vision_projects_locations_product_sets_add_product_builder(client, &args.name, &args.body)?;
     vision_projects_locations_product_sets_add_product_execute(builder)
 }
 
@@ -2346,6 +2506,17 @@ pub fn vision_projects_locations_product_sets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_product_sets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: productSetId
+    pub productSetId: Option<String>,
+    /// Request body.
+    pub body: ProductSet,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/productSets
 /// Creates and returns a new ProductSet resource. Possible errors: * Returns INVALID_ARGUMENT if display_name is missing, or is longer than 4096 characters.
 ///
@@ -2358,15 +2529,17 @@ pub fn vision_projects_locations_product_sets_create_execute(
 
 pub fn vision_projects_locations_product_sets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    productSetId: Option<&str>,
-    body: &ProductSet,
+    args: &VisionProjectsLocationsProductSetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductSet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vision_projects_locations_product_sets_create_builder(client, parent, productSetId, body)?;
+    let builder = vision_projects_locations_product_sets_create_builder(
+        client,
+        &args.parent,
+        args.productSetId.as_deref(),
+        &args.body,
+    )?;
     vision_projects_locations_product_sets_create_execute(builder)
 }
 
@@ -2460,6 +2633,13 @@ pub fn vision_projects_locations_product_sets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_product_sets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}
 /// Permanently deletes a ProductSet. Products and ReferenceImages in the ProductSet are not deleted. The actual image files are not deleted from Google Cloud Storage.
 ///
@@ -2472,12 +2652,12 @@ pub fn vision_projects_locations_product_sets_delete_execute(
 
 pub fn vision_projects_locations_product_sets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VisionProjectsLocationsProductSetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_projects_locations_product_sets_delete_builder(client, name)?;
+    let builder = vision_projects_locations_product_sets_delete_builder(client, &args.name)?;
     vision_projects_locations_product_sets_delete_execute(builder)
 }
 
@@ -2571,6 +2751,13 @@ pub fn vision_projects_locations_product_sets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_product_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}
 /// Gets information associated with a ProductSet. Possible errors: * Returns NOT_FOUND if the ProductSet does not exist.
 ///
@@ -2583,12 +2770,12 @@ pub fn vision_projects_locations_product_sets_get_execute(
 
 pub fn vision_projects_locations_product_sets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VisionProjectsLocationsProductSetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductSet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_projects_locations_product_sets_get_builder(client, name)?;
+    let builder = vision_projects_locations_product_sets_get_builder(client, &args.name)?;
     vision_projects_locations_product_sets_get_execute(builder)
 }
 
@@ -2685,6 +2872,15 @@ pub fn vision_projects_locations_product_sets_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_product_sets_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ImportProductSetsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/productSets:import
 /// Asynchronous API that imports a list of reference images to specified product sets based on a list of image information. The google.longrunning.Operation API can be used to keep track of the progress and results of the request. Operation.metadata contains BatchOperationMetadata. (progress) Operation.response contains ImportProductSetsResponse. (results) The input source of this method is a csv file on Google Cloud Storage. For the format of the csv file please see ImportProductSetsGcsSource.csv_file_uri.
 ///
@@ -2697,13 +2893,13 @@ pub fn vision_projects_locations_product_sets_import_execute(
 
 pub fn vision_projects_locations_product_sets_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ImportProductSetsRequest,
+    args: &VisionProjectsLocationsProductSetsImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_projects_locations_product_sets_import_builder(client, parent, body)?;
+    let builder =
+        vision_projects_locations_product_sets_import_builder(client, &args.parent, &args.body)?;
     vision_projects_locations_product_sets_import_execute(builder)
 }
 
@@ -2815,6 +3011,17 @@ pub fn vision_projects_locations_product_sets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_product_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/productSets
 /// Lists ProductSets in an unspecified order. Possible errors: * Returns INVALID_ARGUMENT if page_size is greater than 100, or less than 1.
 ///
@@ -2827,17 +3034,19 @@ pub fn vision_projects_locations_product_sets_list_execute(
 
 pub fn vision_projects_locations_product_sets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VisionProjectsLocationsProductSetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListProductSetsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        vision_projects_locations_product_sets_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = vision_projects_locations_product_sets_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     vision_projects_locations_product_sets_list_execute(builder)
 }
 
@@ -2946,6 +3155,17 @@ pub fn vision_projects_locations_product_sets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_product_sets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ProductSet,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}
 /// Makes changes to a ProductSet resource. Only display_name can be updated currently. Possible errors: * Returns NOT_FOUND if the ProductSet does not exist. * Returns INVALID_ARGUMENT if display_name is present in update_mask but missing from the request or longer than 4096 characters.
 ///
@@ -2958,15 +3178,17 @@ pub fn vision_projects_locations_product_sets_patch_execute(
 
 pub fn vision_projects_locations_product_sets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ProductSet,
+    args: &VisionProjectsLocationsProductSetsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductSet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vision_projects_locations_product_sets_patch_builder(client, name, updateMask, body)?;
+    let builder = vision_projects_locations_product_sets_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     vision_projects_locations_product_sets_patch_execute(builder)
 }
 
@@ -3063,6 +3285,15 @@ pub fn vision_projects_locations_product_sets_remove_product_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_product_sets_remove_product`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsRemoveProductArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RemoveProductFromProductSetRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}:removeProduct
 /// Removes a Product from the specified ProductSet.
 ///
@@ -3075,14 +3306,14 @@ pub fn vision_projects_locations_product_sets_remove_product_execute(
 
 pub fn vision_projects_locations_product_sets_remove_product(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RemoveProductFromProductSetRequest,
+    args: &VisionProjectsLocationsProductSetsRemoveProductArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vision_projects_locations_product_sets_remove_product_builder(client, name, body)?;
+    let builder = vision_projects_locations_product_sets_remove_product_builder(
+        client, &args.name, &args.body,
+    )?;
     vision_projects_locations_product_sets_remove_product_execute(builder)
 }
 
@@ -3196,6 +3427,17 @@ pub fn vision_projects_locations_product_sets_products_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_product_sets_products_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductSetsProductsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}/products
 /// Lists the Products in a ProductSet, in an unspecified order. If the ProductSet does not exist, the products field of the response will be empty. Possible errors: * Returns INVALID_ARGUMENT if page_size is greater than 100 or less than 1.
 ///
@@ -3208,9 +3450,7 @@ pub fn vision_projects_locations_product_sets_products_list_execute(
 
 pub fn vision_projects_locations_product_sets_products_list(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VisionProjectsLocationsProductSetsProductsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListProductsInProductSetResponse>, ApiError>,
@@ -3220,7 +3460,10 @@ pub fn vision_projects_locations_product_sets_products_list(
     ApiError,
 > {
     let builder = vision_projects_locations_product_sets_products_list_builder(
-        client, name, pageSize, pageToken,
+        client,
+        &args.name,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vision_projects_locations_product_sets_products_list_execute(builder)
 }
@@ -3330,6 +3573,17 @@ pub fn vision_projects_locations_products_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_products_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: productId
+    pub productId: Option<String>,
+    /// Request body.
+    pub body: Product,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products
 /// Creates and returns a new product resource. Possible errors: * Returns INVALID_ARGUMENT if display_name is missing or longer than 4096 characters. * Returns INVALID_ARGUMENT if description is longer than 4096 characters. * Returns INVALID_ARGUMENT if product_category is missing or invalid.
 ///
@@ -3342,15 +3596,17 @@ pub fn vision_projects_locations_products_create_execute(
 
 pub fn vision_projects_locations_products_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    productId: Option<&str>,
-    body: &Product,
+    args: &VisionProjectsLocationsProductsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vision_projects_locations_products_create_builder(client, parent, productId, body)?;
+    let builder = vision_projects_locations_products_create_builder(
+        client,
+        &args.parent,
+        args.productId.as_deref(),
+        &args.body,
+    )?;
     vision_projects_locations_products_create_execute(builder)
 }
 
@@ -3444,6 +3700,13 @@ pub fn vision_projects_locations_products_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_products_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}
 /// Permanently deletes a product and its reference images. Metadata of the product and all its images will be deleted right away, but search queries against ProductSets containing the product may still work until all related caches are refreshed.
 ///
@@ -3456,12 +3719,12 @@ pub fn vision_projects_locations_products_delete_execute(
 
 pub fn vision_projects_locations_products_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VisionProjectsLocationsProductsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_projects_locations_products_delete_builder(client, name)?;
+    let builder = vision_projects_locations_products_delete_builder(client, &args.name)?;
     vision_projects_locations_products_delete_execute(builder)
 }
 
@@ -3555,6 +3818,13 @@ pub fn vision_projects_locations_products_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_products_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}
 /// Gets information associated with a Product. Possible errors: * Returns NOT_FOUND if the Product does not exist.
 ///
@@ -3567,12 +3837,12 @@ pub fn vision_projects_locations_products_get_execute(
 
 pub fn vision_projects_locations_products_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VisionProjectsLocationsProductsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_projects_locations_products_get_builder(client, name)?;
+    let builder = vision_projects_locations_products_get_builder(client, &args.name)?;
     vision_projects_locations_products_get_execute(builder)
 }
 
@@ -3684,6 +3954,17 @@ pub fn vision_projects_locations_products_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_products_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products
 /// Lists products in an unspecified order. Possible errors: * Returns INVALID_ARGUMENT if page_size is greater than 100 or less than 1.
 ///
@@ -3696,17 +3977,19 @@ pub fn vision_projects_locations_products_list_execute(
 
 pub fn vision_projects_locations_products_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VisionProjectsLocationsProductsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListProductsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        vision_projects_locations_products_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = vision_projects_locations_products_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     vision_projects_locations_products_list_execute(builder)
 }
 
@@ -3815,6 +4098,17 @@ pub fn vision_projects_locations_products_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_products_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Product,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}
 /// Makes changes to a Product resource. Only the display_name, description, and labels fields can be updated right now. If labels are updated, the change will not be reflected in queries until the next index time. Possible errors: * Returns NOT_FOUND if the Product does not exist. * Returns INVALID_ARGUMENT if display_name is present in update_mask but is missing from the request or longer than 4096 characters. * Returns INVALID_ARGUMENT if description is present in update_mask but is longer than 4096 characters. * Returns INVALID_ARGUMENT if product_category is present in update_mask.
 ///
@@ -3827,14 +4121,17 @@ pub fn vision_projects_locations_products_patch_execute(
 
 pub fn vision_projects_locations_products_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Product,
+    args: &VisionProjectsLocationsProductsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_projects_locations_products_patch_builder(client, name, updateMask, body)?;
+    let builder = vision_projects_locations_products_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     vision_projects_locations_products_patch_execute(builder)
 }
 
@@ -3931,6 +4228,15 @@ pub fn vision_projects_locations_products_purge_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_products_purge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsPurgeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: PurgeProductsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products:purge
 /// Asynchronous API to delete all Products in a ProductSet or all Products that are in no ProductSet. If a Product is a member of the specified ProductSet in addition to other ProductSets, the Product will still be deleted. It is recommended to not delete the specified ProductSet until after this operation has completed. It is also recommended to not add any of the Products involved in the batch delete to a new ProductSet while this operation is running because those Products may still end up deleted. It's not possible to undo the PurgeProducts operation. Therefore, it is recommended to keep the csv files used in ImportProductSets (if that was how you originally built the Product Set) before starting PurgeProducts, in case you need to re-import the data after deletion. If the plan is to purge all of the Products from a ProductSet and then re-use the empty ProductSet to re-import new Products into the empty ProductSet, you must wait until the PurgeProducts operation has finished for that ProductSet. The google.longrunning.Operation API can be used to keep track of the progress and results of the request. Operation.metadata contains BatchOperationMetadata. (progress)
 ///
@@ -3943,13 +4249,13 @@ pub fn vision_projects_locations_products_purge_execute(
 
 pub fn vision_projects_locations_products_purge(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &PurgeProductsRequest,
+    args: &VisionProjectsLocationsProductsPurgeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_projects_locations_products_purge_builder(client, parent, body)?;
+    let builder =
+        vision_projects_locations_products_purge_builder(client, &args.parent, &args.body)?;
     vision_projects_locations_products_purge_execute(builder)
 }
 
@@ -4060,6 +4366,17 @@ pub fn vision_projects_locations_products_reference_images_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_products_reference_images_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsReferenceImagesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: referenceImageId
+    pub referenceImageId: Option<String>,
+    /// Request body.
+    pub body: ReferenceImage,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages
 /// Creates and returns a new ReferenceImage resource. The bounding_poly field is optional. If bounding_poly is not specified, the system will try to detect regions of interest in the image that are compatible with the product_category on the parent product. If it is specified, detection is ALWAYS skipped. The system converts polygons into non-rotated rectangles. Note that the pipeline will resize the image if the image resolution is too large to process (above 50MP). Possible errors: * Returns INVALID_ARGUMENT if the image_uri is missing or longer than 4096 characters. * Returns INVALID_ARGUMENT if the product does not exist. * Returns INVALID_ARGUMENT if bounding_poly is not provided, and nothing compatible with the parent product's product_category is detected. * Returns INVALID_ARGUMENT if bounding_poly contains more than 10 polygons.
 ///
@@ -4072,9 +4389,7 @@ pub fn vision_projects_locations_products_reference_images_create_execute(
 
 pub fn vision_projects_locations_products_reference_images_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    referenceImageId: Option<&str>,
-    body: &ReferenceImage,
+    args: &VisionProjectsLocationsProductsReferenceImagesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReferenceImage>, ApiError>, P = ApiPending>
         + Send
@@ -4083,9 +4398,9 @@ pub fn vision_projects_locations_products_reference_images_create(
 > {
     let builder = vision_projects_locations_products_reference_images_create_builder(
         client,
-        parent,
-        referenceImageId,
-        body,
+        &args.parent,
+        args.referenceImageId.as_deref(),
+        &args.body,
     )?;
     vision_projects_locations_products_reference_images_create_execute(builder)
 }
@@ -4180,6 +4495,13 @@ pub fn vision_projects_locations_products_reference_images_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_products_reference_images_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsReferenceImagesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages/{referenceImagesId}
 /// Permanently deletes a reference image. The image metadata will be deleted right away, but search queries against ProductSets containing the image may still work until all related caches are refreshed. The actual image files are not deleted from Google Cloud Storage.
 ///
@@ -4192,12 +4514,13 @@ pub fn vision_projects_locations_products_reference_images_delete_execute(
 
 pub fn vision_projects_locations_products_reference_images_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VisionProjectsLocationsProductsReferenceImagesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_projects_locations_products_reference_images_delete_builder(client, name)?;
+    let builder =
+        vision_projects_locations_products_reference_images_delete_builder(client, &args.name)?;
     vision_projects_locations_products_reference_images_delete_execute(builder)
 }
 
@@ -4293,6 +4616,13 @@ pub fn vision_projects_locations_products_reference_images_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_products_reference_images_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsReferenceImagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages/{referenceImagesId}
 /// Gets information associated with a ReferenceImage. Possible errors: * Returns NOT_FOUND if the specified image does not exist.
 ///
@@ -4305,14 +4635,15 @@ pub fn vision_projects_locations_products_reference_images_get_execute(
 
 pub fn vision_projects_locations_products_reference_images_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VisionProjectsLocationsProductsReferenceImagesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReferenceImage>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vision_projects_locations_products_reference_images_get_builder(client, name)?;
+    let builder =
+        vision_projects_locations_products_reference_images_get_builder(client, &args.name)?;
     vision_projects_locations_products_reference_images_get_execute(builder)
 }
 
@@ -4426,6 +4757,17 @@ pub fn vision_projects_locations_products_reference_images_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_locations_products_reference_images_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsLocationsProductsReferenceImagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages
 /// Lists reference images. Possible errors: * Returns NOT_FOUND if the parent product does not exist. * Returns INVALID_ARGUMENT if the page_size is greater than 100, or less than 1.
 ///
@@ -4438,9 +4780,7 @@ pub fn vision_projects_locations_products_reference_images_list_execute(
 
 pub fn vision_projects_locations_products_reference_images_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VisionProjectsLocationsProductsReferenceImagesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListReferenceImagesResponse>, ApiError>,
@@ -4450,7 +4790,10 @@ pub fn vision_projects_locations_products_reference_images_list(
     ApiError,
 > {
     let builder = vision_projects_locations_products_reference_images_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vision_projects_locations_products_reference_images_list_execute(builder)
 }
@@ -4545,6 +4888,13 @@ pub fn vision_projects_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vision_projects_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VisionProjectsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -4557,11 +4907,11 @@ pub fn vision_projects_operations_get_execute(
 
 pub fn vision_projects_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VisionProjectsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_projects_operations_get_builder(client, name)?;
+    let builder = vision_projects_operations_get_builder(client, &args.name)?;
     vision_projects_operations_get_execute(builder)
 }

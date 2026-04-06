@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn netapp_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn netapp_projects_locations_get_execute(
 
 pub fn netapp_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_get_builder(client, name)?;
+    let builder = netapp_projects_locations_get_builder(client, &args.name)?;
     netapp_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn netapp_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn netapp_projects_locations_list_execute(
 
 pub fn netapp_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetappProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn netapp_projects_locations_list(
 > {
     let builder = netapp_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     netapp_projects_locations_list_execute(builder)
 }
@@ -382,6 +402,17 @@ pub fn netapp_projects_locations_active_directories_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_active_directories_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsActiveDirectoriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: activeDirectoryId
+    pub activeDirectoryId: Option<String>,
+    /// Request body.
+    pub body: ActiveDirectory,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/activeDirectories
 /// CreateActiveDirectory Creates the active directory specified in the request.
 ///
@@ -394,18 +425,16 @@ pub fn netapp_projects_locations_active_directories_create_execute(
 
 pub fn netapp_projects_locations_active_directories_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    activeDirectoryId: Option<&str>,
-    body: &ActiveDirectory,
+    args: &NetappProjectsLocationsActiveDirectoriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = netapp_projects_locations_active_directories_create_builder(
         client,
-        parent,
-        activeDirectoryId,
-        body,
+        &args.parent,
+        args.activeDirectoryId.as_deref(),
+        &args.body,
     )?;
     netapp_projects_locations_active_directories_create_execute(builder)
 }
@@ -500,6 +529,13 @@ pub fn netapp_projects_locations_active_directories_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_active_directories_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsActiveDirectoriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}
 /// Delete the active directory specified in the request.
 ///
@@ -512,12 +548,12 @@ pub fn netapp_projects_locations_active_directories_delete_execute(
 
 pub fn netapp_projects_locations_active_directories_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsActiveDirectoriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_active_directories_delete_builder(client, name)?;
+    let builder = netapp_projects_locations_active_directories_delete_builder(client, &args.name)?;
     netapp_projects_locations_active_directories_delete_execute(builder)
 }
 
@@ -613,6 +649,13 @@ pub fn netapp_projects_locations_active_directories_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_active_directories_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsActiveDirectoriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}
 /// Describes a specified active directory.
 ///
@@ -625,14 +668,14 @@ pub fn netapp_projects_locations_active_directories_get_execute(
 
 pub fn netapp_projects_locations_active_directories_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsActiveDirectoriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ActiveDirectory>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_active_directories_get_builder(client, name)?;
+    let builder = netapp_projects_locations_active_directories_get_builder(client, &args.name)?;
     netapp_projects_locations_active_directories_get_execute(builder)
 }
 
@@ -754,6 +797,21 @@ pub fn netapp_projects_locations_active_directories_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_active_directories_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsActiveDirectoriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/activeDirectories
 /// Lists active directories.
 ///
@@ -766,11 +824,7 @@ pub fn netapp_projects_locations_active_directories_list_execute(
 
 pub fn netapp_projects_locations_active_directories_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetappProjectsLocationsActiveDirectoriesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListActiveDirectoriesResponse>, ApiError>,
@@ -780,7 +834,12 @@ pub fn netapp_projects_locations_active_directories_list(
     ApiError,
 > {
     let builder = netapp_projects_locations_active_directories_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     netapp_projects_locations_active_directories_list_execute(builder)
 }
@@ -890,6 +949,17 @@ pub fn netapp_projects_locations_active_directories_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_active_directories_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsActiveDirectoriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ActiveDirectory,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}
 /// Update the parameters of an active directories.
 ///
@@ -902,15 +972,17 @@ pub fn netapp_projects_locations_active_directories_patch_execute(
 
 pub fn netapp_projects_locations_active_directories_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ActiveDirectory,
+    args: &NetappProjectsLocationsActiveDirectoriesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        netapp_projects_locations_active_directories_patch_builder(client, name, updateMask, body)?;
+    let builder = netapp_projects_locations_active_directories_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     netapp_projects_locations_active_directories_patch_execute(builder)
 }
 
@@ -1019,6 +1091,17 @@ pub fn netapp_projects_locations_backup_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_backup_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupPolicyId
+    pub backupPolicyId: Option<String>,
+    /// Request body.
+    pub body: BackupPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPolicies
 /// Creates new backup policy
 ///
@@ -1031,18 +1114,16 @@ pub fn netapp_projects_locations_backup_policies_create_execute(
 
 pub fn netapp_projects_locations_backup_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backupPolicyId: Option<&str>,
-    body: &BackupPolicy,
+    args: &NetappProjectsLocationsBackupPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = netapp_projects_locations_backup_policies_create_builder(
         client,
-        parent,
-        backupPolicyId,
-        body,
+        &args.parent,
+        args.backupPolicyId.as_deref(),
+        &args.body,
     )?;
     netapp_projects_locations_backup_policies_create_execute(builder)
 }
@@ -1137,6 +1218,13 @@ pub fn netapp_projects_locations_backup_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_backup_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPolicies/{backupPoliciesId}
 /// Warning! This operation will permanently delete the backup policy.
 ///
@@ -1149,12 +1237,12 @@ pub fn netapp_projects_locations_backup_policies_delete_execute(
 
 pub fn netapp_projects_locations_backup_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsBackupPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_backup_policies_delete_builder(client, name)?;
+    let builder = netapp_projects_locations_backup_policies_delete_builder(client, &args.name)?;
     netapp_projects_locations_backup_policies_delete_execute(builder)
 }
 
@@ -1250,6 +1338,13 @@ pub fn netapp_projects_locations_backup_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_backup_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPolicies/{backupPoliciesId}
 /// Returns the description of the specified backup policy by backup_policy_id.
 ///
@@ -1262,14 +1357,14 @@ pub fn netapp_projects_locations_backup_policies_get_execute(
 
 pub fn netapp_projects_locations_backup_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsBackupPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BackupPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_backup_policies_get_builder(client, name)?;
+    let builder = netapp_projects_locations_backup_policies_get_builder(client, &args.name)?;
     netapp_projects_locations_backup_policies_get_execute(builder)
 }
 
@@ -1391,6 +1486,21 @@ pub fn netapp_projects_locations_backup_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_backup_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPolicies
 /// Returns list of all available backup policies.
 ///
@@ -1403,11 +1513,7 @@ pub fn netapp_projects_locations_backup_policies_list_execute(
 
 pub fn netapp_projects_locations_backup_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetappProjectsLocationsBackupPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBackupPoliciesResponse>, ApiError>,
@@ -1417,7 +1523,12 @@ pub fn netapp_projects_locations_backup_policies_list(
     ApiError,
 > {
     let builder = netapp_projects_locations_backup_policies_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     netapp_projects_locations_backup_policies_list_execute(builder)
 }
@@ -1527,6 +1638,17 @@ pub fn netapp_projects_locations_backup_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_backup_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: BackupPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPolicies/{backupPoliciesId}
 /// Updates settings of a specific backup policy.
 ///
@@ -1539,15 +1661,17 @@ pub fn netapp_projects_locations_backup_policies_patch_execute(
 
 pub fn netapp_projects_locations_backup_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &BackupPolicy,
+    args: &NetappProjectsLocationsBackupPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        netapp_projects_locations_backup_policies_patch_builder(client, name, updateMask, body)?;
+    let builder = netapp_projects_locations_backup_policies_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     netapp_projects_locations_backup_policies_patch_execute(builder)
 }
 
@@ -1656,6 +1780,17 @@ pub fn netapp_projects_locations_backup_vaults_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_backup_vaults_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupVaultId
+    pub backupVaultId: Option<String>,
+    /// Request body.
+    pub body: BackupVault,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults
 /// Creates new backup vault
 ///
@@ -1668,18 +1803,16 @@ pub fn netapp_projects_locations_backup_vaults_create_execute(
 
 pub fn netapp_projects_locations_backup_vaults_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backupVaultId: Option<&str>,
-    body: &BackupVault,
+    args: &NetappProjectsLocationsBackupVaultsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = netapp_projects_locations_backup_vaults_create_builder(
         client,
-        parent,
-        backupVaultId,
-        body,
+        &args.parent,
+        args.backupVaultId.as_deref(),
+        &args.body,
     )?;
     netapp_projects_locations_backup_vaults_create_execute(builder)
 }
@@ -1774,6 +1907,13 @@ pub fn netapp_projects_locations_backup_vaults_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_backup_vaults_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
 /// Warning! This operation will permanently delete the backup vault.
 ///
@@ -1786,12 +1926,12 @@ pub fn netapp_projects_locations_backup_vaults_delete_execute(
 
 pub fn netapp_projects_locations_backup_vaults_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsBackupVaultsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_backup_vaults_delete_builder(client, name)?;
+    let builder = netapp_projects_locations_backup_vaults_delete_builder(client, &args.name)?;
     netapp_projects_locations_backup_vaults_delete_execute(builder)
 }
 
@@ -1885,6 +2025,13 @@ pub fn netapp_projects_locations_backup_vaults_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_backup_vaults_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
 /// Returns the description of the specified backup vault
 ///
@@ -1897,12 +2044,12 @@ pub fn netapp_projects_locations_backup_vaults_get_execute(
 
 pub fn netapp_projects_locations_backup_vaults_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsBackupVaultsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BackupVault>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_backup_vaults_get_builder(client, name)?;
+    let builder = netapp_projects_locations_backup_vaults_get_builder(client, &args.name)?;
     netapp_projects_locations_backup_vaults_get_execute(builder)
 }
 
@@ -2022,6 +2169,21 @@ pub fn netapp_projects_locations_backup_vaults_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_backup_vaults_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults
 /// Returns list of all available backup vaults.
 ///
@@ -2034,11 +2196,7 @@ pub fn netapp_projects_locations_backup_vaults_list_execute(
 
 pub fn netapp_projects_locations_backup_vaults_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetappProjectsLocationsBackupVaultsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackupVaultsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2046,7 +2204,12 @@ pub fn netapp_projects_locations_backup_vaults_list(
     ApiError,
 > {
     let builder = netapp_projects_locations_backup_vaults_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     netapp_projects_locations_backup_vaults_list_execute(builder)
 }
@@ -2156,6 +2319,17 @@ pub fn netapp_projects_locations_backup_vaults_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_backup_vaults_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: BackupVault,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
 /// Updates the settings of a specific backup vault.
 ///
@@ -2168,15 +2342,17 @@ pub fn netapp_projects_locations_backup_vaults_patch_execute(
 
 pub fn netapp_projects_locations_backup_vaults_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &BackupVault,
+    args: &NetappProjectsLocationsBackupVaultsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        netapp_projects_locations_backup_vaults_patch_builder(client, name, updateMask, body)?;
+    let builder = netapp_projects_locations_backup_vaults_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     netapp_projects_locations_backup_vaults_patch_execute(builder)
 }
 
@@ -2285,6 +2461,17 @@ pub fn netapp_projects_locations_backup_vaults_backups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_backup_vaults_backups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsBackupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupId
+    pub backupId: Option<String>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups
 /// Creates a backup from the volume specified in the request The backup can be created from the given snapshot if specified in the request. If no snapshot specified, there'll be a new snapshot taken to initiate the backup creation.
 ///
@@ -2297,15 +2484,16 @@ pub fn netapp_projects_locations_backup_vaults_backups_create_execute(
 
 pub fn netapp_projects_locations_backup_vaults_backups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backupId: Option<&str>,
-    body: &Backup,
+    args: &NetappProjectsLocationsBackupVaultsBackupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = netapp_projects_locations_backup_vaults_backups_create_builder(
-        client, parent, backupId, body,
+        client,
+        &args.parent,
+        args.backupId.as_deref(),
+        &args.body,
     )?;
     netapp_projects_locations_backup_vaults_backups_create_execute(builder)
 }
@@ -2400,6 +2588,13 @@ pub fn netapp_projects_locations_backup_vaults_backups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_backup_vaults_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}
 /// Warning! This operation will permanently delete the backup.
 ///
@@ -2412,12 +2607,13 @@ pub fn netapp_projects_locations_backup_vaults_backups_delete_execute(
 
 pub fn netapp_projects_locations_backup_vaults_backups_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsBackupVaultsBackupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_backup_vaults_backups_delete_builder(client, name)?;
+    let builder =
+        netapp_projects_locations_backup_vaults_backups_delete_builder(client, &args.name)?;
     netapp_projects_locations_backup_vaults_backups_delete_execute(builder)
 }
 
@@ -2511,6 +2707,13 @@ pub fn netapp_projects_locations_backup_vaults_backups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_backup_vaults_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}
 /// Returns the description of the specified backup
 ///
@@ -2523,12 +2726,12 @@ pub fn netapp_projects_locations_backup_vaults_backups_get_execute(
 
 pub fn netapp_projects_locations_backup_vaults_backups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsBackupVaultsBackupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_backup_vaults_backups_get_builder(client, name)?;
+    let builder = netapp_projects_locations_backup_vaults_backups_get_builder(client, &args.name)?;
     netapp_projects_locations_backup_vaults_backups_get_execute(builder)
 }
 
@@ -2648,6 +2851,21 @@ pub fn netapp_projects_locations_backup_vaults_backups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_backup_vaults_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups
 /// Returns descriptions of all backups for a `backupVault`.
 ///
@@ -2660,11 +2878,7 @@ pub fn netapp_projects_locations_backup_vaults_backups_list_execute(
 
 pub fn netapp_projects_locations_backup_vaults_backups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetappProjectsLocationsBackupVaultsBackupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2672,7 +2886,12 @@ pub fn netapp_projects_locations_backup_vaults_backups_list(
     ApiError,
 > {
     let builder = netapp_projects_locations_backup_vaults_backups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     netapp_projects_locations_backup_vaults_backups_list_execute(builder)
 }
@@ -2782,6 +3001,17 @@ pub fn netapp_projects_locations_backup_vaults_backups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_backup_vaults_backups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsBackupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}
 /// Update backup with full spec.
 ///
@@ -2794,15 +3024,16 @@ pub fn netapp_projects_locations_backup_vaults_backups_patch_execute(
 
 pub fn netapp_projects_locations_backup_vaults_backups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Backup,
+    args: &NetappProjectsLocationsBackupVaultsBackupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = netapp_projects_locations_backup_vaults_backups_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     netapp_projects_locations_backup_vaults_backups_patch_execute(builder)
 }
@@ -2912,6 +3143,17 @@ pub fn netapp_projects_locations_host_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_host_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsHostGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: hostGroupId
+    pub hostGroupId: Option<String>,
+    /// Request body.
+    pub body: HostGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/hostGroups
 /// Creates a new host group.
 ///
@@ -2924,15 +3166,17 @@ pub fn netapp_projects_locations_host_groups_create_execute(
 
 pub fn netapp_projects_locations_host_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    hostGroupId: Option<&str>,
-    body: &HostGroup,
+    args: &NetappProjectsLocationsHostGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        netapp_projects_locations_host_groups_create_builder(client, parent, hostGroupId, body)?;
+    let builder = netapp_projects_locations_host_groups_create_builder(
+        client,
+        &args.parent,
+        args.hostGroupId.as_deref(),
+        &args.body,
+    )?;
     netapp_projects_locations_host_groups_create_execute(builder)
 }
 
@@ -3026,6 +3270,13 @@ pub fn netapp_projects_locations_host_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_host_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsHostGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/hostGroups/{hostGroupsId}
 /// Deletes a host group.
 ///
@@ -3038,12 +3289,12 @@ pub fn netapp_projects_locations_host_groups_delete_execute(
 
 pub fn netapp_projects_locations_host_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsHostGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_host_groups_delete_builder(client, name)?;
+    let builder = netapp_projects_locations_host_groups_delete_builder(client, &args.name)?;
     netapp_projects_locations_host_groups_delete_execute(builder)
 }
 
@@ -3137,6 +3388,13 @@ pub fn netapp_projects_locations_host_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_host_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsHostGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/hostGroups/{hostGroupsId}
 /// Returns details of the specified host group.
 ///
@@ -3149,12 +3407,12 @@ pub fn netapp_projects_locations_host_groups_get_execute(
 
 pub fn netapp_projects_locations_host_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsHostGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HostGroup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_host_groups_get_builder(client, name)?;
+    let builder = netapp_projects_locations_host_groups_get_builder(client, &args.name)?;
     netapp_projects_locations_host_groups_get_execute(builder)
 }
 
@@ -3274,6 +3532,21 @@ pub fn netapp_projects_locations_host_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_host_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsHostGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/hostGroups
 /// Returns a list of host groups in a location. Use - as location to list host groups across all locations.
 ///
@@ -3286,11 +3559,7 @@ pub fn netapp_projects_locations_host_groups_list_execute(
 
 pub fn netapp_projects_locations_host_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetappProjectsLocationsHostGroupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListHostGroupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3298,7 +3567,12 @@ pub fn netapp_projects_locations_host_groups_list(
     ApiError,
 > {
     let builder = netapp_projects_locations_host_groups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     netapp_projects_locations_host_groups_list_execute(builder)
 }
@@ -3408,6 +3682,17 @@ pub fn netapp_projects_locations_host_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_host_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsHostGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: HostGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/hostGroups/{hostGroupsId}
 /// Updates an existing host group.
 ///
@@ -3420,15 +3705,17 @@ pub fn netapp_projects_locations_host_groups_patch_execute(
 
 pub fn netapp_projects_locations_host_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &HostGroup,
+    args: &NetappProjectsLocationsHostGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        netapp_projects_locations_host_groups_patch_builder(client, name, updateMask, body)?;
+    let builder = netapp_projects_locations_host_groups_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     netapp_projects_locations_host_groups_patch_execute(builder)
 }
 
@@ -3537,6 +3824,17 @@ pub fn netapp_projects_locations_kms_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_kms_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsKmsConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: kmsConfigId
+    pub kmsConfigId: Option<String>,
+    /// Request body.
+    pub body: KmsConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs
 /// Creates a new KMS config.
 ///
@@ -3549,15 +3847,17 @@ pub fn netapp_projects_locations_kms_configs_create_execute(
 
 pub fn netapp_projects_locations_kms_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    kmsConfigId: Option<&str>,
-    body: &KmsConfig,
+    args: &NetappProjectsLocationsKmsConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        netapp_projects_locations_kms_configs_create_builder(client, parent, kmsConfigId, body)?;
+    let builder = netapp_projects_locations_kms_configs_create_builder(
+        client,
+        &args.parent,
+        args.kmsConfigId.as_deref(),
+        &args.body,
+    )?;
     netapp_projects_locations_kms_configs_create_execute(builder)
 }
 
@@ -3651,6 +3951,13 @@ pub fn netapp_projects_locations_kms_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_kms_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsKmsConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}
 /// Warning! This operation will permanently delete the Kms config.
 ///
@@ -3663,12 +3970,12 @@ pub fn netapp_projects_locations_kms_configs_delete_execute(
 
 pub fn netapp_projects_locations_kms_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsKmsConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_kms_configs_delete_builder(client, name)?;
+    let builder = netapp_projects_locations_kms_configs_delete_builder(client, &args.name)?;
     netapp_projects_locations_kms_configs_delete_execute(builder)
 }
 
@@ -3765,6 +4072,15 @@ pub fn netapp_projects_locations_kms_configs_encrypt_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_kms_configs_encrypt`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsKmsConfigsEncryptArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EncryptVolumesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}:encrypt
 /// Encrypt the existing volumes without CMEK encryption with the desired the KMS config for the whole region.
 ///
@@ -3777,13 +4093,13 @@ pub fn netapp_projects_locations_kms_configs_encrypt_execute(
 
 pub fn netapp_projects_locations_kms_configs_encrypt(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EncryptVolumesRequest,
+    args: &NetappProjectsLocationsKmsConfigsEncryptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_kms_configs_encrypt_builder(client, name, body)?;
+    let builder =
+        netapp_projects_locations_kms_configs_encrypt_builder(client, &args.name, &args.body)?;
     netapp_projects_locations_kms_configs_encrypt_execute(builder)
 }
 
@@ -3877,6 +4193,13 @@ pub fn netapp_projects_locations_kms_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_kms_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsKmsConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}
 /// Returns the description of the specified KMS config by kms_config_id.
 ///
@@ -3889,12 +4212,12 @@ pub fn netapp_projects_locations_kms_configs_get_execute(
 
 pub fn netapp_projects_locations_kms_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsKmsConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<KmsConfig>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_kms_configs_get_builder(client, name)?;
+    let builder = netapp_projects_locations_kms_configs_get_builder(client, &args.name)?;
     netapp_projects_locations_kms_configs_get_execute(builder)
 }
 
@@ -4014,6 +4337,21 @@ pub fn netapp_projects_locations_kms_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_kms_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsKmsConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs
 /// Returns descriptions of all KMS configs owned by the caller.
 ///
@@ -4026,11 +4364,7 @@ pub fn netapp_projects_locations_kms_configs_list_execute(
 
 pub fn netapp_projects_locations_kms_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetappProjectsLocationsKmsConfigsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListKmsConfigsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4038,7 +4372,12 @@ pub fn netapp_projects_locations_kms_configs_list(
     ApiError,
 > {
     let builder = netapp_projects_locations_kms_configs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     netapp_projects_locations_kms_configs_list_execute(builder)
 }
@@ -4148,6 +4487,17 @@ pub fn netapp_projects_locations_kms_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_kms_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsKmsConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: KmsConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}
 /// Updates the Kms config properties with the full spec
 ///
@@ -4160,15 +4510,17 @@ pub fn netapp_projects_locations_kms_configs_patch_execute(
 
 pub fn netapp_projects_locations_kms_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &KmsConfig,
+    args: &NetappProjectsLocationsKmsConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        netapp_projects_locations_kms_configs_patch_builder(client, name, updateMask, body)?;
+    let builder = netapp_projects_locations_kms_configs_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     netapp_projects_locations_kms_configs_patch_execute(builder)
 }
 
@@ -4267,6 +4619,15 @@ pub fn netapp_projects_locations_kms_configs_verify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_kms_configs_verify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsKmsConfigsVerifyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: VerifyKmsConfigRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}:verify
 /// Verifies KMS config reachability.
 ///
@@ -4279,15 +4640,15 @@ pub fn netapp_projects_locations_kms_configs_verify_execute(
 
 pub fn netapp_projects_locations_kms_configs_verify(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &VerifyKmsConfigRequest,
+    args: &NetappProjectsLocationsKmsConfigsVerifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VerifyKmsConfigResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_kms_configs_verify_builder(client, name, body)?;
+    let builder =
+        netapp_projects_locations_kms_configs_verify_builder(client, &args.name, &args.body)?;
     netapp_projects_locations_kms_configs_verify_execute(builder)
 }
 
@@ -4386,6 +4747,15 @@ pub fn netapp_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -4398,15 +4768,15 @@ pub fn netapp_projects_locations_operations_cancel_execute(
 
 pub fn netapp_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &NetappProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        netapp_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     netapp_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -4502,6 +4872,13 @@ pub fn netapp_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -4514,14 +4891,14 @@ pub fn netapp_projects_locations_operations_delete_execute(
 
 pub fn netapp_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_operations_delete_builder(client, name)?;
+    let builder = netapp_projects_locations_operations_delete_builder(client, &args.name)?;
     netapp_projects_locations_operations_delete_execute(builder)
 }
 
@@ -4615,6 +4992,13 @@ pub fn netapp_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -4627,12 +5011,12 @@ pub fn netapp_projects_locations_operations_get_execute(
 
 pub fn netapp_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_operations_get_builder(client, name)?;
+    let builder = netapp_projects_locations_operations_get_builder(client, &args.name)?;
     netapp_projects_locations_operations_get_execute(builder)
 }
 
@@ -4752,6 +5136,21 @@ pub fn netapp_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -4764,11 +5163,7 @@ pub fn netapp_projects_locations_operations_list_execute(
 
 pub fn netapp_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetappProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4777,11 +5172,11 @@ pub fn netapp_projects_locations_operations_list(
 > {
     let builder = netapp_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     netapp_projects_locations_operations_list_execute(builder)
 }
@@ -4891,6 +5286,17 @@ pub fn netapp_projects_locations_storage_pools_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_storage_pools_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: storagePoolId
+    pub storagePoolId: Option<String>,
+    /// Request body.
+    pub body: StoragePool,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools
 /// Creates a new storage pool.
 ///
@@ -4903,18 +5309,16 @@ pub fn netapp_projects_locations_storage_pools_create_execute(
 
 pub fn netapp_projects_locations_storage_pools_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    storagePoolId: Option<&str>,
-    body: &StoragePool,
+    args: &NetappProjectsLocationsStoragePoolsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = netapp_projects_locations_storage_pools_create_builder(
         client,
-        parent,
-        storagePoolId,
-        body,
+        &args.parent,
+        args.storagePoolId.as_deref(),
+        &args.body,
     )?;
     netapp_projects_locations_storage_pools_create_execute(builder)
 }
@@ -5009,6 +5413,13 @@ pub fn netapp_projects_locations_storage_pools_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_storage_pools_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}
 /// Warning! This operation will permanently delete the storage pool.
 ///
@@ -5021,12 +5432,12 @@ pub fn netapp_projects_locations_storage_pools_delete_execute(
 
 pub fn netapp_projects_locations_storage_pools_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsStoragePoolsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_storage_pools_delete_builder(client, name)?;
+    let builder = netapp_projects_locations_storage_pools_delete_builder(client, &args.name)?;
     netapp_projects_locations_storage_pools_delete_execute(builder)
 }
 
@@ -5120,6 +5531,13 @@ pub fn netapp_projects_locations_storage_pools_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_storage_pools_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}
 /// Returns the description of the specified storage pool by `poolId`.
 ///
@@ -5132,12 +5550,12 @@ pub fn netapp_projects_locations_storage_pools_get_execute(
 
 pub fn netapp_projects_locations_storage_pools_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsStoragePoolsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StoragePool>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_storage_pools_get_builder(client, name)?;
+    let builder = netapp_projects_locations_storage_pools_get_builder(client, &args.name)?;
     netapp_projects_locations_storage_pools_get_execute(builder)
 }
 
@@ -5257,6 +5675,21 @@ pub fn netapp_projects_locations_storage_pools_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_storage_pools_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools
 /// Returns descriptions of all storage pools owned by the caller.
 ///
@@ -5269,11 +5702,7 @@ pub fn netapp_projects_locations_storage_pools_list_execute(
 
 pub fn netapp_projects_locations_storage_pools_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetappProjectsLocationsStoragePoolsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListStoragePoolsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5281,7 +5710,12 @@ pub fn netapp_projects_locations_storage_pools_list(
     ApiError,
 > {
     let builder = netapp_projects_locations_storage_pools_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     netapp_projects_locations_storage_pools_list_execute(builder)
 }
@@ -5391,6 +5825,17 @@ pub fn netapp_projects_locations_storage_pools_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_storage_pools_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: StoragePool,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}
 /// Updates the storage pool properties with the full spec
 ///
@@ -5403,15 +5848,17 @@ pub fn netapp_projects_locations_storage_pools_patch_execute(
 
 pub fn netapp_projects_locations_storage_pools_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &StoragePool,
+    args: &NetappProjectsLocationsStoragePoolsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        netapp_projects_locations_storage_pools_patch_builder(client, name, updateMask, body)?;
+    let builder = netapp_projects_locations_storage_pools_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     netapp_projects_locations_storage_pools_patch_execute(builder)
 }
 
@@ -5508,6 +5955,15 @@ pub fn netapp_projects_locations_storage_pools_switch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_storage_pools_switch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsSwitchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SwitchActiveReplicaZoneRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}:switch
 /// This operation will switch the `active/replica` zone for a regional `storagePool`.
 ///
@@ -5520,13 +5976,13 @@ pub fn netapp_projects_locations_storage_pools_switch_execute(
 
 pub fn netapp_projects_locations_storage_pools_switch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SwitchActiveReplicaZoneRequest,
+    args: &NetappProjectsLocationsStoragePoolsSwitchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_storage_pools_switch_builder(client, name, body)?;
+    let builder =
+        netapp_projects_locations_storage_pools_switch_builder(client, &args.name, &args.body)?;
     netapp_projects_locations_storage_pools_switch_execute(builder)
 }
 
@@ -5623,6 +6079,15 @@ pub fn netapp_projects_locations_storage_pools_validate_directory_service_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_storage_pools_validate_directory_service`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsValidateDirectoryServiceArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ValidateDirectoryServiceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}:validateDirectoryService
 /// ValidateDirectoryService does a connectivity check for a directory service policy attached to the storage pool.
 ///
@@ -5635,14 +6100,13 @@ pub fn netapp_projects_locations_storage_pools_validate_directory_service_execut
 
 pub fn netapp_projects_locations_storage_pools_validate_directory_service(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ValidateDirectoryServiceRequest,
+    args: &NetappProjectsLocationsStoragePoolsValidateDirectoryServiceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = netapp_projects_locations_storage_pools_validate_directory_service_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     netapp_projects_locations_storage_pools_validate_directory_service_execute(builder)
 }
@@ -5741,6 +6205,13 @@ pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_storage_pools_ontap_execute_ontap_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsOntapExecuteOntapDeleteArgs {
+    /// Path parameter: ontapPath
+    pub ontapPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
 /// ExecuteOntapDelete dispatches the ONTAP DELETE request to the StoragePool cluster.
 ///
@@ -5753,7 +6224,7 @@ pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_execut
 
 pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_delete(
     client: &SimpleHttpClient,
-    ontapPath: &str,
+    args: &NetappProjectsLocationsStoragePoolsOntapExecuteOntapDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ExecuteOntapDeleteResponse>, ApiError>,
@@ -5763,7 +6234,8 @@ pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_delete(
     ApiError,
 > {
     let builder = netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_builder(
-        client, ontapPath,
+        client,
+        &args.ontapPath,
     )?;
     netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_execute(builder)
 }
@@ -5860,6 +6332,13 @@ pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_storage_pools_ontap_execute_ontap_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsOntapExecuteOntapGetArgs {
+    /// Path parameter: ontapPath
+    pub ontapPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
 /// ExecuteOntapGet dispatches the ONTAP GET request to the StoragePool cluster.
 ///
@@ -5872,15 +6351,17 @@ pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_get_execute(
 
 pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_get(
     client: &SimpleHttpClient,
-    ontapPath: &str,
+    args: &NetappProjectsLocationsStoragePoolsOntapExecuteOntapGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExecuteOntapGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        netapp_projects_locations_storage_pools_ontap_execute_ontap_get_builder(client, ontapPath)?;
+    let builder = netapp_projects_locations_storage_pools_ontap_execute_ontap_get_builder(
+        client,
+        &args.ontapPath,
+    )?;
     netapp_projects_locations_storage_pools_ontap_execute_ontap_get_execute(builder)
 }
 
@@ -5979,6 +6460,15 @@ pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_storage_pools_ontap_execute_ontap_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsOntapExecuteOntapPatchArgs {
+    /// Path parameter: ontapPath
+    pub ontapPath: String,
+    /// Request body.
+    pub body: ExecuteOntapPatchRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
 /// ExecuteOntapPatch dispatches the ONTAP PATCH request to the StoragePool cluster.
 ///
@@ -5991,8 +6481,7 @@ pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_execute
 
 pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_patch(
     client: &SimpleHttpClient,
-    ontapPath: &str,
-    body: &ExecuteOntapPatchRequest,
+    args: &NetappProjectsLocationsStoragePoolsOntapExecuteOntapPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExecuteOntapPatchResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6000,7 +6489,9 @@ pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_patch(
     ApiError,
 > {
     let builder = netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_builder(
-        client, ontapPath, body,
+        client,
+        &args.ontapPath,
+        &args.body,
     )?;
     netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_execute(builder)
 }
@@ -6100,6 +6591,15 @@ pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_post_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_storage_pools_ontap_execute_ontap_post`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsOntapExecuteOntapPostArgs {
+    /// Path parameter: ontapPath
+    pub ontapPath: String,
+    /// Request body.
+    pub body: ExecuteOntapPostRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
 /// ExecuteOntapPost dispatches the ONTAP POST request to the StoragePool cluster.
 ///
@@ -6112,8 +6612,7 @@ pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_post_execute(
 
 pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_post(
     client: &SimpleHttpClient,
-    ontapPath: &str,
-    body: &ExecuteOntapPostRequest,
+    args: &NetappProjectsLocationsStoragePoolsOntapExecuteOntapPostArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExecuteOntapPostResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6121,7 +6620,9 @@ pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_post(
     ApiError,
 > {
     let builder = netapp_projects_locations_storage_pools_ontap_execute_ontap_post_builder(
-        client, ontapPath, body,
+        client,
+        &args.ontapPath,
+        &args.body,
     )?;
     netapp_projects_locations_storage_pools_ontap_execute_ontap_post_execute(builder)
 }
@@ -6231,6 +6732,17 @@ pub fn netapp_projects_locations_volumes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: volumeId
+    pub volumeId: Option<String>,
+    /// Request body.
+    pub body: Volume,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes
 /// Creates a new Volume in a given project and location.
 ///
@@ -6243,14 +6755,17 @@ pub fn netapp_projects_locations_volumes_create_execute(
 
 pub fn netapp_projects_locations_volumes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    volumeId: Option<&str>,
-    body: &Volume,
+    args: &NetappProjectsLocationsVolumesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_volumes_create_builder(client, parent, volumeId, body)?;
+    let builder = netapp_projects_locations_volumes_create_builder(
+        client,
+        &args.parent,
+        args.volumeId.as_deref(),
+        &args.body,
+    )?;
     netapp_projects_locations_volumes_create_execute(builder)
 }
 
@@ -6356,6 +6871,15 @@ pub fn netapp_projects_locations_volumes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
 /// Deletes a single Volume.
 ///
@@ -6368,13 +6892,12 @@ pub fn netapp_projects_locations_volumes_delete_execute(
 
 pub fn netapp_projects_locations_volumes_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &NetappProjectsLocationsVolumesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_volumes_delete_builder(client, name, force)?;
+    let builder = netapp_projects_locations_volumes_delete_builder(client, &args.name, args.force)?;
     netapp_projects_locations_volumes_delete_execute(builder)
 }
 
@@ -6471,6 +6994,15 @@ pub fn netapp_projects_locations_volumes_establish_peering_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_establish_peering`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesEstablishPeeringArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EstablishVolumePeeringRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:establishPeering
 /// Establish volume peering. This is used to establish cluster and svm peerings between the GCNV and OnPrem clusters.
 ///
@@ -6483,13 +7015,14 @@ pub fn netapp_projects_locations_volumes_establish_peering_execute(
 
 pub fn netapp_projects_locations_volumes_establish_peering(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EstablishVolumePeeringRequest,
+    args: &NetappProjectsLocationsVolumesEstablishPeeringArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_volumes_establish_peering_builder(client, name, body)?;
+    let builder = netapp_projects_locations_volumes_establish_peering_builder(
+        client, &args.name, &args.body,
+    )?;
     netapp_projects_locations_volumes_establish_peering_execute(builder)
 }
 
@@ -6583,6 +7116,13 @@ pub fn netapp_projects_locations_volumes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
 /// Gets details of a single Volume.
 ///
@@ -6595,12 +7135,12 @@ pub fn netapp_projects_locations_volumes_get_execute(
 
 pub fn netapp_projects_locations_volumes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsVolumesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_volumes_get_builder(client, name)?;
+    let builder = netapp_projects_locations_volumes_get_builder(client, &args.name)?;
     netapp_projects_locations_volumes_get_execute(builder)
 }
 
@@ -6720,6 +7260,21 @@ pub fn netapp_projects_locations_volumes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes
 /// Lists Volumes in a given project.
 ///
@@ -6732,11 +7287,7 @@ pub fn netapp_projects_locations_volumes_list_execute(
 
 pub fn netapp_projects_locations_volumes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetappProjectsLocationsVolumesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListVolumesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6744,7 +7295,12 @@ pub fn netapp_projects_locations_volumes_list(
     ApiError,
 > {
     let builder = netapp_projects_locations_volumes_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     netapp_projects_locations_volumes_list_execute(builder)
 }
@@ -6854,6 +7410,17 @@ pub fn netapp_projects_locations_volumes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Volume,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
 /// Updates the parameters of a single Volume.
 ///
@@ -6866,14 +7433,17 @@ pub fn netapp_projects_locations_volumes_patch_execute(
 
 pub fn netapp_projects_locations_volumes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Volume,
+    args: &NetappProjectsLocationsVolumesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_volumes_patch_builder(client, name, updateMask, body)?;
+    let builder = netapp_projects_locations_volumes_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     netapp_projects_locations_volumes_patch_execute(builder)
 }
 
@@ -6970,6 +7540,15 @@ pub fn netapp_projects_locations_volumes_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RestoreBackupFilesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:restore
 /// Restore files from a backup to a volume.
 ///
@@ -6982,13 +7561,13 @@ pub fn netapp_projects_locations_volumes_restore_execute(
 
 pub fn netapp_projects_locations_volumes_restore(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RestoreBackupFilesRequest,
+    args: &NetappProjectsLocationsVolumesRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_volumes_restore_builder(client, name, body)?;
+    let builder =
+        netapp_projects_locations_volumes_restore_builder(client, &args.name, &args.body)?;
     netapp_projects_locations_volumes_restore_execute(builder)
 }
 
@@ -7085,6 +7664,15 @@ pub fn netapp_projects_locations_volumes_revert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesRevertArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RevertVolumeRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:revert
 /// Revert an existing volume to a specified snapshot. Warning! This operation will permanently revert all changes made after the snapshot was created.
 ///
@@ -7097,13 +7685,12 @@ pub fn netapp_projects_locations_volumes_revert_execute(
 
 pub fn netapp_projects_locations_volumes_revert(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RevertVolumeRequest,
+    args: &NetappProjectsLocationsVolumesRevertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_volumes_revert_builder(client, name, body)?;
+    let builder = netapp_projects_locations_volumes_revert_builder(client, &args.name, &args.body)?;
     netapp_projects_locations_volumes_revert_execute(builder)
 }
 
@@ -7212,6 +7799,17 @@ pub fn netapp_projects_locations_volumes_quota_rules_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_quota_rules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesQuotaRulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: quotaRuleId
+    pub quotaRuleId: Option<String>,
+    /// Request body.
+    pub body: QuotaRule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules
 /// Creates a new quota rule.
 ///
@@ -7224,18 +7822,16 @@ pub fn netapp_projects_locations_volumes_quota_rules_create_execute(
 
 pub fn netapp_projects_locations_volumes_quota_rules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    quotaRuleId: Option<&str>,
-    body: &QuotaRule,
+    args: &NetappProjectsLocationsVolumesQuotaRulesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = netapp_projects_locations_volumes_quota_rules_create_builder(
         client,
-        parent,
-        quotaRuleId,
-        body,
+        &args.parent,
+        args.quotaRuleId.as_deref(),
+        &args.body,
     )?;
     netapp_projects_locations_volumes_quota_rules_create_execute(builder)
 }
@@ -7330,6 +7926,13 @@ pub fn netapp_projects_locations_volumes_quota_rules_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_quota_rules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesQuotaRulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}
 /// Deletes a quota rule.
 ///
@@ -7342,12 +7945,12 @@ pub fn netapp_projects_locations_volumes_quota_rules_delete_execute(
 
 pub fn netapp_projects_locations_volumes_quota_rules_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsVolumesQuotaRulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_volumes_quota_rules_delete_builder(client, name)?;
+    let builder = netapp_projects_locations_volumes_quota_rules_delete_builder(client, &args.name)?;
     netapp_projects_locations_volumes_quota_rules_delete_execute(builder)
 }
 
@@ -7441,6 +8044,13 @@ pub fn netapp_projects_locations_volumes_quota_rules_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_quota_rules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesQuotaRulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}
 /// Returns details of the specified quota rule.
 ///
@@ -7453,12 +8063,12 @@ pub fn netapp_projects_locations_volumes_quota_rules_get_execute(
 
 pub fn netapp_projects_locations_volumes_quota_rules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsVolumesQuotaRulesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QuotaRule>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_volumes_quota_rules_get_builder(client, name)?;
+    let builder = netapp_projects_locations_volumes_quota_rules_get_builder(client, &args.name)?;
     netapp_projects_locations_volumes_quota_rules_get_execute(builder)
 }
 
@@ -7578,6 +8188,21 @@ pub fn netapp_projects_locations_volumes_quota_rules_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_quota_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesQuotaRulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules
 /// Returns list of all quota rules in a location.
 ///
@@ -7590,11 +8215,7 @@ pub fn netapp_projects_locations_volumes_quota_rules_list_execute(
 
 pub fn netapp_projects_locations_volumes_quota_rules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetappProjectsLocationsVolumesQuotaRulesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListQuotaRulesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7602,7 +8223,12 @@ pub fn netapp_projects_locations_volumes_quota_rules_list(
     ApiError,
 > {
     let builder = netapp_projects_locations_volumes_quota_rules_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     netapp_projects_locations_volumes_quota_rules_list_execute(builder)
 }
@@ -7712,6 +8338,17 @@ pub fn netapp_projects_locations_volumes_quota_rules_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_quota_rules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesQuotaRulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: QuotaRule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}
 /// Updates a quota rule.
 ///
@@ -7724,15 +8361,16 @@ pub fn netapp_projects_locations_volumes_quota_rules_patch_execute(
 
 pub fn netapp_projects_locations_volumes_quota_rules_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &QuotaRule,
+    args: &NetappProjectsLocationsVolumesQuotaRulesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = netapp_projects_locations_volumes_quota_rules_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     netapp_projects_locations_volumes_quota_rules_patch_execute(builder)
 }
@@ -7842,6 +8480,17 @@ pub fn netapp_projects_locations_volumes_replications_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_replications_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: replicationId
+    pub replicationId: Option<String>,
+    /// Request body.
+    pub body: Replication,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications
 /// Create a new replication for a volume.
 ///
@@ -7854,18 +8503,16 @@ pub fn netapp_projects_locations_volumes_replications_create_execute(
 
 pub fn netapp_projects_locations_volumes_replications_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    replicationId: Option<&str>,
-    body: &Replication,
+    args: &NetappProjectsLocationsVolumesReplicationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = netapp_projects_locations_volumes_replications_create_builder(
         client,
-        parent,
-        replicationId,
-        body,
+        &args.parent,
+        args.replicationId.as_deref(),
+        &args.body,
     )?;
     netapp_projects_locations_volumes_replications_create_execute(builder)
 }
@@ -7960,6 +8607,13 @@ pub fn netapp_projects_locations_volumes_replications_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_replications_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}
 /// Deletes a replication.
 ///
@@ -7972,12 +8626,13 @@ pub fn netapp_projects_locations_volumes_replications_delete_execute(
 
 pub fn netapp_projects_locations_volumes_replications_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsVolumesReplicationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_volumes_replications_delete_builder(client, name)?;
+    let builder =
+        netapp_projects_locations_volumes_replications_delete_builder(client, &args.name)?;
     netapp_projects_locations_volumes_replications_delete_execute(builder)
 }
 
@@ -8074,6 +8729,15 @@ pub fn netapp_projects_locations_volumes_replications_establish_peering_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_replications_establish_peering`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsEstablishPeeringArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EstablishPeeringRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:establishPeering
 /// Establish replication peering.
 ///
@@ -8086,14 +8750,13 @@ pub fn netapp_projects_locations_volumes_replications_establish_peering_execute(
 
 pub fn netapp_projects_locations_volumes_replications_establish_peering(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EstablishPeeringRequest,
+    args: &NetappProjectsLocationsVolumesReplicationsEstablishPeeringArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = netapp_projects_locations_volumes_replications_establish_peering_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     netapp_projects_locations_volumes_replications_establish_peering_execute(builder)
 }
@@ -8188,6 +8851,13 @@ pub fn netapp_projects_locations_volumes_replications_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_replications_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}
 /// Describe a replication for a volume.
 ///
@@ -8200,12 +8870,12 @@ pub fn netapp_projects_locations_volumes_replications_get_execute(
 
 pub fn netapp_projects_locations_volumes_replications_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsVolumesReplicationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Replication>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_volumes_replications_get_builder(client, name)?;
+    let builder = netapp_projects_locations_volumes_replications_get_builder(client, &args.name)?;
     netapp_projects_locations_volumes_replications_get_execute(builder)
 }
 
@@ -8325,6 +8995,21 @@ pub fn netapp_projects_locations_volumes_replications_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_replications_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications
 /// Returns descriptions of all replications for a volume.
 ///
@@ -8337,11 +9022,7 @@ pub fn netapp_projects_locations_volumes_replications_list_execute(
 
 pub fn netapp_projects_locations_volumes_replications_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetappProjectsLocationsVolumesReplicationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListReplicationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8349,7 +9030,12 @@ pub fn netapp_projects_locations_volumes_replications_list(
     ApiError,
 > {
     let builder = netapp_projects_locations_volumes_replications_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     netapp_projects_locations_volumes_replications_list_execute(builder)
 }
@@ -8459,6 +9145,17 @@ pub fn netapp_projects_locations_volumes_replications_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_replications_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Replication,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}
 /// Updates the settings of a specific replication.
 ///
@@ -8471,15 +9168,16 @@ pub fn netapp_projects_locations_volumes_replications_patch_execute(
 
 pub fn netapp_projects_locations_volumes_replications_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Replication,
+    args: &NetappProjectsLocationsVolumesReplicationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = netapp_projects_locations_volumes_replications_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     netapp_projects_locations_volumes_replications_patch_execute(builder)
 }
@@ -8577,6 +9275,15 @@ pub fn netapp_projects_locations_volumes_replications_resume_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_replications_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsResumeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResumeReplicationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:resume
 /// Resume Cross Region Replication.
 ///
@@ -8589,14 +9296,14 @@ pub fn netapp_projects_locations_volumes_replications_resume_execute(
 
 pub fn netapp_projects_locations_volumes_replications_resume(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResumeReplicationRequest,
+    args: &NetappProjectsLocationsVolumesReplicationsResumeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        netapp_projects_locations_volumes_replications_resume_builder(client, name, body)?;
+    let builder = netapp_projects_locations_volumes_replications_resume_builder(
+        client, &args.name, &args.body,
+    )?;
     netapp_projects_locations_volumes_replications_resume_execute(builder)
 }
 
@@ -8693,6 +9400,15 @@ pub fn netapp_projects_locations_volumes_replications_reverse_direction_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_replications_reverse_direction`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsReverseDirectionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ReverseReplicationDirectionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:reverseDirection
 /// Reverses direction of replication. Source becomes destination and destination becomes source.
 ///
@@ -8705,14 +9421,13 @@ pub fn netapp_projects_locations_volumes_replications_reverse_direction_execute(
 
 pub fn netapp_projects_locations_volumes_replications_reverse_direction(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ReverseReplicationDirectionRequest,
+    args: &NetappProjectsLocationsVolumesReplicationsReverseDirectionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = netapp_projects_locations_volumes_replications_reverse_direction_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     netapp_projects_locations_volumes_replications_reverse_direction_execute(builder)
 }
@@ -8810,6 +9525,15 @@ pub fn netapp_projects_locations_volumes_replications_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_replications_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsStopArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StopReplicationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:stop
 /// Stop Cross Region Replication.
 ///
@@ -8822,13 +9546,14 @@ pub fn netapp_projects_locations_volumes_replications_stop_execute(
 
 pub fn netapp_projects_locations_volumes_replications_stop(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StopReplicationRequest,
+    args: &NetappProjectsLocationsVolumesReplicationsStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_volumes_replications_stop_builder(client, name, body)?;
+    let builder = netapp_projects_locations_volumes_replications_stop_builder(
+        client, &args.name, &args.body,
+    )?;
     netapp_projects_locations_volumes_replications_stop_execute(builder)
 }
 
@@ -8925,6 +9650,15 @@ pub fn netapp_projects_locations_volumes_replications_sync_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_replications_sync`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsSyncArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SyncReplicationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:sync
 /// Syncs the replication. This will invoke one time volume data transfer from source to destination.
 ///
@@ -8937,13 +9671,14 @@ pub fn netapp_projects_locations_volumes_replications_sync_execute(
 
 pub fn netapp_projects_locations_volumes_replications_sync(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SyncReplicationRequest,
+    args: &NetappProjectsLocationsVolumesReplicationsSyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_volumes_replications_sync_builder(client, name, body)?;
+    let builder = netapp_projects_locations_volumes_replications_sync_builder(
+        client, &args.name, &args.body,
+    )?;
     netapp_projects_locations_volumes_replications_sync_execute(builder)
 }
 
@@ -9052,6 +9787,17 @@ pub fn netapp_projects_locations_volumes_snapshots_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_snapshots_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesSnapshotsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: snapshotId
+    pub snapshotId: Option<String>,
+    /// Request body.
+    pub body: Snapshot,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots
 /// Create a new snapshot for a volume.
 ///
@@ -9064,15 +9810,16 @@ pub fn netapp_projects_locations_volumes_snapshots_create_execute(
 
 pub fn netapp_projects_locations_volumes_snapshots_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    snapshotId: Option<&str>,
-    body: &Snapshot,
+    args: &NetappProjectsLocationsVolumesSnapshotsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = netapp_projects_locations_volumes_snapshots_create_builder(
-        client, parent, snapshotId, body,
+        client,
+        &args.parent,
+        args.snapshotId.as_deref(),
+        &args.body,
     )?;
     netapp_projects_locations_volumes_snapshots_create_execute(builder)
 }
@@ -9167,6 +9914,13 @@ pub fn netapp_projects_locations_volumes_snapshots_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_snapshots_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesSnapshotsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
 /// Deletes a snapshot.
 ///
@@ -9179,12 +9933,12 @@ pub fn netapp_projects_locations_volumes_snapshots_delete_execute(
 
 pub fn netapp_projects_locations_volumes_snapshots_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsVolumesSnapshotsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_volumes_snapshots_delete_builder(client, name)?;
+    let builder = netapp_projects_locations_volumes_snapshots_delete_builder(client, &args.name)?;
     netapp_projects_locations_volumes_snapshots_delete_execute(builder)
 }
 
@@ -9278,6 +10032,13 @@ pub fn netapp_projects_locations_volumes_snapshots_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_snapshots_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesSnapshotsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
 /// Describe a snapshot for a volume.
 ///
@@ -9290,12 +10051,12 @@ pub fn netapp_projects_locations_volumes_snapshots_get_execute(
 
 pub fn netapp_projects_locations_volumes_snapshots_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetappProjectsLocationsVolumesSnapshotsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = netapp_projects_locations_volumes_snapshots_get_builder(client, name)?;
+    let builder = netapp_projects_locations_volumes_snapshots_get_builder(client, &args.name)?;
     netapp_projects_locations_volumes_snapshots_get_execute(builder)
 }
 
@@ -9415,6 +10176,21 @@ pub fn netapp_projects_locations_volumes_snapshots_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_snapshots_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesSnapshotsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots
 /// Returns descriptions of all snapshots for a volume.
 ///
@@ -9427,11 +10203,7 @@ pub fn netapp_projects_locations_volumes_snapshots_list_execute(
 
 pub fn netapp_projects_locations_volumes_snapshots_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetappProjectsLocationsVolumesSnapshotsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSnapshotsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9439,7 +10211,12 @@ pub fn netapp_projects_locations_volumes_snapshots_list(
     ApiError,
 > {
     let builder = netapp_projects_locations_volumes_snapshots_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     netapp_projects_locations_volumes_snapshots_list_execute(builder)
 }
@@ -9549,6 +10326,17 @@ pub fn netapp_projects_locations_volumes_snapshots_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`netapp_projects_locations_volumes_snapshots_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesSnapshotsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Snapshot,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
 /// Updates the settings of a specific snapshot.
 ///
@@ -9561,14 +10349,16 @@ pub fn netapp_projects_locations_volumes_snapshots_patch_execute(
 
 pub fn netapp_projects_locations_volumes_snapshots_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Snapshot,
+    args: &NetappProjectsLocationsVolumesSnapshotsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        netapp_projects_locations_volumes_snapshots_patch_builder(client, name, updateMask, body)?;
+    let builder = netapp_projects_locations_volumes_snapshots_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     netapp_projects_locations_volumes_snapshots_patch_execute(builder)
 }

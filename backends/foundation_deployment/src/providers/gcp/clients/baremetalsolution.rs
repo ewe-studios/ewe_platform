@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn baremetalsolution_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn baremetalsolution_projects_locations_get_execute(
 
 pub fn baremetalsolution_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BaremetalsolutionProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_get_builder(client, name)?;
+    let builder = baremetalsolution_projects_locations_get_builder(client, &args.name)?;
     baremetalsolution_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn baremetalsolution_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn baremetalsolution_projects_locations_list_execute(
 
 pub fn baremetalsolution_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BaremetalsolutionProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn baremetalsolution_projects_locations_list(
 > {
     let builder = baremetalsolution_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     baremetalsolution_projects_locations_list_execute(builder)
 }
@@ -370,6 +390,15 @@ pub fn baremetalsolution_projects_locations_instances_detach_lun_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_instances_detach_lun`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsInstancesDetachLunArgs {
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: DetachLunRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:detachLun
 /// Detach LUN from Instance.
 ///
@@ -382,14 +411,16 @@ pub fn baremetalsolution_projects_locations_instances_detach_lun_execute(
 
 pub fn baremetalsolution_projects_locations_instances_detach_lun(
     client: &SimpleHttpClient,
-    instance: &str,
-    body: &DetachLunRequest,
+    args: &BaremetalsolutionProjectsLocationsInstancesDetachLunArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        baremetalsolution_projects_locations_instances_detach_lun_builder(client, instance, body)?;
+    let builder = baremetalsolution_projects_locations_instances_detach_lun_builder(
+        client,
+        &args.instance,
+        &args.body,
+    )?;
     baremetalsolution_projects_locations_instances_detach_lun_execute(builder)
 }
 
@@ -486,6 +517,15 @@ pub fn baremetalsolution_projects_locations_instances_disable_hyperthreading_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_instances_disable_hyperthreading`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsInstancesDisableHyperthreadingArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DisableHyperthreadingRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:disableHyperthreading
 /// Perform disable hyperthreading operation on a single server.
 ///
@@ -498,14 +538,13 @@ pub fn baremetalsolution_projects_locations_instances_disable_hyperthreading_exe
 
 pub fn baremetalsolution_projects_locations_instances_disable_hyperthreading(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DisableHyperthreadingRequest,
+    args: &BaremetalsolutionProjectsLocationsInstancesDisableHyperthreadingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_instances_disable_hyperthreading_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     baremetalsolution_projects_locations_instances_disable_hyperthreading_execute(builder)
 }
@@ -603,6 +642,15 @@ pub fn baremetalsolution_projects_locations_instances_disable_interactive_serial
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_instances_disable_interactive_serial_console`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsInstancesDisableInteractiveSerialConsoleArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DisableInteractiveSerialConsoleRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:disableInteractiveSerialConsole
 /// Disable the interactive serial console feature on an instance.
 ///
@@ -615,15 +663,14 @@ pub fn baremetalsolution_projects_locations_instances_disable_interactive_serial
 
 pub fn baremetalsolution_projects_locations_instances_disable_interactive_serial_console(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DisableInteractiveSerialConsoleRequest,
+    args: &BaremetalsolutionProjectsLocationsInstancesDisableInteractiveSerialConsoleArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         baremetalsolution_projects_locations_instances_disable_interactive_serial_console_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     baremetalsolution_projects_locations_instances_disable_interactive_serial_console_execute(
         builder,
@@ -723,6 +770,15 @@ pub fn baremetalsolution_projects_locations_instances_enable_hyperthreading_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_instances_enable_hyperthreading`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsInstancesEnableHyperthreadingArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EnableHyperthreadingRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:enableHyperthreading
 /// Perform enable hyperthreading operation on a single server.
 ///
@@ -735,14 +791,13 @@ pub fn baremetalsolution_projects_locations_instances_enable_hyperthreading_exec
 
 pub fn baremetalsolution_projects_locations_instances_enable_hyperthreading(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EnableHyperthreadingRequest,
+    args: &BaremetalsolutionProjectsLocationsInstancesEnableHyperthreadingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_instances_enable_hyperthreading_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     baremetalsolution_projects_locations_instances_enable_hyperthreading_execute(builder)
 }
@@ -840,6 +895,15 @@ pub fn baremetalsolution_projects_locations_instances_enable_interactive_serial_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_instances_enable_interactive_serial_console`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsInstancesEnableInteractiveSerialConsoleArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EnableInteractiveSerialConsoleRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:enableInteractiveSerialConsole
 /// Enable the interactive serial console feature on an instance.
 ///
@@ -852,15 +916,14 @@ pub fn baremetalsolution_projects_locations_instances_enable_interactive_serial_
 
 pub fn baremetalsolution_projects_locations_instances_enable_interactive_serial_console(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EnableInteractiveSerialConsoleRequest,
+    args: &BaremetalsolutionProjectsLocationsInstancesEnableInteractiveSerialConsoleArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         baremetalsolution_projects_locations_instances_enable_interactive_serial_console_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     baremetalsolution_projects_locations_instances_enable_interactive_serial_console_execute(
         builder,
@@ -957,6 +1020,13 @@ pub fn baremetalsolution_projects_locations_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Get details about a single server.
 ///
@@ -969,12 +1039,12 @@ pub fn baremetalsolution_projects_locations_instances_get_execute(
 
 pub fn baremetalsolution_projects_locations_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BaremetalsolutionProjectsLocationsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_instances_get_builder(client, name)?;
+    let builder = baremetalsolution_projects_locations_instances_get_builder(client, &args.name)?;
     baremetalsolution_projects_locations_instances_get_execute(builder)
 }
 
@@ -1090,6 +1160,19 @@ pub fn baremetalsolution_projects_locations_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances
 /// List servers in a given project and location.
 ///
@@ -1102,10 +1185,7 @@ pub fn baremetalsolution_projects_locations_instances_list_execute(
 
 pub fn baremetalsolution_projects_locations_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BaremetalsolutionProjectsLocationsInstancesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1113,7 +1193,11 @@ pub fn baremetalsolution_projects_locations_instances_list(
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_instances_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     baremetalsolution_projects_locations_instances_list_execute(builder)
 }
@@ -1212,6 +1296,13 @@ pub fn baremetalsolution_projects_locations_instances_load_auth_info_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_instances_load_auth_info`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsInstancesLoadAuthInfoArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:loadAuthInfo
 /// Load auth info for a server.
 ///
@@ -1224,7 +1315,7 @@ pub fn baremetalsolution_projects_locations_instances_load_auth_info_execute(
 
 pub fn baremetalsolution_projects_locations_instances_load_auth_info(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BaremetalsolutionProjectsLocationsInstancesLoadAuthInfoArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LoadInstanceAuthInfoResponse>, ApiError>,
@@ -1234,7 +1325,7 @@ pub fn baremetalsolution_projects_locations_instances_load_auth_info(
     ApiError,
 > {
     let builder =
-        baremetalsolution_projects_locations_instances_load_auth_info_builder(client, name)?;
+        baremetalsolution_projects_locations_instances_load_auth_info_builder(client, &args.name)?;
     baremetalsolution_projects_locations_instances_load_auth_info_execute(builder)
 }
 
@@ -1343,6 +1434,17 @@ pub fn baremetalsolution_projects_locations_instances_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Update details of a single server.
 ///
@@ -1355,15 +1457,16 @@ pub fn baremetalsolution_projects_locations_instances_patch_execute(
 
 pub fn baremetalsolution_projects_locations_instances_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Instance,
+    args: &BaremetalsolutionProjectsLocationsInstancesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_instances_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     baremetalsolution_projects_locations_instances_patch_execute(builder)
 }
@@ -1461,6 +1564,15 @@ pub fn baremetalsolution_projects_locations_instances_reimage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_instances_reimage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsInstancesReimageArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ReimageInstanceRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:reimage
 /// Perform reimage operation on a single server.
 ///
@@ -1473,14 +1585,14 @@ pub fn baremetalsolution_projects_locations_instances_reimage_execute(
 
 pub fn baremetalsolution_projects_locations_instances_reimage(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ReimageInstanceRequest,
+    args: &BaremetalsolutionProjectsLocationsInstancesReimageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        baremetalsolution_projects_locations_instances_reimage_builder(client, name, body)?;
+    let builder = baremetalsolution_projects_locations_instances_reimage_builder(
+        client, &args.name, &args.body,
+    )?;
     baremetalsolution_projects_locations_instances_reimage_execute(builder)
 }
 
@@ -1577,6 +1689,15 @@ pub fn baremetalsolution_projects_locations_instances_rename_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_instances_rename`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsInstancesRenameArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RenameInstanceRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:rename
 /// RenameInstance sets a new name for an instance. Use with caution, previous names become immediately invalidated.
 ///
@@ -1589,14 +1710,14 @@ pub fn baremetalsolution_projects_locations_instances_rename_execute(
 
 pub fn baremetalsolution_projects_locations_instances_rename(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RenameInstanceRequest,
+    args: &BaremetalsolutionProjectsLocationsInstancesRenameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        baremetalsolution_projects_locations_instances_rename_builder(client, name, body)?;
+    let builder = baremetalsolution_projects_locations_instances_rename_builder(
+        client, &args.name, &args.body,
+    )?;
     baremetalsolution_projects_locations_instances_rename_execute(builder)
 }
 
@@ -1693,6 +1814,15 @@ pub fn baremetalsolution_projects_locations_instances_reset_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_instances_reset`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsInstancesResetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResetInstanceRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:reset
 /// Perform an ungraceful, hard reset on a server. Equivalent to shutting the power off and then turning it back on.
 ///
@@ -1705,13 +1835,14 @@ pub fn baremetalsolution_projects_locations_instances_reset_execute(
 
 pub fn baremetalsolution_projects_locations_instances_reset(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResetInstanceRequest,
+    args: &BaremetalsolutionProjectsLocationsInstancesResetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_instances_reset_builder(client, name, body)?;
+    let builder = baremetalsolution_projects_locations_instances_reset_builder(
+        client, &args.name, &args.body,
+    )?;
     baremetalsolution_projects_locations_instances_reset_execute(builder)
 }
 
@@ -1808,6 +1939,15 @@ pub fn baremetalsolution_projects_locations_instances_start_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_instances_start`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsInstancesStartArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StartInstanceRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:start
 /// Starts a server that was shutdown.
 ///
@@ -1820,13 +1960,14 @@ pub fn baremetalsolution_projects_locations_instances_start_execute(
 
 pub fn baremetalsolution_projects_locations_instances_start(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StartInstanceRequest,
+    args: &BaremetalsolutionProjectsLocationsInstancesStartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_instances_start_builder(client, name, body)?;
+    let builder = baremetalsolution_projects_locations_instances_start_builder(
+        client, &args.name, &args.body,
+    )?;
     baremetalsolution_projects_locations_instances_start_execute(builder)
 }
 
@@ -1923,6 +2064,15 @@ pub fn baremetalsolution_projects_locations_instances_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_instances_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsInstancesStopArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StopInstanceRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:stop
 /// Stop a running server.
 ///
@@ -1935,13 +2085,14 @@ pub fn baremetalsolution_projects_locations_instances_stop_execute(
 
 pub fn baremetalsolution_projects_locations_instances_stop(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StopInstanceRequest,
+    args: &BaremetalsolutionProjectsLocationsInstancesStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_instances_stop_builder(client, name, body)?;
+    let builder = baremetalsolution_projects_locations_instances_stop_builder(
+        client, &args.name, &args.body,
+    )?;
     baremetalsolution_projects_locations_instances_stop_execute(builder)
 }
 
@@ -2035,6 +2186,13 @@ pub fn baremetalsolution_projects_locations_networks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_networks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsNetworksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/networks/{networksId}
 /// Get details of a single network.
 ///
@@ -2047,12 +2205,12 @@ pub fn baremetalsolution_projects_locations_networks_get_execute(
 
 pub fn baremetalsolution_projects_locations_networks_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BaremetalsolutionProjectsLocationsNetworksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Network>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_networks_get_builder(client, name)?;
+    let builder = baremetalsolution_projects_locations_networks_get_builder(client, &args.name)?;
     baremetalsolution_projects_locations_networks_get_execute(builder)
 }
 
@@ -2168,6 +2326,19 @@ pub fn baremetalsolution_projects_locations_networks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_networks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsNetworksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/networks
 /// List network in a given project and location.
 ///
@@ -2180,10 +2351,7 @@ pub fn baremetalsolution_projects_locations_networks_list_execute(
 
 pub fn baremetalsolution_projects_locations_networks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BaremetalsolutionProjectsLocationsNetworksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListNetworksResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2191,7 +2359,11 @@ pub fn baremetalsolution_projects_locations_networks_list(
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_networks_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     baremetalsolution_projects_locations_networks_list_execute(builder)
 }
@@ -2288,6 +2460,13 @@ pub fn baremetalsolution_projects_locations_networks_list_network_usage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_networks_list_network_usage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsNetworksListNetworkUsageArgs {
+    /// Path parameter: location
+    pub location: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/networks:listNetworkUsage
 /// List all Networks (and used IPs for each Network) in the vendor account associated with the specified project.
 ///
@@ -2300,15 +2479,17 @@ pub fn baremetalsolution_projects_locations_networks_list_network_usage_execute(
 
 pub fn baremetalsolution_projects_locations_networks_list_network_usage(
     client: &SimpleHttpClient,
-    location: &str,
+    args: &BaremetalsolutionProjectsLocationsNetworksListNetworkUsageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListNetworkUsageResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        baremetalsolution_projects_locations_networks_list_network_usage_builder(client, location)?;
+    let builder = baremetalsolution_projects_locations_networks_list_network_usage_builder(
+        client,
+        &args.location,
+    )?;
     baremetalsolution_projects_locations_networks_list_network_usage_execute(builder)
 }
 
@@ -2417,6 +2598,17 @@ pub fn baremetalsolution_projects_locations_networks_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_networks_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsNetworksPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Network,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/networks/{networksId}
 /// Update details of a single network.
 ///
@@ -2429,15 +2621,16 @@ pub fn baremetalsolution_projects_locations_networks_patch_execute(
 
 pub fn baremetalsolution_projects_locations_networks_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Network,
+    args: &BaremetalsolutionProjectsLocationsNetworksPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_networks_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     baremetalsolution_projects_locations_networks_patch_execute(builder)
 }
@@ -2535,6 +2728,15 @@ pub fn baremetalsolution_projects_locations_networks_rename_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_networks_rename`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsNetworksRenameArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RenameNetworkRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/networks/{networksId}:rename
 /// RenameNetwork sets a new name for a network. Use with caution, previous names become immediately invalidated.
 ///
@@ -2547,13 +2749,14 @@ pub fn baremetalsolution_projects_locations_networks_rename_execute(
 
 pub fn baremetalsolution_projects_locations_networks_rename(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RenameNetworkRequest,
+    args: &BaremetalsolutionProjectsLocationsNetworksRenameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Network>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_networks_rename_builder(client, name, body)?;
+    let builder = baremetalsolution_projects_locations_networks_rename_builder(
+        client, &args.name, &args.body,
+    )?;
     baremetalsolution_projects_locations_networks_rename_execute(builder)
 }
 
@@ -2650,6 +2853,15 @@ pub fn baremetalsolution_projects_locations_nfs_shares_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_nfs_shares_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsNfsSharesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: NfsShare,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/nfsShares
 /// Create an NFS share.
 ///
@@ -2662,14 +2874,16 @@ pub fn baremetalsolution_projects_locations_nfs_shares_create_execute(
 
 pub fn baremetalsolution_projects_locations_nfs_shares_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &NfsShare,
+    args: &BaremetalsolutionProjectsLocationsNfsSharesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        baremetalsolution_projects_locations_nfs_shares_create_builder(client, parent, body)?;
+    let builder = baremetalsolution_projects_locations_nfs_shares_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     baremetalsolution_projects_locations_nfs_shares_create_execute(builder)
 }
 
@@ -2763,6 +2977,13 @@ pub fn baremetalsolution_projects_locations_nfs_shares_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_nfs_shares_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsNfsSharesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/nfsShares/{nfsSharesId}
 /// Delete an NFS share. The underlying volume is automatically deleted.
 ///
@@ -2775,12 +2996,13 @@ pub fn baremetalsolution_projects_locations_nfs_shares_delete_execute(
 
 pub fn baremetalsolution_projects_locations_nfs_shares_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BaremetalsolutionProjectsLocationsNfsSharesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_nfs_shares_delete_builder(client, name)?;
+    let builder =
+        baremetalsolution_projects_locations_nfs_shares_delete_builder(client, &args.name)?;
     baremetalsolution_projects_locations_nfs_shares_delete_execute(builder)
 }
 
@@ -2874,6 +3096,13 @@ pub fn baremetalsolution_projects_locations_nfs_shares_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_nfs_shares_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsNfsSharesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/nfsShares/{nfsSharesId}
 /// Get details of a single NFS share.
 ///
@@ -2886,12 +3115,12 @@ pub fn baremetalsolution_projects_locations_nfs_shares_get_execute(
 
 pub fn baremetalsolution_projects_locations_nfs_shares_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BaremetalsolutionProjectsLocationsNfsSharesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NfsShare>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_nfs_shares_get_builder(client, name)?;
+    let builder = baremetalsolution_projects_locations_nfs_shares_get_builder(client, &args.name)?;
     baremetalsolution_projects_locations_nfs_shares_get_execute(builder)
 }
 
@@ -3007,6 +3236,19 @@ pub fn baremetalsolution_projects_locations_nfs_shares_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_nfs_shares_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsNfsSharesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/nfsShares
 /// List NFS shares.
 ///
@@ -3019,10 +3261,7 @@ pub fn baremetalsolution_projects_locations_nfs_shares_list_execute(
 
 pub fn baremetalsolution_projects_locations_nfs_shares_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BaremetalsolutionProjectsLocationsNfsSharesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListNfsSharesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3030,7 +3269,11 @@ pub fn baremetalsolution_projects_locations_nfs_shares_list(
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_nfs_shares_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     baremetalsolution_projects_locations_nfs_shares_list_execute(builder)
 }
@@ -3140,6 +3383,17 @@ pub fn baremetalsolution_projects_locations_nfs_shares_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_nfs_shares_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsNfsSharesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: NfsShare,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/nfsShares/{nfsSharesId}
 /// Update details of a single NFS share.
 ///
@@ -3152,15 +3406,16 @@ pub fn baremetalsolution_projects_locations_nfs_shares_patch_execute(
 
 pub fn baremetalsolution_projects_locations_nfs_shares_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &NfsShare,
+    args: &BaremetalsolutionProjectsLocationsNfsSharesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_nfs_shares_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     baremetalsolution_projects_locations_nfs_shares_patch_execute(builder)
 }
@@ -3258,6 +3513,15 @@ pub fn baremetalsolution_projects_locations_nfs_shares_rename_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_nfs_shares_rename`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsNfsSharesRenameArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RenameNfsShareRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/nfsShares/{nfsSharesId}:rename
 /// RenameNfsShare sets a new name for an nfsshare. Use with caution, previous names become immediately invalidated.
 ///
@@ -3270,14 +3534,14 @@ pub fn baremetalsolution_projects_locations_nfs_shares_rename_execute(
 
 pub fn baremetalsolution_projects_locations_nfs_shares_rename(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RenameNfsShareRequest,
+    args: &BaremetalsolutionProjectsLocationsNfsSharesRenameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NfsShare>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        baremetalsolution_projects_locations_nfs_shares_rename_builder(client, name, body)?;
+    let builder = baremetalsolution_projects_locations_nfs_shares_rename_builder(
+        client, &args.name, &args.body,
+    )?;
     baremetalsolution_projects_locations_nfs_shares_rename_execute(builder)
 }
 
@@ -3371,6 +3635,13 @@ pub fn baremetalsolution_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Get details about an operation.
 ///
@@ -3383,12 +3654,12 @@ pub fn baremetalsolution_projects_locations_operations_get_execute(
 
 pub fn baremetalsolution_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BaremetalsolutionProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_operations_get_builder(client, name)?;
+    let builder = baremetalsolution_projects_locations_operations_get_builder(client, &args.name)?;
     baremetalsolution_projects_locations_operations_get_execute(builder)
 }
 
@@ -3482,6 +3753,13 @@ pub fn baremetalsolution_projects_locations_os_images_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_os_images_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsOsImagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/osImages/{osImagesId}
 /// Get details of a single OS image.
 ///
@@ -3494,12 +3772,12 @@ pub fn baremetalsolution_projects_locations_os_images_get_execute(
 
 pub fn baremetalsolution_projects_locations_os_images_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BaremetalsolutionProjectsLocationsOsImagesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OSImage>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_os_images_get_builder(client, name)?;
+    let builder = baremetalsolution_projects_locations_os_images_get_builder(client, &args.name)?;
     baremetalsolution_projects_locations_os_images_get_execute(builder)
 }
 
@@ -3611,6 +3889,17 @@ pub fn baremetalsolution_projects_locations_os_images_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_os_images_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsOsImagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/osImages
 /// Retrieves the list of OS images which are currently approved.
 ///
@@ -3623,9 +3912,7 @@ pub fn baremetalsolution_projects_locations_os_images_list_execute(
 
 pub fn baremetalsolution_projects_locations_os_images_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BaremetalsolutionProjectsLocationsOsImagesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOSImagesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3633,7 +3920,10 @@ pub fn baremetalsolution_projects_locations_os_images_list(
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_os_images_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     baremetalsolution_projects_locations_os_images_list_execute(builder)
 }
@@ -3745,6 +4035,17 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_provisioning_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsProvisioningConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: email
+    pub email: Option<String>,
+    /// Request body.
+    pub body: ProvisioningConfig,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/provisioningConfigs
 /// Create new ProvisioningConfig.
 ///
@@ -3757,9 +4058,7 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_create_execute(
 
 pub fn baremetalsolution_projects_locations_provisioning_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    email: Option<&str>,
-    body: &ProvisioningConfig,
+    args: &BaremetalsolutionProjectsLocationsProvisioningConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProvisioningConfig>, ApiError>, P = ApiPending>
         + Send
@@ -3767,7 +4066,10 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_create(
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_provisioning_configs_create_builder(
-        client, parent, email, body,
+        client,
+        &args.parent,
+        args.email.as_deref(),
+        &args.body,
     )?;
     baremetalsolution_projects_locations_provisioning_configs_create_execute(builder)
 }
@@ -3864,6 +4166,13 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_provisioning_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsProvisioningConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/provisioningConfigs/{provisioningConfigsId}
 /// Get ProvisioningConfig by name.
 ///
@@ -3876,7 +4185,7 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_get_execute(
 
 pub fn baremetalsolution_projects_locations_provisioning_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BaremetalsolutionProjectsLocationsProvisioningConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProvisioningConfig>, ApiError>, P = ApiPending>
         + Send
@@ -3884,7 +4193,7 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_get(
     ApiError,
 > {
     let builder =
-        baremetalsolution_projects_locations_provisioning_configs_get_builder(client, name)?;
+        baremetalsolution_projects_locations_provisioning_configs_get_builder(client, &args.name)?;
     baremetalsolution_projects_locations_provisioning_configs_get_execute(builder)
 }
 
@@ -3999,6 +4308,19 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_provisioning_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsProvisioningConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: email
+    pub email: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ProvisioningConfig,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/provisioningConfigs/{provisioningConfigsId}
 /// Update existing ProvisioningConfig.
 ///
@@ -4011,10 +4333,7 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_patch_execute(
 
 pub fn baremetalsolution_projects_locations_provisioning_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    email: Option<&str>,
-    updateMask: Option<&str>,
-    body: &ProvisioningConfig,
+    args: &BaremetalsolutionProjectsLocationsProvisioningConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProvisioningConfig>, ApiError>, P = ApiPending>
         + Send
@@ -4022,7 +4341,11 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_patch(
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_provisioning_configs_patch_builder(
-        client, name, email, updateMask, body,
+        client,
+        &args.name,
+        args.email.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     baremetalsolution_projects_locations_provisioning_configs_patch_execute(builder)
 }
@@ -4124,6 +4447,15 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_submit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_provisioning_configs_submit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsProvisioningConfigsSubmitArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SubmitProvisioningConfigRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/provisioningConfigs:submit
 /// Submit a provisioning configuration for a given project.
 ///
@@ -4136,8 +4468,7 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_submit_execute(
 
 pub fn baremetalsolution_projects_locations_provisioning_configs_submit(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SubmitProvisioningConfigRequest,
+    args: &BaremetalsolutionProjectsLocationsProvisioningConfigsSubmitArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SubmitProvisioningConfigResponse>, ApiError>,
@@ -4147,7 +4478,9 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_submit(
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_provisioning_configs_submit_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     baremetalsolution_projects_locations_provisioning_configs_submit_execute(builder)
 }
@@ -4262,6 +4595,17 @@ pub fn baremetalsolution_projects_locations_provisioning_quotas_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_provisioning_quotas_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsProvisioningQuotasListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/provisioningQuotas
 /// List the budget details to provision resources on a given project.
 ///
@@ -4274,9 +4618,7 @@ pub fn baremetalsolution_projects_locations_provisioning_quotas_list_execute(
 
 pub fn baremetalsolution_projects_locations_provisioning_quotas_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BaremetalsolutionProjectsLocationsProvisioningQuotasListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListProvisioningQuotasResponse>, ApiError>,
@@ -4286,7 +4628,10 @@ pub fn baremetalsolution_projects_locations_provisioning_quotas_list(
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_provisioning_quotas_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     baremetalsolution_projects_locations_provisioning_quotas_list_execute(builder)
 }
@@ -4396,6 +4741,17 @@ pub fn baremetalsolution_projects_locations_ssh_keys_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_ssh_keys_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsSshKeysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: sshKeyId
+    pub sshKeyId: Option<String>,
+    /// Request body.
+    pub body: SSHKey,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/sshKeys
 /// Register a public SSH key in the specified project for use with the interactive serial console feature.
 ///
@@ -4408,15 +4764,16 @@ pub fn baremetalsolution_projects_locations_ssh_keys_create_execute(
 
 pub fn baremetalsolution_projects_locations_ssh_keys_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    sshKeyId: Option<&str>,
-    body: &SSHKey,
+    args: &BaremetalsolutionProjectsLocationsSshKeysCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SSHKey>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_ssh_keys_create_builder(
-        client, parent, sshKeyId, body,
+        client,
+        &args.parent,
+        args.sshKeyId.as_deref(),
+        &args.body,
     )?;
     baremetalsolution_projects_locations_ssh_keys_create_execute(builder)
 }
@@ -4511,6 +4868,13 @@ pub fn baremetalsolution_projects_locations_ssh_keys_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_ssh_keys_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsSshKeysDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/sshKeys/{sshKeysId}
 /// Deletes a public SSH key registered in the specified project.
 ///
@@ -4523,12 +4887,12 @@ pub fn baremetalsolution_projects_locations_ssh_keys_delete_execute(
 
 pub fn baremetalsolution_projects_locations_ssh_keys_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BaremetalsolutionProjectsLocationsSshKeysDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_ssh_keys_delete_builder(client, name)?;
+    let builder = baremetalsolution_projects_locations_ssh_keys_delete_builder(client, &args.name)?;
     baremetalsolution_projects_locations_ssh_keys_delete_execute(builder)
 }
 
@@ -4640,6 +5004,17 @@ pub fn baremetalsolution_projects_locations_ssh_keys_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_ssh_keys_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsSshKeysListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/sshKeys
 /// Lists the public SSH keys registered for the specified project. These SSH keys are used only for the interactive serial console feature.
 ///
@@ -4652,9 +5027,7 @@ pub fn baremetalsolution_projects_locations_ssh_keys_list_execute(
 
 pub fn baremetalsolution_projects_locations_ssh_keys_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BaremetalsolutionProjectsLocationsSshKeysListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSSHKeysResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4662,7 +5035,10 @@ pub fn baremetalsolution_projects_locations_ssh_keys_list(
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_ssh_keys_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     baremetalsolution_projects_locations_ssh_keys_list_execute(builder)
 }
@@ -4760,6 +5136,15 @@ pub fn baremetalsolution_projects_locations_volumes_evict_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_volumes_evict`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsVolumesEvictArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EvictVolumeRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:evict
 /// Skips volume's cooloff and deletes it now. Volume must be in cooloff state.
 ///
@@ -4772,13 +5157,13 @@ pub fn baremetalsolution_projects_locations_volumes_evict_execute(
 
 pub fn baremetalsolution_projects_locations_volumes_evict(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EvictVolumeRequest,
+    args: &BaremetalsolutionProjectsLocationsVolumesEvictArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_volumes_evict_builder(client, name, body)?;
+    let builder =
+        baremetalsolution_projects_locations_volumes_evict_builder(client, &args.name, &args.body)?;
     baremetalsolution_projects_locations_volumes_evict_execute(builder)
 }
 
@@ -4872,6 +5257,13 @@ pub fn baremetalsolution_projects_locations_volumes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_volumes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsVolumesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
 /// Get details of a single storage volume.
 ///
@@ -4884,12 +5276,12 @@ pub fn baremetalsolution_projects_locations_volumes_get_execute(
 
 pub fn baremetalsolution_projects_locations_volumes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BaremetalsolutionProjectsLocationsVolumesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_volumes_get_builder(client, name)?;
+    let builder = baremetalsolution_projects_locations_volumes_get_builder(client, &args.name)?;
     baremetalsolution_projects_locations_volumes_get_execute(builder)
 }
 
@@ -5005,6 +5397,19 @@ pub fn baremetalsolution_projects_locations_volumes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_volumes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsVolumesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes
 /// List storage volumes in a given project and location.
 ///
@@ -5017,10 +5422,7 @@ pub fn baremetalsolution_projects_locations_volumes_list_execute(
 
 pub fn baremetalsolution_projects_locations_volumes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BaremetalsolutionProjectsLocationsVolumesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListVolumesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5028,7 +5430,11 @@ pub fn baremetalsolution_projects_locations_volumes_list(
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_volumes_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     baremetalsolution_projects_locations_volumes_list_execute(builder)
 }
@@ -5138,6 +5544,17 @@ pub fn baremetalsolution_projects_locations_volumes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_volumes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsVolumesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Volume,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
 /// Update details of a single storage volume.
 ///
@@ -5150,15 +5567,17 @@ pub fn baremetalsolution_projects_locations_volumes_patch_execute(
 
 pub fn baremetalsolution_projects_locations_volumes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Volume,
+    args: &BaremetalsolutionProjectsLocationsVolumesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        baremetalsolution_projects_locations_volumes_patch_builder(client, name, updateMask, body)?;
+    let builder = baremetalsolution_projects_locations_volumes_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     baremetalsolution_projects_locations_volumes_patch_execute(builder)
 }
 
@@ -5255,6 +5674,15 @@ pub fn baremetalsolution_projects_locations_volumes_rename_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_volumes_rename`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsVolumesRenameArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RenameVolumeRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:rename
 /// RenameVolume sets a new name for a volume. Use with caution, previous names become immediately invalidated.
 ///
@@ -5267,13 +5695,14 @@ pub fn baremetalsolution_projects_locations_volumes_rename_execute(
 
 pub fn baremetalsolution_projects_locations_volumes_rename(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RenameVolumeRequest,
+    args: &BaremetalsolutionProjectsLocationsVolumesRenameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_volumes_rename_builder(client, name, body)?;
+    let builder = baremetalsolution_projects_locations_volumes_rename_builder(
+        client, &args.name, &args.body,
+    )?;
     baremetalsolution_projects_locations_volumes_rename_execute(builder)
 }
 
@@ -5370,6 +5799,15 @@ pub fn baremetalsolution_projects_locations_volumes_resize_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_volumes_resize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsVolumesResizeArgs {
+    /// Path parameter: volume
+    pub volume: String,
+    /// Request body.
+    pub body: ResizeVolumeRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:resize
 /// Emergency Volume resize.
 ///
@@ -5382,14 +5820,16 @@ pub fn baremetalsolution_projects_locations_volumes_resize_execute(
 
 pub fn baremetalsolution_projects_locations_volumes_resize(
     client: &SimpleHttpClient,
-    volume: &str,
-    body: &ResizeVolumeRequest,
+    args: &BaremetalsolutionProjectsLocationsVolumesResizeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        baremetalsolution_projects_locations_volumes_resize_builder(client, volume, body)?;
+    let builder = baremetalsolution_projects_locations_volumes_resize_builder(
+        client,
+        &args.volume,
+        &args.body,
+    )?;
     baremetalsolution_projects_locations_volumes_resize_execute(builder)
 }
 
@@ -5486,6 +5926,15 @@ pub fn baremetalsolution_projects_locations_volumes_luns_evict_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_volumes_luns_evict`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsVolumesLunsEvictArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EvictLunRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/luns/{lunsId}:evict
 /// Skips lun's cooloff and deletes it now. Lun must be in cooloff state.
 ///
@@ -5498,14 +5947,14 @@ pub fn baremetalsolution_projects_locations_volumes_luns_evict_execute(
 
 pub fn baremetalsolution_projects_locations_volumes_luns_evict(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EvictLunRequest,
+    args: &BaremetalsolutionProjectsLocationsVolumesLunsEvictArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        baremetalsolution_projects_locations_volumes_luns_evict_builder(client, name, body)?;
+    let builder = baremetalsolution_projects_locations_volumes_luns_evict_builder(
+        client, &args.name, &args.body,
+    )?;
     baremetalsolution_projects_locations_volumes_luns_evict_execute(builder)
 }
 
@@ -5599,6 +6048,13 @@ pub fn baremetalsolution_projects_locations_volumes_luns_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_volumes_luns_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsVolumesLunsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/luns/{lunsId}
 /// Get details of a single storage logical unit number(LUN).
 ///
@@ -5611,12 +6067,13 @@ pub fn baremetalsolution_projects_locations_volumes_luns_get_execute(
 
 pub fn baremetalsolution_projects_locations_volumes_luns_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BaremetalsolutionProjectsLocationsVolumesLunsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Lun>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_volumes_luns_get_builder(client, name)?;
+    let builder =
+        baremetalsolution_projects_locations_volumes_luns_get_builder(client, &args.name)?;
     baremetalsolution_projects_locations_volumes_luns_get_execute(builder)
 }
 
@@ -5728,6 +6185,17 @@ pub fn baremetalsolution_projects_locations_volumes_luns_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_volumes_luns_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsVolumesLunsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/luns
 /// List storage volume luns for given storage volume.
 ///
@@ -5740,9 +6208,7 @@ pub fn baremetalsolution_projects_locations_volumes_luns_list_execute(
 
 pub fn baremetalsolution_projects_locations_volumes_luns_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BaremetalsolutionProjectsLocationsVolumesLunsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLunsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5750,7 +6216,10 @@ pub fn baremetalsolution_projects_locations_volumes_luns_list(
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_volumes_luns_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     baremetalsolution_projects_locations_volumes_luns_list_execute(builder)
 }
@@ -5850,6 +6319,15 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_volumes_snapshots_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsVolumesSnapshotsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: VolumeSnapshot,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots
 /// Takes a snapshot of a boot volume. Returns INVALID_ARGUMENT if called for a non-boot volume.
 ///
@@ -5862,8 +6340,7 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_create_execute(
 
 pub fn baremetalsolution_projects_locations_volumes_snapshots_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &VolumeSnapshot,
+    args: &BaremetalsolutionProjectsLocationsVolumesSnapshotsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VolumeSnapshot>, ApiError>, P = ApiPending>
         + Send
@@ -5871,7 +6348,9 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_create(
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_volumes_snapshots_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     baremetalsolution_projects_locations_volumes_snapshots_create_execute(builder)
 }
@@ -5966,6 +6445,13 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_volumes_snapshots_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsVolumesSnapshotsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
 /// Deletes a volume snapshot. Returns INVALID_ARGUMENT if called for a non-boot volume.
 ///
@@ -5978,13 +6464,13 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_delete_execute(
 
 pub fn baremetalsolution_projects_locations_volumes_snapshots_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BaremetalsolutionProjectsLocationsVolumesSnapshotsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        baremetalsolution_projects_locations_volumes_snapshots_delete_builder(client, name)?;
+        baremetalsolution_projects_locations_volumes_snapshots_delete_builder(client, &args.name)?;
     baremetalsolution_projects_locations_volumes_snapshots_delete_execute(builder)
 }
 
@@ -6080,6 +6566,13 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_volumes_snapshots_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsVolumesSnapshotsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
 /// Returns the specified snapshot resource. Returns INVALID_ARGUMENT if called for a non-boot volume.
 ///
@@ -6092,14 +6585,15 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_get_execute(
 
 pub fn baremetalsolution_projects_locations_volumes_snapshots_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BaremetalsolutionProjectsLocationsVolumesSnapshotsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VolumeSnapshot>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = baremetalsolution_projects_locations_volumes_snapshots_get_builder(client, name)?;
+    let builder =
+        baremetalsolution_projects_locations_volumes_snapshots_get_builder(client, &args.name)?;
     baremetalsolution_projects_locations_volumes_snapshots_get_execute(builder)
 }
 
@@ -6213,6 +6707,17 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_volumes_snapshots_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsVolumesSnapshotsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots
 /// Retrieves the list of snapshots for the specified volume. Returns a response with an empty list of snapshots if called for a non-boot volume.
 ///
@@ -6225,9 +6730,7 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_list_execute(
 
 pub fn baremetalsolution_projects_locations_volumes_snapshots_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BaremetalsolutionProjectsLocationsVolumesSnapshotsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListVolumeSnapshotsResponse>, ApiError>,
@@ -6237,7 +6740,10 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_list(
     ApiError,
 > {
     let builder = baremetalsolution_projects_locations_volumes_snapshots_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     baremetalsolution_projects_locations_volumes_snapshots_list_execute(builder)
 }
@@ -6335,6 +6841,15 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_restore_volume_sna
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`baremetalsolution_projects_locations_volumes_snapshots_restore_volume_snapshot`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BaremetalsolutionProjectsLocationsVolumesSnapshotsRestoreVolumeSnapshotArgs {
+    /// Path parameter: volumeSnapshot
+    pub volumeSnapshot: String,
+    /// Request body.
+    pub body: RestoreVolumeSnapshotRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}:restoreVolumeSnapshot
 /// Uses the specified snapshot to restore its parent volume. Returns INVALID_ARGUMENT if called for a non-boot volume.
 ///
@@ -6347,8 +6862,7 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_restore_volume_sna
 
 pub fn baremetalsolution_projects_locations_volumes_snapshots_restore_volume_snapshot(
     client: &SimpleHttpClient,
-    volumeSnapshot: &str,
-    body: &RestoreVolumeSnapshotRequest,
+    args: &BaremetalsolutionProjectsLocationsVolumesSnapshotsRestoreVolumeSnapshotArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -6356,8 +6870,8 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_restore_volume_sna
     let builder =
         baremetalsolution_projects_locations_volumes_snapshots_restore_volume_snapshot_builder(
             client,
-            volumeSnapshot,
-            body,
+            &args.volumeSnapshot,
+            &args.body,
         )?;
     baremetalsolution_projects_locations_volumes_snapshots_restore_volume_snapshot_execute(builder)
 }

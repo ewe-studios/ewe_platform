@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/deliveryData
 /// List aggregate delivery data for the given Android application.
@@ -130,6 +132,17 @@ pub fn fcmdata_projects_android_apps_delivery_data_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`fcmdata_projects_android_apps_delivery_data_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FcmdataProjectsAndroidAppsDeliveryDataListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/deliveryData
 /// List aggregate delivery data for the given Android application.
 ///
@@ -142,9 +155,7 @@ pub fn fcmdata_projects_android_apps_delivery_data_list_execute(
 
 pub fn fcmdata_projects_android_apps_delivery_data_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FcmdataProjectsAndroidAppsDeliveryDataListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -157,7 +168,10 @@ pub fn fcmdata_projects_android_apps_delivery_data_list(
     ApiError,
 > {
     let builder = fcmdata_projects_android_apps_delivery_data_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     fcmdata_projects_android_apps_delivery_data_list_execute(builder)
 }

@@ -30,8 +30,15 @@ rand_chacha = { version = "0.9"}
 rand = { version = "0.9"}
 chrono = { version = "0.4.44"}
 
-# huggingface hub crate
-hf-hub = { version = "0.4" }
+# Tracing for logging
+tracing = { workspace = true }
+
+[dev-dependencies]
+# Foundation testing with HuggingFace model downloading
+foundation_testing = { workspace = true, features = ["huggingface"] }
+
+# tokio for async tests (model downloads)
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 
 [features]
 # vulkan + Apple Metal

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET accounts/authinfo
 /// Returns information about the authenticated user.
@@ -233,6 +235,17 @@ pub fn content_accounts_claimwebsite_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_claimwebsite`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsClaimwebsiteArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: overwrite
+    pub overwrite: Option<bool>,
+}
+
 /// GET {merchantId}/accounts/{accountId}/claimwebsite
 /// Claims the website of a Merchant Center sub-account. Merchant accounts with approved third-party CSSs aren't required to claim a website.
 ///
@@ -245,9 +258,7 @@ pub fn content_accounts_claimwebsite_execute(
 
 pub fn content_accounts_claimwebsite(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    overwrite: Option<bool>,
+    args: &ContentAccountsClaimwebsiteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccountsClaimWebsiteResponse>, ApiError>,
@@ -256,7 +267,12 @@ pub fn content_accounts_claimwebsite(
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_claimwebsite_builder(client, merchantId, accountId, overwrite)?;
+    let builder = content_accounts_claimwebsite_builder(
+        client,
+        &args.merchantId,
+        &args.accountId,
+        args.overwrite,
+    )?;
     content_accounts_claimwebsite_execute(builder)
 }
 
@@ -353,6 +369,13 @@ pub fn content_accounts_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_custombatch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsCustombatchArgs {
+    /// Request body.
+    pub body: AccountsCustomBatchRequest,
+}
+
 /// GET accounts/batch
 /// Retrieves, inserts, updates, and deletes multiple Merchant Center (sub-)accounts in a single request.
 ///
@@ -365,7 +388,7 @@ pub fn content_accounts_custombatch_execute(
 
 pub fn content_accounts_custombatch(
     client: &SimpleHttpClient,
-    body: &AccountsCustomBatchRequest,
+    args: &ContentAccountsCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccountsCustomBatchResponse>, ApiError>,
@@ -374,7 +397,7 @@ pub fn content_accounts_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_custombatch_builder(client, body)?;
+    let builder = content_accounts_custombatch_builder(client, &args.body)?;
     content_accounts_custombatch_execute(builder)
 }
 
@@ -478,6 +501,17 @@ pub fn content_accounts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsDeleteArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET {merchantId}/accounts/{accountId}
 /// Deletes a Merchant Center sub-account.
 ///
@@ -490,14 +524,13 @@ pub fn content_accounts_delete_execute(
 
 pub fn content_accounts_delete(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    force: Option<bool>,
+    args: &ContentAccountsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_accounts_delete_builder(client, merchantId, accountId, force)?;
+    let builder =
+        content_accounts_delete_builder(client, &args.merchantId, &args.accountId, args.force)?;
     content_accounts_delete_execute(builder)
 }
 
@@ -604,6 +637,17 @@ pub fn content_accounts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET {merchantId}/accounts/{accountId}
 /// Retrieves a Merchant Center account.
 ///
@@ -616,14 +660,17 @@ pub fn content_accounts_get_execute(
 
 pub fn content_accounts_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    view: Option<&str>,
+    args: &ContentAccountsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_accounts_get_builder(client, merchantId, accountId, view)?;
+    let builder = content_accounts_get_builder(
+        client,
+        &args.merchantId,
+        &args.accountId,
+        args.view.as_deref(),
+    )?;
     content_accounts_get_execute(builder)
 }
 
@@ -720,6 +767,15 @@ pub fn content_accounts_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsInsertArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Request body.
+    pub body: Account,
+}
+
 /// GET {merchantId}/accounts
 /// Creates a Merchant Center sub-account.
 ///
@@ -732,13 +788,12 @@ pub fn content_accounts_insert_execute(
 
 pub fn content_accounts_insert(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    body: &Account,
+    args: &ContentAccountsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_accounts_insert_builder(client, merchantId, body)?;
+    let builder = content_accounts_insert_builder(client, &args.merchantId, &args.body)?;
     content_accounts_insert_execute(builder)
 }
 
@@ -838,6 +893,17 @@ pub fn content_accounts_link_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_link`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsLinkArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Request body.
+    pub body: AccountsLinkRequest,
+}
+
 /// GET {merchantId}/accounts/{accountId}/link
 /// Performs an action on a link between two Merchant Center accounts, namely `accountId` and `linkedAccountId`.
 ///
@@ -850,16 +916,15 @@ pub fn content_accounts_link_execute(
 
 pub fn content_accounts_link(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    body: &AccountsLinkRequest,
+    args: &ContentAccountsLinkArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountsLinkResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_link_builder(client, merchantId, accountId, body)?;
+    let builder =
+        content_accounts_link_builder(client, &args.merchantId, &args.accountId, &args.body)?;
     content_accounts_link_execute(builder)
 }
 
@@ -983,6 +1048,23 @@ pub fn content_accounts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: label
+    pub label: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET {merchantId}/accounts
 /// Lists the sub-accounts in your Merchant Center account.
 ///
@@ -995,12 +1077,7 @@ pub fn content_accounts_list_execute(
 
 pub fn content_accounts_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    label: Option<&str>,
-    maxResults: Option<i32>,
-    name: Option<&str>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &ContentAccountsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountsListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1008,7 +1085,13 @@ pub fn content_accounts_list(
     ApiError,
 > {
     let builder = content_accounts_list_builder(
-        client, merchantId, label, maxResults, name, pageToken, view,
+        client,
+        &args.merchantId,
+        args.label.as_deref(),
+        args.maxResults,
+        args.name.as_deref(),
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     content_accounts_list_execute(builder)
 }
@@ -1122,6 +1205,19 @@ pub fn content_accounts_listlinks_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_listlinks`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsListlinksArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET {merchantId}/accounts/{accountId}/listlinks
 /// Returns the list of accounts linked to your Merchant Center account.
 ///
@@ -1134,18 +1230,20 @@ pub fn content_accounts_listlinks_execute(
 
 pub fn content_accounts_listlinks(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentAccountsListlinksArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountsListLinksResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_accounts_listlinks_builder(client, merchantId, accountId, maxResults, pageToken)?;
+    let builder = content_accounts_listlinks_builder(
+        client,
+        &args.merchantId,
+        &args.accountId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     content_accounts_listlinks_execute(builder)
 }
 
@@ -1248,6 +1346,17 @@ pub fn content_accounts_requestphoneverification_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_requestphoneverification`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsRequestphoneverificationArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Request body.
+    pub body: RequestPhoneVerificationRequest,
+}
+
 /// GET {merchantId}/accounts/{accountId}/requestphoneverification
 /// Request verification code to start phone verification.
 ///
@@ -1260,9 +1369,7 @@ pub fn content_accounts_requestphoneverification_execute(
 
 pub fn content_accounts_requestphoneverification(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    body: &RequestPhoneVerificationRequest,
+    args: &ContentAccountsRequestphoneverificationArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RequestPhoneVerificationResponse>, ApiError>,
@@ -1271,8 +1378,12 @@ pub fn content_accounts_requestphoneverification(
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_accounts_requestphoneverification_builder(client, merchantId, accountId, body)?;
+    let builder = content_accounts_requestphoneverification_builder(
+        client,
+        &args.merchantId,
+        &args.accountId,
+        &args.body,
+    )?;
     content_accounts_requestphoneverification_execute(builder)
 }
 
@@ -1370,6 +1481,17 @@ pub fn content_accounts_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsUpdateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Request body.
+    pub body: Account,
+}
+
 /// GET {merchantId}/accounts/{accountId}
 /// Updates a Merchant Center account. Any fields that are not provided are deleted from the resource.
 ///
@@ -1382,14 +1504,13 @@ pub fn content_accounts_update_execute(
 
 pub fn content_accounts_update(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    body: &Account,
+    args: &ContentAccountsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_accounts_update_builder(client, merchantId, accountId, body)?;
+    let builder =
+        content_accounts_update_builder(client, &args.merchantId, &args.accountId, &args.body)?;
     content_accounts_update_execute(builder)
 }
 
@@ -1491,6 +1612,17 @@ pub fn content_accounts_updatelabels_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_updatelabels`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsUpdatelabelsArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Request body.
+    pub body: AccountsUpdateLabelsRequest,
+}
+
 /// GET {merchantId}/accounts/{accountId}/updatelabels
 /// Updates labels that are assigned to the Merchant Center account by CSS user.
 ///
@@ -1503,9 +1635,7 @@ pub fn content_accounts_updatelabels_execute(
 
 pub fn content_accounts_updatelabels(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    body: &AccountsUpdateLabelsRequest,
+    args: &ContentAccountsUpdatelabelsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccountsUpdateLabelsResponse>, ApiError>,
@@ -1514,7 +1644,12 @@ pub fn content_accounts_updatelabels(
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_updatelabels_builder(client, merchantId, accountId, body)?;
+    let builder = content_accounts_updatelabels_builder(
+        client,
+        &args.merchantId,
+        &args.accountId,
+        &args.body,
+    )?;
     content_accounts_updatelabels_execute(builder)
 }
 
@@ -1614,6 +1749,17 @@ pub fn content_accounts_verifyphonenumber_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_verifyphonenumber`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsVerifyphonenumberArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Request body.
+    pub body: VerifyPhoneNumberRequest,
+}
+
 /// GET {merchantId}/accounts/{accountId}/verifyphonenumber
 /// Validates verification code to verify phone number for the account. If successful this will overwrite the value of accounts.businessinformation.`phoneNumber`. Only verified phone number will replace an existing verified phone number.
 ///
@@ -1626,16 +1772,19 @@ pub fn content_accounts_verifyphonenumber_execute(
 
 pub fn content_accounts_verifyphonenumber(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    body: &VerifyPhoneNumberRequest,
+    args: &ContentAccountsVerifyphonenumberArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VerifyPhoneNumberResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_verifyphonenumber_builder(client, merchantId, accountId, body)?;
+    let builder = content_accounts_verifyphonenumber_builder(
+        client,
+        &args.merchantId,
+        &args.accountId,
+        &args.body,
+    )?;
     content_accounts_verifyphonenumber_execute(builder)
 }
 
@@ -1734,6 +1883,15 @@ pub fn content_accounts_credentials_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_credentials_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsCredentialsCreateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Request body.
+    pub body: AccountCredentials,
+}
+
 /// GET accounts/{accountId}/credentials
 /// Uploads credentials for the Merchant Center account. If credentials already exist for this Merchant Center account and purpose, this method updates them.
 ///
@@ -1746,15 +1904,14 @@ pub fn content_accounts_credentials_create_execute(
 
 pub fn content_accounts_credentials_create(
     client: &SimpleHttpClient,
-    accountId: &str,
-    body: &AccountCredentials,
+    args: &ContentAccountsCredentialsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountCredentials>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_credentials_create_builder(client, accountId, body)?;
+    let builder = content_accounts_credentials_create_builder(client, &args.accountId, &args.body)?;
     content_accounts_credentials_create_execute(builder)
 }
 
@@ -1853,6 +2010,15 @@ pub fn content_accounts_labels_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_labels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsLabelsCreateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Request body.
+    pub body: AccountLabel,
+}
+
 /// GET accounts/{accountId}/labels
 /// Creates a new label, not assigned to any account.
 ///
@@ -1865,15 +2031,14 @@ pub fn content_accounts_labels_create_execute(
 
 pub fn content_accounts_labels_create(
     client: &SimpleHttpClient,
-    accountId: &str,
-    body: &AccountLabel,
+    args: &ContentAccountsLabelsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountLabel>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_labels_create_builder(client, accountId, body)?;
+    let builder = content_accounts_labels_create_builder(client, &args.accountId, &args.body)?;
     content_accounts_labels_create_execute(builder)
 }
 
@@ -1965,6 +2130,15 @@ pub fn content_accounts_labels_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_labels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsLabelsDeleteArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: labelId
+    pub labelId: String,
+}
+
 /// GET accounts/{accountId}/labels/{labelId}
 /// Deletes a label and removes it from all accounts to which it was assigned.
 ///
@@ -1977,13 +2151,12 @@ pub fn content_accounts_labels_delete_execute(
 
 pub fn content_accounts_labels_delete(
     client: &SimpleHttpClient,
-    accountId: &str,
-    labelId: &str,
+    args: &ContentAccountsLabelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_accounts_labels_delete_builder(client, accountId, labelId)?;
+    let builder = content_accounts_labels_delete_builder(client, &args.accountId, &args.labelId)?;
     content_accounts_labels_delete_execute(builder)
 }
 
@@ -2095,6 +2268,17 @@ pub fn content_accounts_labels_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_labels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsLabelsListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET accounts/{accountId}/labels
 /// Lists the labels assigned to an account.
 ///
@@ -2107,16 +2291,19 @@ pub fn content_accounts_labels_list_execute(
 
 pub fn content_accounts_labels_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentAccountsLabelsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAccountLabelsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_labels_list_builder(client, accountId, pageSize, pageToken)?;
+    let builder = content_accounts_labels_list_builder(
+        client,
+        &args.accountId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     content_accounts_labels_list_execute(builder)
 }
 
@@ -2216,6 +2403,17 @@ pub fn content_accounts_labels_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_labels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsLabelsPatchArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: labelId
+    pub labelId: String,
+    /// Request body.
+    pub body: AccountLabel,
+}
+
 /// GET accounts/{accountId}/labels/{labelId}
 /// Updates a label.
 ///
@@ -2228,16 +2426,15 @@ pub fn content_accounts_labels_patch_execute(
 
 pub fn content_accounts_labels_patch(
     client: &SimpleHttpClient,
-    accountId: &str,
-    labelId: &str,
-    body: &AccountLabel,
+    args: &ContentAccountsLabelsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountLabel>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_labels_patch_builder(client, accountId, labelId, body)?;
+    let builder =
+        content_accounts_labels_patch_builder(client, &args.accountId, &args.labelId, &args.body)?;
     content_accounts_labels_patch_execute(builder)
 }
 
@@ -2336,6 +2533,15 @@ pub fn content_accounts_returncarrier_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_returncarrier_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsReturncarrierCreateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Request body.
+    pub body: AccountReturnCarrier,
+}
+
 /// GET accounts/{accountId}/returncarrier
 /// Links return carrier to a merchant account.
 ///
@@ -2348,15 +2554,15 @@ pub fn content_accounts_returncarrier_create_execute(
 
 pub fn content_accounts_returncarrier_create(
     client: &SimpleHttpClient,
-    accountId: &str,
-    body: &AccountReturnCarrier,
+    args: &ContentAccountsReturncarrierCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountReturnCarrier>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_returncarrier_create_builder(client, accountId, body)?;
+    let builder =
+        content_accounts_returncarrier_create_builder(client, &args.accountId, &args.body)?;
     content_accounts_returncarrier_create_execute(builder)
 }
 
@@ -2448,6 +2654,15 @@ pub fn content_accounts_returncarrier_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_returncarrier_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsReturncarrierDeleteArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: carrierAccountId
+    pub carrierAccountId: String,
+}
+
 /// GET accounts/{accountId}/returncarrier/{carrierAccountId}
 /// Delete a return carrier in the merchant account.
 ///
@@ -2460,14 +2675,16 @@ pub fn content_accounts_returncarrier_delete_execute(
 
 pub fn content_accounts_returncarrier_delete(
     client: &SimpleHttpClient,
-    accountId: &str,
-    carrierAccountId: &str,
+    args: &ContentAccountsReturncarrierDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        content_accounts_returncarrier_delete_builder(client, accountId, carrierAccountId)?;
+    let builder = content_accounts_returncarrier_delete_builder(
+        client,
+        &args.accountId,
+        &args.carrierAccountId,
+    )?;
     content_accounts_returncarrier_delete_execute(builder)
 }
 
@@ -2565,6 +2782,13 @@ pub fn content_accounts_returncarrier_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_returncarrier_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsReturncarrierListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+}
+
 /// GET accounts/{accountId}/returncarrier
 /// Lists available return carriers in the merchant account.
 ///
@@ -2577,7 +2801,7 @@ pub fn content_accounts_returncarrier_list_execute(
 
 pub fn content_accounts_returncarrier_list(
     client: &SimpleHttpClient,
-    accountId: &str,
+    args: &ContentAccountsReturncarrierListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAccountReturnCarrierResponse>, ApiError>,
@@ -2586,7 +2810,7 @@ pub fn content_accounts_returncarrier_list(
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_returncarrier_list_builder(client, accountId)?;
+    let builder = content_accounts_returncarrier_list_builder(client, &args.accountId)?;
     content_accounts_returncarrier_list_execute(builder)
 }
 
@@ -2686,6 +2910,17 @@ pub fn content_accounts_returncarrier_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounts_returncarrier_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountsReturncarrierPatchArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: carrierAccountId
+    pub carrierAccountId: String,
+    /// Request body.
+    pub body: AccountReturnCarrier,
+}
+
 /// GET accounts/{accountId}/returncarrier/{carrierAccountId}
 /// Updates a return carrier in the merchant account.
 ///
@@ -2698,17 +2933,19 @@ pub fn content_accounts_returncarrier_patch_execute(
 
 pub fn content_accounts_returncarrier_patch(
     client: &SimpleHttpClient,
-    accountId: &str,
-    carrierAccountId: &str,
-    body: &AccountReturnCarrier,
+    args: &ContentAccountsReturncarrierPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountReturnCarrier>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_accounts_returncarrier_patch_builder(client, accountId, carrierAccountId, body)?;
+    let builder = content_accounts_returncarrier_patch_builder(
+        client,
+        &args.accountId,
+        &args.carrierAccountId,
+        &args.body,
+    )?;
     content_accounts_returncarrier_patch_execute(builder)
 }
 
@@ -2805,6 +3042,13 @@ pub fn content_accountstatuses_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accountstatuses_custombatch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountstatusesCustombatchArgs {
+    /// Request body.
+    pub body: AccountstatusesCustomBatchRequest,
+}
+
 /// GET accountstatuses/batch
 /// Retrieves multiple Merchant Center account statuses in a single request.
 ///
@@ -2817,7 +3061,7 @@ pub fn content_accountstatuses_custombatch_execute(
 
 pub fn content_accountstatuses_custombatch(
     client: &SimpleHttpClient,
-    body: &AccountstatusesCustomBatchRequest,
+    args: &ContentAccountstatusesCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccountstatusesCustomBatchResponse>, ApiError>,
@@ -2826,7 +3070,7 @@ pub fn content_accountstatuses_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_accountstatuses_custombatch_builder(client, body)?;
+    let builder = content_accountstatuses_custombatch_builder(client, &args.body)?;
     content_accountstatuses_custombatch_execute(builder)
 }
 
@@ -2935,6 +3179,17 @@ pub fn content_accountstatuses_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accountstatuses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountstatusesGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: destinations
+    pub destinations: Option<String>,
+}
+
 /// GET {merchantId}/accountstatuses/{accountId}
 /// Retrieves the status of a Merchant Center account. No `itemLevelIssues` are returned for multi-client accounts.
 ///
@@ -2947,16 +3202,19 @@ pub fn content_accountstatuses_get_execute(
 
 pub fn content_accountstatuses_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    destinations: Option<&str>,
+    args: &ContentAccountstatusesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountStatus>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_accountstatuses_get_builder(client, merchantId, accountId, destinations)?;
+    let builder = content_accountstatuses_get_builder(
+        client,
+        &args.merchantId,
+        &args.accountId,
+        args.destinations.as_deref(),
+    )?;
     content_accountstatuses_get_execute(builder)
 }
 
@@ -3078,6 +3336,21 @@ pub fn content_accountstatuses_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accountstatuses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccountstatusesListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: destinations
+    pub destinations: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET {merchantId}/accountstatuses
 /// Lists the statuses of the sub-accounts in your Merchant Center account.
 ///
@@ -3090,11 +3363,7 @@ pub fn content_accountstatuses_list_execute(
 
 pub fn content_accountstatuses_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    destinations: Option<&str>,
-    maxResults: Option<i32>,
-    name: Option<&str>,
-    pageToken: Option<&str>,
+    args: &ContentAccountstatusesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccountstatusesListResponse>, ApiError>,
@@ -3105,11 +3374,11 @@ pub fn content_accountstatuses_list(
 > {
     let builder = content_accountstatuses_list_builder(
         client,
-        merchantId,
-        destinations,
-        maxResults,
-        name,
-        pageToken,
+        &args.merchantId,
+        args.destinations.as_deref(),
+        args.maxResults,
+        args.name.as_deref(),
+        args.pageToken.as_deref(),
     )?;
     content_accountstatuses_list_execute(builder)
 }
@@ -3207,6 +3476,13 @@ pub fn content_accounttax_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounttax_custombatch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccounttaxCustombatchArgs {
+    /// Request body.
+    pub body: AccounttaxCustomBatchRequest,
+}
+
 /// GET accounttax/batch
 /// Retrieves and updates tax settings of multiple accounts in a single request.
 ///
@@ -3219,7 +3495,7 @@ pub fn content_accounttax_custombatch_execute(
 
 pub fn content_accounttax_custombatch(
     client: &SimpleHttpClient,
-    body: &AccounttaxCustomBatchRequest,
+    args: &ContentAccounttaxCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccounttaxCustomBatchResponse>, ApiError>,
@@ -3228,7 +3504,7 @@ pub fn content_accounttax_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_accounttax_custombatch_builder(client, body)?;
+    let builder = content_accounttax_custombatch_builder(client, &args.body)?;
     content_accounttax_custombatch_execute(builder)
 }
 
@@ -3323,6 +3599,15 @@ pub fn content_accounttax_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounttax_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccounttaxGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+}
+
 /// GET {merchantId}/accounttax/{accountId}
 /// Retrieves the tax settings of the account.
 ///
@@ -3335,13 +3620,12 @@ pub fn content_accounttax_get_execute(
 
 pub fn content_accounttax_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
+    args: &ContentAccounttaxGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountTax>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_accounttax_get_builder(client, merchantId, accountId)?;
+    let builder = content_accounttax_get_builder(client, &args.merchantId, &args.accountId)?;
     content_accounttax_get_execute(builder)
 }
 
@@ -3453,6 +3737,17 @@ pub fn content_accounttax_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounttax_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccounttaxListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET {merchantId}/accounttax
 /// Lists the tax settings of the sub-accounts in your Merchant Center account.
 ///
@@ -3465,16 +3760,19 @@ pub fn content_accounttax_list_execute(
 
 pub fn content_accounttax_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentAccounttaxListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccounttaxListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_accounttax_list_builder(client, merchantId, maxResults, pageToken)?;
+    let builder = content_accounttax_list_builder(
+        client,
+        &args.merchantId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     content_accounttax_list_execute(builder)
 }
 
@@ -3572,6 +3870,17 @@ pub fn content_accounttax_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_accounttax_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentAccounttaxUpdateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Request body.
+    pub body: AccountTax,
+}
+
 /// GET {merchantId}/accounttax/{accountId}
 /// Updates the tax settings of the account. Any fields that are not provided are deleted from the resource.
 ///
@@ -3584,14 +3893,13 @@ pub fn content_accounttax_update_execute(
 
 pub fn content_accounttax_update(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    body: &AccountTax,
+    args: &ContentAccounttaxUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountTax>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_accounttax_update_builder(client, merchantId, accountId, body)?;
+    let builder =
+        content_accounttax_update_builder(client, &args.merchantId, &args.accountId, &args.body)?;
     content_accounttax_update_execute(builder)
 }
 
@@ -3688,6 +3996,15 @@ pub fn content_collections_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_collections_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentCollectionsCreateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Request body.
+    pub body: Collection,
+}
+
 /// GET {merchantId}/collections
 /// Uploads a collection to your Merchant Center account. If a collection with the same `collectionId` already exists, this method updates that entry. In each update, the collection is completely replaced by the fields in the body of the update request.
 ///
@@ -3700,13 +4017,12 @@ pub fn content_collections_create_execute(
 
 pub fn content_collections_create(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    body: &Collection,
+    args: &ContentCollectionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Collection>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_collections_create_builder(client, merchantId, body)?;
+    let builder = content_collections_create_builder(client, &args.merchantId, &args.body)?;
     content_collections_create_execute(builder)
 }
 
@@ -3798,6 +4114,15 @@ pub fn content_collections_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_collections_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentCollectionsDeleteArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: collectionId
+    pub collectionId: String,
+}
+
 /// GET {merchantId}/collections/{collectionId}
 /// Deletes a collection from your Merchant Center account.
 ///
@@ -3810,13 +4135,12 @@ pub fn content_collections_delete_execute(
 
 pub fn content_collections_delete(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    collectionId: &str,
+    args: &ContentCollectionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_collections_delete_builder(client, merchantId, collectionId)?;
+    let builder = content_collections_delete_builder(client, &args.merchantId, &args.collectionId)?;
     content_collections_delete_execute(builder)
 }
 
@@ -3911,6 +4235,15 @@ pub fn content_collections_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_collections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentCollectionsGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: collectionId
+    pub collectionId: String,
+}
+
 /// GET {merchantId}/collections/{collectionId}
 /// Retrieves a collection from your Merchant Center account.
 ///
@@ -3923,13 +4256,12 @@ pub fn content_collections_get_execute(
 
 pub fn content_collections_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    collectionId: &str,
+    args: &ContentCollectionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Collection>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_collections_get_builder(client, merchantId, collectionId)?;
+    let builder = content_collections_get_builder(client, &args.merchantId, &args.collectionId)?;
     content_collections_get_execute(builder)
 }
 
@@ -4041,6 +4373,17 @@ pub fn content_collections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_collections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentCollectionsListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET {merchantId}/collections
 /// Lists the collections in your Merchant Center account. The response might contain fewer items than specified by page_size. Rely on next_page_token to determine if there are more items to be requested.
 ///
@@ -4053,16 +4396,19 @@ pub fn content_collections_list_execute(
 
 pub fn content_collections_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentCollectionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCollectionsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_collections_list_builder(client, merchantId, pageSize, pageToken)?;
+    let builder = content_collections_list_builder(
+        client,
+        &args.merchantId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     content_collections_list_execute(builder)
 }
 
@@ -4159,6 +4505,15 @@ pub fn content_collectionstatuses_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_collectionstatuses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentCollectionstatusesGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: collectionId
+    pub collectionId: String,
+}
+
 /// GET {merchantId}/collectionstatuses/{collectionId}
 /// Gets the status of a collection from your Merchant Center account.
 ///
@@ -4171,15 +4526,15 @@ pub fn content_collectionstatuses_get_execute(
 
 pub fn content_collectionstatuses_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    collectionId: &str,
+    args: &ContentCollectionstatusesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CollectionStatus>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_collectionstatuses_get_builder(client, merchantId, collectionId)?;
+    let builder =
+        content_collectionstatuses_get_builder(client, &args.merchantId, &args.collectionId)?;
     content_collectionstatuses_get_execute(builder)
 }
 
@@ -4293,6 +4648,17 @@ pub fn content_collectionstatuses_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_collectionstatuses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentCollectionstatusesListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET {merchantId}/collectionstatuses
 /// Lists the statuses of the collections in your Merchant Center account.
 ///
@@ -4305,9 +4671,7 @@ pub fn content_collectionstatuses_list_execute(
 
 pub fn content_collectionstatuses_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentCollectionstatusesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCollectionStatusesResponse>, ApiError>,
@@ -4316,7 +4680,12 @@ pub fn content_collectionstatuses_list(
         + 'static,
     ApiError,
 > {
-    let builder = content_collectionstatuses_list_builder(client, merchantId, pageSize, pageToken)?;
+    let builder = content_collectionstatuses_list_builder(
+        client,
+        &args.merchantId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     content_collectionstatuses_list_execute(builder)
 }
 
@@ -4415,6 +4784,15 @@ pub fn content_conversionsources_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_conversionsources_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentConversionsourcesCreateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Request body.
+    pub body: ConversionSource,
+}
+
 /// GET {merchantId}/conversionsources
 /// Creates a new conversion source.
 ///
@@ -4427,15 +4805,14 @@ pub fn content_conversionsources_create_execute(
 
 pub fn content_conversionsources_create(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    body: &ConversionSource,
+    args: &ContentConversionsourcesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConversionSource>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_conversionsources_create_builder(client, merchantId, body)?;
+    let builder = content_conversionsources_create_builder(client, &args.merchantId, &args.body)?;
     content_conversionsources_create_execute(builder)
 }
 
@@ -4527,6 +4904,15 @@ pub fn content_conversionsources_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_conversionsources_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentConversionsourcesDeleteArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: conversionSourceId
+    pub conversionSourceId: String,
+}
+
 /// GET {merchantId}/conversionsources/{conversionSourceId}
 /// Archives an existing conversion source. It will be recoverable for 30 days. This archiving behavior is not typical in the Content API and unique to this service.
 ///
@@ -4539,13 +4925,16 @@ pub fn content_conversionsources_delete_execute(
 
 pub fn content_conversionsources_delete(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    conversionSourceId: &str,
+    args: &ContentConversionsourcesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_conversionsources_delete_builder(client, merchantId, conversionSourceId)?;
+    let builder = content_conversionsources_delete_builder(
+        client,
+        &args.merchantId,
+        &args.conversionSourceId,
+    )?;
     content_conversionsources_delete_execute(builder)
 }
 
@@ -4642,6 +5031,15 @@ pub fn content_conversionsources_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_conversionsources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentConversionsourcesGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: conversionSourceId
+    pub conversionSourceId: String,
+}
+
 /// GET {merchantId}/conversionsources/{conversionSourceId}
 /// Fetches a conversion source.
 ///
@@ -4654,15 +5052,15 @@ pub fn content_conversionsources_get_execute(
 
 pub fn content_conversionsources_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    conversionSourceId: &str,
+    args: &ContentConversionsourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConversionSource>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_conversionsources_get_builder(client, merchantId, conversionSourceId)?;
+    let builder =
+        content_conversionsources_get_builder(client, &args.merchantId, &args.conversionSourceId)?;
     content_conversionsources_get_execute(builder)
 }
 
@@ -4780,6 +5178,19 @@ pub fn content_conversionsources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_conversionsources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentConversionsourcesListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET {merchantId}/conversionsources
 /// Retrieves the list of conversion sources the caller has access to.
 ///
@@ -4792,10 +5203,7 @@ pub fn content_conversionsources_list_execute(
 
 pub fn content_conversionsources_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &ContentConversionsourcesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListConversionSourcesResponse>, ApiError>,
@@ -4806,10 +5214,10 @@ pub fn content_conversionsources_list(
 > {
     let builder = content_conversionsources_list_builder(
         client,
-        merchantId,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.merchantId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     content_conversionsources_list_execute(builder)
 }
@@ -4922,6 +5330,19 @@ pub fn content_conversionsources_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_conversionsources_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentConversionsourcesPatchArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: conversionSourceId
+    pub conversionSourceId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ConversionSource,
+}
+
 /// GET {merchantId}/conversionsources/{conversionSourceId}
 /// Updates information of an existing conversion source.
 ///
@@ -4934,10 +5355,7 @@ pub fn content_conversionsources_patch_execute(
 
 pub fn content_conversionsources_patch(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    conversionSourceId: &str,
-    updateMask: Option<&str>,
-    body: &ConversionSource,
+    args: &ContentConversionsourcesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConversionSource>, ApiError>, P = ApiPending>
         + Send
@@ -4946,10 +5364,10 @@ pub fn content_conversionsources_patch(
 > {
     let builder = content_conversionsources_patch_builder(
         client,
-        merchantId,
-        conversionSourceId,
-        updateMask,
-        body,
+        &args.merchantId,
+        &args.conversionSourceId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     content_conversionsources_patch_execute(builder)
 }
@@ -5045,6 +5463,17 @@ pub fn content_conversionsources_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_conversionsources_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentConversionsourcesUndeleteArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: conversionSourceId
+    pub conversionSourceId: String,
+    /// Request body.
+    pub body: UndeleteConversionSourceRequest,
+}
+
 /// GET {merchantId}/conversionsources/{conversionSourceId}:undelete
 /// Re-enables an archived conversion source.
 ///
@@ -5057,15 +5486,17 @@ pub fn content_conversionsources_undelete_execute(
 
 pub fn content_conversionsources_undelete(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    conversionSourceId: &str,
-    body: &UndeleteConversionSourceRequest,
+    args: &ContentConversionsourcesUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        content_conversionsources_undelete_builder(client, merchantId, conversionSourceId, body)?;
+    let builder = content_conversionsources_undelete_builder(
+        client,
+        &args.merchantId,
+        &args.conversionSourceId,
+        &args.body,
+    )?;
     content_conversionsources_undelete_execute(builder)
 }
 
@@ -5160,6 +5591,15 @@ pub fn content_csses_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_csses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentCssesGetArgs {
+    /// Path parameter: cssGroupId
+    pub cssGroupId: String,
+    /// Path parameter: cssDomainId
+    pub cssDomainId: String,
+}
+
 /// GET {cssGroupId}/csses/{cssDomainId}
 /// Retrieves a single CSS domain by ID.
 ///
@@ -5172,13 +5612,12 @@ pub fn content_csses_get_execute(
 
 pub fn content_csses_get(
     client: &SimpleHttpClient,
-    cssGroupId: &str,
-    cssDomainId: &str,
+    args: &ContentCssesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Css>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_csses_get_builder(client, cssGroupId, cssDomainId)?;
+    let builder = content_csses_get_builder(client, &args.cssGroupId, &args.cssDomainId)?;
     content_csses_get_execute(builder)
 }
 
@@ -5290,6 +5729,17 @@ pub fn content_csses_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_csses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentCssesListArgs {
+    /// Path parameter: cssGroupId
+    pub cssGroupId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET {cssGroupId}/csses
 /// Lists CSS domains affiliated with a CSS group.
 ///
@@ -5302,16 +5752,19 @@ pub fn content_csses_list_execute(
 
 pub fn content_csses_list(
     client: &SimpleHttpClient,
-    cssGroupId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentCssesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCssesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_csses_list_builder(client, cssGroupId, pageSize, pageToken)?;
+    let builder = content_csses_list_builder(
+        client,
+        &args.cssGroupId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     content_csses_list_execute(builder)
 }
 
@@ -5409,6 +5862,17 @@ pub fn content_csses_updatelabels_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_csses_updatelabels`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentCssesUpdatelabelsArgs {
+    /// Path parameter: cssGroupId
+    pub cssGroupId: String,
+    /// Path parameter: cssDomainId
+    pub cssDomainId: String,
+    /// Request body.
+    pub body: LabelIds,
+}
+
 /// GET {cssGroupId}/csses/{cssDomainId}/updatelabels
 /// Updates labels that are assigned to a CSS domain by its CSS group.
 ///
@@ -5421,14 +5885,17 @@ pub fn content_csses_updatelabels_execute(
 
 pub fn content_csses_updatelabels(
     client: &SimpleHttpClient,
-    cssGroupId: &str,
-    cssDomainId: &str,
-    body: &LabelIds,
+    args: &ContentCssesUpdatelabelsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Css>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_csses_updatelabels_builder(client, cssGroupId, cssDomainId, body)?;
+    let builder = content_csses_updatelabels_builder(
+        client,
+        &args.cssGroupId,
+        &args.cssDomainId,
+        &args.body,
+    )?;
     content_csses_updatelabels_execute(builder)
 }
 
@@ -5525,6 +5992,13 @@ pub fn content_datafeeds_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_datafeeds_custombatch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentDatafeedsCustombatchArgs {
+    /// Request body.
+    pub body: DatafeedsCustomBatchRequest,
+}
+
 /// GET datafeeds/batch
 /// Deletes, fetches, gets, inserts and updates multiple datafeeds in a single request.
 ///
@@ -5537,7 +6011,7 @@ pub fn content_datafeeds_custombatch_execute(
 
 pub fn content_datafeeds_custombatch(
     client: &SimpleHttpClient,
-    body: &DatafeedsCustomBatchRequest,
+    args: &ContentDatafeedsCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DatafeedsCustomBatchResponse>, ApiError>,
@@ -5546,7 +6020,7 @@ pub fn content_datafeeds_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_datafeeds_custombatch_builder(client, body)?;
+    let builder = content_datafeeds_custombatch_builder(client, &args.body)?;
     content_datafeeds_custombatch_execute(builder)
 }
 
@@ -5638,6 +6112,15 @@ pub fn content_datafeeds_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_datafeeds_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentDatafeedsDeleteArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: datafeedId
+    pub datafeedId: String,
+}
+
 /// GET {merchantId}/datafeeds/{datafeedId}
 /// Deletes a datafeed configuration from your Merchant Center account.
 ///
@@ -5650,13 +6133,12 @@ pub fn content_datafeeds_delete_execute(
 
 pub fn content_datafeeds_delete(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    datafeedId: &str,
+    args: &ContentDatafeedsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_datafeeds_delete_builder(client, merchantId, datafeedId)?;
+    let builder = content_datafeeds_delete_builder(client, &args.merchantId, &args.datafeedId)?;
     content_datafeeds_delete_execute(builder)
 }
 
@@ -5753,6 +6235,15 @@ pub fn content_datafeeds_fetchnow_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_datafeeds_fetchnow`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentDatafeedsFetchnowArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: datafeedId
+    pub datafeedId: String,
+}
+
 /// GET {merchantId}/datafeeds/{datafeedId}/fetchNow
 /// Invokes a fetch for the datafeed in your Merchant Center account. If you need to call this method more than once per day, we recommend you use the [Products service](<https://developers.google.`com/shopping-content/reference/rest/v2`.1/products>) to update your product data.
 ///
@@ -5765,15 +6256,14 @@ pub fn content_datafeeds_fetchnow_execute(
 
 pub fn content_datafeeds_fetchnow(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    datafeedId: &str,
+    args: &ContentDatafeedsFetchnowArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatafeedsFetchNowResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_datafeeds_fetchnow_builder(client, merchantId, datafeedId)?;
+    let builder = content_datafeeds_fetchnow_builder(client, &args.merchantId, &args.datafeedId)?;
     content_datafeeds_fetchnow_execute(builder)
 }
 
@@ -5868,6 +6358,15 @@ pub fn content_datafeeds_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_datafeeds_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentDatafeedsGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: datafeedId
+    pub datafeedId: String,
+}
+
 /// GET {merchantId}/datafeeds/{datafeedId}
 /// Retrieves a datafeed configuration from your Merchant Center account.
 ///
@@ -5880,13 +6379,12 @@ pub fn content_datafeeds_get_execute(
 
 pub fn content_datafeeds_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    datafeedId: &str,
+    args: &ContentDatafeedsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Datafeed>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_datafeeds_get_builder(client, merchantId, datafeedId)?;
+    let builder = content_datafeeds_get_builder(client, &args.merchantId, &args.datafeedId)?;
     content_datafeeds_get_execute(builder)
 }
 
@@ -5983,6 +6481,15 @@ pub fn content_datafeeds_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_datafeeds_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentDatafeedsInsertArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Request body.
+    pub body: Datafeed,
+}
+
 /// GET {merchantId}/datafeeds
 /// Registers a datafeed configuration with your Merchant Center account.
 ///
@@ -5995,13 +6502,12 @@ pub fn content_datafeeds_insert_execute(
 
 pub fn content_datafeeds_insert(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    body: &Datafeed,
+    args: &ContentDatafeedsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Datafeed>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_datafeeds_insert_builder(client, merchantId, body)?;
+    let builder = content_datafeeds_insert_builder(client, &args.merchantId, &args.body)?;
     content_datafeeds_insert_execute(builder)
 }
 
@@ -6113,6 +6619,17 @@ pub fn content_datafeeds_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_datafeeds_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentDatafeedsListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET {merchantId}/datafeeds
 /// Lists the configurations for datafeeds in your Merchant Center account.
 ///
@@ -6125,16 +6642,19 @@ pub fn content_datafeeds_list_execute(
 
 pub fn content_datafeeds_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentDatafeedsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatafeedsListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_datafeeds_list_builder(client, merchantId, maxResults, pageToken)?;
+    let builder = content_datafeeds_list_builder(
+        client,
+        &args.merchantId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     content_datafeeds_list_execute(builder)
 }
 
@@ -6232,6 +6752,17 @@ pub fn content_datafeeds_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_datafeeds_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentDatafeedsUpdateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: datafeedId
+    pub datafeedId: String,
+    /// Request body.
+    pub body: Datafeed,
+}
+
 /// GET {merchantId}/datafeeds/{datafeedId}
 /// Updates a datafeed configuration of your Merchant Center account. Any fields that are not provided are deleted from the resource.
 ///
@@ -6244,14 +6775,13 @@ pub fn content_datafeeds_update_execute(
 
 pub fn content_datafeeds_update(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    datafeedId: &str,
-    body: &Datafeed,
+    args: &ContentDatafeedsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Datafeed>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_datafeeds_update_builder(client, merchantId, datafeedId, body)?;
+    let builder =
+        content_datafeeds_update_builder(client, &args.merchantId, &args.datafeedId, &args.body)?;
     content_datafeeds_update_execute(builder)
 }
 
@@ -6349,6 +6879,13 @@ pub fn content_datafeedstatuses_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_datafeedstatuses_custombatch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentDatafeedstatusesCustombatchArgs {
+    /// Request body.
+    pub body: DatafeedstatusesCustomBatchRequest,
+}
+
 /// GET datafeedstatuses/batch
 /// Gets multiple Merchant Center datafeed statuses in a single request.
 ///
@@ -6361,7 +6898,7 @@ pub fn content_datafeedstatuses_custombatch_execute(
 
 pub fn content_datafeedstatuses_custombatch(
     client: &SimpleHttpClient,
-    body: &DatafeedstatusesCustomBatchRequest,
+    args: &ContentDatafeedstatusesCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DatafeedstatusesCustomBatchResponse>, ApiError>,
@@ -6370,7 +6907,7 @@ pub fn content_datafeedstatuses_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_datafeedstatuses_custombatch_builder(client, body)?;
+    let builder = content_datafeedstatuses_custombatch_builder(client, &args.body)?;
     content_datafeedstatuses_custombatch_execute(builder)
 }
 
@@ -6487,6 +7024,21 @@ pub fn content_datafeedstatuses_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_datafeedstatuses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentDatafeedstatusesGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: datafeedId
+    pub datafeedId: String,
+    /// Query parameter: country
+    pub country: Option<String>,
+    /// Query parameter: feedLabel
+    pub feedLabel: Option<String>,
+    /// Query parameter: language
+    pub language: Option<String>,
+}
+
 /// GET {merchantId}/datafeedstatuses/{datafeedId}
 /// Retrieves the status of a datafeed from your Merchant Center account.
 ///
@@ -6499,11 +7051,7 @@ pub fn content_datafeedstatuses_get_execute(
 
 pub fn content_datafeedstatuses_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    datafeedId: &str,
-    country: Option<&str>,
-    feedLabel: Option<&str>,
-    language: Option<&str>,
+    args: &ContentDatafeedstatusesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatafeedStatus>, ApiError>, P = ApiPending>
         + Send
@@ -6511,7 +7059,12 @@ pub fn content_datafeedstatuses_get(
     ApiError,
 > {
     let builder = content_datafeedstatuses_get_builder(
-        client, merchantId, datafeedId, country, feedLabel, language,
+        client,
+        &args.merchantId,
+        &args.datafeedId,
+        args.country.as_deref(),
+        args.feedLabel.as_deref(),
+        args.language.as_deref(),
     )?;
     content_datafeedstatuses_get_execute(builder)
 }
@@ -6626,6 +7179,17 @@ pub fn content_datafeedstatuses_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_datafeedstatuses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentDatafeedstatusesListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET {merchantId}/datafeedstatuses
 /// Lists the statuses of the datafeeds in your Merchant Center account.
 ///
@@ -6638,9 +7202,7 @@ pub fn content_datafeedstatuses_list_execute(
 
 pub fn content_datafeedstatuses_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentDatafeedstatusesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DatafeedstatusesListResponse>, ApiError>,
@@ -6649,7 +7211,12 @@ pub fn content_datafeedstatuses_list(
         + 'static,
     ApiError,
 > {
-    let builder = content_datafeedstatuses_list_builder(client, merchantId, maxResults, pageToken)?;
+    let builder = content_datafeedstatuses_list_builder(
+        client,
+        &args.merchantId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     content_datafeedstatuses_list_execute(builder)
 }
 
@@ -6745,6 +7312,13 @@ pub fn content_freelistingsprogram_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_freelistingsprogram_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentFreelistingsprogramGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+}
+
 /// GET {merchantId}/freelistingsprogram
 /// Retrieves the status and review eligibility for the free listing program. Returns errors and warnings if they require action to resolve, will become disapprovals, or impact impressions. Use accountstatuses to view all issues for an account.
 ///
@@ -6757,14 +7331,14 @@ pub fn content_freelistingsprogram_get_execute(
 
 pub fn content_freelistingsprogram_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
+    args: &ContentFreelistingsprogramGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FreeListingsProgramStatus>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_freelistingsprogram_get_builder(client, merchantId)?;
+    let builder = content_freelistingsprogram_get_builder(client, &args.merchantId)?;
     content_freelistingsprogram_get_execute(builder)
 }
 
@@ -6858,6 +7432,15 @@ pub fn content_freelistingsprogram_requestreview_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_freelistingsprogram_requestreview`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentFreelistingsprogramRequestreviewArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Request body.
+    pub body: RequestReviewFreeListingsRequest,
+}
+
 /// GET {merchantId}/freelistingsprogram/requestreview
 /// Requests a review of free listings in a specific region. This method deprecated. Use the MerchantSupportService to view product and account issues and request a review.
 ///
@@ -6870,13 +7453,13 @@ pub fn content_freelistingsprogram_requestreview_execute(
 
 pub fn content_freelistingsprogram_requestreview(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    body: &RequestReviewFreeListingsRequest,
+    args: &ContentFreelistingsprogramRequestreviewArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_freelistingsprogram_requestreview_builder(client, merchantId, body)?;
+    let builder =
+        content_freelistingsprogram_requestreview_builder(client, &args.merchantId, &args.body)?;
     content_freelistingsprogram_requestreview_execute(builder)
 }
 
@@ -6967,6 +7550,13 @@ pub fn content_freelistingsprogram_checkoutsettings_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_freelistingsprogram_checkoutsettings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentFreelistingsprogramCheckoutsettingsDeleteArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+}
+
 /// GET {merchantId}/freelistingsprogram/checkoutsettings
 /// Deletes Checkout settings and unenrolls merchant from Checkout program.
 ///
@@ -6979,12 +7569,13 @@ pub fn content_freelistingsprogram_checkoutsettings_delete_execute(
 
 pub fn content_freelistingsprogram_checkoutsettings_delete(
     client: &SimpleHttpClient,
-    merchantId: &str,
+    args: &ContentFreelistingsprogramCheckoutsettingsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_freelistingsprogram_checkoutsettings_delete_builder(client, merchantId)?;
+    let builder =
+        content_freelistingsprogram_checkoutsettings_delete_builder(client, &args.merchantId)?;
     content_freelistingsprogram_checkoutsettings_delete_execute(builder)
 }
 
@@ -7080,6 +7671,13 @@ pub fn content_freelistingsprogram_checkoutsettings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_freelistingsprogram_checkoutsettings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentFreelistingsprogramCheckoutsettingsGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+}
+
 /// GET {merchantId}/freelistingsprogram/checkoutsettings
 /// Gets Checkout settings for the given merchant. This includes information about review state, enrollment state and URL settings.
 ///
@@ -7092,14 +7690,15 @@ pub fn content_freelistingsprogram_checkoutsettings_get_execute(
 
 pub fn content_freelistingsprogram_checkoutsettings_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
+    args: &ContentFreelistingsprogramCheckoutsettingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CheckoutSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_freelistingsprogram_checkoutsettings_get_builder(client, merchantId)?;
+    let builder =
+        content_freelistingsprogram_checkoutsettings_get_builder(client, &args.merchantId)?;
     content_freelistingsprogram_checkoutsettings_get_execute(builder)
 }
 
@@ -7198,6 +7797,15 @@ pub fn content_freelistingsprogram_checkoutsettings_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_freelistingsprogram_checkoutsettings_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentFreelistingsprogramCheckoutsettingsInsertArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Request body.
+    pub body: InsertCheckoutSettingsRequest,
+}
+
 /// GET {merchantId}/freelistingsprogram/checkoutsettings
 /// Enrolls merchant in Checkout program.
 ///
@@ -7210,16 +7818,18 @@ pub fn content_freelistingsprogram_checkoutsettings_insert_execute(
 
 pub fn content_freelistingsprogram_checkoutsettings_insert(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    body: &InsertCheckoutSettingsRequest,
+    args: &ContentFreelistingsprogramCheckoutsettingsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CheckoutSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_freelistingsprogram_checkoutsettings_insert_builder(client, merchantId, body)?;
+    let builder = content_freelistingsprogram_checkoutsettings_insert_builder(
+        client,
+        &args.merchantId,
+        &args.body,
+    )?;
     content_freelistingsprogram_checkoutsettings_insert_execute(builder)
 }
 
@@ -7316,6 +7926,13 @@ pub fn content_liasettings_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_liasettings_custombatch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentLiasettingsCustombatchArgs {
+    /// Request body.
+    pub body: LiasettingsCustomBatchRequest,
+}
+
 /// GET liasettings/batch
 /// Retrieves `and/or` updates the LIA settings of multiple accounts in a single request.
 ///
@@ -7328,7 +7945,7 @@ pub fn content_liasettings_custombatch_execute(
 
 pub fn content_liasettings_custombatch(
     client: &SimpleHttpClient,
-    body: &LiasettingsCustomBatchRequest,
+    args: &ContentLiasettingsCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LiasettingsCustomBatchResponse>, ApiError>,
@@ -7337,7 +7954,7 @@ pub fn content_liasettings_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_liasettings_custombatch_builder(client, body)?;
+    let builder = content_liasettings_custombatch_builder(client, &args.body)?;
     content_liasettings_custombatch_execute(builder)
 }
 
@@ -7432,6 +8049,15 @@ pub fn content_liasettings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_liasettings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentLiasettingsGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+}
+
 /// GET {merchantId}/liasettings/{accountId}
 /// Retrieves the LIA settings of the account.
 ///
@@ -7444,13 +8070,12 @@ pub fn content_liasettings_get_execute(
 
 pub fn content_liasettings_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
+    args: &ContentLiasettingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LiaSettings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_liasettings_get_builder(client, merchantId, accountId)?;
+    let builder = content_liasettings_get_builder(client, &args.merchantId, &args.accountId)?;
     content_liasettings_get_execute(builder)
 }
 
@@ -7551,6 +8176,15 @@ pub fn content_liasettings_getaccessiblegmbaccounts_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_liasettings_getaccessiblegmbaccounts`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentLiasettingsGetaccessiblegmbaccountsArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+}
+
 /// GET {merchantId}/liasettings/{accountId}/accessiblegmbaccounts
 /// Retrieves the list of accessible Business Profiles.
 ///
@@ -7563,8 +8197,7 @@ pub fn content_liasettings_getaccessiblegmbaccounts_execute(
 
 pub fn content_liasettings_getaccessiblegmbaccounts(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
+    args: &ContentLiasettingsGetaccessiblegmbaccountsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LiasettingsGetAccessibleGmbAccountsResponse>, ApiError>,
@@ -7573,8 +8206,11 @@ pub fn content_liasettings_getaccessiblegmbaccounts(
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_liasettings_getaccessiblegmbaccounts_builder(client, merchantId, accountId)?;
+    let builder = content_liasettings_getaccessiblegmbaccounts_builder(
+        client,
+        &args.merchantId,
+        &args.accountId,
+    )?;
     content_liasettings_getaccessiblegmbaccounts_execute(builder)
 }
 
@@ -7686,6 +8322,17 @@ pub fn content_liasettings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_liasettings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentLiasettingsListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET {merchantId}/liasettings
 /// Lists the LIA settings of the sub-accounts in your Merchant Center account.
 ///
@@ -7698,16 +8345,19 @@ pub fn content_liasettings_list_execute(
 
 pub fn content_liasettings_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentLiasettingsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LiasettingsListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_liasettings_list_builder(client, merchantId, maxResults, pageToken)?;
+    let builder = content_liasettings_list_builder(
+        client,
+        &args.merchantId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     content_liasettings_list_execute(builder)
 }
 
@@ -7924,6 +8574,17 @@ pub fn content_liasettings_requestgmbaccess_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_liasettings_requestgmbaccess`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentLiasettingsRequestgmbaccessArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: gmbEmail
+    pub gmbEmail: String,
+}
+
 /// GET {merchantId}/liasettings/{accountId}/requestgmbaccess
 /// Requests access to a specified Business Profile.
 ///
@@ -7936,9 +8597,7 @@ pub fn content_liasettings_requestgmbaccess_execute(
 
 pub fn content_liasettings_requestgmbaccess(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    gmbEmail: &str,
+    args: &ContentLiasettingsRequestgmbaccessArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LiasettingsRequestGmbAccessResponse>, ApiError>,
@@ -7947,8 +8606,12 @@ pub fn content_liasettings_requestgmbaccess(
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_liasettings_requestgmbaccess_builder(client, merchantId, accountId, gmbEmail)?;
+    let builder = content_liasettings_requestgmbaccess_builder(
+        client,
+        &args.merchantId,
+        &args.accountId,
+        &args.gmbEmail,
+    )?;
     content_liasettings_requestgmbaccess_execute(builder)
 }
 
@@ -8051,6 +8714,17 @@ pub fn content_liasettings_requestinventoryverification_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_liasettings_requestinventoryverification`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentLiasettingsRequestinventoryverificationArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: country
+    pub country: String,
+}
+
 /// GET {merchantId}/liasettings/{accountId}/requestinventoryverification/{country}
 /// Requests inventory validation for the specified country.
 ///
@@ -8063,9 +8737,7 @@ pub fn content_liasettings_requestinventoryverification_execute(
 
 pub fn content_liasettings_requestinventoryverification(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    country: &str,
+    args: &ContentLiasettingsRequestinventoryverificationArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LiasettingsRequestInventoryVerificationResponse>, ApiError>,
@@ -8075,7 +8747,10 @@ pub fn content_liasettings_requestinventoryverification(
     ApiError,
 > {
     let builder = content_liasettings_requestinventoryverification_builder(
-        client, merchantId, accountId, country,
+        client,
+        &args.merchantId,
+        &args.accountId,
+        &args.country,
     )?;
     content_liasettings_requestinventoryverification_execute(builder)
 }
@@ -8185,6 +8860,23 @@ pub fn content_liasettings_setinventoryverificationcontact_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_liasettings_setinventoryverificationcontact`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentLiasettingsSetinventoryverificationcontactArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: country
+    pub country: String,
+    /// Path parameter: language
+    pub language: String,
+    /// Path parameter: contactName
+    pub contactName: String,
+    /// Path parameter: contactEmail
+    pub contactEmail: String,
+}
+
 /// GET {merchantId}/liasettings/{accountId}/setinventoryverificationcontact
 /// Sets the inventory verification contact for the specified country.
 ///
@@ -8197,12 +8889,7 @@ pub fn content_liasettings_setinventoryverificationcontact_execute(
 
 pub fn content_liasettings_setinventoryverificationcontact(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    country: &str,
-    language: &str,
-    contactName: &str,
-    contactEmail: &str,
+    args: &ContentLiasettingsSetinventoryverificationcontactArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LiasettingsSetInventoryVerificationContactResponse>, ApiError>,
@@ -8213,12 +8900,12 @@ pub fn content_liasettings_setinventoryverificationcontact(
 > {
     let builder = content_liasettings_setinventoryverificationcontact_builder(
         client,
-        merchantId,
-        accountId,
-        country,
-        language,
-        contactName,
-        contactEmail,
+        &args.merchantId,
+        &args.accountId,
+        &args.country,
+        &args.language,
+        &args.contactName,
+        &args.contactEmail,
     )?;
     content_liasettings_setinventoryverificationcontact_execute(builder)
 }
@@ -8337,6 +9024,21 @@ pub fn content_liasettings_setomnichannelexperience_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_liasettings_setomnichannelexperience`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentLiasettingsSetomnichannelexperienceArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: country
+    pub country: Option<String>,
+    /// Query parameter: lsfType
+    pub lsfType: Option<String>,
+    /// Query parameter: pickupTypes
+    pub pickupTypes: Option<String>,
+}
+
 /// GET {merchantId}/liasettings/{accountId}/setomnichannelexperience
 /// Sets the omnichannel experience for the specified country. Only supported for merchants whose POS data provider is trusted to enable the corresponding experience. For more context, see these help articles [about LFP](<https://support.google.`com/merchants/answer/7676652`>) and [how to get started](<https://support.google.`com/merchants/answer/7676578`>) with it.
 ///
@@ -8349,11 +9051,7 @@ pub fn content_liasettings_setomnichannelexperience_execute(
 
 pub fn content_liasettings_setomnichannelexperience(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    country: Option<&str>,
-    lsfType: Option<&str>,
-    pickupTypes: Option<&str>,
+    args: &ContentLiasettingsSetomnichannelexperienceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LiaOmnichannelExperience>, ApiError>, P = ApiPending>
         + Send
@@ -8362,11 +9060,11 @@ pub fn content_liasettings_setomnichannelexperience(
 > {
     let builder = content_liasettings_setomnichannelexperience_builder(
         client,
-        merchantId,
-        accountId,
-        country,
-        lsfType,
-        pickupTypes,
+        &args.merchantId,
+        &args.accountId,
+        args.country.as_deref(),
+        args.lsfType.as_deref(),
+        args.pickupTypes.as_deref(),
     )?;
     content_liasettings_setomnichannelexperience_execute(builder)
 }
@@ -8483,6 +9181,21 @@ pub fn content_liasettings_setposdataprovider_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_liasettings_setposdataprovider`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentLiasettingsSetposdataproviderArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: country
+    pub country: String,
+    /// Query parameter: posDataProviderId
+    pub posDataProviderId: Option<String>,
+    /// Query parameter: posExternalAccountId
+    pub posExternalAccountId: Option<String>,
+}
+
 /// GET {merchantId}/liasettings/{accountId}/setposdataprovider
 /// Sets the POS data provider for the specified country.
 ///
@@ -8495,11 +9208,7 @@ pub fn content_liasettings_setposdataprovider_execute(
 
 pub fn content_liasettings_setposdataprovider(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    country: &str,
-    posDataProviderId: Option<&str>,
-    posExternalAccountId: Option<&str>,
+    args: &ContentLiasettingsSetposdataproviderArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LiasettingsSetPosDataProviderResponse>, ApiError>,
@@ -8510,11 +9219,11 @@ pub fn content_liasettings_setposdataprovider(
 > {
     let builder = content_liasettings_setposdataprovider_builder(
         client,
-        merchantId,
-        accountId,
-        country,
-        posDataProviderId,
-        posExternalAccountId,
+        &args.merchantId,
+        &args.accountId,
+        &args.country,
+        args.posDataProviderId.as_deref(),
+        args.posExternalAccountId.as_deref(),
     )?;
     content_liasettings_setposdataprovider_execute(builder)
 }
@@ -8613,6 +9322,17 @@ pub fn content_liasettings_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_liasettings_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentLiasettingsUpdateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Request body.
+    pub body: LiaSettings,
+}
+
 /// GET {merchantId}/liasettings/{accountId}
 /// Updates the LIA settings of the account. Any fields that are not provided are deleted from the resource.
 ///
@@ -8625,14 +9345,13 @@ pub fn content_liasettings_update_execute(
 
 pub fn content_liasettings_update(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    body: &LiaSettings,
+    args: &ContentLiasettingsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LiaSettings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_liasettings_update_builder(client, merchantId, accountId, body)?;
+    let builder =
+        content_liasettings_update_builder(client, &args.merchantId, &args.accountId, &args.body)?;
     content_liasettings_update_execute(builder)
 }
 
@@ -8729,6 +9448,13 @@ pub fn content_localinventory_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_localinventory_custombatch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentLocalinventoryCustombatchArgs {
+    /// Request body.
+    pub body: LocalinventoryCustomBatchRequest,
+}
+
 /// GET localinventory/batch
 /// Updates local inventory for multiple products or stores in a single request.
 ///
@@ -8741,7 +9467,7 @@ pub fn content_localinventory_custombatch_execute(
 
 pub fn content_localinventory_custombatch(
     client: &SimpleHttpClient,
-    body: &LocalinventoryCustomBatchRequest,
+    args: &ContentLocalinventoryCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LocalinventoryCustomBatchResponse>, ApiError>,
@@ -8750,7 +9476,7 @@ pub fn content_localinventory_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_localinventory_custombatch_builder(client, body)?;
+    let builder = content_localinventory_custombatch_builder(client, &args.body)?;
     content_localinventory_custombatch_execute(builder)
 }
 
@@ -8850,6 +9576,17 @@ pub fn content_localinventory_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_localinventory_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentLocalinventoryInsertArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Request body.
+    pub body: LocalInventory,
+}
+
 /// GET {merchantId}/products/{productId}/localinventory
 /// Updates the local inventory of a product in your Merchant Center account.
 ///
@@ -8862,16 +9599,19 @@ pub fn content_localinventory_insert_execute(
 
 pub fn content_localinventory_insert(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    productId: &str,
-    body: &LocalInventory,
+    args: &ContentLocalinventoryInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LocalInventory>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_localinventory_insert_builder(client, merchantId, productId, body)?;
+    let builder = content_localinventory_insert_builder(
+        client,
+        &args.merchantId,
+        &args.productId,
+        &args.body,
+    )?;
     content_localinventory_insert_execute(builder)
 }
 
@@ -8988,6 +9728,19 @@ pub fn content_merchantsupport_renderaccountissues_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_merchantsupport_renderaccountissues`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentMerchantsupportRenderaccountissuesArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: timeZone
+    pub timeZone: Option<String>,
+    /// Request body.
+    pub body: RenderAccountIssuesRequestPayload,
+}
+
 /// GET {merchantId}/merchantsupport/renderaccountissues
 /// Provide a list of merchant's issues with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
@@ -9000,10 +9753,7 @@ pub fn content_merchantsupport_renderaccountissues_execute(
 
 pub fn content_merchantsupport_renderaccountissues(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    languageCode: Option<&str>,
-    timeZone: Option<&str>,
-    body: &RenderAccountIssuesRequestPayload,
+    args: &ContentMerchantsupportRenderaccountissuesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RenderAccountIssuesResponse>, ApiError>,
@@ -9014,10 +9764,10 @@ pub fn content_merchantsupport_renderaccountissues(
 > {
     let builder = content_merchantsupport_renderaccountissues_builder(
         client,
-        merchantId,
-        languageCode,
-        timeZone,
-        body,
+        &args.merchantId,
+        args.languageCode.as_deref(),
+        args.timeZone.as_deref(),
+        &args.body,
     )?;
     content_merchantsupport_renderaccountissues_execute(builder)
 }
@@ -9137,6 +9887,21 @@ pub fn content_merchantsupport_renderproductissues_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_merchantsupport_renderproductissues`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentMerchantsupportRenderproductissuesArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: timeZone
+    pub timeZone: Option<String>,
+    /// Request body.
+    pub body: RenderProductIssuesRequestPayload,
+}
+
 /// GET {merchantId}/merchantsupport/renderproductissues/{productId}
 /// Provide a list of issues for merchant's product with a support content and available actions. This content and actions are meant to be rendered and shown in third-party applications.
 ///
@@ -9149,11 +9914,7 @@ pub fn content_merchantsupport_renderproductissues_execute(
 
 pub fn content_merchantsupport_renderproductissues(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    productId: &str,
-    languageCode: Option<&str>,
-    timeZone: Option<&str>,
-    body: &RenderProductIssuesRequestPayload,
+    args: &ContentMerchantsupportRenderproductissuesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RenderProductIssuesResponse>, ApiError>,
@@ -9164,11 +9925,11 @@ pub fn content_merchantsupport_renderproductissues(
 > {
     let builder = content_merchantsupport_renderproductissues_builder(
         client,
-        merchantId,
-        productId,
-        languageCode,
-        timeZone,
-        body,
+        &args.merchantId,
+        &args.productId,
+        args.languageCode.as_deref(),
+        args.timeZone.as_deref(),
+        &args.body,
     )?;
     content_merchantsupport_renderproductissues_execute(builder)
 }
@@ -9280,6 +10041,17 @@ pub fn content_merchantsupport_triggeraction_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_merchantsupport_triggeraction`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentMerchantsupportTriggeractionArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Request body.
+    pub body: TriggerActionPayload,
+}
+
 /// GET {merchantId}/merchantsupport/triggeraction
 /// Start an action. The action can be requested by merchants in third-party application. Before merchants can request the action, the third-party application needs to show them action specific content and display a user input form. You can request access using [Trigger action allowlist form](<https://docs.google.`com/forms/d/e/1FAIpQLSfeV_sBW9MBQv9BMTV6JZ1g11PGHLdHsrefca-9h0LmpU7CUg/viewform`?usp=sharing>). The action can be successfully started only once all required inputs are provided. If any required input is missing, or invalid value was provided, the service will return 400 error. Validation errors will contain Ids for all problematic field together with translated, human readable error messages that can be shown to the user.
 ///
@@ -9292,17 +10064,19 @@ pub fn content_merchantsupport_triggeraction_execute(
 
 pub fn content_merchantsupport_triggeraction(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    languageCode: Option<&str>,
-    body: &TriggerActionPayload,
+    args: &ContentMerchantsupportTriggeractionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TriggerActionResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_merchantsupport_triggeraction_builder(client, merchantId, languageCode, body)?;
+    let builder = content_merchantsupport_triggeraction_builder(
+        client,
+        &args.merchantId,
+        args.languageCode.as_deref(),
+        &args.body,
+    )?;
     content_merchantsupport_triggeraction_execute(builder)
 }
 
@@ -9401,6 +10175,15 @@ pub fn content_ordertrackingsignals_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_ordertrackingsignals_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentOrdertrackingsignalsCreateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Request body.
+    pub body: OrderTrackingSignal,
+}
+
 /// GET {merchantId}/ordertrackingsignals
 /// Creates new order tracking signal.
 ///
@@ -9413,15 +10196,15 @@ pub fn content_ordertrackingsignals_create_execute(
 
 pub fn content_ordertrackingsignals_create(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    body: &OrderTrackingSignal,
+    args: &ContentOrdertrackingsignalsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OrderTrackingSignal>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_ordertrackingsignals_create_builder(client, merchantId, body)?;
+    let builder =
+        content_ordertrackingsignals_create_builder(client, &args.merchantId, &args.body)?;
     content_ordertrackingsignals_create_execute(builder)
 }
 
@@ -9516,6 +10299,13 @@ pub fn content_pos_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_pos_custombatch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentPosCustombatchArgs {
+    /// Request body.
+    pub body: PosCustomBatchRequest,
+}
+
 /// GET pos/batch
 /// Batches multiple POS-related calls in a single request.
 ///
@@ -9528,14 +10318,14 @@ pub fn content_pos_custombatch_execute(
 
 pub fn content_pos_custombatch(
     client: &SimpleHttpClient,
-    body: &PosCustomBatchRequest,
+    args: &ContentPosCustombatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PosCustomBatchResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_pos_custombatch_builder(client, body)?;
+    let builder = content_pos_custombatch_builder(client, &args.body)?;
     content_pos_custombatch_execute(builder)
 }
 
@@ -9628,6 +10418,17 @@ pub fn content_pos_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_pos_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentPosDeleteArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: targetMerchantId
+    pub targetMerchantId: String,
+    /// Path parameter: storeCode
+    pub storeCode: String,
+}
+
 /// GET {merchantId}/pos/{targetMerchantId}/store/{storeCode}
 /// Deletes a store for the given merchant.
 ///
@@ -9640,14 +10441,17 @@ pub fn content_pos_delete_execute(
 
 pub fn content_pos_delete(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    targetMerchantId: &str,
-    storeCode: &str,
+    args: &ContentPosDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_pos_delete_builder(client, merchantId, targetMerchantId, storeCode)?;
+    let builder = content_pos_delete_builder(
+        client,
+        &args.merchantId,
+        &args.targetMerchantId,
+        &args.storeCode,
+    )?;
     content_pos_delete_execute(builder)
 }
 
@@ -9743,6 +10547,17 @@ pub fn content_pos_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_pos_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentPosGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: targetMerchantId
+    pub targetMerchantId: String,
+    /// Path parameter: storeCode
+    pub storeCode: String,
+}
+
 /// GET {merchantId}/pos/{targetMerchantId}/store/{storeCode}
 /// Retrieves information about the given store.
 ///
@@ -9755,14 +10570,17 @@ pub fn content_pos_get_execute(
 
 pub fn content_pos_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    targetMerchantId: &str,
-    storeCode: &str,
+    args: &ContentPosGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PosStore>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_pos_get_builder(client, merchantId, targetMerchantId, storeCode)?;
+    let builder = content_pos_get_builder(
+        client,
+        &args.merchantId,
+        &args.targetMerchantId,
+        &args.storeCode,
+    )?;
     content_pos_get_execute(builder)
 }
 
@@ -9860,6 +10678,17 @@ pub fn content_pos_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_pos_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentPosInsertArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: targetMerchantId
+    pub targetMerchantId: String,
+    /// Request body.
+    pub body: PosStore,
+}
+
 /// GET {merchantId}/pos/{targetMerchantId}/store
 /// Creates a store for the given merchant.
 ///
@@ -9872,14 +10701,13 @@ pub fn content_pos_insert_execute(
 
 pub fn content_pos_insert(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    targetMerchantId: &str,
-    body: &PosStore,
+    args: &ContentPosInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PosStore>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_pos_insert_builder(client, merchantId, targetMerchantId, body)?;
+    let builder =
+        content_pos_insert_builder(client, &args.merchantId, &args.targetMerchantId, &args.body)?;
     content_pos_insert_execute(builder)
 }
 
@@ -9979,6 +10807,17 @@ pub fn content_pos_inventory_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_pos_inventory`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentPosInventoryArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: targetMerchantId
+    pub targetMerchantId: String,
+    /// Request body.
+    pub body: PosInventoryRequest,
+}
+
 /// GET {merchantId}/pos/{targetMerchantId}/inventory
 /// Submit inventory for the given merchant.
 ///
@@ -9991,16 +10830,19 @@ pub fn content_pos_inventory_execute(
 
 pub fn content_pos_inventory(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    targetMerchantId: &str,
-    body: &PosInventoryRequest,
+    args: &ContentPosInventoryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PosInventoryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_pos_inventory_builder(client, merchantId, targetMerchantId, body)?;
+    let builder = content_pos_inventory_builder(
+        client,
+        &args.merchantId,
+        &args.targetMerchantId,
+        &args.body,
+    )?;
     content_pos_inventory_execute(builder)
 }
 
@@ -10097,6 +10939,15 @@ pub fn content_pos_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_pos_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentPosListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: targetMerchantId
+    pub targetMerchantId: String,
+}
+
 /// GET {merchantId}/pos/{targetMerchantId}/store
 /// Lists the stores of the target merchant.
 ///
@@ -10109,15 +10960,14 @@ pub fn content_pos_list_execute(
 
 pub fn content_pos_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    targetMerchantId: &str,
+    args: &ContentPosListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PosListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_pos_list_builder(client, merchantId, targetMerchantId)?;
+    let builder = content_pos_list_builder(client, &args.merchantId, &args.targetMerchantId)?;
     content_pos_list_execute(builder)
 }
 
@@ -10217,6 +11067,17 @@ pub fn content_pos_sale_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_pos_sale`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentPosSaleArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: targetMerchantId
+    pub targetMerchantId: String,
+    /// Request body.
+    pub body: PosSaleRequest,
+}
+
 /// GET {merchantId}/pos/{targetMerchantId}/sale
 /// Submit a sale event for the given merchant.
 ///
@@ -10229,16 +11090,15 @@ pub fn content_pos_sale_execute(
 
 pub fn content_pos_sale(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    targetMerchantId: &str,
-    body: &PosSaleRequest,
+    args: &ContentPosSaleArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PosSaleResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_pos_sale_builder(client, merchantId, targetMerchantId, body)?;
+    let builder =
+        content_pos_sale_builder(client, &args.merchantId, &args.targetMerchantId, &args.body)?;
     content_pos_sale_execute(builder)
 }
 
@@ -10337,6 +11197,15 @@ pub fn content_productdeliverytime_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_productdeliverytime_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentProductdeliverytimeCreateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Request body.
+    pub body: ProductDeliveryTime,
+}
+
 /// GET {merchantId}/productdeliverytime
 /// Creates or updates the delivery time of a product.
 ///
@@ -10349,15 +11218,14 @@ pub fn content_productdeliverytime_create_execute(
 
 pub fn content_productdeliverytime_create(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    body: &ProductDeliveryTime,
+    args: &ContentProductdeliverytimeCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductDeliveryTime>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_productdeliverytime_create_builder(client, merchantId, body)?;
+    let builder = content_productdeliverytime_create_builder(client, &args.merchantId, &args.body)?;
     content_productdeliverytime_create_execute(builder)
 }
 
@@ -10449,6 +11317,15 @@ pub fn content_productdeliverytime_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_productdeliverytime_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentProductdeliverytimeDeleteArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: productId
+    pub productId: String,
+}
+
 /// GET {merchantId}/productdeliverytime/{productId}
 /// Deletes the delivery time of a product.
 ///
@@ -10461,13 +11338,13 @@ pub fn content_productdeliverytime_delete_execute(
 
 pub fn content_productdeliverytime_delete(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    productId: &str,
+    args: &ContentProductdeliverytimeDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_productdeliverytime_delete_builder(client, merchantId, productId)?;
+    let builder =
+        content_productdeliverytime_delete_builder(client, &args.merchantId, &args.productId)?;
     content_productdeliverytime_delete_execute(builder)
 }
 
@@ -10564,6 +11441,15 @@ pub fn content_productdeliverytime_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_productdeliverytime_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentProductdeliverytimeGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: productId
+    pub productId: String,
+}
+
 /// GET {merchantId}/productdeliverytime/{productId}
 /// Gets `productDeliveryTime` by `productId`.
 ///
@@ -10576,15 +11462,15 @@ pub fn content_productdeliverytime_get_execute(
 
 pub fn content_productdeliverytime_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    productId: &str,
+    args: &ContentProductdeliverytimeGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductDeliveryTime>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_productdeliverytime_get_builder(client, merchantId, productId)?;
+    let builder =
+        content_productdeliverytime_get_builder(client, &args.merchantId, &args.productId)?;
     content_productdeliverytime_get_execute(builder)
 }
 
@@ -10681,6 +11567,13 @@ pub fn content_products_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_products_custombatch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentProductsCustombatchArgs {
+    /// Request body.
+    pub body: ProductsCustomBatchRequest,
+}
+
 /// GET products/batch
 /// Retrieves, inserts, and deletes multiple products in a single request.
 ///
@@ -10693,7 +11586,7 @@ pub fn content_products_custombatch_execute(
 
 pub fn content_products_custombatch(
     client: &SimpleHttpClient,
-    body: &ProductsCustomBatchRequest,
+    args: &ContentProductsCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ProductsCustomBatchResponse>, ApiError>,
@@ -10702,7 +11595,7 @@ pub fn content_products_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_products_custombatch_builder(client, body)?;
+    let builder = content_products_custombatch_builder(client, &args.body)?;
     content_products_custombatch_execute(builder)
 }
 
@@ -10806,6 +11699,17 @@ pub fn content_products_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_products_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentProductsDeleteArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Query parameter: feedId
+    pub feedId: Option<String>,
+}
+
 /// GET {merchantId}/products/{productId}
 /// Deletes a product from your Merchant Center account.
 ///
@@ -10818,14 +11722,17 @@ pub fn content_products_delete_execute(
 
 pub fn content_products_delete(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    productId: &str,
-    feedId: Option<&str>,
+    args: &ContentProductsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_products_delete_builder(client, merchantId, productId, feedId)?;
+    let builder = content_products_delete_builder(
+        client,
+        &args.merchantId,
+        &args.productId,
+        args.feedId.as_deref(),
+    )?;
     content_products_delete_execute(builder)
 }
 
@@ -10920,6 +11827,15 @@ pub fn content_products_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_products_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentProductsGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: productId
+    pub productId: String,
+}
+
 /// GET {merchantId}/products/{productId}
 /// Retrieves a product from your Merchant Center account.
 ///
@@ -10932,13 +11848,12 @@ pub fn content_products_get_execute(
 
 pub fn content_products_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    productId: &str,
+    args: &ContentProductsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_products_get_builder(client, merchantId, productId)?;
+    let builder = content_products_get_builder(client, &args.merchantId, &args.productId)?;
     content_products_get_execute(builder)
 }
 
@@ -11047,6 +11962,17 @@ pub fn content_products_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_products_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentProductsInsertArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: feedId
+    pub feedId: Option<String>,
+    /// Request body.
+    pub body: Product,
+}
+
 /// GET {merchantId}/products
 /// Uploads a product to your Merchant Center account. If an item with the same channel, `contentLanguage`, `offerId`, and `targetCountry` already exists, this method updates that entry.
 ///
@@ -11059,14 +11985,17 @@ pub fn content_products_insert_execute(
 
 pub fn content_products_insert(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    feedId: Option<&str>,
-    body: &Product,
+    args: &ContentProductsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_products_insert_builder(client, merchantId, feedId, body)?;
+    let builder = content_products_insert_builder(
+        client,
+        &args.merchantId,
+        args.feedId.as_deref(),
+        &args.body,
+    )?;
     content_products_insert_execute(builder)
 }
 
@@ -11178,6 +12107,17 @@ pub fn content_products_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_products_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentProductsListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET {merchantId}/products
 /// Lists the products in your Merchant Center account. The response might contain fewer items than specified by `maxResults`. Rely on `nextPageToken` to determine if there are more items to be requested.
 ///
@@ -11190,16 +12130,19 @@ pub fn content_products_list_execute(
 
 pub fn content_products_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentProductsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductsListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_products_list_builder(client, merchantId, maxResults, pageToken)?;
+    let builder = content_products_list_builder(
+        client,
+        &args.merchantId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     content_products_list_execute(builder)
 }
 
@@ -11309,6 +12252,19 @@ pub fn content_products_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_products_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentProductsUpdateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Product,
+}
+
 /// GET {merchantId}/products/{productId}
 /// Updates an existing product in your Merchant Center account. Only updates attributes provided in the request.
 ///
@@ -11321,15 +12277,18 @@ pub fn content_products_update_execute(
 
 pub fn content_products_update(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    productId: &str,
-    updateMask: Option<&str>,
-    body: &Product,
+    args: &ContentProductsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_products_update_builder(client, merchantId, productId, updateMask, body)?;
+    let builder = content_products_update_builder(
+        client,
+        &args.merchantId,
+        &args.productId,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     content_products_update_execute(builder)
 }
 
@@ -11426,6 +12385,13 @@ pub fn content_productstatuses_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_productstatuses_custombatch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentProductstatusesCustombatchArgs {
+    /// Request body.
+    pub body: ProductstatusesCustomBatchRequest,
+}
+
 /// GET productstatuses/batch
 /// Gets the statuses of multiple products in a single request.
 ///
@@ -11438,7 +12404,7 @@ pub fn content_productstatuses_custombatch_execute(
 
 pub fn content_productstatuses_custombatch(
     client: &SimpleHttpClient,
-    body: &ProductstatusesCustomBatchRequest,
+    args: &ContentProductstatusesCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ProductstatusesCustomBatchResponse>, ApiError>,
@@ -11447,7 +12413,7 @@ pub fn content_productstatuses_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_productstatuses_custombatch_builder(client, body)?;
+    let builder = content_productstatuses_custombatch_builder(client, &args.body)?;
     content_productstatuses_custombatch_execute(builder)
 }
 
@@ -11556,6 +12522,17 @@ pub fn content_productstatuses_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_productstatuses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentProductstatusesGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Query parameter: destinations
+    pub destinations: Option<String>,
+}
+
 /// GET {merchantId}/productstatuses/{productId}
 /// Gets the status of a product from your Merchant Center account.
 ///
@@ -11568,16 +12545,19 @@ pub fn content_productstatuses_get_execute(
 
 pub fn content_productstatuses_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    productId: &str,
-    destinations: Option<&str>,
+    args: &ContentProductstatusesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductStatus>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_productstatuses_get_builder(client, merchantId, productId, destinations)?;
+    let builder = content_productstatuses_get_builder(
+        client,
+        &args.merchantId,
+        &args.productId,
+        args.destinations.as_deref(),
+    )?;
     content_productstatuses_get_execute(builder)
 }
 
@@ -11695,6 +12675,19 @@ pub fn content_productstatuses_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_productstatuses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentProductstatusesListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: destinations
+    pub destinations: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET {merchantId}/productstatuses
 /// Lists the statuses of the products in your Merchant Center account.
 ///
@@ -11707,10 +12700,7 @@ pub fn content_productstatuses_list_execute(
 
 pub fn content_productstatuses_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    destinations: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentProductstatusesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ProductstatusesListResponse>, ApiError>,
@@ -11721,10 +12711,10 @@ pub fn content_productstatuses_list(
 > {
     let builder = content_productstatuses_list_builder(
         client,
-        merchantId,
-        destinations,
-        maxResults,
-        pageToken,
+        &args.merchantId,
+        args.destinations.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
     )?;
     content_productstatuses_list_execute(builder)
 }
@@ -11822,6 +12812,15 @@ pub fn content_promotions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_promotions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentPromotionsCreateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Request body.
+    pub body: Promotion,
+}
+
 /// GET {merchantId}/promotions
 /// Inserts a promotion for your Merchant Center account. If the promotion already exists, then it updates the promotion instead. To [end or delete] (<https://developers.google.`com/shopping-content/guides/promotions`#end_a_promotion>) a promotion update the time period of the promotion to a time that has already passed.
 ///
@@ -11834,13 +12833,12 @@ pub fn content_promotions_create_execute(
 
 pub fn content_promotions_create(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    body: &Promotion,
+    args: &ContentPromotionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Promotion>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_promotions_create_builder(client, merchantId, body)?;
+    let builder = content_promotions_create_builder(client, &args.merchantId, &args.body)?;
     content_promotions_create_execute(builder)
 }
 
@@ -11935,6 +12933,15 @@ pub fn content_promotions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_promotions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentPromotionsGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET {merchantId}/promotions/{id}
 /// Retrieves a promotion from your Merchant Center account.
 ///
@@ -11947,13 +12954,12 @@ pub fn content_promotions_get_execute(
 
 pub fn content_promotions_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    id: &str,
+    args: &ContentPromotionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Promotion>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_promotions_get_builder(client, merchantId, id)?;
+    let builder = content_promotions_get_builder(client, &args.merchantId, &args.id)?;
     content_promotions_get_execute(builder)
 }
 
@@ -12073,6 +13079,21 @@ pub fn content_promotions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_promotions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentPromotionsListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: countryCode
+    pub countryCode: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET {merchantId}/promotions
 /// List all promotions from your Merchant Center account.
 ///
@@ -12085,11 +13106,7 @@ pub fn content_promotions_list_execute(
 
 pub fn content_promotions_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    countryCode: Option<&str>,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentPromotionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPromotionResponse>, ApiError>, P = ApiPending>
         + Send
@@ -12098,11 +13115,11 @@ pub fn content_promotions_list(
 > {
     let builder = content_promotions_list_builder(
         client,
-        merchantId,
-        countryCode,
-        languageCode,
-        pageSize,
-        pageToken,
+        &args.merchantId,
+        args.countryCode.as_deref(),
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     content_promotions_list_execute(builder)
 }
@@ -12201,6 +13218,13 @@ pub fn content_pubsubnotificationsettings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_pubsubnotificationsettings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentPubsubnotificationsettingsGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+}
+
 /// GET {merchantId}/pubsubnotificationsettings
 /// Retrieves a Merchant Center account's pubsub notification settings.
 ///
@@ -12213,7 +13237,7 @@ pub fn content_pubsubnotificationsettings_get_execute(
 
 pub fn content_pubsubnotificationsettings_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
+    args: &ContentPubsubnotificationsettingsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<PubsubNotificationSettings>, ApiError>,
@@ -12222,7 +13246,7 @@ pub fn content_pubsubnotificationsettings_get(
         + 'static,
     ApiError,
 > {
-    let builder = content_pubsubnotificationsettings_get_builder(client, merchantId)?;
+    let builder = content_pubsubnotificationsettings_get_builder(client, &args.merchantId)?;
     content_pubsubnotificationsettings_get_execute(builder)
 }
 
@@ -12323,6 +13347,15 @@ pub fn content_pubsubnotificationsettings_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_pubsubnotificationsettings_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentPubsubnotificationsettingsUpdateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Request body.
+    pub body: PubsubNotificationSettings,
+}
+
 /// GET {merchantId}/pubsubnotificationsettings
 /// Register a Merchant Center account for pubsub notifications. Note that cloud topic name shouldn't be provided as part of the request.
 ///
@@ -12335,8 +13368,7 @@ pub fn content_pubsubnotificationsettings_update_execute(
 
 pub fn content_pubsubnotificationsettings_update(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    body: &PubsubNotificationSettings,
+    args: &ContentPubsubnotificationsettingsUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<PubsubNotificationSettings>, ApiError>,
@@ -12345,7 +13377,8 @@ pub fn content_pubsubnotificationsettings_update(
         + 'static,
     ApiError,
 > {
-    let builder = content_pubsubnotificationsettings_update_builder(client, merchantId, body)?;
+    let builder =
+        content_pubsubnotificationsettings_update_builder(client, &args.merchantId, &args.body)?;
     content_pubsubnotificationsettings_update_execute(builder)
 }
 
@@ -12457,6 +13490,17 @@ pub fn content_quotas_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_quotas_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentQuotasListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET {merchantId}/quotas
 /// Lists the daily call quota and usage per method for your Merchant Center account.
 ///
@@ -12469,16 +13513,19 @@ pub fn content_quotas_list_execute(
 
 pub fn content_quotas_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentQuotasListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListMethodQuotasResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_quotas_list_builder(client, merchantId, pageSize, pageToken)?;
+    let builder = content_quotas_list_builder(
+        client,
+        &args.merchantId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     content_quotas_list_execute(builder)
 }
 
@@ -12592,6 +13639,17 @@ pub fn content_recommendations_generate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_recommendations_generate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentRecommendationsGenerateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: allowedTag
+    pub allowedTag: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET {merchantId}/recommendations/generate
 /// Generates recommendations for a merchant.
 ///
@@ -12604,9 +13662,7 @@ pub fn content_recommendations_generate_execute(
 
 pub fn content_recommendations_generate(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    allowedTag: Option<&str>,
-    languageCode: Option<&str>,
+    args: &ContentRecommendationsGenerateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateRecommendationsResponse>, ApiError>,
@@ -12615,8 +13671,12 @@ pub fn content_recommendations_generate(
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_recommendations_generate_builder(client, merchantId, allowedTag, languageCode)?;
+    let builder = content_recommendations_generate_builder(
+        client,
+        &args.merchantId,
+        args.allowedTag.as_deref(),
+        args.languageCode.as_deref(),
+    )?;
     content_recommendations_generate_execute(builder)
 }
 
@@ -12710,6 +13770,15 @@ pub fn content_recommendations_report_interaction_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_recommendations_report_interaction`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentRecommendationsReportInteractionArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Request body.
+    pub body: ReportInteractionRequest,
+}
+
 /// GET {merchantId}/recommendations/reportInteraction
 /// Reports an interaction on a recommendation for a merchant.
 ///
@@ -12722,13 +13791,13 @@ pub fn content_recommendations_report_interaction_execute(
 
 pub fn content_recommendations_report_interaction(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    body: &ReportInteractionRequest,
+    args: &ContentRecommendationsReportInteractionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_recommendations_report_interaction_builder(client, merchantId, body)?;
+    let builder =
+        content_recommendations_report_interaction_builder(client, &args.merchantId, &args.body)?;
     content_recommendations_report_interaction_execute(builder)
 }
 
@@ -12826,6 +13895,13 @@ pub fn content_regionalinventory_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_regionalinventory_custombatch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentRegionalinventoryCustombatchArgs {
+    /// Request body.
+    pub body: RegionalinventoryCustomBatchRequest,
+}
+
 /// GET regionalinventory/batch
 /// Updates regional inventory for multiple products or regions in a single request.
 ///
@@ -12838,7 +13914,7 @@ pub fn content_regionalinventory_custombatch_execute(
 
 pub fn content_regionalinventory_custombatch(
     client: &SimpleHttpClient,
-    body: &RegionalinventoryCustomBatchRequest,
+    args: &ContentRegionalinventoryCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RegionalinventoryCustomBatchResponse>, ApiError>,
@@ -12847,7 +13923,7 @@ pub fn content_regionalinventory_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_regionalinventory_custombatch_builder(client, body)?;
+    let builder = content_regionalinventory_custombatch_builder(client, &args.body)?;
     content_regionalinventory_custombatch_execute(builder)
 }
 
@@ -12947,6 +14023,17 @@ pub fn content_regionalinventory_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_regionalinventory_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentRegionalinventoryInsertArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Request body.
+    pub body: RegionalInventory,
+}
+
 /// GET {merchantId}/products/{productId}/regionalinventory
 /// Updates the regional inventory of a product in your Merchant Center account. If a regional inventory with the same region ID already exists, this method updates that entry.
 ///
@@ -12959,16 +14046,19 @@ pub fn content_regionalinventory_insert_execute(
 
 pub fn content_regionalinventory_insert(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    productId: &str,
-    body: &RegionalInventory,
+    args: &ContentRegionalinventoryInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RegionalInventory>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_regionalinventory_insert_builder(client, merchantId, productId, body)?;
+    let builder = content_regionalinventory_insert_builder(
+        client,
+        &args.merchantId,
+        &args.productId,
+        &args.body,
+    )?;
     content_regionalinventory_insert_execute(builder)
 }
 
@@ -13077,6 +14167,17 @@ pub fn content_regions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_regions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentRegionsCreateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: regionId
+    pub regionId: Option<String>,
+    /// Request body.
+    pub body: Region,
+}
+
 /// GET {merchantId}/regions
 /// Creates a region definition in your Merchant Center account.
 ///
@@ -13089,14 +14190,17 @@ pub fn content_regions_create_execute(
 
 pub fn content_regions_create(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    regionId: Option<&str>,
-    body: &Region,
+    args: &ContentRegionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Region>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_regions_create_builder(client, merchantId, regionId, body)?;
+    let builder = content_regions_create_builder(
+        client,
+        &args.merchantId,
+        args.regionId.as_deref(),
+        &args.body,
+    )?;
     content_regions_create_execute(builder)
 }
 
@@ -13188,6 +14292,15 @@ pub fn content_regions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_regions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentRegionsDeleteArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: regionId
+    pub regionId: String,
+}
+
 /// GET {merchantId}/regions/{regionId}
 /// Deletes a region definition from your Merchant Center account.
 ///
@@ -13200,13 +14313,12 @@ pub fn content_regions_delete_execute(
 
 pub fn content_regions_delete(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    regionId: &str,
+    args: &ContentRegionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_regions_delete_builder(client, merchantId, regionId)?;
+    let builder = content_regions_delete_builder(client, &args.merchantId, &args.regionId)?;
     content_regions_delete_execute(builder)
 }
 
@@ -13301,6 +14413,15 @@ pub fn content_regions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_regions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentRegionsGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: regionId
+    pub regionId: String,
+}
+
 /// GET {merchantId}/regions/{regionId}
 /// Retrieves a region defined in your Merchant Center account.
 ///
@@ -13313,13 +14434,12 @@ pub fn content_regions_get_execute(
 
 pub fn content_regions_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    regionId: &str,
+    args: &ContentRegionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Region>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_regions_get_builder(client, merchantId, regionId)?;
+    let builder = content_regions_get_builder(client, &args.merchantId, &args.regionId)?;
     content_regions_get_execute(builder)
 }
 
@@ -13431,6 +14551,17 @@ pub fn content_regions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_regions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentRegionsListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET {merchantId}/regions
 /// Lists the regions in your Merchant Center account.
 ///
@@ -13443,16 +14574,19 @@ pub fn content_regions_list_execute(
 
 pub fn content_regions_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentRegionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRegionsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_regions_list_builder(client, merchantId, pageSize, pageToken)?;
+    let builder = content_regions_list_builder(
+        client,
+        &args.merchantId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     content_regions_list_execute(builder)
 }
 
@@ -13562,6 +14696,19 @@ pub fn content_regions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_regions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentRegionsPatchArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: regionId
+    pub regionId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Region,
+}
+
 /// GET {merchantId}/regions/{regionId}
 /// Updates a region definition in your Merchant Center account.
 ///
@@ -13574,15 +14721,18 @@ pub fn content_regions_patch_execute(
 
 pub fn content_regions_patch(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    regionId: &str,
-    updateMask: Option<&str>,
-    body: &Region,
+    args: &ContentRegionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Region>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_regions_patch_builder(client, merchantId, regionId, updateMask, body)?;
+    let builder = content_regions_patch_builder(
+        client,
+        &args.merchantId,
+        &args.regionId,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     content_regions_patch_execute(builder)
 }
 
@@ -13681,6 +14831,15 @@ pub fn content_reports_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_reports_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentReportsSearchArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Request body.
+    pub body: SearchRequest,
+}
+
 /// GET {merchantId}/reports/search
 /// Retrieves merchant performance metrics matching the search query and optionally segmented by selected dimensions.
 ///
@@ -13693,15 +14852,14 @@ pub fn content_reports_search_execute(
 
 pub fn content_reports_search(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    body: &SearchRequest,
+    args: &ContentReportsSearchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_reports_search_builder(client, merchantId, body)?;
+    let builder = content_reports_search_builder(client, &args.merchantId, &args.body)?;
     content_reports_search_execute(builder)
 }
 
@@ -13800,6 +14958,15 @@ pub fn content_returnpolicyonline_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_returnpolicyonline_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentReturnpolicyonlineCreateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Request body.
+    pub body: ReturnPolicyOnline,
+}
+
 /// GET {merchantId}/returnpolicyonline
 /// Creates a new return policy.
 ///
@@ -13812,15 +14979,14 @@ pub fn content_returnpolicyonline_create_execute(
 
 pub fn content_returnpolicyonline_create(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    body: &ReturnPolicyOnline,
+    args: &ContentReturnpolicyonlineCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReturnPolicyOnline>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_returnpolicyonline_create_builder(client, merchantId, body)?;
+    let builder = content_returnpolicyonline_create_builder(client, &args.merchantId, &args.body)?;
     content_returnpolicyonline_create_execute(builder)
 }
 
@@ -13912,6 +15078,15 @@ pub fn content_returnpolicyonline_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_returnpolicyonline_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentReturnpolicyonlineDeleteArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: returnPolicyId
+    pub returnPolicyId: String,
+}
+
 /// GET {merchantId}/returnpolicyonline/{returnPolicyId}
 /// Deletes an existing return policy.
 ///
@@ -13924,13 +15099,13 @@ pub fn content_returnpolicyonline_delete_execute(
 
 pub fn content_returnpolicyonline_delete(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    returnPolicyId: &str,
+    args: &ContentReturnpolicyonlineDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_returnpolicyonline_delete_builder(client, merchantId, returnPolicyId)?;
+    let builder =
+        content_returnpolicyonline_delete_builder(client, &args.merchantId, &args.returnPolicyId)?;
     content_returnpolicyonline_delete_execute(builder)
 }
 
@@ -14027,6 +15202,15 @@ pub fn content_returnpolicyonline_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_returnpolicyonline_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentReturnpolicyonlineGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: returnPolicyId
+    pub returnPolicyId: String,
+}
+
 /// GET {merchantId}/returnpolicyonline/{returnPolicyId}
 /// Gets an existing return policy.
 ///
@@ -14039,15 +15223,15 @@ pub fn content_returnpolicyonline_get_execute(
 
 pub fn content_returnpolicyonline_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    returnPolicyId: &str,
+    args: &ContentReturnpolicyonlineGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReturnPolicyOnline>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_returnpolicyonline_get_builder(client, merchantId, returnPolicyId)?;
+    let builder =
+        content_returnpolicyonline_get_builder(client, &args.merchantId, &args.returnPolicyId)?;
     content_returnpolicyonline_get_execute(builder)
 }
 
@@ -14145,6 +15329,13 @@ pub fn content_returnpolicyonline_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_returnpolicyonline_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentReturnpolicyonlineListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+}
+
 /// GET {merchantId}/returnpolicyonline
 /// Lists all existing return policies.
 ///
@@ -14157,7 +15348,7 @@ pub fn content_returnpolicyonline_list_execute(
 
 pub fn content_returnpolicyonline_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
+    args: &ContentReturnpolicyonlineListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListReturnPolicyOnlineResponse>, ApiError>,
@@ -14166,7 +15357,7 @@ pub fn content_returnpolicyonline_list(
         + 'static,
     ApiError,
 > {
-    let builder = content_returnpolicyonline_list_builder(client, merchantId)?;
+    let builder = content_returnpolicyonline_list_builder(client, &args.merchantId)?;
     content_returnpolicyonline_list_execute(builder)
 }
 
@@ -14266,6 +15457,17 @@ pub fn content_returnpolicyonline_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_returnpolicyonline_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentReturnpolicyonlinePatchArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: returnPolicyId
+    pub returnPolicyId: String,
+    /// Request body.
+    pub body: ReturnPolicyOnline,
+}
+
 /// GET {merchantId}/returnpolicyonline/{returnPolicyId}
 /// Updates an existing return policy.
 ///
@@ -14278,17 +15480,19 @@ pub fn content_returnpolicyonline_patch_execute(
 
 pub fn content_returnpolicyonline_patch(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    returnPolicyId: &str,
-    body: &ReturnPolicyOnline,
+    args: &ContentReturnpolicyonlinePatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReturnPolicyOnline>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_returnpolicyonline_patch_builder(client, merchantId, returnPolicyId, body)?;
+    let builder = content_returnpolicyonline_patch_builder(
+        client,
+        &args.merchantId,
+        &args.returnPolicyId,
+        &args.body,
+    )?;
     content_returnpolicyonline_patch_execute(builder)
 }
 
@@ -14386,6 +15590,13 @@ pub fn content_shippingsettings_custombatch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_shippingsettings_custombatch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentShippingsettingsCustombatchArgs {
+    /// Request body.
+    pub body: ShippingsettingsCustomBatchRequest,
+}
+
 /// GET shippingsettings/batch
 /// Retrieves and updates the shipping settings of multiple accounts in a single request.
 ///
@@ -14398,7 +15609,7 @@ pub fn content_shippingsettings_custombatch_execute(
 
 pub fn content_shippingsettings_custombatch(
     client: &SimpleHttpClient,
-    body: &ShippingsettingsCustomBatchRequest,
+    args: &ContentShippingsettingsCustombatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ShippingsettingsCustomBatchResponse>, ApiError>,
@@ -14407,7 +15618,7 @@ pub fn content_shippingsettings_custombatch(
         + 'static,
     ApiError,
 > {
-    let builder = content_shippingsettings_custombatch_builder(client, body)?;
+    let builder = content_shippingsettings_custombatch_builder(client, &args.body)?;
     content_shippingsettings_custombatch_execute(builder)
 }
 
@@ -14504,6 +15715,15 @@ pub fn content_shippingsettings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_shippingsettings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentShippingsettingsGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+}
+
 /// GET {merchantId}/shippingsettings/{accountId}
 /// Retrieves the shipping settings of the account.
 ///
@@ -14516,15 +15736,14 @@ pub fn content_shippingsettings_get_execute(
 
 pub fn content_shippingsettings_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
+    args: &ContentShippingsettingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ShippingSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_shippingsettings_get_builder(client, merchantId, accountId)?;
+    let builder = content_shippingsettings_get_builder(client, &args.merchantId, &args.accountId)?;
     content_shippingsettings_get_execute(builder)
 }
 
@@ -14623,6 +15842,13 @@ pub fn content_shippingsettings_getsupportedcarriers_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_shippingsettings_getsupportedcarriers`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentShippingsettingsGetsupportedcarriersArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+}
+
 /// GET {merchantId}/supportedCarriers
 /// Retrieves supported carriers and carrier services for an account.
 ///
@@ -14635,7 +15861,7 @@ pub fn content_shippingsettings_getsupportedcarriers_execute(
 
 pub fn content_shippingsettings_getsupportedcarriers(
     client: &SimpleHttpClient,
-    merchantId: &str,
+    args: &ContentShippingsettingsGetsupportedcarriersArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ShippingsettingsGetSupportedCarriersResponse>, ApiError>,
@@ -14644,7 +15870,7 @@ pub fn content_shippingsettings_getsupportedcarriers(
         + 'static,
     ApiError,
 > {
-    let builder = content_shippingsettings_getsupportedcarriers_builder(client, merchantId)?;
+    let builder = content_shippingsettings_getsupportedcarriers_builder(client, &args.merchantId)?;
     content_shippingsettings_getsupportedcarriers_execute(builder)
 }
 
@@ -14743,6 +15969,13 @@ pub fn content_shippingsettings_getsupportedholidays_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_shippingsettings_getsupportedholidays`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentShippingsettingsGetsupportedholidaysArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+}
+
 /// GET {merchantId}/supportedHolidays
 /// Retrieves supported holidays for an account.
 ///
@@ -14755,7 +15988,7 @@ pub fn content_shippingsettings_getsupportedholidays_execute(
 
 pub fn content_shippingsettings_getsupportedholidays(
     client: &SimpleHttpClient,
-    merchantId: &str,
+    args: &ContentShippingsettingsGetsupportedholidaysArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ShippingsettingsGetSupportedHolidaysResponse>, ApiError>,
@@ -14764,7 +15997,7 @@ pub fn content_shippingsettings_getsupportedholidays(
         + 'static,
     ApiError,
 > {
-    let builder = content_shippingsettings_getsupportedholidays_builder(client, merchantId)?;
+    let builder = content_shippingsettings_getsupportedholidays_builder(client, &args.merchantId)?;
     content_shippingsettings_getsupportedholidays_execute(builder)
 }
 
@@ -14863,6 +16096,13 @@ pub fn content_shippingsettings_getsupportedpickupservices_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_shippingsettings_getsupportedpickupservices`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentShippingsettingsGetsupportedpickupservicesArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+}
+
 /// GET {merchantId}/supportedPickupServices
 /// Retrieves supported pickup services for an account.
 ///
@@ -14875,7 +16115,7 @@ pub fn content_shippingsettings_getsupportedpickupservices_execute(
 
 pub fn content_shippingsettings_getsupportedpickupservices(
     client: &SimpleHttpClient,
-    merchantId: &str,
+    args: &ContentShippingsettingsGetsupportedpickupservicesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ShippingsettingsGetSupportedPickupServicesResponse>, ApiError>,
@@ -14884,7 +16124,8 @@ pub fn content_shippingsettings_getsupportedpickupservices(
         + 'static,
     ApiError,
 > {
-    let builder = content_shippingsettings_getsupportedpickupservices_builder(client, merchantId)?;
+    let builder =
+        content_shippingsettings_getsupportedpickupservices_builder(client, &args.merchantId)?;
     content_shippingsettings_getsupportedpickupservices_execute(builder)
 }
 
@@ -14998,6 +16239,17 @@ pub fn content_shippingsettings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_shippingsettings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentShippingsettingsListArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET {merchantId}/shippingsettings
 /// Lists the shipping settings of the sub-accounts in your Merchant Center account.
 ///
@@ -15010,9 +16262,7 @@ pub fn content_shippingsettings_list_execute(
 
 pub fn content_shippingsettings_list(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentShippingsettingsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ShippingsettingsListResponse>, ApiError>,
@@ -15021,7 +16271,12 @@ pub fn content_shippingsettings_list(
         + 'static,
     ApiError,
 > {
-    let builder = content_shippingsettings_list_builder(client, merchantId, maxResults, pageToken)?;
+    let builder = content_shippingsettings_list_builder(
+        client,
+        &args.merchantId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     content_shippingsettings_list_execute(builder)
 }
 
@@ -15121,6 +16376,17 @@ pub fn content_shippingsettings_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_shippingsettings_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentShippingsettingsUpdateArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Request body.
+    pub body: ShippingSettings,
+}
+
 /// GET {merchantId}/shippingsettings/{accountId}
 /// Updates the shipping settings of the account. Any fields that are not provided are deleted from the resource.
 ///
@@ -15133,16 +16399,19 @@ pub fn content_shippingsettings_update_execute(
 
 pub fn content_shippingsettings_update(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    accountId: &str,
-    body: &ShippingSettings,
+    args: &ContentShippingsettingsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ShippingSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_shippingsettings_update_builder(client, merchantId, accountId, body)?;
+    let builder = content_shippingsettings_update_builder(
+        client,
+        &args.merchantId,
+        &args.accountId,
+        &args.body,
+    )?;
     content_shippingsettings_update_execute(builder)
 }
 
@@ -15238,6 +16507,13 @@ pub fn content_shoppingadsprogram_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_shoppingadsprogram_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentShoppingadsprogramGetArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+}
+
 /// GET {merchantId}/shoppingadsprogram
 /// Retrieves the status and review eligibility for the Shopping Ads program. Returns errors and warnings if they require action to resolve, will become disapprovals, or impact impressions. Use accountstatuses to view all issues for an account.
 ///
@@ -15250,14 +16526,14 @@ pub fn content_shoppingadsprogram_get_execute(
 
 pub fn content_shoppingadsprogram_get(
     client: &SimpleHttpClient,
-    merchantId: &str,
+    args: &ContentShoppingadsprogramGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ShoppingAdsProgramStatus>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = content_shoppingadsprogram_get_builder(client, merchantId)?;
+    let builder = content_shoppingadsprogram_get_builder(client, &args.merchantId)?;
     content_shoppingadsprogram_get_execute(builder)
 }
 
@@ -15351,6 +16627,15 @@ pub fn content_shoppingadsprogram_requestreview_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`content_shoppingadsprogram_requestreview`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentShoppingadsprogramRequestreviewArgs {
+    /// Path parameter: merchantId
+    pub merchantId: String,
+    /// Request body.
+    pub body: RequestReviewShoppingAdsRequest,
+}
+
 /// GET {merchantId}/shoppingadsprogram/requestreview
 /// Requests a review of Shopping ads in a specific region. This method deprecated. Use the MerchantSupportService to view product and account issues and request a review.
 ///
@@ -15363,12 +16648,12 @@ pub fn content_shoppingadsprogram_requestreview_execute(
 
 pub fn content_shoppingadsprogram_requestreview(
     client: &SimpleHttpClient,
-    merchantId: &str,
-    body: &RequestReviewShoppingAdsRequest,
+    args: &ContentShoppingadsprogramRequestreviewArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_shoppingadsprogram_requestreview_builder(client, merchantId, body)?;
+    let builder =
+        content_shoppingadsprogram_requestreview_builder(client, &args.merchantId, &args.body)?;
     content_shoppingadsprogram_requestreview_execute(builder)
 }

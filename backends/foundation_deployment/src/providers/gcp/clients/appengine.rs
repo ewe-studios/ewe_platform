@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/apps
 /// Creates an App Engine application for a Google Cloud Platform project. Required fields: id - The ID of the target Cloud Platform project. location - The region (<https://cloud.google.`com/appengine/docs/locations`>) where you want the App Engine application located.For more information about App Engine applications, see Managing Projects, Applications, and Billing (<https://cloud.google.`com/appengine/docs/standard/python/console/`>).
@@ -105,6 +107,13 @@ pub fn appengine_apps_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsCreateArgs {
+    /// Request body.
+    pub body: Application,
+}
+
 /// GET v1/apps
 /// Creates an App Engine application for a Google Cloud Platform project. Required fields: id - The ID of the target Cloud Platform project. location - The region (<https://cloud.google.`com/appengine/docs/locations`>) where you want the App Engine application located.For more information about App Engine applications, see Managing Projects, Applications, and Billing (<https://cloud.google.`com/appengine/docs/standard/python/console/`>).
 ///
@@ -117,12 +126,12 @@ pub fn appengine_apps_create_execute(
 
 pub fn appengine_apps_create(
     client: &SimpleHttpClient,
-    body: &Application,
+    args: &AppengineAppsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_create_builder(client, body)?;
+    let builder = appengine_apps_create_builder(client, &args.body)?;
     appengine_apps_create_execute(builder)
 }
 
@@ -225,6 +234,15 @@ pub fn appengine_apps_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsGetArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Query parameter: includeExtraData
+    pub includeExtraData: Option<String>,
+}
+
 /// GET v1/apps/{appsId}
 /// Gets information about an application.
 ///
@@ -237,13 +255,13 @@ pub fn appengine_apps_get_execute(
 
 pub fn appengine_apps_get(
     client: &SimpleHttpClient,
-    appsId: &str,
-    includeExtraData: Option<&str>,
+    args: &AppengineAppsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Application>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_get_builder(client, appsId, includeExtraData)?;
+    let builder =
+        appengine_apps_get_builder(client, &args.appsId, args.includeExtraData.as_deref())?;
     appengine_apps_get_execute(builder)
 }
 
@@ -351,6 +369,15 @@ pub fn appengine_apps_list_runtimes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_list_runtimes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsListRuntimesArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Query parameter: environment
+    pub environment: Option<String>,
+}
+
 /// GET v1/apps/{appsId}:listRuntimes
 /// Lists all the available runtimes for the application.
 ///
@@ -363,15 +390,15 @@ pub fn appengine_apps_list_runtimes_execute(
 
 pub fn appengine_apps_list_runtimes(
     client: &SimpleHttpClient,
-    appsId: &str,
-    environment: Option<&str>,
+    args: &AppengineAppsListRuntimesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRuntimesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_list_runtimes_builder(client, appsId, environment)?;
+    let builder =
+        appengine_apps_list_runtimes_builder(client, &args.appsId, args.environment.as_deref())?;
     appengine_apps_list_runtimes_execute(builder)
 }
 
@@ -477,6 +504,17 @@ pub fn appengine_apps_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsPatchArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Application,
+}
+
 /// GET v1/apps/{appsId}
 /// Updates the specified Application resource. You can update the following fields: auth_domain - Google authentication domain for controlling user access to the application. default_cookie_expiration - Cookie expiration policy for the application. iap - Identity-Aware Proxy properties for the application.
 ///
@@ -489,14 +527,13 @@ pub fn appengine_apps_patch_execute(
 
 pub fn appengine_apps_patch(
     client: &SimpleHttpClient,
-    appsId: &str,
-    updateMask: Option<&str>,
-    body: &Application,
+    args: &AppengineAppsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_patch_builder(client, appsId, updateMask, body)?;
+    let builder =
+        appengine_apps_patch_builder(client, &args.appsId, args.updateMask.as_deref(), &args.body)?;
     appengine_apps_patch_execute(builder)
 }
 
@@ -590,6 +627,15 @@ pub fn appengine_apps_repair_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_repair`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsRepairArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Request body.
+    pub body: RepairApplicationRequest,
+}
+
 /// GET v1/apps/{appsId}:repair
 /// Recreates the required App Engine features for the specified App Engine application, for example a Cloud Storage bucket or App Engine service account. Use this method if you receive an error message about a missing feature, for example, Error retrieving the App Engine service account. If you have deleted your App Engine service account, this will not be able to recreate it. Instead, you should attempt to use the IAM undelete API if possible at <https://cloud.google.`com/iam/reference/rest/v1/projects`.serviceA`ccounts/undelete`?apix_params=%7B"name"%3A"projects%2F-%2FserviceAccounts%2Funique_id"%2C"resource"%3A%7B%7D%7D> . If the deletion was recent, the numeric ID can be found in the Cloud Console Activity Log.
 ///
@@ -602,13 +648,12 @@ pub fn appengine_apps_repair_execute(
 
 pub fn appengine_apps_repair(
     client: &SimpleHttpClient,
-    appsId: &str,
-    body: &RepairApplicationRequest,
+    args: &AppengineAppsRepairArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_repair_builder(client, appsId, body)?;
+    let builder = appengine_apps_repair_builder(client, &args.appsId, &args.body)?;
     appengine_apps_repair_execute(builder)
 }
 
@@ -707,6 +752,15 @@ pub fn appengine_apps_authorized_certificates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_authorized_certificates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsAuthorizedCertificatesCreateArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Request body.
+    pub body: AuthorizedCertificate,
+}
+
 /// GET v1/apps/{appsId}/authorizedCertificates
 /// Uploads the specified SSL certificate.
 ///
@@ -719,15 +773,15 @@ pub fn appengine_apps_authorized_certificates_create_execute(
 
 pub fn appengine_apps_authorized_certificates_create(
     client: &SimpleHttpClient,
-    appsId: &str,
-    body: &AuthorizedCertificate,
+    args: &AppengineAppsAuthorizedCertificatesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_authorized_certificates_create_builder(client, appsId, body)?;
+    let builder =
+        appengine_apps_authorized_certificates_create_builder(client, &args.appsId, &args.body)?;
     appengine_apps_authorized_certificates_create_execute(builder)
 }
 
@@ -822,6 +876,15 @@ pub fn appengine_apps_authorized_certificates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_authorized_certificates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsAuthorizedCertificatesDeleteArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: authorizedCertificatesId
+    pub authorizedCertificatesId: String,
+}
+
 /// GET v1/apps/{appsId}/authorizedCertificates/{authorizedCertificatesId}
 /// Deletes the specified SSL certificate.
 ///
@@ -834,16 +897,15 @@ pub fn appengine_apps_authorized_certificates_delete_execute(
 
 pub fn appengine_apps_authorized_certificates_delete(
     client: &SimpleHttpClient,
-    appsId: &str,
-    authorizedCertificatesId: &str,
+    args: &AppengineAppsAuthorizedCertificatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_apps_authorized_certificates_delete_builder(
         client,
-        appsId,
-        authorizedCertificatesId,
+        &args.appsId,
+        &args.authorizedCertificatesId,
     )?;
     appengine_apps_authorized_certificates_delete_execute(builder)
 }
@@ -953,6 +1015,17 @@ pub fn appengine_apps_authorized_certificates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_authorized_certificates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsAuthorizedCertificatesGetArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: authorizedCertificatesId
+    pub authorizedCertificatesId: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/apps/{appsId}/authorizedCertificates/{authorizedCertificatesId}
 /// Gets the specified SSL certificate.
 ///
@@ -965,9 +1038,7 @@ pub fn appengine_apps_authorized_certificates_get_execute(
 
 pub fn appengine_apps_authorized_certificates_get(
     client: &SimpleHttpClient,
-    appsId: &str,
-    authorizedCertificatesId: &str,
-    view: Option<&str>,
+    args: &AppengineAppsAuthorizedCertificatesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
         + Send
@@ -976,9 +1047,9 @@ pub fn appengine_apps_authorized_certificates_get(
 > {
     let builder = appengine_apps_authorized_certificates_get_builder(
         client,
-        appsId,
-        authorizedCertificatesId,
-        view,
+        &args.appsId,
+        &args.authorizedCertificatesId,
+        args.view.as_deref(),
     )?;
     appengine_apps_authorized_certificates_get_execute(builder)
 }
@@ -1097,6 +1168,19 @@ pub fn appengine_apps_authorized_certificates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_authorized_certificates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsAuthorizedCertificatesListArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/apps/{appsId}/authorizedCertificates
 /// Lists all SSL certificates the user is authorized to administer.
 ///
@@ -1109,10 +1193,7 @@ pub fn appengine_apps_authorized_certificates_list_execute(
 
 pub fn appengine_apps_authorized_certificates_list(
     client: &SimpleHttpClient,
-    appsId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &AppengineAppsAuthorizedCertificatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAuthorizedCertificatesResponse>, ApiError>,
@@ -1122,7 +1203,11 @@ pub fn appengine_apps_authorized_certificates_list(
     ApiError,
 > {
     let builder = appengine_apps_authorized_certificates_list_builder(
-        client, appsId, pageSize, pageToken, view,
+        client,
+        &args.appsId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     appengine_apps_authorized_certificates_list_execute(builder)
 }
@@ -1235,6 +1320,19 @@ pub fn appengine_apps_authorized_certificates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_authorized_certificates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsAuthorizedCertificatesPatchArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: authorizedCertificatesId
+    pub authorizedCertificatesId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AuthorizedCertificate,
+}
+
 /// GET v1/apps/{appsId}/authorizedCertificates/{authorizedCertificatesId}
 /// Updates the specified SSL certificate. To renew a certificate and maintain its existing domain mappings, update certificate_data with a new certificate. The new certificate must be applicable to the same domains as the original certificate. The certificate display_name may also be updated.
 ///
@@ -1247,10 +1345,7 @@ pub fn appengine_apps_authorized_certificates_patch_execute(
 
 pub fn appengine_apps_authorized_certificates_patch(
     client: &SimpleHttpClient,
-    appsId: &str,
-    authorizedCertificatesId: &str,
-    updateMask: Option<&str>,
-    body: &AuthorizedCertificate,
+    args: &AppengineAppsAuthorizedCertificatesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
         + Send
@@ -1259,10 +1354,10 @@ pub fn appengine_apps_authorized_certificates_patch(
 > {
     let builder = appengine_apps_authorized_certificates_patch_builder(
         client,
-        appsId,
-        authorizedCertificatesId,
-        updateMask,
-        body,
+        &args.appsId,
+        &args.authorizedCertificatesId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     appengine_apps_authorized_certificates_patch_execute(builder)
 }
@@ -1377,6 +1472,17 @@ pub fn appengine_apps_authorized_domains_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_authorized_domains_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsAuthorizedDomainsListArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/apps/{appsId}/authorizedDomains
 /// Lists all domains the user is authorized to administer.
 ///
@@ -1389,9 +1495,7 @@ pub fn appengine_apps_authorized_domains_list_execute(
 
 pub fn appengine_apps_authorized_domains_list(
     client: &SimpleHttpClient,
-    appsId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AppengineAppsAuthorizedDomainsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAuthorizedDomainsResponse>, ApiError>,
@@ -1400,8 +1504,12 @@ pub fn appengine_apps_authorized_domains_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        appengine_apps_authorized_domains_list_builder(client, appsId, pageSize, pageToken)?;
+    let builder = appengine_apps_authorized_domains_list_builder(
+        client,
+        &args.appsId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     appengine_apps_authorized_domains_list_execute(builder)
 }
 
@@ -1510,6 +1618,17 @@ pub fn appengine_apps_domain_mappings_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_domain_mappings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsDomainMappingsCreateArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Query parameter: overrideStrategy
+    pub overrideStrategy: Option<String>,
+    /// Request body.
+    pub body: DomainMapping,
+}
+
 /// GET v1/apps/{appsId}/domainMappings
 /// Maps a domain to an application. A user must be authorized to administer a domain in order to map it to an application. For a list of available authorized domains, see AuthorizedDomains.ListAuthorizedDomains.
 ///
@@ -1522,15 +1641,17 @@ pub fn appengine_apps_domain_mappings_create_execute(
 
 pub fn appengine_apps_domain_mappings_create(
     client: &SimpleHttpClient,
-    appsId: &str,
-    overrideStrategy: Option<&str>,
-    body: &DomainMapping,
+    args: &AppengineAppsDomainMappingsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        appengine_apps_domain_mappings_create_builder(client, appsId, overrideStrategy, body)?;
+    let builder = appengine_apps_domain_mappings_create_builder(
+        client,
+        &args.appsId,
+        args.overrideStrategy.as_deref(),
+        &args.body,
+    )?;
     appengine_apps_domain_mappings_create_execute(builder)
 }
 
@@ -1625,6 +1746,15 @@ pub fn appengine_apps_domain_mappings_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_domain_mappings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsDomainMappingsDeleteArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: domainMappingsId
+    pub domainMappingsId: String,
+}
+
 /// GET v1/apps/{appsId}/domainMappings/{domainMappingsId}
 /// Deletes the specified domain mapping. A user must be authorized to administer the associated domain in order to delete a DomainMapping resource.
 ///
@@ -1637,13 +1767,16 @@ pub fn appengine_apps_domain_mappings_delete_execute(
 
 pub fn appengine_apps_domain_mappings_delete(
     client: &SimpleHttpClient,
-    appsId: &str,
-    domainMappingsId: &str,
+    args: &AppengineAppsDomainMappingsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_domain_mappings_delete_builder(client, appsId, domainMappingsId)?;
+    let builder = appengine_apps_domain_mappings_delete_builder(
+        client,
+        &args.appsId,
+        &args.domainMappingsId,
+    )?;
     appengine_apps_domain_mappings_delete_execute(builder)
 }
 
@@ -1740,6 +1873,15 @@ pub fn appengine_apps_domain_mappings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_domain_mappings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsDomainMappingsGetArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: domainMappingsId
+    pub domainMappingsId: String,
+}
+
 /// GET v1/apps/{appsId}/domainMappings/{domainMappingsId}
 /// Gets the specified domain mapping.
 ///
@@ -1752,15 +1894,15 @@ pub fn appengine_apps_domain_mappings_get_execute(
 
 pub fn appengine_apps_domain_mappings_get(
     client: &SimpleHttpClient,
-    appsId: &str,
-    domainMappingsId: &str,
+    args: &AppengineAppsDomainMappingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DomainMapping>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_domain_mappings_get_builder(client, appsId, domainMappingsId)?;
+    let builder =
+        appengine_apps_domain_mappings_get_builder(client, &args.appsId, &args.domainMappingsId)?;
     appengine_apps_domain_mappings_get_execute(builder)
 }
 
@@ -1874,6 +2016,17 @@ pub fn appengine_apps_domain_mappings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_domain_mappings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsDomainMappingsListArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/apps/{appsId}/domainMappings
 /// Lists the domain mappings on an application.
 ///
@@ -1886,9 +2039,7 @@ pub fn appengine_apps_domain_mappings_list_execute(
 
 pub fn appengine_apps_domain_mappings_list(
     client: &SimpleHttpClient,
-    appsId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AppengineAppsDomainMappingsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDomainMappingsResponse>, ApiError>,
@@ -1897,7 +2048,12 @@ pub fn appengine_apps_domain_mappings_list(
         + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_domain_mappings_list_builder(client, appsId, pageSize, pageToken)?;
+    let builder = appengine_apps_domain_mappings_list_builder(
+        client,
+        &args.appsId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     appengine_apps_domain_mappings_list_execute(builder)
 }
 
@@ -2007,6 +2163,19 @@ pub fn appengine_apps_domain_mappings_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_domain_mappings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsDomainMappingsPatchArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: domainMappingsId
+    pub domainMappingsId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: DomainMapping,
+}
+
 /// GET v1/apps/{appsId}/domainMappings/{domainMappingsId}
 /// Updates the specified domain mapping. To map an SSL certificate to a domain mapping, update certificate_id to point to an AuthorizedCertificate resource. A user must be authorized to administer the associated domain in order to update a DomainMapping resource.
 ///
@@ -2019,20 +2188,17 @@ pub fn appengine_apps_domain_mappings_patch_execute(
 
 pub fn appengine_apps_domain_mappings_patch(
     client: &SimpleHttpClient,
-    appsId: &str,
-    domainMappingsId: &str,
-    updateMask: Option<&str>,
-    body: &DomainMapping,
+    args: &AppengineAppsDomainMappingsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_apps_domain_mappings_patch_builder(
         client,
-        appsId,
-        domainMappingsId,
-        updateMask,
-        body,
+        &args.appsId,
+        &args.domainMappingsId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     appengine_apps_domain_mappings_patch_execute(builder)
 }
@@ -2134,6 +2300,15 @@ pub fn appengine_apps_firewall_ingress_rules_batch_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_firewall_ingress_rules_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsFirewallIngressRulesBatchUpdateArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Request body.
+    pub body: BatchUpdateIngressRulesRequest,
+}
+
 /// GET v1/apps/{appsId}/firewall/ingressRules:batchUpdate
 /// Replaces the entire firewall ruleset in one bulk operation. This overrides and replaces the rules of an existing firewall with the new rules.If the final rule does not match traffic with the '*' wildcard IP range, then an "allow all" rule is explicitly added to the end of the list.
 ///
@@ -2146,8 +2321,7 @@ pub fn appengine_apps_firewall_ingress_rules_batch_update_execute(
 
 pub fn appengine_apps_firewall_ingress_rules_batch_update(
     client: &SimpleHttpClient,
-    appsId: &str,
-    body: &BatchUpdateIngressRulesRequest,
+    args: &AppengineAppsFirewallIngressRulesBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUpdateIngressRulesResponse>, ApiError>,
@@ -2156,7 +2330,11 @@ pub fn appengine_apps_firewall_ingress_rules_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_firewall_ingress_rules_batch_update_builder(client, appsId, body)?;
+    let builder = appengine_apps_firewall_ingress_rules_batch_update_builder(
+        client,
+        &args.appsId,
+        &args.body,
+    )?;
     appengine_apps_firewall_ingress_rules_batch_update_execute(builder)
 }
 
@@ -2255,6 +2433,15 @@ pub fn appengine_apps_firewall_ingress_rules_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_firewall_ingress_rules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsFirewallIngressRulesCreateArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Request body.
+    pub body: FirewallRule,
+}
+
 /// GET v1/apps/{appsId}/firewall/ingressRules
 /// Creates a firewall rule for the application.
 ///
@@ -2267,15 +2454,15 @@ pub fn appengine_apps_firewall_ingress_rules_create_execute(
 
 pub fn appengine_apps_firewall_ingress_rules_create(
     client: &SimpleHttpClient,
-    appsId: &str,
-    body: &FirewallRule,
+    args: &AppengineAppsFirewallIngressRulesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FirewallRule>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_firewall_ingress_rules_create_builder(client, appsId, body)?;
+    let builder =
+        appengine_apps_firewall_ingress_rules_create_builder(client, &args.appsId, &args.body)?;
     appengine_apps_firewall_ingress_rules_create_execute(builder)
 }
 
@@ -2370,6 +2557,15 @@ pub fn appengine_apps_firewall_ingress_rules_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_firewall_ingress_rules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsFirewallIngressRulesDeleteArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: ingressRulesId
+    pub ingressRulesId: String,
+}
+
 /// GET v1/apps/{appsId}/firewall/ingressRules/{ingressRulesId}
 /// Deletes the specified firewall rule.
 ///
@@ -2382,14 +2578,16 @@ pub fn appengine_apps_firewall_ingress_rules_delete_execute(
 
 pub fn appengine_apps_firewall_ingress_rules_delete(
     client: &SimpleHttpClient,
-    appsId: &str,
-    ingressRulesId: &str,
+    args: &AppengineAppsFirewallIngressRulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        appengine_apps_firewall_ingress_rules_delete_builder(client, appsId, ingressRulesId)?;
+    let builder = appengine_apps_firewall_ingress_rules_delete_builder(
+        client,
+        &args.appsId,
+        &args.ingressRulesId,
+    )?;
     appengine_apps_firewall_ingress_rules_delete_execute(builder)
 }
 
@@ -2486,6 +2684,15 @@ pub fn appengine_apps_firewall_ingress_rules_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_firewall_ingress_rules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsFirewallIngressRulesGetArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: ingressRulesId
+    pub ingressRulesId: String,
+}
+
 /// GET v1/apps/{appsId}/firewall/ingressRules/{ingressRulesId}
 /// Gets the specified firewall rule.
 ///
@@ -2498,16 +2705,18 @@ pub fn appengine_apps_firewall_ingress_rules_get_execute(
 
 pub fn appengine_apps_firewall_ingress_rules_get(
     client: &SimpleHttpClient,
-    appsId: &str,
-    ingressRulesId: &str,
+    args: &AppengineAppsFirewallIngressRulesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FirewallRule>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        appengine_apps_firewall_ingress_rules_get_builder(client, appsId, ingressRulesId)?;
+    let builder = appengine_apps_firewall_ingress_rules_get_builder(
+        client,
+        &args.appsId,
+        &args.ingressRulesId,
+    )?;
     appengine_apps_firewall_ingress_rules_get_execute(builder)
 }
 
@@ -2623,6 +2832,19 @@ pub fn appengine_apps_firewall_ingress_rules_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_firewall_ingress_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsFirewallIngressRulesListArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Query parameter: matchingAddress
+    pub matchingAddress: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/apps/{appsId}/firewall/ingressRules
 /// Lists the firewall rules of an application.
 ///
@@ -2635,10 +2857,7 @@ pub fn appengine_apps_firewall_ingress_rules_list_execute(
 
 pub fn appengine_apps_firewall_ingress_rules_list(
     client: &SimpleHttpClient,
-    appsId: &str,
-    matchingAddress: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AppengineAppsFirewallIngressRulesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListIngressRulesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2647,10 +2866,10 @@ pub fn appengine_apps_firewall_ingress_rules_list(
 > {
     let builder = appengine_apps_firewall_ingress_rules_list_builder(
         client,
-        appsId,
-        matchingAddress,
-        pageSize,
-        pageToken,
+        &args.appsId,
+        args.matchingAddress.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     appengine_apps_firewall_ingress_rules_list_execute(builder)
 }
@@ -2763,6 +2982,19 @@ pub fn appengine_apps_firewall_ingress_rules_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_firewall_ingress_rules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsFirewallIngressRulesPatchArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: ingressRulesId
+    pub ingressRulesId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: FirewallRule,
+}
+
 /// GET v1/apps/{appsId}/firewall/ingressRules/{ingressRulesId}
 /// Updates the specified firewall rule.
 ///
@@ -2775,10 +3007,7 @@ pub fn appengine_apps_firewall_ingress_rules_patch_execute(
 
 pub fn appengine_apps_firewall_ingress_rules_patch(
     client: &SimpleHttpClient,
-    appsId: &str,
-    ingressRulesId: &str,
-    updateMask: Option<&str>,
-    body: &FirewallRule,
+    args: &AppengineAppsFirewallIngressRulesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FirewallRule>, ApiError>, P = ApiPending>
         + Send
@@ -2787,10 +3016,10 @@ pub fn appengine_apps_firewall_ingress_rules_patch(
 > {
     let builder = appengine_apps_firewall_ingress_rules_patch_builder(
         client,
-        appsId,
-        ingressRulesId,
-        updateMask,
-        body,
+        &args.appsId,
+        &args.ingressRulesId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     appengine_apps_firewall_ingress_rules_patch_execute(builder)
 }
@@ -2886,6 +3115,15 @@ pub fn appengine_apps_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsLocationsGetArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+}
+
 /// GET v1/apps/{appsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -2898,13 +3136,12 @@ pub fn appengine_apps_locations_get_execute(
 
 pub fn appengine_apps_locations_get(
     client: &SimpleHttpClient,
-    appsId: &str,
-    locationsId: &str,
+    args: &AppengineAppsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_locations_get_builder(client, appsId, locationsId)?;
+    let builder = appengine_apps_locations_get_builder(client, &args.appsId, &args.locationsId)?;
     appengine_apps_locations_get_execute(builder)
 }
 
@@ -3024,6 +3261,21 @@ pub fn appengine_apps_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsLocationsListArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/apps/{appsId}/locations
 /// Lists information about the supported locations for this service.This method lists locations based on the resource scope provided in the ListLocationsRequest.name field: Global locations: If name is empty, the method lists the public locations available to all projects. Project-specific locations: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project.For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -3036,11 +3288,7 @@ pub fn appengine_apps_locations_list_execute(
 
 pub fn appengine_apps_locations_list(
     client: &SimpleHttpClient,
-    appsId: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AppengineAppsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3049,11 +3297,11 @@ pub fn appengine_apps_locations_list(
 > {
     let builder = appengine_apps_locations_list_builder(
         client,
-        appsId,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.appsId,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     appengine_apps_locations_list_execute(builder)
 }
@@ -3149,6 +3397,15 @@ pub fn appengine_apps_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsOperationsGetArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: operationsId
+    pub operationsId: String,
+}
+
 /// GET v1/apps/{appsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -3161,13 +3418,12 @@ pub fn appengine_apps_operations_get_execute(
 
 pub fn appengine_apps_operations_get(
     client: &SimpleHttpClient,
-    appsId: &str,
-    operationsId: &str,
+    args: &AppengineAppsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_operations_get_builder(client, appsId, operationsId)?;
+    let builder = appengine_apps_operations_get_builder(client, &args.appsId, &args.operationsId)?;
     appengine_apps_operations_get_execute(builder)
 }
 
@@ -3287,6 +3543,21 @@ pub fn appengine_apps_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsOperationsListArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/apps/{appsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -3299,11 +3570,7 @@ pub fn appengine_apps_operations_list_execute(
 
 pub fn appengine_apps_operations_list(
     client: &SimpleHttpClient,
-    appsId: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &AppengineAppsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3312,11 +3579,11 @@ pub fn appengine_apps_operations_list(
 > {
     let builder = appengine_apps_operations_list_builder(
         client,
-        appsId,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.appsId,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     appengine_apps_operations_list_execute(builder)
 }
@@ -3412,6 +3679,15 @@ pub fn appengine_apps_services_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_services_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsServicesDeleteArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+}
+
 /// GET v1/apps/{appsId}/services/{servicesId}
 /// Deletes the specified service and all enclosed versions.
 ///
@@ -3424,13 +3700,12 @@ pub fn appengine_apps_services_delete_execute(
 
 pub fn appengine_apps_services_delete(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
+    args: &AppengineAppsServicesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_services_delete_builder(client, appsId, servicesId)?;
+    let builder = appengine_apps_services_delete_builder(client, &args.appsId, &args.servicesId)?;
     appengine_apps_services_delete_execute(builder)
 }
 
@@ -3525,6 +3800,15 @@ pub fn appengine_apps_services_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_services_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsServicesGetArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+}
+
 /// GET v1/apps/{appsId}/services/{servicesId}
 /// Gets the current configuration of the specified service.
 ///
@@ -3537,13 +3821,12 @@ pub fn appengine_apps_services_get_execute(
 
 pub fn appengine_apps_services_get(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
+    args: &AppengineAppsServicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_services_get_builder(client, appsId, servicesId)?;
+    let builder = appengine_apps_services_get_builder(client, &args.appsId, &args.servicesId)?;
     appengine_apps_services_get_execute(builder)
 }
 
@@ -3655,6 +3938,17 @@ pub fn appengine_apps_services_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsServicesListArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/apps/{appsId}/services
 /// Lists all the services in the application.
 ///
@@ -3667,16 +3961,19 @@ pub fn appengine_apps_services_list_execute(
 
 pub fn appengine_apps_services_list(
     client: &SimpleHttpClient,
-    appsId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AppengineAppsServicesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_services_list_builder(client, appsId, pageSize, pageToken)?;
+    let builder = appengine_apps_services_list_builder(
+        client,
+        &args.appsId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     appengine_apps_services_list_execute(builder)
 }
 
@@ -3790,6 +4087,21 @@ pub fn appengine_apps_services_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_services_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsServicesPatchArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Query parameter: migrateTraffic
+    pub migrateTraffic: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Service,
+}
+
 /// GET v1/apps/{appsId}/services/{servicesId}
 /// Updates the configuration of the specified service.
 ///
@@ -3802,22 +4114,18 @@ pub fn appengine_apps_services_patch_execute(
 
 pub fn appengine_apps_services_patch(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    migrateTraffic: Option<bool>,
-    updateMask: Option<&str>,
-    body: &Service,
+    args: &AppengineAppsServicesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_apps_services_patch_builder(
         client,
-        appsId,
-        servicesId,
-        migrateTraffic,
-        updateMask,
-        body,
+        &args.appsId,
+        &args.servicesId,
+        args.migrateTraffic,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     appengine_apps_services_patch_execute(builder)
 }
@@ -3916,6 +4224,17 @@ pub fn appengine_apps_services_versions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_services_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsServicesVersionsCreateArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Request body.
+    pub body: Version,
+}
+
 /// GET v1/apps/{appsId}/services/{servicesId}/versions
 /// Deploys code and resource files to a new version.
 ///
@@ -3928,15 +4247,17 @@ pub fn appengine_apps_services_versions_create_execute(
 
 pub fn appengine_apps_services_versions_create(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    body: &Version,
+    args: &AppengineAppsServicesVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        appengine_apps_services_versions_create_builder(client, appsId, servicesId, body)?;
+    let builder = appengine_apps_services_versions_create_builder(
+        client,
+        &args.appsId,
+        &args.servicesId,
+        &args.body,
+    )?;
     appengine_apps_services_versions_create_execute(builder)
 }
 
@@ -4032,6 +4353,17 @@ pub fn appengine_apps_services_versions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_services_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsServicesVersionsDeleteArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Path parameter: versionsId
+    pub versionsId: String,
+}
+
 /// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}
 /// Deletes an existing Version resource.
 ///
@@ -4044,15 +4376,17 @@ pub fn appengine_apps_services_versions_delete_execute(
 
 pub fn appengine_apps_services_versions_delete(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    versionsId: &str,
+    args: &AppengineAppsServicesVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        appengine_apps_services_versions_delete_builder(client, appsId, servicesId, versionsId)?;
+    let builder = appengine_apps_services_versions_delete_builder(
+        client,
+        &args.appsId,
+        &args.servicesId,
+        &args.versionsId,
+    )?;
     appengine_apps_services_versions_delete_execute(builder)
 }
 
@@ -4151,6 +4485,19 @@ pub fn appengine_apps_services_versions_export_app_image_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_services_versions_export_app_image`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsServicesVersionsExportAppImageArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Path parameter: versionsId
+    pub versionsId: String,
+    /// Request body.
+    pub body: ExportAppImageRequest,
+}
+
 /// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}:exportAppImage
 /// Exports a user image to Artifact Registry.
 ///
@@ -4163,16 +4510,17 @@ pub fn appengine_apps_services_versions_export_app_image_execute(
 
 pub fn appengine_apps_services_versions_export_app_image(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    body: &ExportAppImageRequest,
+    args: &AppengineAppsServicesVersionsExportAppImageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_apps_services_versions_export_app_image_builder(
-        client, appsId, servicesId, versionsId, body,
+        client,
+        &args.appsId,
+        &args.servicesId,
+        &args.versionsId,
+        &args.body,
     )?;
     appengine_apps_services_versions_export_app_image_execute(builder)
 }
@@ -4281,6 +4629,19 @@ pub fn appengine_apps_services_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_services_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsServicesVersionsGetArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Path parameter: versionsId
+    pub versionsId: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}
 /// Gets the specified Version resource. By default, only a BASIC_VIEW will be returned. Specify the FULL_VIEW parameter to get the full resource.
 ///
@@ -4293,16 +4654,18 @@ pub fn appengine_apps_services_versions_get_execute(
 
 pub fn appengine_apps_services_versions_get(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    view: Option<&str>,
+    args: &AppengineAppsServicesVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        appengine_apps_services_versions_get_builder(client, appsId, servicesId, versionsId, view)?;
+    let builder = appengine_apps_services_versions_get_builder(
+        client,
+        &args.appsId,
+        &args.servicesId,
+        &args.versionsId,
+        args.view.as_deref(),
+    )?;
     appengine_apps_services_versions_get_execute(builder)
 }
 
@@ -4419,6 +4782,21 @@ pub fn appengine_apps_services_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_services_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsServicesVersionsListArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/apps/{appsId}/services/{servicesId}/versions
 /// Lists the versions of a service.
 ///
@@ -4431,11 +4809,7 @@ pub fn appengine_apps_services_versions_list_execute(
 
 pub fn appengine_apps_services_versions_list(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &AppengineAppsServicesVersionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListVersionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4443,7 +4817,12 @@ pub fn appengine_apps_services_versions_list(
     ApiError,
 > {
     let builder = appengine_apps_services_versions_list_builder(
-        client, appsId, servicesId, pageSize, pageToken, view,
+        client,
+        &args.appsId,
+        &args.servicesId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     appengine_apps_services_versions_list_execute(builder)
 }
@@ -4555,6 +4934,21 @@ pub fn appengine_apps_services_versions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_services_versions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsServicesVersionsPatchArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Path parameter: versionsId
+    pub versionsId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Version,
+}
+
 /// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}
 /// Updates the specified Version resource. You can specify the following fields depending on the App Engine environment and type of scaling that the version resource uses:Standard environment instance_class (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.instance_class>)automatic scaling in the standard environment: automatic_scaling.min_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) `automaticScaling`.standard_scheduler_settings.max_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.min_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_cpu_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_throughput_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>)basic scaling or manual scaling in the standard environment: serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>) manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)Flexible environment serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>)automatic scaling in the flexible environment: automatic_scaling.min_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cool_down_period_sec (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cpu_utilization.target_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>)manual scaling in the flexible environment: manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)
 ///
@@ -4567,17 +4961,18 @@ pub fn appengine_apps_services_versions_patch_execute(
 
 pub fn appengine_apps_services_versions_patch(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    updateMask: Option<&str>,
-    body: &Version,
+    args: &AppengineAppsServicesVersionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_apps_services_versions_patch_builder(
-        client, appsId, servicesId, versionsId, updateMask, body,
+        client,
+        &args.appsId,
+        &args.servicesId,
+        &args.versionsId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     appengine_apps_services_versions_patch_execute(builder)
 }
@@ -4678,6 +5073,21 @@ pub fn appengine_apps_services_versions_instances_debug_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_services_versions_instances_debug`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsServicesVersionsInstancesDebugArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Path parameter: versionsId
+    pub versionsId: String,
+    /// Path parameter: instancesId
+    pub instancesId: String,
+    /// Request body.
+    pub body: DebugInstanceRequest,
+}
+
 /// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}/instances/{instancesId}:debug
 /// Enables debugging on a VM instance. This allows you to use the SSH command to connect to the virtual machine where the instance lives. While in "debug mode", the instance continues to serve live traffic. You should delete the instance when you are done debugging and then allow the system to take over and determine if another instance should be started.Only applicable for instances in App Engine flexible environment.
 ///
@@ -4690,22 +5100,18 @@ pub fn appengine_apps_services_versions_instances_debug_execute(
 
 pub fn appengine_apps_services_versions_instances_debug(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    instancesId: &str,
-    body: &DebugInstanceRequest,
+    args: &AppengineAppsServicesVersionsInstancesDebugArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_apps_services_versions_instances_debug_builder(
         client,
-        appsId,
-        servicesId,
-        versionsId,
-        instancesId,
-        body,
+        &args.appsId,
+        &args.servicesId,
+        &args.versionsId,
+        &args.instancesId,
+        &args.body,
     )?;
     appengine_apps_services_versions_instances_debug_execute(builder)
 }
@@ -4803,6 +5209,19 @@ pub fn appengine_apps_services_versions_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_services_versions_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsServicesVersionsInstancesDeleteArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Path parameter: versionsId
+    pub versionsId: String,
+    /// Path parameter: instancesId
+    pub instancesId: String,
+}
+
 /// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}/instances/{instancesId}
 /// Stops a running instance.The instance might be automatically recreated based on the scaling settings of the version. For more information, see "How Instances are Managed" (standard environment (<https://cloud.google.`com/appengine/docs/standard/python/how-instances-are-managed`>) | flexible environment (<https://cloud.google.`com/appengine/docs/flexible/python/how-instances-are-managed`>)).To ensure that instances are not re-created and avoid getting billed, you can stop all instances within the target version by changing the serving status of the version to STOPPED with the apps.services.versions.patch (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.`versions/patch`>) method.
 ///
@@ -4815,20 +5234,17 @@ pub fn appengine_apps_services_versions_instances_delete_execute(
 
 pub fn appengine_apps_services_versions_instances_delete(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    instancesId: &str,
+    args: &AppengineAppsServicesVersionsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_apps_services_versions_instances_delete_builder(
         client,
-        appsId,
-        servicesId,
-        versionsId,
-        instancesId,
+        &args.appsId,
+        &args.servicesId,
+        &args.versionsId,
+        &args.instancesId,
     )?;
     appengine_apps_services_versions_instances_delete_execute(builder)
 }
@@ -4926,6 +5342,19 @@ pub fn appengine_apps_services_versions_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_services_versions_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsServicesVersionsInstancesGetArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Path parameter: versionsId
+    pub versionsId: String,
+    /// Path parameter: instancesId
+    pub instancesId: String,
+}
+
 /// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}/instances/{instancesId}
 /// Gets instance information.
 ///
@@ -4938,20 +5367,17 @@ pub fn appengine_apps_services_versions_instances_get_execute(
 
 pub fn appengine_apps_services_versions_instances_get(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    instancesId: &str,
+    args: &AppengineAppsServicesVersionsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_apps_services_versions_instances_get_builder(
         client,
-        appsId,
-        servicesId,
-        versionsId,
-        instancesId,
+        &args.appsId,
+        &args.servicesId,
+        &args.versionsId,
+        &args.instancesId,
     )?;
     appengine_apps_services_versions_instances_get_execute(builder)
 }
@@ -5066,6 +5492,21 @@ pub fn appengine_apps_services_versions_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_apps_services_versions_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineAppsServicesVersionsInstancesListArgs {
+    /// Path parameter: appsId
+    pub appsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Path parameter: versionsId
+    pub versionsId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}/instances
 /// Lists the instances of a version.Tip: To aggregate details about instances over time, see the Stackdriver Monitoring API (<https://cloud.google.`com/monitoring/api/ref_v3/rest/v3/projects`.timeS`eries/list`>).
 ///
@@ -5078,11 +5519,7 @@ pub fn appengine_apps_services_versions_instances_list_execute(
 
 pub fn appengine_apps_services_versions_instances_list(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AppengineAppsServicesVersionsInstancesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5090,7 +5527,12 @@ pub fn appengine_apps_services_versions_instances_list(
     ApiError,
 > {
     let builder = appengine_apps_services_versions_instances_list_builder(
-        client, appsId, servicesId, versionsId, pageSize, pageToken,
+        client,
+        &args.appsId,
+        &args.servicesId,
+        &args.versionsId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     appengine_apps_services_versions_instances_list_execute(builder)
 }
@@ -5202,6 +5644,21 @@ pub fn appengine_projects_locations_applications_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsPatchArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Application,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}
 /// Updates the specified Application resource. You can update the following fields: auth_domain - Google authentication domain for controlling user access to the application. default_cookie_expiration - Cookie expiration policy for the application. iap - Identity-Aware Proxy properties for the application.
 ///
@@ -5214,22 +5671,18 @@ pub fn appengine_projects_locations_applications_patch_execute(
 
 pub fn appengine_projects_locations_applications_patch(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    updateMask: Option<&str>,
-    body: &Application,
+    args: &AppengineProjectsLocationsApplicationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_projects_locations_applications_patch_builder(
         client,
-        projectsId,
-        locationsId,
-        applicationsId,
-        updateMask,
-        body,
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     appengine_projects_locations_applications_patch_execute(builder)
 }
@@ -5333,6 +5786,19 @@ pub fn appengine_projects_locations_applications_authorized_certificates_create_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_authorized_certificates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsAuthorizedCertificatesCreateArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Request body.
+    pub body: AuthorizedCertificate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates
 /// Uploads the specified SSL certificate.
 ///
@@ -5345,10 +5811,7 @@ pub fn appengine_projects_locations_applications_authorized_certificates_create_
 
 pub fn appengine_projects_locations_applications_authorized_certificates_create(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    body: &AuthorizedCertificate,
+    args: &AppengineProjectsLocationsApplicationsAuthorizedCertificatesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
         + Send
@@ -5357,10 +5820,10 @@ pub fn appengine_projects_locations_applications_authorized_certificates_create(
 > {
     let builder = appengine_projects_locations_applications_authorized_certificates_create_builder(
         client,
-        projectsId,
-        locationsId,
-        applicationsId,
-        body,
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.body,
     )?;
     appengine_projects_locations_applications_authorized_certificates_create_execute(builder)
 }
@@ -5461,6 +5924,19 @@ pub fn appengine_projects_locations_applications_authorized_certificates_delete_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_authorized_certificates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsAuthorizedCertificatesDeleteArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Path parameter: authorizedCertificatesId
+    pub authorizedCertificatesId: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates/{authorizedCertificatesId}
 /// Deletes the specified SSL certificate.
 ///
@@ -5473,20 +5949,17 @@ pub fn appengine_projects_locations_applications_authorized_certificates_delete_
 
 pub fn appengine_projects_locations_applications_authorized_certificates_delete(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    authorizedCertificatesId: &str,
+    args: &AppengineProjectsLocationsApplicationsAuthorizedCertificatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_projects_locations_applications_authorized_certificates_delete_builder(
         client,
-        projectsId,
-        locationsId,
-        applicationsId,
-        authorizedCertificatesId,
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.authorizedCertificatesId,
     )?;
     appengine_projects_locations_applications_authorized_certificates_delete_execute(builder)
 }
@@ -5601,6 +6074,21 @@ pub fn appengine_projects_locations_applications_authorized_certificates_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_authorized_certificates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsAuthorizedCertificatesGetArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Path parameter: authorizedCertificatesId
+    pub authorizedCertificatesId: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates/{authorizedCertificatesId}
 /// Gets the specified SSL certificate.
 ///
@@ -5613,11 +6101,7 @@ pub fn appengine_projects_locations_applications_authorized_certificates_get_exe
 
 pub fn appengine_projects_locations_applications_authorized_certificates_get(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    authorizedCertificatesId: &str,
-    view: Option<&str>,
+    args: &AppengineProjectsLocationsApplicationsAuthorizedCertificatesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
         + Send
@@ -5626,11 +6110,11 @@ pub fn appengine_projects_locations_applications_authorized_certificates_get(
 > {
     let builder = appengine_projects_locations_applications_authorized_certificates_get_builder(
         client,
-        projectsId,
-        locationsId,
-        applicationsId,
-        authorizedCertificatesId,
-        view,
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.authorizedCertificatesId,
+        args.view.as_deref(),
     )?;
     appengine_projects_locations_applications_authorized_certificates_get_execute(builder)
 }
@@ -5753,6 +6237,23 @@ pub fn appengine_projects_locations_applications_authorized_certificates_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_authorized_certificates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsAuthorizedCertificatesListArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates
 /// Lists all SSL certificates the user is authorized to administer.
 ///
@@ -5765,12 +6266,7 @@ pub fn appengine_projects_locations_applications_authorized_certificates_list_ex
 
 pub fn appengine_projects_locations_applications_authorized_certificates_list(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &AppengineProjectsLocationsApplicationsAuthorizedCertificatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAuthorizedCertificatesResponse>, ApiError>,
@@ -5781,12 +6277,12 @@ pub fn appengine_projects_locations_applications_authorized_certificates_list(
 > {
     let builder = appengine_projects_locations_applications_authorized_certificates_list_builder(
         client,
-        projectsId,
-        locationsId,
-        applicationsId,
-        pageSize,
-        pageToken,
-        view,
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     appengine_projects_locations_applications_authorized_certificates_list_execute(builder)
 }
@@ -5904,6 +6400,23 @@ pub fn appengine_projects_locations_applications_authorized_certificates_patch_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_authorized_certificates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsAuthorizedCertificatesPatchArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Path parameter: authorizedCertificatesId
+    pub authorizedCertificatesId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AuthorizedCertificate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates/{authorizedCertificatesId}
 /// Updates the specified SSL certificate. To renew a certificate and maintain its existing domain mappings, update certificate_data with a new certificate. The new certificate must be applicable to the same domains as the original certificate. The certificate display_name may also be updated.
 ///
@@ -5916,12 +6429,7 @@ pub fn appengine_projects_locations_applications_authorized_certificates_patch_e
 
 pub fn appengine_projects_locations_applications_authorized_certificates_patch(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    authorizedCertificatesId: &str,
-    updateMask: Option<&str>,
-    body: &AuthorizedCertificate,
+    args: &AppengineProjectsLocationsApplicationsAuthorizedCertificatesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
         + Send
@@ -5930,12 +6438,12 @@ pub fn appengine_projects_locations_applications_authorized_certificates_patch(
 > {
     let builder = appengine_projects_locations_applications_authorized_certificates_patch_builder(
         client,
-        projectsId,
-        locationsId,
-        applicationsId,
-        authorizedCertificatesId,
-        updateMask,
-        body,
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.authorizedCertificatesId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     appengine_projects_locations_applications_authorized_certificates_patch_execute(builder)
 }
@@ -6054,6 +6562,21 @@ pub fn appengine_projects_locations_applications_authorized_domains_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_authorized_domains_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsAuthorizedDomainsListArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedDomains
 /// Lists all domains the user is authorized to administer.
 ///
@@ -6066,11 +6589,7 @@ pub fn appengine_projects_locations_applications_authorized_domains_list_execute
 
 pub fn appengine_projects_locations_applications_authorized_domains_list(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AppengineProjectsLocationsApplicationsAuthorizedDomainsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAuthorizedDomainsResponse>, ApiError>,
@@ -6081,11 +6600,11 @@ pub fn appengine_projects_locations_applications_authorized_domains_list(
 > {
     let builder = appengine_projects_locations_applications_authorized_domains_list_builder(
         client,
-        projectsId,
-        locationsId,
-        applicationsId,
-        pageSize,
-        pageToken,
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     appengine_projects_locations_applications_authorized_domains_list_execute(builder)
 }
@@ -6199,6 +6718,21 @@ pub fn appengine_projects_locations_applications_domain_mappings_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_domain_mappings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsDomainMappingsCreateArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Query parameter: overrideStrategy
+    pub overrideStrategy: Option<String>,
+    /// Request body.
+    pub body: DomainMapping,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings
 /// Maps a domain to an application. A user must be authorized to administer a domain in order to map it to an application. For a list of available authorized domains, see AuthorizedDomains.ListAuthorizedDomains.
 ///
@@ -6211,22 +6745,18 @@ pub fn appengine_projects_locations_applications_domain_mappings_create_execute(
 
 pub fn appengine_projects_locations_applications_domain_mappings_create(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    overrideStrategy: Option<&str>,
-    body: &DomainMapping,
+    args: &AppengineProjectsLocationsApplicationsDomainMappingsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_projects_locations_applications_domain_mappings_create_builder(
         client,
-        projectsId,
-        locationsId,
-        applicationsId,
-        overrideStrategy,
-        body,
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        args.overrideStrategy.as_deref(),
+        &args.body,
     )?;
     appengine_projects_locations_applications_domain_mappings_create_execute(builder)
 }
@@ -6327,6 +6857,19 @@ pub fn appengine_projects_locations_applications_domain_mappings_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_domain_mappings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsDomainMappingsDeleteArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Path parameter: domainMappingsId
+    pub domainMappingsId: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings/{domainMappingsId}
 /// Deletes the specified domain mapping. A user must be authorized to administer the associated domain in order to delete a DomainMapping resource.
 ///
@@ -6339,20 +6882,17 @@ pub fn appengine_projects_locations_applications_domain_mappings_delete_execute(
 
 pub fn appengine_projects_locations_applications_domain_mappings_delete(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    domainMappingsId: &str,
+    args: &AppengineProjectsLocationsApplicationsDomainMappingsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_projects_locations_applications_domain_mappings_delete_builder(
         client,
-        projectsId,
-        locationsId,
-        applicationsId,
-        domainMappingsId,
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.domainMappingsId,
     )?;
     appengine_projects_locations_applications_domain_mappings_delete_execute(builder)
 }
@@ -6455,6 +6995,19 @@ pub fn appengine_projects_locations_applications_domain_mappings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_domain_mappings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsDomainMappingsGetArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Path parameter: domainMappingsId
+    pub domainMappingsId: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings/{domainMappingsId}
 /// Gets the specified domain mapping.
 ///
@@ -6467,10 +7020,7 @@ pub fn appengine_projects_locations_applications_domain_mappings_get_execute(
 
 pub fn appengine_projects_locations_applications_domain_mappings_get(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    domainMappingsId: &str,
+    args: &AppengineProjectsLocationsApplicationsDomainMappingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DomainMapping>, ApiError>, P = ApiPending>
         + Send
@@ -6479,10 +7029,10 @@ pub fn appengine_projects_locations_applications_domain_mappings_get(
 > {
     let builder = appengine_projects_locations_applications_domain_mappings_get_builder(
         client,
-        projectsId,
-        locationsId,
-        applicationsId,
-        domainMappingsId,
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.domainMappingsId,
     )?;
     appengine_projects_locations_applications_domain_mappings_get_execute(builder)
 }
@@ -6601,6 +7151,21 @@ pub fn appengine_projects_locations_applications_domain_mappings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_domain_mappings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsDomainMappingsListArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings
 /// Lists the domain mappings on an application.
 ///
@@ -6613,11 +7178,7 @@ pub fn appengine_projects_locations_applications_domain_mappings_list_execute(
 
 pub fn appengine_projects_locations_applications_domain_mappings_list(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AppengineProjectsLocationsApplicationsDomainMappingsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDomainMappingsResponse>, ApiError>,
@@ -6628,11 +7189,11 @@ pub fn appengine_projects_locations_applications_domain_mappings_list(
 > {
     let builder = appengine_projects_locations_applications_domain_mappings_list_builder(
         client,
-        projectsId,
-        locationsId,
-        applicationsId,
-        pageSize,
-        pageToken,
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     appengine_projects_locations_applications_domain_mappings_list_execute(builder)
 }
@@ -6748,6 +7309,23 @@ pub fn appengine_projects_locations_applications_domain_mappings_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_domain_mappings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsDomainMappingsPatchArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Path parameter: domainMappingsId
+    pub domainMappingsId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: DomainMapping,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings/{domainMappingsId}
 /// Updates the specified domain mapping. To map an SSL certificate to a domain mapping, update certificate_id to point to an AuthorizedCertificate resource. A user must be authorized to administer the associated domain in order to update a DomainMapping resource.
 ///
@@ -6760,24 +7338,19 @@ pub fn appengine_projects_locations_applications_domain_mappings_patch_execute(
 
 pub fn appengine_projects_locations_applications_domain_mappings_patch(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    domainMappingsId: &str,
-    updateMask: Option<&str>,
-    body: &DomainMapping,
+    args: &AppengineProjectsLocationsApplicationsDomainMappingsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_projects_locations_applications_domain_mappings_patch_builder(
         client,
-        projectsId,
-        locationsId,
-        applicationsId,
-        domainMappingsId,
-        updateMask,
-        body,
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.domainMappingsId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     appengine_projects_locations_applications_domain_mappings_patch_execute(builder)
 }
@@ -6875,6 +7448,19 @@ pub fn appengine_projects_locations_applications_services_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_services_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsServicesDeleteArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}
 /// Deletes the specified service and all enclosed versions.
 ///
@@ -6887,20 +7473,17 @@ pub fn appengine_projects_locations_applications_services_delete_execute(
 
 pub fn appengine_projects_locations_applications_services_delete(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    servicesId: &str,
+    args: &AppengineProjectsLocationsApplicationsServicesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_projects_locations_applications_services_delete_builder(
         client,
-        projectsId,
-        locationsId,
-        applicationsId,
-        servicesId,
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.servicesId,
     )?;
     appengine_projects_locations_applications_services_delete_execute(builder)
 }
@@ -7017,6 +7600,25 @@ pub fn appengine_projects_locations_applications_services_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_services_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsServicesPatchArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Query parameter: migrateTraffic
+    pub migrateTraffic: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Service,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}
 /// Updates the configuration of the specified service.
 ///
@@ -7029,26 +7631,20 @@ pub fn appengine_projects_locations_applications_services_patch_execute(
 
 pub fn appengine_projects_locations_applications_services_patch(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    servicesId: &str,
-    migrateTraffic: Option<bool>,
-    updateMask: Option<&str>,
-    body: &Service,
+    args: &AppengineProjectsLocationsApplicationsServicesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_projects_locations_applications_services_patch_builder(
         client,
-        projectsId,
-        locationsId,
-        applicationsId,
-        servicesId,
-        migrateTraffic,
-        updateMask,
-        body,
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.servicesId,
+        args.migrateTraffic,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     appengine_projects_locations_applications_services_patch_execute(builder)
 }
@@ -7151,6 +7747,21 @@ pub fn appengine_projects_locations_applications_services_versions_delete_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_services_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsServicesVersionsDeleteArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Path parameter: versionsId
+    pub versionsId: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}/versions/{versionsId}
 /// Deletes an existing Version resource.
 ///
@@ -7163,22 +7774,18 @@ pub fn appengine_projects_locations_applications_services_versions_delete_execut
 
 pub fn appengine_projects_locations_applications_services_versions_delete(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    servicesId: &str,
-    versionsId: &str,
+    args: &AppengineProjectsLocationsApplicationsServicesVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_projects_locations_applications_services_versions_delete_builder(
         client,
-        projectsId,
-        locationsId,
-        applicationsId,
-        servicesId,
-        versionsId,
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.servicesId,
+        &args.versionsId,
     )?;
     appengine_projects_locations_applications_services_versions_delete_execute(builder)
 }
@@ -7284,6 +7891,23 @@ pub fn appengine_projects_locations_applications_services_versions_export_app_im
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_services_versions_export_app_image`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsServicesVersionsExportAppImageArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Path parameter: versionsId
+    pub versionsId: String,
+    /// Request body.
+    pub body: ExportAppImageRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}/versions/{versionsId}:exportAppImage
 /// Exports a user image to Artifact Registry.
 ///
@@ -7296,12 +7920,7 @@ pub fn appengine_projects_locations_applications_services_versions_export_app_im
 
 pub fn appengine_projects_locations_applications_services_versions_export_app_image(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    body: &ExportAppImageRequest,
+    args: &AppengineProjectsLocationsApplicationsServicesVersionsExportAppImageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -7309,12 +7928,12 @@ pub fn appengine_projects_locations_applications_services_versions_export_app_im
     let builder =
         appengine_projects_locations_applications_services_versions_export_app_image_builder(
             client,
-            projectsId,
-            locationsId,
-            applicationsId,
-            servicesId,
-            versionsId,
-            body,
+            &args.projectsId,
+            &args.locationsId,
+            &args.applicationsId,
+            &args.servicesId,
+            &args.versionsId,
+            &args.body,
         )?;
     appengine_projects_locations_applications_services_versions_export_app_image_execute(builder)
 }
@@ -7432,6 +8051,25 @@ pub fn appengine_projects_locations_applications_services_versions_patch_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_services_versions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsServicesVersionsPatchArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Path parameter: versionsId
+    pub versionsId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Version,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}/versions/{versionsId}
 /// Updates the specified Version resource. You can specify the following fields depending on the App Engine environment and type of scaling that the version resource uses:Standard environment instance_class (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.instance_class>)automatic scaling in the standard environment: automatic_scaling.min_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) `automaticScaling`.standard_scheduler_settings.max_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.min_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_cpu_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_throughput_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>)basic scaling or manual scaling in the standard environment: serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>) manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)Flexible environment serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>)automatic scaling in the flexible environment: automatic_scaling.min_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cool_down_period_sec (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cpu_utilization.target_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>)manual scaling in the flexible environment: manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)
 ///
@@ -7444,26 +8082,20 @@ pub fn appengine_projects_locations_applications_services_versions_patch_execute
 
 pub fn appengine_projects_locations_applications_services_versions_patch(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    updateMask: Option<&str>,
-    body: &Version,
+    args: &AppengineProjectsLocationsApplicationsServicesVersionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = appengine_projects_locations_applications_services_versions_patch_builder(
         client,
-        projectsId,
-        locationsId,
-        applicationsId,
-        servicesId,
-        versionsId,
-        updateMask,
-        body,
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.servicesId,
+        &args.versionsId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     appengine_projects_locations_applications_services_versions_patch_execute(builder)
 }
@@ -7571,6 +8203,25 @@ pub fn appengine_projects_locations_applications_services_versions_instances_deb
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_services_versions_instances_debug`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsServicesVersionsInstancesDebugArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Path parameter: versionsId
+    pub versionsId: String,
+    /// Path parameter: instancesId
+    pub instancesId: String,
+    /// Request body.
+    pub body: DebugInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}/versions/{versionsId}/instances/{instancesId}:debug
 /// Enables debugging on a VM instance. This allows you to use the SSH command to connect to the virtual machine where the instance lives. While in "debug mode", the instance continues to serve live traffic. You should delete the instance when you are done debugging and then allow the system to take over and determine if another instance should be started.Only applicable for instances in App Engine flexible environment.
 ///
@@ -7583,13 +8234,7 @@ pub fn appengine_projects_locations_applications_services_versions_instances_deb
 
 pub fn appengine_projects_locations_applications_services_versions_instances_debug(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    instancesId: &str,
-    body: &DebugInstanceRequest,
+    args: &AppengineProjectsLocationsApplicationsServicesVersionsInstancesDebugArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -7597,13 +8242,13 @@ pub fn appengine_projects_locations_applications_services_versions_instances_deb
     let builder =
         appengine_projects_locations_applications_services_versions_instances_debug_builder(
             client,
-            projectsId,
-            locationsId,
-            applicationsId,
-            servicesId,
-            versionsId,
-            instancesId,
-            body,
+            &args.projectsId,
+            &args.locationsId,
+            &args.applicationsId,
+            &args.servicesId,
+            &args.versionsId,
+            &args.instancesId,
+            &args.body,
         )?;
     appengine_projects_locations_applications_services_versions_instances_debug_execute(builder)
 }
@@ -7708,6 +8353,23 @@ pub fn appengine_projects_locations_applications_services_versions_instances_del
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appengine_projects_locations_applications_services_versions_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppengineProjectsLocationsApplicationsServicesVersionsInstancesDeleteArgs {
+    /// Path parameter: projectsId
+    pub projectsId: String,
+    /// Path parameter: locationsId
+    pub locationsId: String,
+    /// Path parameter: applicationsId
+    pub applicationsId: String,
+    /// Path parameter: servicesId
+    pub servicesId: String,
+    /// Path parameter: versionsId
+    pub versionsId: String,
+    /// Path parameter: instancesId
+    pub instancesId: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}/versions/{versionsId}/instances/{instancesId}
 /// Stops a running instance.The instance might be automatically recreated based on the scaling settings of the version. For more information, see "How Instances are Managed" (standard environment (<https://cloud.google.`com/appengine/docs/standard/python/how-instances-are-managed`>) | flexible environment (<https://cloud.google.`com/appengine/docs/flexible/python/how-instances-are-managed`>)).To ensure that instances are not re-created and avoid getting billed, you can stop all instances within the target version by changing the serving status of the version to STOPPED with the apps.services.versions.patch (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.`versions/patch`>) method.
 ///
@@ -7720,12 +8382,7 @@ pub fn appengine_projects_locations_applications_services_versions_instances_del
 
 pub fn appengine_projects_locations_applications_services_versions_instances_delete(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    instancesId: &str,
+    args: &AppengineProjectsLocationsApplicationsServicesVersionsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -7733,12 +8390,12 @@ pub fn appengine_projects_locations_applications_services_versions_instances_del
     let builder =
         appengine_projects_locations_applications_services_versions_instances_delete_builder(
             client,
-            projectsId,
-            locationsId,
-            applicationsId,
-            servicesId,
-            versionsId,
-            instancesId,
+            &args.projectsId,
+            &args.locationsId,
+            &args.applicationsId,
+            &args.servicesId,
+            &args.versionsId,
+            &args.instancesId,
         )?;
     appengine_projects_locations_applications_services_versions_instances_delete_execute(builder)
 }

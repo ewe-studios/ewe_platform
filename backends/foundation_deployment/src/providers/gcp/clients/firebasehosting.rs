@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
@@ -109,6 +111,15 @@ pub fn firebasehosting_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasehosting_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasehostingOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -121,13 +132,12 @@ pub fn firebasehosting_operations_cancel_execute(
 
 pub fn firebasehosting_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &FirebasehostingOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebasehosting_operations_cancel_builder(client, name, body)?;
+    let builder = firebasehosting_operations_cancel_builder(client, &args.name, &args.body)?;
     firebasehosting_operations_cancel_execute(builder)
 }
 
@@ -221,6 +231,13 @@ pub fn firebasehosting_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasehosting_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasehostingOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -233,12 +250,12 @@ pub fn firebasehosting_operations_delete_execute(
 
 pub fn firebasehosting_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebasehostingOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebasehosting_operations_delete_builder(client, name)?;
+    let builder = firebasehosting_operations_delete_builder(client, &args.name)?;
     firebasehosting_operations_delete_execute(builder)
 }
 
@@ -355,6 +372,21 @@ pub fn firebasehosting_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasehosting_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasehostingOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -367,11 +399,7 @@ pub fn firebasehosting_operations_list_execute(
 
 pub fn firebasehosting_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &FirebasehostingOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -380,11 +408,11 @@ pub fn firebasehosting_operations_list(
 > {
     let builder = firebasehosting_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     firebasehosting_operations_list_execute(builder)
 }
@@ -482,6 +510,15 @@ pub fn firebasehosting_projects_sites_custom_domains_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasehosting_projects_sites_custom_domains_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasehostingProjectsSitesCustomDomainsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/sites/{sitesId}/customDomains/{customDomainsId}/operations/{operationsId}:cancel
 /// CancelOperation is a part of the google.longrunning.Operations interface, but is not implemented for CustomDomain resources.
 ///
@@ -494,14 +531,13 @@ pub fn firebasehosting_projects_sites_custom_domains_operations_cancel_execute(
 
 pub fn firebasehosting_projects_sites_custom_domains_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &FirebasehostingProjectsSitesCustomDomainsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebasehosting_projects_sites_custom_domains_operations_cancel_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     firebasehosting_projects_sites_custom_domains_operations_cancel_execute(builder)
 }
@@ -596,6 +632,13 @@ pub fn firebasehosting_projects_sites_custom_domains_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasehosting_projects_sites_custom_domains_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasehostingProjectsSitesCustomDomainsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/sites/{sitesId}/customDomains/{customDomainsId}/operations/{operationsId}
 /// DeleteOperation is a part of the google.longrunning.Operations interface, but is not implemented for CustomDomain resources.
 ///
@@ -608,12 +651,13 @@ pub fn firebasehosting_projects_sites_custom_domains_operations_delete_execute(
 
 pub fn firebasehosting_projects_sites_custom_domains_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebasehostingProjectsSitesCustomDomainsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        firebasehosting_projects_sites_custom_domains_operations_delete_builder(client, name)?;
+    let builder = firebasehosting_projects_sites_custom_domains_operations_delete_builder(
+        client, &args.name,
+    )?;
     firebasehosting_projects_sites_custom_domains_operations_delete_execute(builder)
 }

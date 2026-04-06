@@ -4,3 +4,4 @@
 //! standard `` `OpenAPI` `` 3.x specs without custom authentication requirements.
 
 pub mod fetch;
+pub mod normalize;

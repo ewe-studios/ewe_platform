@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/sites/{sitesId}
 /// Gets a site's Abusive Experience Report summary.
@@ -108,6 +110,13 @@ pub fn abusiveexperiencereport_sites_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`abusiveexperiencereport_sites_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AbusiveexperiencereportSitesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/sites/{sitesId}
 /// Gets a site's Abusive Experience Report summary.
 ///
@@ -120,14 +129,14 @@ pub fn abusiveexperiencereport_sites_get_execute(
 
 pub fn abusiveexperiencereport_sites_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AbusiveexperiencereportSitesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SiteSummaryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = abusiveexperiencereport_sites_get_builder(client, name)?;
+    let builder = abusiveexperiencereport_sites_get_builder(client, &args.name)?;
     abusiveexperiencereport_sites_get_execute(builder)
 }
 

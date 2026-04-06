@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn migrationcenter_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn migrationcenter_projects_locations_get_execute(
 
 pub fn migrationcenter_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MigrationcenterProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = migrationcenter_projects_locations_get_builder(client, name)?;
+    let builder = migrationcenter_projects_locations_get_builder(client, &args.name)?;
     migrationcenter_projects_locations_get_execute(builder)
 }
 
@@ -217,6 +226,13 @@ pub fn migrationcenter_projects_locations_get_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_get_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsGetSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/settings
 /// Gets the details of regional settings.
 ///
@@ -229,12 +245,12 @@ pub fn migrationcenter_projects_locations_get_settings_execute(
 
 pub fn migrationcenter_projects_locations_get_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MigrationcenterProjectsLocationsGetSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = migrationcenter_projects_locations_get_settings_builder(client, name)?;
+    let builder = migrationcenter_projects_locations_get_settings_builder(client, &args.name)?;
     migrationcenter_projects_locations_get_settings_execute(builder)
 }
 
@@ -354,6 +370,21 @@ pub fn migrationcenter_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -366,11 +397,7 @@ pub fn migrationcenter_projects_locations_list_execute(
 
 pub fn migrationcenter_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MigrationcenterProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -379,11 +406,11 @@ pub fn migrationcenter_projects_locations_list(
 > {
     let builder = migrationcenter_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     migrationcenter_projects_locations_list_execute(builder)
 }
@@ -497,6 +524,19 @@ pub fn migrationcenter_projects_locations_update_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_update_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsUpdateSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Settings,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/settings
 /// Updates the regional-level project settings.
 ///
@@ -509,16 +549,17 @@ pub fn migrationcenter_projects_locations_update_settings_execute(
 
 pub fn migrationcenter_projects_locations_update_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Settings,
+    args: &MigrationcenterProjectsLocationsUpdateSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_update_settings_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_update_settings_execute(builder)
 }
@@ -620,6 +661,15 @@ pub fn migrationcenter_projects_locations_assets_aggregate_values_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_assets_aggregate_values`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsAssetsAggregateValuesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AggregateAssetsValuesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assets:aggregateValues
 /// Aggregates the requested fields based on provided function.
 ///
@@ -632,8 +682,7 @@ pub fn migrationcenter_projects_locations_assets_aggregate_values_execute(
 
 pub fn migrationcenter_projects_locations_assets_aggregate_values(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AggregateAssetsValuesRequest,
+    args: &MigrationcenterProjectsLocationsAssetsAggregateValuesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AggregateAssetsValuesResponse>, ApiError>,
@@ -642,8 +691,11 @@ pub fn migrationcenter_projects_locations_assets_aggregate_values(
         + 'static,
     ApiError,
 > {
-    let builder =
-        migrationcenter_projects_locations_assets_aggregate_values_builder(client, parent, body)?;
+    let builder = migrationcenter_projects_locations_assets_aggregate_values_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     migrationcenter_projects_locations_assets_aggregate_values_execute(builder)
 }
 
@@ -740,6 +792,15 @@ pub fn migrationcenter_projects_locations_assets_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_assets_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsAssetsBatchDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchDeleteAssetsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assets:batchDelete
 /// Deletes list of Assets.
 ///
@@ -752,14 +813,16 @@ pub fn migrationcenter_projects_locations_assets_batch_delete_execute(
 
 pub fn migrationcenter_projects_locations_assets_batch_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchDeleteAssetsRequest,
+    args: &MigrationcenterProjectsLocationsAssetsBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        migrationcenter_projects_locations_assets_batch_delete_builder(client, parent, body)?;
+    let builder = migrationcenter_projects_locations_assets_batch_delete_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     migrationcenter_projects_locations_assets_batch_delete_execute(builder)
 }
 
@@ -858,6 +921,15 @@ pub fn migrationcenter_projects_locations_assets_batch_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_assets_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsAssetsBatchUpdateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchUpdateAssetsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assets:batchUpdate
 /// Updates the parameters of a list of assets.
 ///
@@ -870,16 +942,18 @@ pub fn migrationcenter_projects_locations_assets_batch_update_execute(
 
 pub fn migrationcenter_projects_locations_assets_batch_update(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchUpdateAssetsRequest,
+    args: &MigrationcenterProjectsLocationsAssetsBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchUpdateAssetsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        migrationcenter_projects_locations_assets_batch_update_builder(client, parent, body)?;
+    let builder = migrationcenter_projects_locations_assets_batch_update_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     migrationcenter_projects_locations_assets_batch_update_execute(builder)
 }
 
@@ -985,6 +1059,15 @@ pub fn migrationcenter_projects_locations_assets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_assets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsAssetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assets/{assetsId}
 /// Deletes an asset.
 ///
@@ -997,14 +1080,16 @@ pub fn migrationcenter_projects_locations_assets_delete_execute(
 
 pub fn migrationcenter_projects_locations_assets_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &MigrationcenterProjectsLocationsAssetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        migrationcenter_projects_locations_assets_delete_builder(client, name, requestId)?;
+    let builder = migrationcenter_projects_locations_assets_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     migrationcenter_projects_locations_assets_delete_execute(builder)
 }
 
@@ -1110,6 +1195,15 @@ pub fn migrationcenter_projects_locations_assets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_assets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsAssetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assets/{assetsId}
 /// Gets the details of an asset.
 ///
@@ -1122,13 +1216,16 @@ pub fn migrationcenter_projects_locations_assets_get_execute(
 
 pub fn migrationcenter_projects_locations_assets_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &MigrationcenterProjectsLocationsAssetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Asset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = migrationcenter_projects_locations_assets_get_builder(client, name, view)?;
+    let builder = migrationcenter_projects_locations_assets_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     migrationcenter_projects_locations_assets_get_execute(builder)
 }
 
@@ -1256,6 +1353,25 @@ pub fn migrationcenter_projects_locations_assets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_assets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsAssetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showHidden
+    pub showHidden: Option<bool>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assets
 /// Lists all the assets in a given project and location.
 ///
@@ -1268,13 +1384,7 @@ pub fn migrationcenter_projects_locations_assets_list_execute(
 
 pub fn migrationcenter_projects_locations_assets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showHidden: Option<bool>,
-    view: Option<&str>,
+    args: &MigrationcenterProjectsLocationsAssetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAssetsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1282,7 +1392,14 @@ pub fn migrationcenter_projects_locations_assets_list(
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_assets_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, showHidden, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showHidden,
+        args.view.as_deref(),
     )?;
     migrationcenter_projects_locations_assets_list_execute(builder)
 }
@@ -1396,6 +1513,19 @@ pub fn migrationcenter_projects_locations_assets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_assets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsAssetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Asset,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assets/{assetsId}
 /// Updates the parameters of an asset.
 ///
@@ -1408,16 +1538,17 @@ pub fn migrationcenter_projects_locations_assets_patch_execute(
 
 pub fn migrationcenter_projects_locations_assets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Asset,
+    args: &MigrationcenterProjectsLocationsAssetsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Asset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_assets_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_assets_patch_execute(builder)
 }
@@ -1529,6 +1660,17 @@ pub fn migrationcenter_projects_locations_assets_report_asset_frames_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_assets_report_asset_frames`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsAssetsReportAssetFramesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: source
+    pub source: Option<String>,
+    /// Request body.
+    pub body: Frames,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assets:reportAssetFrames
 /// Reports a set of frames.
 ///
@@ -1541,9 +1683,7 @@ pub fn migrationcenter_projects_locations_assets_report_asset_frames_execute(
 
 pub fn migrationcenter_projects_locations_assets_report_asset_frames(
     client: &SimpleHttpClient,
-    parent: &str,
-    source: Option<&str>,
-    body: &Frames,
+    args: &MigrationcenterProjectsLocationsAssetsReportAssetFramesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReportAssetFramesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1551,7 +1691,10 @@ pub fn migrationcenter_projects_locations_assets_report_asset_frames(
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_assets_report_asset_frames_builder(
-        client, parent, source, body,
+        client,
+        &args.parent,
+        args.source.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_assets_report_asset_frames_execute(builder)
 }
@@ -1665,6 +1808,19 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_assets_export_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsAssetsExportJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: assetsExportJobId
+    pub assetsExportJobId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: AssetsExportJob,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assetsExportJobs
 /// Creates a new assets export job.
 ///
@@ -1677,20 +1833,17 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_create_execute(
 
 pub fn migrationcenter_projects_locations_assets_export_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    assetsExportJobId: Option<&str>,
-    requestId: Option<&str>,
-    body: &AssetsExportJob,
+    args: &MigrationcenterProjectsLocationsAssetsExportJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_assets_export_jobs_create_builder(
         client,
-        parent,
-        assetsExportJobId,
-        requestId,
-        body,
+        &args.parent,
+        args.assetsExportJobId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_assets_export_jobs_create_execute(builder)
 }
@@ -1785,6 +1938,13 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_assets_export_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsAssetsExportJobsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assetsExportJobs/{assetsExportJobsId}
 /// Deletes an assets export job.
 ///
@@ -1797,13 +1957,13 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_delete_execute(
 
 pub fn migrationcenter_projects_locations_assets_export_jobs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MigrationcenterProjectsLocationsAssetsExportJobsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        migrationcenter_projects_locations_assets_export_jobs_delete_builder(client, name)?;
+        migrationcenter_projects_locations_assets_export_jobs_delete_builder(client, &args.name)?;
     migrationcenter_projects_locations_assets_export_jobs_delete_execute(builder)
 }
 
@@ -1899,6 +2059,13 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_assets_export_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsAssetsExportJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assetsExportJobs/{assetsExportJobsId}
 /// Gets the details of an assets export job.
 ///
@@ -1911,14 +2078,15 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_get_execute(
 
 pub fn migrationcenter_projects_locations_assets_export_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MigrationcenterProjectsLocationsAssetsExportJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AssetsExportJob>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = migrationcenter_projects_locations_assets_export_jobs_get_builder(client, name)?;
+    let builder =
+        migrationcenter_projects_locations_assets_export_jobs_get_builder(client, &args.name)?;
     migrationcenter_projects_locations_assets_export_jobs_get_execute(builder)
 }
 
@@ -2032,6 +2200,17 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_assets_export_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsAssetsExportJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assetsExportJobs
 /// Lists all the assets export jobs in a given project and location.
 ///
@@ -2044,9 +2223,7 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_list_execute(
 
 pub fn migrationcenter_projects_locations_assets_export_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MigrationcenterProjectsLocationsAssetsExportJobsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAssetsExportJobsResponse>, ApiError>,
@@ -2056,7 +2233,10 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_list(
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_assets_export_jobs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     migrationcenter_projects_locations_assets_export_jobs_list_execute(builder)
 }
@@ -2154,6 +2334,15 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_assets_export_jobs_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsAssetsExportJobsRunArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RunAssetsExportJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assetsExportJobs/{assetsExportJobsId}:run
 /// Runs an assets export job, returning an AssetsExportJobExecution.
 ///
@@ -2166,14 +2355,14 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_run_execute(
 
 pub fn migrationcenter_projects_locations_assets_export_jobs_run(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RunAssetsExportJobRequest,
+    args: &MigrationcenterProjectsLocationsAssetsExportJobsRunArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        migrationcenter_projects_locations_assets_export_jobs_run_builder(client, name, body)?;
+    let builder = migrationcenter_projects_locations_assets_export_jobs_run_builder(
+        client, &args.name, &args.body,
+    )?;
     migrationcenter_projects_locations_assets_export_jobs_run_execute(builder)
 }
 
@@ -2286,6 +2475,19 @@ pub fn migrationcenter_projects_locations_discovery_clients_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_discovery_clients_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsDiscoveryClientsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: discoveryClientId
+    pub discoveryClientId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: DiscoveryClient,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveryClients
 /// Creates a new discovery client.
 ///
@@ -2298,20 +2500,17 @@ pub fn migrationcenter_projects_locations_discovery_clients_create_execute(
 
 pub fn migrationcenter_projects_locations_discovery_clients_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    discoveryClientId: Option<&str>,
-    requestId: Option<&str>,
-    body: &DiscoveryClient,
+    args: &MigrationcenterProjectsLocationsDiscoveryClientsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_discovery_clients_create_builder(
         client,
-        parent,
-        discoveryClientId,
-        requestId,
-        body,
+        &args.parent,
+        args.discoveryClientId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_discovery_clients_create_execute(builder)
 }
@@ -2418,6 +2617,15 @@ pub fn migrationcenter_projects_locations_discovery_clients_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_discovery_clients_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsDiscoveryClientsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveryClients/{discoveryClientsId}
 /// Deletes a discovery client.
 ///
@@ -2430,14 +2638,15 @@ pub fn migrationcenter_projects_locations_discovery_clients_delete_execute(
 
 pub fn migrationcenter_projects_locations_discovery_clients_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &MigrationcenterProjectsLocationsDiscoveryClientsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_discovery_clients_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     migrationcenter_projects_locations_discovery_clients_delete_execute(builder)
 }
@@ -2534,6 +2743,13 @@ pub fn migrationcenter_projects_locations_discovery_clients_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_discovery_clients_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsDiscoveryClientsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveryClients/{discoveryClientsId}
 /// Gets the details of a discovery client.
 ///
@@ -2546,14 +2762,15 @@ pub fn migrationcenter_projects_locations_discovery_clients_get_execute(
 
 pub fn migrationcenter_projects_locations_discovery_clients_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MigrationcenterProjectsLocationsDiscoveryClientsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DiscoveryClient>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = migrationcenter_projects_locations_discovery_clients_get_builder(client, name)?;
+    let builder =
+        migrationcenter_projects_locations_discovery_clients_get_builder(client, &args.name)?;
     migrationcenter_projects_locations_discovery_clients_get_execute(builder)
 }
 
@@ -2675,6 +2892,21 @@ pub fn migrationcenter_projects_locations_discovery_clients_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_discovery_clients_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsDiscoveryClientsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveryClients
 /// Lists all the discovery clients in a given project and location.
 ///
@@ -2687,11 +2919,7 @@ pub fn migrationcenter_projects_locations_discovery_clients_list_execute(
 
 pub fn migrationcenter_projects_locations_discovery_clients_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MigrationcenterProjectsLocationsDiscoveryClientsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDiscoveryClientsResponse>, ApiError>,
@@ -2701,7 +2929,12 @@ pub fn migrationcenter_projects_locations_discovery_clients_list(
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_discovery_clients_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     migrationcenter_projects_locations_discovery_clients_list_execute(builder)
 }
@@ -2815,6 +3048,19 @@ pub fn migrationcenter_projects_locations_discovery_clients_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_discovery_clients_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsDiscoveryClientsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: DiscoveryClient,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveryClients/{discoveryClientsId}
 /// Updates a discovery client.
 ///
@@ -2827,16 +3073,17 @@ pub fn migrationcenter_projects_locations_discovery_clients_patch_execute(
 
 pub fn migrationcenter_projects_locations_discovery_clients_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &DiscoveryClient,
+    args: &MigrationcenterProjectsLocationsDiscoveryClientsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_discovery_clients_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_discovery_clients_patch_execute(builder)
 }
@@ -2934,6 +3181,15 @@ pub fn migrationcenter_projects_locations_discovery_clients_send_heartbeat_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_discovery_clients_send_heartbeat`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsDiscoveryClientsSendHeartbeatArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SendDiscoveryClientHeartbeatRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveryClients/{discoveryClientsId}:sendHeartbeat
 /// Sends a discovery client heartbeat. Healthy clients are expected to send heartbeats regularly (normally every few minutes).
 ///
@@ -2946,14 +3202,13 @@ pub fn migrationcenter_projects_locations_discovery_clients_send_heartbeat_execu
 
 pub fn migrationcenter_projects_locations_discovery_clients_send_heartbeat(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SendDiscoveryClientHeartbeatRequest,
+    args: &MigrationcenterProjectsLocationsDiscoveryClientsSendHeartbeatArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_discovery_clients_send_heartbeat_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     migrationcenter_projects_locations_discovery_clients_send_heartbeat_execute(builder)
 }
@@ -3051,6 +3306,15 @@ pub fn migrationcenter_projects_locations_groups_add_assets_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_groups_add_assets`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsGroupsAddAssetsArgs {
+    /// Path parameter: group
+    pub group: String,
+    /// Request body.
+    pub body: AddAssetsToGroupRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}:addAssets
 /// Adds assets to a group.
 ///
@@ -3063,14 +3327,16 @@ pub fn migrationcenter_projects_locations_groups_add_assets_execute(
 
 pub fn migrationcenter_projects_locations_groups_add_assets(
     client: &SimpleHttpClient,
-    group: &str,
-    body: &AddAssetsToGroupRequest,
+    args: &MigrationcenterProjectsLocationsGroupsAddAssetsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        migrationcenter_projects_locations_groups_add_assets_builder(client, group, body)?;
+    let builder = migrationcenter_projects_locations_groups_add_assets_builder(
+        client,
+        &args.group,
+        &args.body,
+    )?;
     migrationcenter_projects_locations_groups_add_assets_execute(builder)
 }
 
@@ -3183,6 +3449,19 @@ pub fn migrationcenter_projects_locations_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: groupId
+    pub groupId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Group,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/groups
 /// Creates a new group in a given project and location.
 ///
@@ -3195,16 +3474,17 @@ pub fn migrationcenter_projects_locations_groups_create_execute(
 
 pub fn migrationcenter_projects_locations_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    groupId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Group,
+    args: &MigrationcenterProjectsLocationsGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_groups_create_builder(
-        client, parent, groupId, requestId, body,
+        client,
+        &args.parent,
+        args.groupId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_groups_create_execute(builder)
 }
@@ -3311,6 +3591,15 @@ pub fn migrationcenter_projects_locations_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
 /// Deletes a group.
 ///
@@ -3323,14 +3612,16 @@ pub fn migrationcenter_projects_locations_groups_delete_execute(
 
 pub fn migrationcenter_projects_locations_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &MigrationcenterProjectsLocationsGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        migrationcenter_projects_locations_groups_delete_builder(client, name, requestId)?;
+    let builder = migrationcenter_projects_locations_groups_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     migrationcenter_projects_locations_groups_delete_execute(builder)
 }
 
@@ -3424,6 +3715,13 @@ pub fn migrationcenter_projects_locations_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
 /// Gets the details of a group.
 ///
@@ -3436,12 +3734,12 @@ pub fn migrationcenter_projects_locations_groups_get_execute(
 
 pub fn migrationcenter_projects_locations_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MigrationcenterProjectsLocationsGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = migrationcenter_projects_locations_groups_get_builder(client, name)?;
+    let builder = migrationcenter_projects_locations_groups_get_builder(client, &args.name)?;
     migrationcenter_projects_locations_groups_get_execute(builder)
 }
 
@@ -3561,6 +3859,21 @@ pub fn migrationcenter_projects_locations_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/groups
 /// Lists all groups in a given project and location.
 ///
@@ -3573,11 +3886,7 @@ pub fn migrationcenter_projects_locations_groups_list_execute(
 
 pub fn migrationcenter_projects_locations_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MigrationcenterProjectsLocationsGroupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGroupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3585,7 +3894,12 @@ pub fn migrationcenter_projects_locations_groups_list(
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_groups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     migrationcenter_projects_locations_groups_list_execute(builder)
 }
@@ -3699,6 +4013,19 @@ pub fn migrationcenter_projects_locations_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Group,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
 /// Updates the parameters of a group.
 ///
@@ -3711,16 +4038,17 @@ pub fn migrationcenter_projects_locations_groups_patch_execute(
 
 pub fn migrationcenter_projects_locations_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Group,
+    args: &MigrationcenterProjectsLocationsGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_groups_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_groups_patch_execute(builder)
 }
@@ -3818,6 +4146,15 @@ pub fn migrationcenter_projects_locations_groups_remove_assets_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_groups_remove_assets`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsGroupsRemoveAssetsArgs {
+    /// Path parameter: group
+    pub group: String,
+    /// Request body.
+    pub body: RemoveAssetsFromGroupRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}:removeAssets
 /// Removes assets from a group.
 ///
@@ -3830,14 +4167,16 @@ pub fn migrationcenter_projects_locations_groups_remove_assets_execute(
 
 pub fn migrationcenter_projects_locations_groups_remove_assets(
     client: &SimpleHttpClient,
-    group: &str,
-    body: &RemoveAssetsFromGroupRequest,
+    args: &MigrationcenterProjectsLocationsGroupsRemoveAssetsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        migrationcenter_projects_locations_groups_remove_assets_builder(client, group, body)?;
+    let builder = migrationcenter_projects_locations_groups_remove_assets_builder(
+        client,
+        &args.group,
+        &args.body,
+    )?;
     migrationcenter_projects_locations_groups_remove_assets_execute(builder)
 }
 
@@ -3950,6 +4289,19 @@ pub fn migrationcenter_projects_locations_import_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_import_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsImportJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: importJobId
+    pub importJobId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: ImportJob,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/importJobs
 /// Creates an import job.
 ///
@@ -3962,20 +4314,17 @@ pub fn migrationcenter_projects_locations_import_jobs_create_execute(
 
 pub fn migrationcenter_projects_locations_import_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    importJobId: Option<&str>,
-    requestId: Option<&str>,
-    body: &ImportJob,
+    args: &MigrationcenterProjectsLocationsImportJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_import_jobs_create_builder(
         client,
-        parent,
-        importJobId,
-        requestId,
-        body,
+        &args.parent,
+        args.importJobId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_import_jobs_create_execute(builder)
 }
@@ -4086,6 +4435,17 @@ pub fn migrationcenter_projects_locations_import_jobs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_import_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsImportJobsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/importJobs/{importJobsId}
 /// Deletes an import job.
 ///
@@ -4098,15 +4458,16 @@ pub fn migrationcenter_projects_locations_import_jobs_delete_execute(
 
 pub fn migrationcenter_projects_locations_import_jobs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    requestId: Option<&str>,
+    args: &MigrationcenterProjectsLocationsImportJobsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_import_jobs_delete_builder(
-        client, name, force, requestId,
+        client,
+        &args.name,
+        args.force,
+        args.requestId.as_deref(),
     )?;
     migrationcenter_projects_locations_import_jobs_delete_execute(builder)
 }
@@ -4213,6 +4574,15 @@ pub fn migrationcenter_projects_locations_import_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_import_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsImportJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/importJobs/{importJobsId}
 /// Gets the details of an import job.
 ///
@@ -4225,13 +4595,16 @@ pub fn migrationcenter_projects_locations_import_jobs_get_execute(
 
 pub fn migrationcenter_projects_locations_import_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &MigrationcenterProjectsLocationsImportJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ImportJob>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = migrationcenter_projects_locations_import_jobs_get_builder(client, name, view)?;
+    let builder = migrationcenter_projects_locations_import_jobs_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     migrationcenter_projects_locations_import_jobs_get_execute(builder)
 }
 
@@ -4355,6 +4728,23 @@ pub fn migrationcenter_projects_locations_import_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_import_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsImportJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/importJobs
 /// Lists all import jobs.
 ///
@@ -4367,12 +4757,7 @@ pub fn migrationcenter_projects_locations_import_jobs_list_execute(
 
 pub fn migrationcenter_projects_locations_import_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &MigrationcenterProjectsLocationsImportJobsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListImportJobsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4380,7 +4765,13 @@ pub fn migrationcenter_projects_locations_import_jobs_list(
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_import_jobs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     migrationcenter_projects_locations_import_jobs_list_execute(builder)
 }
@@ -4494,6 +4885,19 @@ pub fn migrationcenter_projects_locations_import_jobs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_import_jobs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsImportJobsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ImportJob,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/importJobs/{importJobsId}
 /// Updates an import job.
 ///
@@ -4506,16 +4910,17 @@ pub fn migrationcenter_projects_locations_import_jobs_patch_execute(
 
 pub fn migrationcenter_projects_locations_import_jobs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &ImportJob,
+    args: &MigrationcenterProjectsLocationsImportJobsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_import_jobs_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_import_jobs_patch_execute(builder)
 }
@@ -4613,6 +5018,15 @@ pub fn migrationcenter_projects_locations_import_jobs_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_import_jobs_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsImportJobsRunArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RunImportJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/importJobs/{importJobsId}:run
 /// Runs an import job.
 ///
@@ -4625,13 +5039,13 @@ pub fn migrationcenter_projects_locations_import_jobs_run_execute(
 
 pub fn migrationcenter_projects_locations_import_jobs_run(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RunImportJobRequest,
+    args: &MigrationcenterProjectsLocationsImportJobsRunArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = migrationcenter_projects_locations_import_jobs_run_builder(client, name, body)?;
+    let builder =
+        migrationcenter_projects_locations_import_jobs_run_builder(client, &args.name, &args.body)?;
     migrationcenter_projects_locations_import_jobs_run_execute(builder)
 }
 
@@ -4728,6 +5142,15 @@ pub fn migrationcenter_projects_locations_import_jobs_validate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_import_jobs_validate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsImportJobsValidateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ValidateImportJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/importJobs/{importJobsId}:validate
 /// Validates an import job.
 ///
@@ -4740,14 +5163,14 @@ pub fn migrationcenter_projects_locations_import_jobs_validate_execute(
 
 pub fn migrationcenter_projects_locations_import_jobs_validate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ValidateImportJobRequest,
+    args: &MigrationcenterProjectsLocationsImportJobsValidateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        migrationcenter_projects_locations_import_jobs_validate_builder(client, name, body)?;
+    let builder = migrationcenter_projects_locations_import_jobs_validate_builder(
+        client, &args.name, &args.body,
+    )?;
     migrationcenter_projects_locations_import_jobs_validate_execute(builder)
 }
 
@@ -4860,6 +5283,19 @@ pub fn migrationcenter_projects_locations_import_jobs_import_data_files_create_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_import_jobs_import_data_files_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsImportJobsImportDataFilesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: importDataFileId
+    pub importDataFileId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: ImportDataFile,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/importJobs/{importJobsId}/importDataFiles
 /// Creates an import data file.
 ///
@@ -4872,20 +5308,17 @@ pub fn migrationcenter_projects_locations_import_jobs_import_data_files_create_e
 
 pub fn migrationcenter_projects_locations_import_jobs_import_data_files_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    importDataFileId: Option<&str>,
-    requestId: Option<&str>,
-    body: &ImportDataFile,
+    args: &MigrationcenterProjectsLocationsImportJobsImportDataFilesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_import_jobs_import_data_files_create_builder(
         client,
-        parent,
-        importDataFileId,
-        requestId,
-        body,
+        &args.parent,
+        args.importDataFileId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_import_jobs_import_data_files_create_execute(builder)
 }
@@ -4992,6 +5425,15 @@ pub fn migrationcenter_projects_locations_import_jobs_import_data_files_delete_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_import_jobs_import_data_files_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsImportJobsImportDataFilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/importJobs/{importJobsId}/importDataFiles/{importDataFilesId}
 /// Delete an import data file.
 ///
@@ -5004,14 +5446,15 @@ pub fn migrationcenter_projects_locations_import_jobs_import_data_files_delete_e
 
 pub fn migrationcenter_projects_locations_import_jobs_import_data_files_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &MigrationcenterProjectsLocationsImportJobsImportDataFilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_import_jobs_import_data_files_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     migrationcenter_projects_locations_import_jobs_import_data_files_delete_execute(builder)
 }
@@ -5108,6 +5551,13 @@ pub fn migrationcenter_projects_locations_import_jobs_import_data_files_get_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_import_jobs_import_data_files_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsImportJobsImportDataFilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/importJobs/{importJobsId}/importDataFiles/{importDataFilesId}
 /// Gets an import data file.
 ///
@@ -5120,15 +5570,16 @@ pub fn migrationcenter_projects_locations_import_jobs_import_data_files_get_exec
 
 pub fn migrationcenter_projects_locations_import_jobs_import_data_files_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MigrationcenterProjectsLocationsImportJobsImportDataFilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ImportDataFile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        migrationcenter_projects_locations_import_jobs_import_data_files_get_builder(client, name)?;
+    let builder = migrationcenter_projects_locations_import_jobs_import_data_files_get_builder(
+        client, &args.name,
+    )?;
     migrationcenter_projects_locations_import_jobs_import_data_files_get_execute(builder)
 }
 
@@ -5250,6 +5701,21 @@ pub fn migrationcenter_projects_locations_import_jobs_import_data_files_list_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_import_jobs_import_data_files_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsImportJobsImportDataFilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/importJobs/{importJobsId}/importDataFiles
 /// List import data files.
 ///
@@ -5262,11 +5728,7 @@ pub fn migrationcenter_projects_locations_import_jobs_import_data_files_list_exe
 
 pub fn migrationcenter_projects_locations_import_jobs_import_data_files_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MigrationcenterProjectsLocationsImportJobsImportDataFilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListImportDataFilesResponse>, ApiError>,
@@ -5276,7 +5738,12 @@ pub fn migrationcenter_projects_locations_import_jobs_import_data_files_list(
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_import_jobs_import_data_files_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     migrationcenter_projects_locations_import_jobs_import_data_files_list_execute(builder)
 }
@@ -5374,6 +5841,15 @@ pub fn migrationcenter_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -5386,13 +5862,14 @@ pub fn migrationcenter_projects_locations_operations_cancel_execute(
 
 pub fn migrationcenter_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &MigrationcenterProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = migrationcenter_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = migrationcenter_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     migrationcenter_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -5486,6 +5963,13 @@ pub fn migrationcenter_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -5498,12 +5982,12 @@ pub fn migrationcenter_projects_locations_operations_delete_execute(
 
 pub fn migrationcenter_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MigrationcenterProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = migrationcenter_projects_locations_operations_delete_builder(client, name)?;
+    let builder = migrationcenter_projects_locations_operations_delete_builder(client, &args.name)?;
     migrationcenter_projects_locations_operations_delete_execute(builder)
 }
 
@@ -5597,6 +6081,13 @@ pub fn migrationcenter_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -5609,12 +6100,12 @@ pub fn migrationcenter_projects_locations_operations_get_execute(
 
 pub fn migrationcenter_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MigrationcenterProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = migrationcenter_projects_locations_operations_get_builder(client, name)?;
+    let builder = migrationcenter_projects_locations_operations_get_builder(client, &args.name)?;
     migrationcenter_projects_locations_operations_get_execute(builder)
 }
 
@@ -5734,6 +6225,21 @@ pub fn migrationcenter_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -5746,11 +6252,7 @@ pub fn migrationcenter_projects_locations_operations_list_execute(
 
 pub fn migrationcenter_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &MigrationcenterProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5759,11 +6261,11 @@ pub fn migrationcenter_projects_locations_operations_list(
 > {
     let builder = migrationcenter_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     migrationcenter_projects_locations_operations_list_execute(builder)
 }
@@ -5877,6 +6379,19 @@ pub fn migrationcenter_projects_locations_preference_sets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_preference_sets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsPreferenceSetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: preferenceSetId
+    pub preferenceSetId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: PreferenceSet,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/preferenceSets
 /// Creates a new preference set in a given project and location.
 ///
@@ -5889,20 +6404,17 @@ pub fn migrationcenter_projects_locations_preference_sets_create_execute(
 
 pub fn migrationcenter_projects_locations_preference_sets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    preferenceSetId: Option<&str>,
-    requestId: Option<&str>,
-    body: &PreferenceSet,
+    args: &MigrationcenterProjectsLocationsPreferenceSetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_preference_sets_create_builder(
         client,
-        parent,
-        preferenceSetId,
-        requestId,
-        body,
+        &args.parent,
+        args.preferenceSetId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_preference_sets_create_execute(builder)
 }
@@ -6009,6 +6521,15 @@ pub fn migrationcenter_projects_locations_preference_sets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_preference_sets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsPreferenceSetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/preferenceSets/{preferenceSetsId}
 /// Deletes a preference set.
 ///
@@ -6021,14 +6542,16 @@ pub fn migrationcenter_projects_locations_preference_sets_delete_execute(
 
 pub fn migrationcenter_projects_locations_preference_sets_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &MigrationcenterProjectsLocationsPreferenceSetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        migrationcenter_projects_locations_preference_sets_delete_builder(client, name, requestId)?;
+    let builder = migrationcenter_projects_locations_preference_sets_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     migrationcenter_projects_locations_preference_sets_delete_execute(builder)
 }
 
@@ -6124,6 +6647,13 @@ pub fn migrationcenter_projects_locations_preference_sets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_preference_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsPreferenceSetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/preferenceSets/{preferenceSetsId}
 /// Gets the details of a preference set.
 ///
@@ -6136,14 +6666,15 @@ pub fn migrationcenter_projects_locations_preference_sets_get_execute(
 
 pub fn migrationcenter_projects_locations_preference_sets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MigrationcenterProjectsLocationsPreferenceSetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PreferenceSet>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = migrationcenter_projects_locations_preference_sets_get_builder(client, name)?;
+    let builder =
+        migrationcenter_projects_locations_preference_sets_get_builder(client, &args.name)?;
     migrationcenter_projects_locations_preference_sets_get_execute(builder)
 }
 
@@ -6261,6 +6792,19 @@ pub fn migrationcenter_projects_locations_preference_sets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_preference_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsPreferenceSetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/preferenceSets
 /// Lists all the preference sets in a given project and location.
 ///
@@ -6273,10 +6817,7 @@ pub fn migrationcenter_projects_locations_preference_sets_list_execute(
 
 pub fn migrationcenter_projects_locations_preference_sets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MigrationcenterProjectsLocationsPreferenceSetsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPreferenceSetsResponse>, ApiError>,
@@ -6286,7 +6827,11 @@ pub fn migrationcenter_projects_locations_preference_sets_list(
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_preference_sets_list_builder(
-        client, parent, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     migrationcenter_projects_locations_preference_sets_list_execute(builder)
 }
@@ -6400,6 +6945,19 @@ pub fn migrationcenter_projects_locations_preference_sets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_preference_sets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsPreferenceSetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: PreferenceSet,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/preferenceSets/{preferenceSetsId}
 /// Updates the parameters of a preference set.
 ///
@@ -6412,16 +6970,17 @@ pub fn migrationcenter_projects_locations_preference_sets_patch_execute(
 
 pub fn migrationcenter_projects_locations_preference_sets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &PreferenceSet,
+    args: &MigrationcenterProjectsLocationsPreferenceSetsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_preference_sets_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_preference_sets_patch_execute(builder)
 }
@@ -6516,6 +7075,13 @@ pub fn migrationcenter_projects_locations_relations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_relations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsRelationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/relations/{relationsId}
 /// Gets the details of an relation.
 ///
@@ -6528,12 +7094,12 @@ pub fn migrationcenter_projects_locations_relations_get_execute(
 
 pub fn migrationcenter_projects_locations_relations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MigrationcenterProjectsLocationsRelationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Relation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = migrationcenter_projects_locations_relations_get_builder(client, name)?;
+    let builder = migrationcenter_projects_locations_relations_get_builder(client, &args.name)?;
     migrationcenter_projects_locations_relations_get_execute(builder)
 }
 
@@ -6653,6 +7219,21 @@ pub fn migrationcenter_projects_locations_relations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_relations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsRelationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/relations
 /// Lists all the relations in a given project and location.
 ///
@@ -6665,11 +7246,7 @@ pub fn migrationcenter_projects_locations_relations_list_execute(
 
 pub fn migrationcenter_projects_locations_relations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MigrationcenterProjectsLocationsRelationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRelationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6677,7 +7254,12 @@ pub fn migrationcenter_projects_locations_relations_list(
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_relations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     migrationcenter_projects_locations_relations_list_execute(builder)
 }
@@ -6791,6 +7373,19 @@ pub fn migrationcenter_projects_locations_report_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_report_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsReportConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: reportConfigId
+    pub reportConfigId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: ReportConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reportConfigs
 /// Creates a report configuration.
 ///
@@ -6803,20 +7398,17 @@ pub fn migrationcenter_projects_locations_report_configs_create_execute(
 
 pub fn migrationcenter_projects_locations_report_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    reportConfigId: Option<&str>,
-    requestId: Option<&str>,
-    body: &ReportConfig,
+    args: &MigrationcenterProjectsLocationsReportConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_report_configs_create_builder(
         client,
-        parent,
-        reportConfigId,
-        requestId,
-        body,
+        &args.parent,
+        args.reportConfigId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_report_configs_create_execute(builder)
 }
@@ -6927,6 +7519,17 @@ pub fn migrationcenter_projects_locations_report_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_report_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsReportConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reportConfigs/{reportConfigsId}
 /// Deletes a ReportConfig.
 ///
@@ -6939,15 +7542,16 @@ pub fn migrationcenter_projects_locations_report_configs_delete_execute(
 
 pub fn migrationcenter_projects_locations_report_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    requestId: Option<&str>,
+    args: &MigrationcenterProjectsLocationsReportConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_report_configs_delete_builder(
-        client, name, force, requestId,
+        client,
+        &args.name,
+        args.force,
+        args.requestId.as_deref(),
     )?;
     migrationcenter_projects_locations_report_configs_delete_execute(builder)
 }
@@ -7044,6 +7648,13 @@ pub fn migrationcenter_projects_locations_report_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_report_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsReportConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reportConfigs/{reportConfigsId}
 /// Gets details of a single ReportConfig.
 ///
@@ -7056,14 +7667,15 @@ pub fn migrationcenter_projects_locations_report_configs_get_execute(
 
 pub fn migrationcenter_projects_locations_report_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MigrationcenterProjectsLocationsReportConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReportConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = migrationcenter_projects_locations_report_configs_get_builder(client, name)?;
+    let builder =
+        migrationcenter_projects_locations_report_configs_get_builder(client, &args.name)?;
     migrationcenter_projects_locations_report_configs_get_execute(builder)
 }
 
@@ -7183,6 +7795,21 @@ pub fn migrationcenter_projects_locations_report_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_report_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsReportConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reportConfigs
 /// Lists ReportConfigs in a given project and location.
 ///
@@ -7195,11 +7822,7 @@ pub fn migrationcenter_projects_locations_report_configs_list_execute(
 
 pub fn migrationcenter_projects_locations_report_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MigrationcenterProjectsLocationsReportConfigsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListReportConfigsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7207,7 +7830,12 @@ pub fn migrationcenter_projects_locations_report_configs_list(
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_report_configs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     migrationcenter_projects_locations_report_configs_list_execute(builder)
 }
@@ -7321,6 +7949,19 @@ pub fn migrationcenter_projects_locations_report_configs_reports_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_report_configs_reports_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsReportConfigsReportsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: reportId
+    pub reportId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Report,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reportConfigs/{reportConfigsId}/reports
 /// Creates a report.
 ///
@@ -7333,16 +7974,17 @@ pub fn migrationcenter_projects_locations_report_configs_reports_create_execute(
 
 pub fn migrationcenter_projects_locations_report_configs_reports_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    reportId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Report,
+    args: &MigrationcenterProjectsLocationsReportConfigsReportsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_report_configs_reports_create_builder(
-        client, parent, reportId, requestId, body,
+        client,
+        &args.parent,
+        args.reportId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_report_configs_reports_create_execute(builder)
 }
@@ -7449,6 +8091,15 @@ pub fn migrationcenter_projects_locations_report_configs_reports_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_report_configs_reports_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsReportConfigsReportsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reportConfigs/{reportConfigsId}/reports/{reportsId}
 /// Deletes a Report.
 ///
@@ -7461,14 +8112,15 @@ pub fn migrationcenter_projects_locations_report_configs_reports_delete_execute(
 
 pub fn migrationcenter_projects_locations_report_configs_reports_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &MigrationcenterProjectsLocationsReportConfigsReportsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_report_configs_reports_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     migrationcenter_projects_locations_report_configs_reports_delete_execute(builder)
 }
@@ -7575,6 +8227,15 @@ pub fn migrationcenter_projects_locations_report_configs_reports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_report_configs_reports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsReportConfigsReportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reportConfigs/{reportConfigsId}/reports/{reportsId}
 /// Gets details of a single Report.
 ///
@@ -7587,14 +8248,16 @@ pub fn migrationcenter_projects_locations_report_configs_reports_get_execute(
 
 pub fn migrationcenter_projects_locations_report_configs_reports_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &MigrationcenterProjectsLocationsReportConfigsReportsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        migrationcenter_projects_locations_report_configs_reports_get_builder(client, name, view)?;
+    let builder = migrationcenter_projects_locations_report_configs_reports_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     migrationcenter_projects_locations_report_configs_reports_get_execute(builder)
 }
 
@@ -7718,6 +8381,23 @@ pub fn migrationcenter_projects_locations_report_configs_reports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_report_configs_reports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsReportConfigsReportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reportConfigs/{reportConfigsId}/reports
 /// Lists Reports in a given ReportConfig.
 ///
@@ -7730,12 +8410,7 @@ pub fn migrationcenter_projects_locations_report_configs_reports_list_execute(
 
 pub fn migrationcenter_projects_locations_report_configs_reports_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &MigrationcenterProjectsLocationsReportConfigsReportsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListReportsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7743,7 +8418,13 @@ pub fn migrationcenter_projects_locations_report_configs_reports_list(
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_report_configs_reports_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     migrationcenter_projects_locations_report_configs_reports_list_execute(builder)
 }
@@ -7857,6 +8538,19 @@ pub fn migrationcenter_projects_locations_sources_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_sources_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsSourcesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: sourceId
+    pub sourceId: Option<String>,
+    /// Request body.
+    pub body: Source,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources
 /// Creates a new source in a given project and location.
 ///
@@ -7869,16 +8563,17 @@ pub fn migrationcenter_projects_locations_sources_create_execute(
 
 pub fn migrationcenter_projects_locations_sources_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    sourceId: Option<&str>,
-    body: &Source,
+    args: &MigrationcenterProjectsLocationsSourcesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_sources_create_builder(
-        client, parent, requestId, sourceId, body,
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.sourceId.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_sources_create_execute(builder)
 }
@@ -7985,6 +8680,15 @@ pub fn migrationcenter_projects_locations_sources_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_sources_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsSourcesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}
 /// Deletes a source.
 ///
@@ -7997,14 +8701,16 @@ pub fn migrationcenter_projects_locations_sources_delete_execute(
 
 pub fn migrationcenter_projects_locations_sources_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &MigrationcenterProjectsLocationsSourcesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        migrationcenter_projects_locations_sources_delete_builder(client, name, requestId)?;
+    let builder = migrationcenter_projects_locations_sources_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     migrationcenter_projects_locations_sources_delete_execute(builder)
 }
 
@@ -8098,6 +8804,13 @@ pub fn migrationcenter_projects_locations_sources_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_sources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsSourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}
 /// Gets the details of a source.
 ///
@@ -8110,12 +8823,12 @@ pub fn migrationcenter_projects_locations_sources_get_execute(
 
 pub fn migrationcenter_projects_locations_sources_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MigrationcenterProjectsLocationsSourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Source>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = migrationcenter_projects_locations_sources_get_builder(client, name)?;
+    let builder = migrationcenter_projects_locations_sources_get_builder(client, &args.name)?;
     migrationcenter_projects_locations_sources_get_execute(builder)
 }
 
@@ -8235,6 +8948,21 @@ pub fn migrationcenter_projects_locations_sources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsSourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources
 /// Lists all the sources in a given project and location.
 ///
@@ -8247,11 +8975,7 @@ pub fn migrationcenter_projects_locations_sources_list_execute(
 
 pub fn migrationcenter_projects_locations_sources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MigrationcenterProjectsLocationsSourcesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSourcesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8259,7 +8983,12 @@ pub fn migrationcenter_projects_locations_sources_list(
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_sources_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     migrationcenter_projects_locations_sources_list_execute(builder)
 }
@@ -8373,6 +9102,19 @@ pub fn migrationcenter_projects_locations_sources_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_sources_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsSourcesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Source,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}
 /// Updates the parameters of a source.
 ///
@@ -8385,16 +9127,17 @@ pub fn migrationcenter_projects_locations_sources_patch_execute(
 
 pub fn migrationcenter_projects_locations_sources_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Source,
+    args: &MigrationcenterProjectsLocationsSourcesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_sources_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     migrationcenter_projects_locations_sources_patch_execute(builder)
 }
@@ -8501,6 +9244,15 @@ pub fn migrationcenter_projects_locations_sources_error_frames_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_sources_error_frames_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsSourcesErrorFramesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/errorFrames/{errorFramesId}
 /// Gets the details of an error frame.
 ///
@@ -8513,14 +9265,16 @@ pub fn migrationcenter_projects_locations_sources_error_frames_get_execute(
 
 pub fn migrationcenter_projects_locations_sources_error_frames_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &MigrationcenterProjectsLocationsSourcesErrorFramesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ErrorFrame>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        migrationcenter_projects_locations_sources_error_frames_get_builder(client, name, view)?;
+    let builder = migrationcenter_projects_locations_sources_error_frames_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     migrationcenter_projects_locations_sources_error_frames_get_execute(builder)
 }
 
@@ -8636,6 +9390,19 @@ pub fn migrationcenter_projects_locations_sources_error_frames_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`migrationcenter_projects_locations_sources_error_frames_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MigrationcenterProjectsLocationsSourcesErrorFramesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/errorFrames
 /// Lists all error frames in a given source and location.
 ///
@@ -8648,10 +9415,7 @@ pub fn migrationcenter_projects_locations_sources_error_frames_list_execute(
 
 pub fn migrationcenter_projects_locations_sources_error_frames_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &MigrationcenterProjectsLocationsSourcesErrorFramesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListErrorFramesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8659,7 +9423,11 @@ pub fn migrationcenter_projects_locations_sources_error_frames_list(
     ApiError,
 > {
     let builder = migrationcenter_projects_locations_sources_error_frames_list_builder(
-        client, parent, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     migrationcenter_projects_locations_sources_error_frames_list_execute(builder)
 }

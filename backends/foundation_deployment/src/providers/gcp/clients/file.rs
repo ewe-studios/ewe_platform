@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn file_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn file_projects_locations_get_execute(
 
 pub fn file_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FileProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_get_builder(client, name)?;
+    let builder = file_projects_locations_get_builder(client, &args.name)?;
     file_projects_locations_get_execute(builder)
 }
 
@@ -240,6 +249,21 @@ pub fn file_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
 ///
@@ -252,11 +276,7 @@ pub fn file_projects_locations_list_execute(
 
 pub fn file_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FileProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -265,11 +285,11 @@ pub fn file_projects_locations_list(
 > {
     let builder = file_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     file_projects_locations_list_execute(builder)
 }
@@ -379,6 +399,17 @@ pub fn file_projects_locations_backups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_backups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsBackupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupId
+    pub backupId: Option<String>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backups
 /// Creates a backup.
 ///
@@ -391,14 +422,17 @@ pub fn file_projects_locations_backups_create_execute(
 
 pub fn file_projects_locations_backups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backupId: Option<&str>,
-    body: &Backup,
+    args: &FileProjectsLocationsBackupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_backups_create_builder(client, parent, backupId, body)?;
+    let builder = file_projects_locations_backups_create_builder(
+        client,
+        &args.parent,
+        args.backupId.as_deref(),
+        &args.body,
+    )?;
     file_projects_locations_backups_create_execute(builder)
 }
 
@@ -492,6 +526,13 @@ pub fn file_projects_locations_backups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backups/{backupsId}
 /// Deletes a backup.
 ///
@@ -504,12 +545,12 @@ pub fn file_projects_locations_backups_delete_execute(
 
 pub fn file_projects_locations_backups_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FileProjectsLocationsBackupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_backups_delete_builder(client, name)?;
+    let builder = file_projects_locations_backups_delete_builder(client, &args.name)?;
     file_projects_locations_backups_delete_execute(builder)
 }
 
@@ -603,6 +644,13 @@ pub fn file_projects_locations_backups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backups/{backupsId}
 /// Gets the details of a specific backup.
 ///
@@ -615,12 +663,12 @@ pub fn file_projects_locations_backups_get_execute(
 
 pub fn file_projects_locations_backups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FileProjectsLocationsBackupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_backups_get_builder(client, name)?;
+    let builder = file_projects_locations_backups_get_builder(client, &args.name)?;
     file_projects_locations_backups_get_execute(builder)
 }
 
@@ -740,6 +788,21 @@ pub fn file_projects_locations_backups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backups
 /// Lists all backups in a project for either a specified location or for all locations.
 ///
@@ -752,11 +815,7 @@ pub fn file_projects_locations_backups_list_execute(
 
 pub fn file_projects_locations_backups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FileProjectsLocationsBackupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -764,7 +823,12 @@ pub fn file_projects_locations_backups_list(
     ApiError,
 > {
     let builder = file_projects_locations_backups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     file_projects_locations_backups_list_execute(builder)
 }
@@ -874,6 +938,17 @@ pub fn file_projects_locations_backups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_backups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsBackupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backups/{backupsId}
 /// Updates the settings of a specific backup.
 ///
@@ -886,14 +961,17 @@ pub fn file_projects_locations_backups_patch_execute(
 
 pub fn file_projects_locations_backups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Backup,
+    args: &FileProjectsLocationsBackupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_backups_patch_builder(client, name, updateMask, body)?;
+    let builder = file_projects_locations_backups_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     file_projects_locations_backups_patch_execute(builder)
 }
 
@@ -1002,6 +1080,17 @@ pub fn file_projects_locations_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: instanceId
+    pub instanceId: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
 /// Creates an instance. When creating from a backup, the capacity of the new instance needs to be equal to or larger than the capacity of the backup (and also equal to or larger than the minimum capacity of the tier).
 ///
@@ -1014,15 +1103,17 @@ pub fn file_projects_locations_instances_create_execute(
 
 pub fn file_projects_locations_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    instanceId: Option<&str>,
-    body: &Instance,
+    args: &FileProjectsLocationsInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        file_projects_locations_instances_create_builder(client, parent, instanceId, body)?;
+    let builder = file_projects_locations_instances_create_builder(
+        client,
+        &args.parent,
+        args.instanceId.as_deref(),
+        &args.body,
+    )?;
     file_projects_locations_instances_create_execute(builder)
 }
 
@@ -1128,6 +1219,15 @@ pub fn file_projects_locations_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Deletes an instance.
 ///
@@ -1140,13 +1240,12 @@ pub fn file_projects_locations_instances_delete_execute(
 
 pub fn file_projects_locations_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &FileProjectsLocationsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_instances_delete_builder(client, name, force)?;
+    let builder = file_projects_locations_instances_delete_builder(client, &args.name, args.force)?;
     file_projects_locations_instances_delete_execute(builder)
 }
 
@@ -1240,6 +1339,13 @@ pub fn file_projects_locations_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Gets the details of a specific instance.
 ///
@@ -1252,12 +1358,12 @@ pub fn file_projects_locations_instances_get_execute(
 
 pub fn file_projects_locations_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FileProjectsLocationsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_instances_get_builder(client, name)?;
+    let builder = file_projects_locations_instances_get_builder(client, &args.name)?;
     file_projects_locations_instances_get_execute(builder)
 }
 
@@ -1377,6 +1483,21 @@ pub fn file_projects_locations_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
 /// Lists all instances in a project for either a specified location or for all locations.
 ///
@@ -1389,11 +1510,7 @@ pub fn file_projects_locations_instances_list_execute(
 
 pub fn file_projects_locations_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FileProjectsLocationsInstancesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1401,7 +1518,12 @@ pub fn file_projects_locations_instances_list(
     ApiError,
 > {
     let builder = file_projects_locations_instances_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     file_projects_locations_instances_list_execute(builder)
 }
@@ -1511,6 +1633,17 @@ pub fn file_projects_locations_instances_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Updates the settings of a specific instance.
 ///
@@ -1523,14 +1656,17 @@ pub fn file_projects_locations_instances_patch_execute(
 
 pub fn file_projects_locations_instances_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Instance,
+    args: &FileProjectsLocationsInstancesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_instances_patch_builder(client, name, updateMask, body)?;
+    let builder = file_projects_locations_instances_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     file_projects_locations_instances_patch_execute(builder)
 }
 
@@ -1627,6 +1763,15 @@ pub fn file_projects_locations_instances_pause_replica_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_instances_pause_replica`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsInstancesPauseReplicaArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: PauseReplicaRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:pauseReplica
 /// Pause the standby instance (replica). WARNING: This operation makes the standby instance's NFS filesystem writable. Any data written to the standby instance while paused will be lost when the replica is resumed or promoted.
 ///
@@ -1639,13 +1784,13 @@ pub fn file_projects_locations_instances_pause_replica_execute(
 
 pub fn file_projects_locations_instances_pause_replica(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &PauseReplicaRequest,
+    args: &FileProjectsLocationsInstancesPauseReplicaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_instances_pause_replica_builder(client, name, body)?;
+    let builder =
+        file_projects_locations_instances_pause_replica_builder(client, &args.name, &args.body)?;
     file_projects_locations_instances_pause_replica_execute(builder)
 }
 
@@ -1742,6 +1887,15 @@ pub fn file_projects_locations_instances_promote_replica_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_instances_promote_replica`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsInstancesPromoteReplicaArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: PromoteReplicaRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:promoteReplica
 /// Promote the standby instance (replica).
 ///
@@ -1754,13 +1908,13 @@ pub fn file_projects_locations_instances_promote_replica_execute(
 
 pub fn file_projects_locations_instances_promote_replica(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &PromoteReplicaRequest,
+    args: &FileProjectsLocationsInstancesPromoteReplicaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_instances_promote_replica_builder(client, name, body)?;
+    let builder =
+        file_projects_locations_instances_promote_replica_builder(client, &args.name, &args.body)?;
     file_projects_locations_instances_promote_replica_execute(builder)
 }
 
@@ -1857,6 +2011,15 @@ pub fn file_projects_locations_instances_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_instances_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsInstancesRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RestoreInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:restore
 /// Restores an existing instance's file share from a backup. The capacity of the instance needs to be equal to or larger than the capacity of the backup (and also equal to or larger than the minimum capacity of the tier).
 ///
@@ -1869,13 +2032,13 @@ pub fn file_projects_locations_instances_restore_execute(
 
 pub fn file_projects_locations_instances_restore(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RestoreInstanceRequest,
+    args: &FileProjectsLocationsInstancesRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_instances_restore_builder(client, name, body)?;
+    let builder =
+        file_projects_locations_instances_restore_builder(client, &args.name, &args.body)?;
     file_projects_locations_instances_restore_execute(builder)
 }
 
@@ -1972,6 +2135,15 @@ pub fn file_projects_locations_instances_resume_replica_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_instances_resume_replica`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsInstancesResumeReplicaArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResumeReplicaRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:resumeReplica
 /// Resume the standby instance (replica). WARNING: Any data written to the standby instance while paused will be lost when the replica is resumed.
 ///
@@ -1984,13 +2156,13 @@ pub fn file_projects_locations_instances_resume_replica_execute(
 
 pub fn file_projects_locations_instances_resume_replica(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResumeReplicaRequest,
+    args: &FileProjectsLocationsInstancesResumeReplicaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_instances_resume_replica_builder(client, name, body)?;
+    let builder =
+        file_projects_locations_instances_resume_replica_builder(client, &args.name, &args.body)?;
     file_projects_locations_instances_resume_replica_execute(builder)
 }
 
@@ -2087,6 +2259,15 @@ pub fn file_projects_locations_instances_revert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_instances_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsInstancesRevertArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RevertInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:revert
 /// Revert an existing instance's file system to a specified snapshot.
 ///
@@ -2099,13 +2280,12 @@ pub fn file_projects_locations_instances_revert_execute(
 
 pub fn file_projects_locations_instances_revert(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RevertInstanceRequest,
+    args: &FileProjectsLocationsInstancesRevertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_instances_revert_builder(client, name, body)?;
+    let builder = file_projects_locations_instances_revert_builder(client, &args.name, &args.body)?;
     file_projects_locations_instances_revert_execute(builder)
 }
 
@@ -2214,6 +2394,17 @@ pub fn file_projects_locations_instances_snapshots_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_instances_snapshots_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsInstancesSnapshotsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: snapshotId
+    pub snapshotId: Option<String>,
+    /// Request body.
+    pub body: Snapshot,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}/snapshots
 /// Creates a snapshot.
 ///
@@ -2226,15 +2417,16 @@ pub fn file_projects_locations_instances_snapshots_create_execute(
 
 pub fn file_projects_locations_instances_snapshots_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    snapshotId: Option<&str>,
-    body: &Snapshot,
+    args: &FileProjectsLocationsInstancesSnapshotsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = file_projects_locations_instances_snapshots_create_builder(
-        client, parent, snapshotId, body,
+        client,
+        &args.parent,
+        args.snapshotId.as_deref(),
+        &args.body,
     )?;
     file_projects_locations_instances_snapshots_create_execute(builder)
 }
@@ -2329,6 +2521,13 @@ pub fn file_projects_locations_instances_snapshots_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_instances_snapshots_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsInstancesSnapshotsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}/snapshots/{snapshotsId}
 /// Deletes a snapshot.
 ///
@@ -2341,12 +2540,12 @@ pub fn file_projects_locations_instances_snapshots_delete_execute(
 
 pub fn file_projects_locations_instances_snapshots_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FileProjectsLocationsInstancesSnapshotsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_instances_snapshots_delete_builder(client, name)?;
+    let builder = file_projects_locations_instances_snapshots_delete_builder(client, &args.name)?;
     file_projects_locations_instances_snapshots_delete_execute(builder)
 }
 
@@ -2440,6 +2639,13 @@ pub fn file_projects_locations_instances_snapshots_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_instances_snapshots_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsInstancesSnapshotsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}/snapshots/{snapshotsId}
 /// Gets the details of a specific snapshot.
 ///
@@ -2452,12 +2658,12 @@ pub fn file_projects_locations_instances_snapshots_get_execute(
 
 pub fn file_projects_locations_instances_snapshots_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FileProjectsLocationsInstancesSnapshotsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_instances_snapshots_get_builder(client, name)?;
+    let builder = file_projects_locations_instances_snapshots_get_builder(client, &args.name)?;
     file_projects_locations_instances_snapshots_get_execute(builder)
 }
 
@@ -2581,6 +2787,23 @@ pub fn file_projects_locations_instances_snapshots_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_instances_snapshots_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsInstancesSnapshotsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}/snapshots
 /// Lists all snapshots in a project for either a specified location or for all locations.
 ///
@@ -2593,12 +2816,7 @@ pub fn file_projects_locations_instances_snapshots_list_execute(
 
 pub fn file_projects_locations_instances_snapshots_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &FileProjectsLocationsInstancesSnapshotsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSnapshotsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2607,12 +2825,12 @@ pub fn file_projects_locations_instances_snapshots_list(
 > {
     let builder = file_projects_locations_instances_snapshots_list_builder(
         client,
-        parent,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     file_projects_locations_instances_snapshots_list_execute(builder)
 }
@@ -2722,6 +2940,17 @@ pub fn file_projects_locations_instances_snapshots_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_instances_snapshots_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsInstancesSnapshotsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Snapshot,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}/snapshots/{snapshotsId}
 /// Updates the settings of a specific snapshot.
 ///
@@ -2734,15 +2963,17 @@ pub fn file_projects_locations_instances_snapshots_patch_execute(
 
 pub fn file_projects_locations_instances_snapshots_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Snapshot,
+    args: &FileProjectsLocationsInstancesSnapshotsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        file_projects_locations_instances_snapshots_patch_builder(client, name, updateMask, body)?;
+    let builder = file_projects_locations_instances_snapshots_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     file_projects_locations_instances_snapshots_patch_execute(builder)
 }
 
@@ -2839,6 +3070,15 @@ pub fn file_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -2851,13 +3091,13 @@ pub fn file_projects_locations_operations_cancel_execute(
 
 pub fn file_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &FileProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        file_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     file_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -2951,6 +3191,13 @@ pub fn file_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -2963,12 +3210,12 @@ pub fn file_projects_locations_operations_delete_execute(
 
 pub fn file_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FileProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_operations_delete_builder(client, name)?;
+    let builder = file_projects_locations_operations_delete_builder(client, &args.name)?;
     file_projects_locations_operations_delete_execute(builder)
 }
 
@@ -3062,6 +3309,13 @@ pub fn file_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -3074,12 +3328,12 @@ pub fn file_projects_locations_operations_get_execute(
 
 pub fn file_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FileProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = file_projects_locations_operations_get_builder(client, name)?;
+    let builder = file_projects_locations_operations_get_builder(client, &args.name)?;
     file_projects_locations_operations_get_execute(builder)
 }
 
@@ -3199,6 +3453,21 @@ pub fn file_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`file_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FileProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -3211,11 +3480,7 @@ pub fn file_projects_locations_operations_list_execute(
 
 pub fn file_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &FileProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3224,11 +3489,11 @@ pub fn file_projects_locations_operations_list(
 > {
     let builder = file_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     file_projects_locations_operations_list_execute(builder)
 }

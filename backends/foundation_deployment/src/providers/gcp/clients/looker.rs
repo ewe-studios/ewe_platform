@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn looker_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn looker_projects_locations_get_execute(
 
 pub fn looker_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LookerProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = looker_projects_locations_get_builder(client, name)?;
+    let builder = looker_projects_locations_get_builder(client, &args.name)?;
     looker_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn looker_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn looker_projects_locations_list_execute(
 
 pub fn looker_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LookerProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn looker_projects_locations_list(
 > {
     let builder = looker_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     looker_projects_locations_list_execute(builder)
 }
@@ -382,6 +402,17 @@ pub fn looker_projects_locations_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: instanceId
+    pub instanceId: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
 /// Creates a new Instance in a given project and location.
 ///
@@ -394,15 +425,17 @@ pub fn looker_projects_locations_instances_create_execute(
 
 pub fn looker_projects_locations_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    instanceId: Option<&str>,
-    body: &Instance,
+    args: &LookerProjectsLocationsInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        looker_projects_locations_instances_create_builder(client, parent, instanceId, body)?;
+    let builder = looker_projects_locations_instances_create_builder(
+        client,
+        &args.parent,
+        args.instanceId.as_deref(),
+        &args.body,
+    )?;
     looker_projects_locations_instances_create_execute(builder)
 }
 
@@ -508,6 +541,15 @@ pub fn looker_projects_locations_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Delete instance.
 ///
@@ -520,13 +562,13 @@ pub fn looker_projects_locations_instances_delete_execute(
 
 pub fn looker_projects_locations_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &LookerProjectsLocationsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = looker_projects_locations_instances_delete_builder(client, name, force)?;
+    let builder =
+        looker_projects_locations_instances_delete_builder(client, &args.name, args.force)?;
     looker_projects_locations_instances_delete_execute(builder)
 }
 
@@ -623,6 +665,15 @@ pub fn looker_projects_locations_instances_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_instances_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsInstancesExportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExportInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:export
 /// Export instance.
 ///
@@ -635,13 +686,13 @@ pub fn looker_projects_locations_instances_export_execute(
 
 pub fn looker_projects_locations_instances_export(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExportInstanceRequest,
+    args: &LookerProjectsLocationsInstancesExportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = looker_projects_locations_instances_export_builder(client, name, body)?;
+    let builder =
+        looker_projects_locations_instances_export_builder(client, &args.name, &args.body)?;
     looker_projects_locations_instances_export_execute(builder)
 }
 
@@ -735,6 +786,13 @@ pub fn looker_projects_locations_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Gets details of a single Instance.
 ///
@@ -747,12 +805,12 @@ pub fn looker_projects_locations_instances_get_execute(
 
 pub fn looker_projects_locations_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LookerProjectsLocationsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = looker_projects_locations_instances_get_builder(client, name)?;
+    let builder = looker_projects_locations_instances_get_builder(client, &args.name)?;
     looker_projects_locations_instances_get_execute(builder)
 }
 
@@ -849,6 +907,15 @@ pub fn looker_projects_locations_instances_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_instances_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsInstancesImportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ImportInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:import
 /// Import instance.
 ///
@@ -861,13 +928,13 @@ pub fn looker_projects_locations_instances_import_execute(
 
 pub fn looker_projects_locations_instances_import(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ImportInstanceRequest,
+    args: &LookerProjectsLocationsInstancesImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = looker_projects_locations_instances_import_builder(client, name, body)?;
+    let builder =
+        looker_projects_locations_instances_import_builder(client, &args.name, &args.body)?;
     looker_projects_locations_instances_import_execute(builder)
 }
 
@@ -979,6 +1046,17 @@ pub fn looker_projects_locations_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
 /// Lists Instances in a given project and location.
 ///
@@ -991,17 +1069,19 @@ pub fn looker_projects_locations_instances_list_execute(
 
 pub fn looker_projects_locations_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LookerProjectsLocationsInstancesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        looker_projects_locations_instances_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = looker_projects_locations_instances_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     looker_projects_locations_instances_list_execute(builder)
 }
 
@@ -1110,6 +1190,17 @@ pub fn looker_projects_locations_instances_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Update Instance.
 ///
@@ -1122,15 +1213,17 @@ pub fn looker_projects_locations_instances_patch_execute(
 
 pub fn looker_projects_locations_instances_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Instance,
+    args: &LookerProjectsLocationsInstancesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        looker_projects_locations_instances_patch_builder(client, name, updateMask, body)?;
+    let builder = looker_projects_locations_instances_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     looker_projects_locations_instances_patch_execute(builder)
 }
 
@@ -1227,6 +1320,15 @@ pub fn looker_projects_locations_instances_restart_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_instances_restart`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsInstancesRestartArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RestartInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:restart
 /// Restart instance.
 ///
@@ -1239,13 +1341,13 @@ pub fn looker_projects_locations_instances_restart_execute(
 
 pub fn looker_projects_locations_instances_restart(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RestartInstanceRequest,
+    args: &LookerProjectsLocationsInstancesRestartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = looker_projects_locations_instances_restart_builder(client, name, body)?;
+    let builder =
+        looker_projects_locations_instances_restart_builder(client, &args.name, &args.body)?;
     looker_projects_locations_instances_restart_execute(builder)
 }
 
@@ -1342,6 +1444,15 @@ pub fn looker_projects_locations_instances_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_instances_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsInstancesRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RestoreInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:restore
 /// Restore Looker instance.
 ///
@@ -1354,13 +1465,13 @@ pub fn looker_projects_locations_instances_restore_execute(
 
 pub fn looker_projects_locations_instances_restore(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RestoreInstanceRequest,
+    args: &LookerProjectsLocationsInstancesRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = looker_projects_locations_instances_restore_builder(client, name, body)?;
+    let builder =
+        looker_projects_locations_instances_restore_builder(client, &args.name, &args.body)?;
     looker_projects_locations_instances_restore_execute(builder)
 }
 
@@ -1457,6 +1568,15 @@ pub fn looker_projects_locations_instances_backups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_instances_backups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsInstancesBackupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: InstanceBackup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}/backups
 /// Backup Looker instance.
 ///
@@ -1469,13 +1589,16 @@ pub fn looker_projects_locations_instances_backups_create_execute(
 
 pub fn looker_projects_locations_instances_backups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &InstanceBackup,
+    args: &LookerProjectsLocationsInstancesBackupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = looker_projects_locations_instances_backups_create_builder(client, parent, body)?;
+    let builder = looker_projects_locations_instances_backups_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     looker_projects_locations_instances_backups_create_execute(builder)
 }
 
@@ -1569,6 +1692,13 @@ pub fn looker_projects_locations_instances_backups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_instances_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsInstancesBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}/backups/{backupsId}
 /// Delete backup.
 ///
@@ -1581,12 +1711,12 @@ pub fn looker_projects_locations_instances_backups_delete_execute(
 
 pub fn looker_projects_locations_instances_backups_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LookerProjectsLocationsInstancesBackupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = looker_projects_locations_instances_backups_delete_builder(client, name)?;
+    let builder = looker_projects_locations_instances_backups_delete_builder(client, &args.name)?;
     looker_projects_locations_instances_backups_delete_execute(builder)
 }
 
@@ -1682,6 +1812,13 @@ pub fn looker_projects_locations_instances_backups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_instances_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsInstancesBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}/backups/{backupsId}
 ///
 ///
@@ -1694,14 +1831,14 @@ pub fn looker_projects_locations_instances_backups_get_execute(
 
 pub fn looker_projects_locations_instances_backups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LookerProjectsLocationsInstancesBackupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InstanceBackup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = looker_projects_locations_instances_backups_get_builder(client, name)?;
+    let builder = looker_projects_locations_instances_backups_get_builder(client, &args.name)?;
     looker_projects_locations_instances_backups_get_execute(builder)
 }
 
@@ -1819,6 +1956,19 @@ pub fn looker_projects_locations_instances_backups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_instances_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsInstancesBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}/backups
 /// List backups of Looker instance.
 ///
@@ -1831,10 +1981,7 @@ pub fn looker_projects_locations_instances_backups_list_execute(
 
 pub fn looker_projects_locations_instances_backups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LookerProjectsLocationsInstancesBackupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInstanceBackupsResponse>, ApiError>,
@@ -1844,7 +1991,11 @@ pub fn looker_projects_locations_instances_backups_list(
     ApiError,
 > {
     let builder = looker_projects_locations_instances_backups_list_builder(
-        client, parent, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     looker_projects_locations_instances_backups_list_execute(builder)
 }
@@ -1942,6 +2093,15 @@ pub fn looker_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1954,13 +2114,13 @@ pub fn looker_projects_locations_operations_cancel_execute(
 
 pub fn looker_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &LookerProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = looker_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        looker_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     looker_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -2054,6 +2214,13 @@ pub fn looker_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -2066,12 +2233,12 @@ pub fn looker_projects_locations_operations_delete_execute(
 
 pub fn looker_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LookerProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = looker_projects_locations_operations_delete_builder(client, name)?;
+    let builder = looker_projects_locations_operations_delete_builder(client, &args.name)?;
     looker_projects_locations_operations_delete_execute(builder)
 }
 
@@ -2165,6 +2332,13 @@ pub fn looker_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2177,12 +2351,12 @@ pub fn looker_projects_locations_operations_get_execute(
 
 pub fn looker_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LookerProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = looker_projects_locations_operations_get_builder(client, name)?;
+    let builder = looker_projects_locations_operations_get_builder(client, &args.name)?;
     looker_projects_locations_operations_get_execute(builder)
 }
 
@@ -2302,6 +2476,21 @@ pub fn looker_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`looker_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LookerProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -2314,11 +2503,7 @@ pub fn looker_projects_locations_operations_list_execute(
 
 pub fn looker_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &LookerProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2327,11 +2512,11 @@ pub fn looker_projects_locations_operations_list(
 > {
     let builder = looker_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     looker_projects_locations_operations_list_execute(builder)
 }

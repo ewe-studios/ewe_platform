@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET androidpublisher/v3/applications/{packageName}/dataSafety
 /// Writes the Safety Labels declaration of an app.
@@ -113,6 +115,15 @@ pub fn androidpublisher_applications_data_safety_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_applications_data_safety`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherApplicationsDataSafetyArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Request body.
+    pub body: SafetyLabelsUpdateRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/dataSafety
 /// Writes the Safety Labels declaration of an app.
 ///
@@ -125,8 +136,7 @@ pub fn androidpublisher_applications_data_safety_execute(
 
 pub fn androidpublisher_applications_data_safety(
     client: &SimpleHttpClient,
-    packageName: &str,
-    body: &SafetyLabelsUpdateRequest,
+    args: &AndroidpublisherApplicationsDataSafetyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SafetyLabelsUpdateResponse>, ApiError>,
@@ -135,7 +145,8 @@ pub fn androidpublisher_applications_data_safety(
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_applications_data_safety_builder(client, packageName, body)?;
+    let builder =
+        androidpublisher_applications_data_safety_builder(client, &args.packageName, &args.body)?;
     androidpublisher_applications_data_safety_execute(builder)
 }
 
@@ -246,6 +257,17 @@ pub fn androidpublisher_applications_device_tier_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_applications_device_tier_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherApplicationsDeviceTierConfigsCreateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: allowUnknownDevices
+    pub allowUnknownDevices: Option<bool>,
+    /// Request body.
+    pub body: DeviceTierConfig,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/deviceTierConfigs
 /// Creates a new device tier config for an app.
 ///
@@ -258,9 +280,7 @@ pub fn androidpublisher_applications_device_tier_configs_create_execute(
 
 pub fn androidpublisher_applications_device_tier_configs_create(
     client: &SimpleHttpClient,
-    packageName: &str,
-    allowUnknownDevices: Option<bool>,
-    body: &DeviceTierConfig,
+    args: &AndroidpublisherApplicationsDeviceTierConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeviceTierConfig>, ApiError>, P = ApiPending>
         + Send
@@ -269,9 +289,9 @@ pub fn androidpublisher_applications_device_tier_configs_create(
 > {
     let builder = androidpublisher_applications_device_tier_configs_create_builder(
         client,
-        packageName,
-        allowUnknownDevices,
-        body,
+        &args.packageName,
+        args.allowUnknownDevices,
+        &args.body,
     )?;
     androidpublisher_applications_device_tier_configs_create_execute(builder)
 }
@@ -370,6 +390,15 @@ pub fn androidpublisher_applications_device_tier_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_applications_device_tier_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherApplicationsDeviceTierConfigsGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: deviceTierConfigId
+    pub deviceTierConfigId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/deviceTierConfigs/{deviceTierConfigId}
 /// Returns a particular device tier config.
 ///
@@ -382,8 +411,7 @@ pub fn androidpublisher_applications_device_tier_configs_get_execute(
 
 pub fn androidpublisher_applications_device_tier_configs_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    deviceTierConfigId: &str,
+    args: &AndroidpublisherApplicationsDeviceTierConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeviceTierConfig>, ApiError>, P = ApiPending>
         + Send
@@ -392,8 +420,8 @@ pub fn androidpublisher_applications_device_tier_configs_get(
 > {
     let builder = androidpublisher_applications_device_tier_configs_get_builder(
         client,
-        packageName,
-        deviceTierConfigId,
+        &args.packageName,
+        &args.deviceTierConfigId,
     )?;
     androidpublisher_applications_device_tier_configs_get_execute(builder)
 }
@@ -508,6 +536,17 @@ pub fn androidpublisher_applications_device_tier_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_applications_device_tier_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherApplicationsDeviceTierConfigsListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/deviceTierConfigs
 /// Returns created device tier configs, ordered by descending creation time.
 ///
@@ -520,9 +559,7 @@ pub fn androidpublisher_applications_device_tier_configs_list_execute(
 
 pub fn androidpublisher_applications_device_tier_configs_list(
     client: &SimpleHttpClient,
-    packageName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AndroidpublisherApplicationsDeviceTierConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDeviceTierConfigsResponse>, ApiError>,
@@ -533,9 +570,9 @@ pub fn androidpublisher_applications_device_tier_configs_list(
 > {
     let builder = androidpublisher_applications_device_tier_configs_list_builder(
         client,
-        packageName,
-        pageSize,
-        pageToken,
+        &args.packageName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     androidpublisher_applications_device_tier_configs_list_execute(builder)
 }
@@ -634,6 +671,13 @@ pub fn androidpublisher_applications_tracks_releases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_applications_tracks_releases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherApplicationsTracksReleasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET androidpublisher/v3/applications/{applicationsId}/tracks/{tracksId}/releases
 /// Returns the list of all releases for a given track. This excludes any releases that are obsolete.
 ///
@@ -646,7 +690,7 @@ pub fn androidpublisher_applications_tracks_releases_list_execute(
 
 pub fn androidpublisher_applications_tracks_releases_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &AndroidpublisherApplicationsTracksReleasesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListReleaseSummariesResponse>, ApiError>,
@@ -655,7 +699,7 @@ pub fn androidpublisher_applications_tracks_releases_list(
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_applications_tracks_releases_list_builder(client, parent)?;
+    let builder = androidpublisher_applications_tracks_releases_list_builder(client, &args.parent)?;
     androidpublisher_applications_tracks_releases_list_execute(builder)
 }
 
@@ -756,6 +800,17 @@ pub fn androidpublisher_apprecovery_add_targeting_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_apprecovery_add_targeting`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherApprecoveryAddTargetingArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: appRecoveryId
+    pub appRecoveryId: String,
+    /// Request body.
+    pub body: AddTargetingRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:addTargeting
 /// Incrementally update targeting for a recovery action. Note that only the criteria selected during the creation of recovery action can be expanded.
 ///
@@ -768,9 +823,7 @@ pub fn androidpublisher_apprecovery_add_targeting_execute(
 
 pub fn androidpublisher_apprecovery_add_targeting(
     client: &SimpleHttpClient,
-    packageName: &str,
-    appRecoveryId: &str,
-    body: &AddTargetingRequest,
+    args: &AndroidpublisherApprecoveryAddTargetingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddTargetingResponse>, ApiError>, P = ApiPending>
         + Send
@@ -779,9 +832,9 @@ pub fn androidpublisher_apprecovery_add_targeting(
 > {
     let builder = androidpublisher_apprecovery_add_targeting_builder(
         client,
-        packageName,
-        appRecoveryId,
-        body,
+        &args.packageName,
+        &args.appRecoveryId,
+        &args.body,
     )?;
     androidpublisher_apprecovery_add_targeting_execute(builder)
 }
@@ -883,6 +936,17 @@ pub fn androidpublisher_apprecovery_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_apprecovery_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherApprecoveryCancelArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: appRecoveryId
+    pub appRecoveryId: String,
+    /// Request body.
+    pub body: CancelAppRecoveryRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:cancel
 /// Cancel an already executing app recovery action. Note that this action changes status of the recovery action to CANCELED.
 ///
@@ -895,17 +959,19 @@ pub fn androidpublisher_apprecovery_cancel_execute(
 
 pub fn androidpublisher_apprecovery_cancel(
     client: &SimpleHttpClient,
-    packageName: &str,
-    appRecoveryId: &str,
-    body: &CancelAppRecoveryRequest,
+    args: &AndroidpublisherApprecoveryCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CancelAppRecoveryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_apprecovery_cancel_builder(client, packageName, appRecoveryId, body)?;
+    let builder = androidpublisher_apprecovery_cancel_builder(
+        client,
+        &args.packageName,
+        &args.appRecoveryId,
+        &args.body,
+    )?;
     androidpublisher_apprecovery_cancel_execute(builder)
 }
 
@@ -1004,6 +1070,15 @@ pub fn androidpublisher_apprecovery_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_apprecovery_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherApprecoveryCreateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Request body.
+    pub body: CreateDraftAppRecoveryRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/appRecoveries
 /// Create an app recovery action with recovery status as DRAFT. Note that this action does not execute the recovery action.
 ///
@@ -1016,15 +1091,15 @@ pub fn androidpublisher_apprecovery_create_execute(
 
 pub fn androidpublisher_apprecovery_create(
     client: &SimpleHttpClient,
-    packageName: &str,
-    body: &CreateDraftAppRecoveryRequest,
+    args: &AndroidpublisherApprecoveryCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppRecoveryAction>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_apprecovery_create_builder(client, packageName, body)?;
+    let builder =
+        androidpublisher_apprecovery_create_builder(client, &args.packageName, &args.body)?;
     androidpublisher_apprecovery_create_execute(builder)
 }
 
@@ -1125,6 +1200,17 @@ pub fn androidpublisher_apprecovery_deploy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_apprecovery_deploy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherApprecoveryDeployArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: appRecoveryId
+    pub appRecoveryId: String,
+    /// Request body.
+    pub body: DeployAppRecoveryRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:deploy
 /// Deploy an already created app recovery action with recovery status DRAFT. Note that this action activates the recovery action for all targeted users and changes its status to `ACTIVE`.
 ///
@@ -1137,17 +1223,19 @@ pub fn androidpublisher_apprecovery_deploy_execute(
 
 pub fn androidpublisher_apprecovery_deploy(
     client: &SimpleHttpClient,
-    packageName: &str,
-    appRecoveryId: &str,
-    body: &DeployAppRecoveryRequest,
+    args: &AndroidpublisherApprecoveryDeployArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeployAppRecoveryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_apprecovery_deploy_builder(client, packageName, appRecoveryId, body)?;
+    let builder = androidpublisher_apprecovery_deploy_builder(
+        client,
+        &args.packageName,
+        &args.appRecoveryId,
+        &args.body,
+    )?;
     androidpublisher_apprecovery_deploy_execute(builder)
 }
 
@@ -1255,6 +1343,15 @@ pub fn androidpublisher_apprecovery_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_apprecovery_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherApprecoveryListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: versionCode
+    pub versionCode: Option<String>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/appRecoveries
 /// List all app recovery action resources associated with a particular package name and app version.
 ///
@@ -1267,15 +1364,18 @@ pub fn androidpublisher_apprecovery_list_execute(
 
 pub fn androidpublisher_apprecovery_list(
     client: &SimpleHttpClient,
-    packageName: &str,
-    versionCode: Option<&str>,
+    args: &AndroidpublisherApprecoveryListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAppRecoveriesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_apprecovery_list_builder(client, packageName, versionCode)?;
+    let builder = androidpublisher_apprecovery_list_builder(
+        client,
+        &args.packageName,
+        args.versionCode.as_deref(),
+    )?;
     androidpublisher_apprecovery_list_execute(builder)
 }
 
@@ -1387,6 +1487,19 @@ pub fn androidpublisher_edits_commit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_commit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsCommitArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Query parameter: changesInReviewBehavior
+    pub changesInReviewBehavior: Option<String>,
+    /// Query parameter: changesNotSentForReview
+    pub changesNotSentForReview: Option<bool>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}:commit
 /// Commits an app edit.
 ///
@@ -1399,20 +1512,17 @@ pub fn androidpublisher_edits_commit_execute(
 
 pub fn androidpublisher_edits_commit(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    changesInReviewBehavior: Option<&str>,
-    changesNotSentForReview: Option<bool>,
+    args: &AndroidpublisherEditsCommitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_edits_commit_builder(
         client,
-        packageName,
-        editId,
-        changesInReviewBehavior,
-        changesNotSentForReview,
+        &args.packageName,
+        &args.editId,
+        args.changesInReviewBehavior.as_deref(),
+        args.changesNotSentForReview,
     )?;
     androidpublisher_edits_commit_execute(builder)
 }
@@ -1505,6 +1615,15 @@ pub fn androidpublisher_edits_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsDeleteArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}
 /// Deletes an app edit.
 ///
@@ -1517,13 +1636,12 @@ pub fn androidpublisher_edits_delete_execute(
 
 pub fn androidpublisher_edits_delete(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    args: &AndroidpublisherEditsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_delete_builder(client, packageName, editId)?;
+    let builder = androidpublisher_edits_delete_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_delete_execute(builder)
 }
 
@@ -1618,6 +1736,15 @@ pub fn androidpublisher_edits_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}
 /// Gets an app edit.
 ///
@@ -1630,13 +1757,12 @@ pub fn androidpublisher_edits_get_execute(
 
 pub fn androidpublisher_edits_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    args: &AndroidpublisherEditsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_get_builder(client, packageName, editId)?;
+    let builder = androidpublisher_edits_get_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_get_execute(builder)
 }
 
@@ -1733,6 +1859,15 @@ pub fn androidpublisher_edits_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsInsertArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Request body.
+    pub body: AppEdit,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits
 /// Creates a new edit for an app.
 ///
@@ -1745,13 +1880,12 @@ pub fn androidpublisher_edits_insert_execute(
 
 pub fn androidpublisher_edits_insert(
     client: &SimpleHttpClient,
-    packageName: &str,
-    body: &AppEdit,
+    args: &AndroidpublisherEditsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_insert_builder(client, packageName, body)?;
+    let builder = androidpublisher_edits_insert_builder(client, &args.packageName, &args.body)?;
     androidpublisher_edits_insert_execute(builder)
 }
 
@@ -1847,6 +1981,15 @@ pub fn androidpublisher_edits_validate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_validate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsValidateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}:validate
 /// Validates an app edit.
 ///
@@ -1859,13 +2002,12 @@ pub fn androidpublisher_edits_validate_execute(
 
 pub fn androidpublisher_edits_validate(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    args: &AndroidpublisherEditsValidateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_validate_builder(client, packageName, editId)?;
+    let builder = androidpublisher_edits_validate_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_validate_execute(builder)
 }
 
@@ -1968,6 +2110,17 @@ pub fn androidpublisher_edits_apks_addexternallyhosted_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_apks_addexternallyhosted`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsApksAddexternallyhostedArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Request body.
+    pub body: ApksAddExternallyHostedRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/externallyHosted
 /// Creates a new APK without uploading the APK itself to Google Play, instead hosting the APK at a specified URL. This function is only available to organizations using Managed Play whose application is configured to restrict distribution to the organizations.
 ///
@@ -1980,9 +2133,7 @@ pub fn androidpublisher_edits_apks_addexternallyhosted_execute(
 
 pub fn androidpublisher_edits_apks_addexternallyhosted(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    body: &ApksAddExternallyHostedRequest,
+    args: &AndroidpublisherEditsApksAddexternallyhostedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ApksAddExternallyHostedResponse>, ApiError>,
@@ -1991,8 +2142,12 @@ pub fn androidpublisher_edits_apks_addexternallyhosted(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_edits_apks_addexternallyhosted_builder(client, packageName, editId, body)?;
+    let builder = androidpublisher_edits_apks_addexternallyhosted_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.body,
+    )?;
     androidpublisher_edits_apks_addexternallyhosted_execute(builder)
 }
 
@@ -2089,6 +2244,15 @@ pub fn androidpublisher_edits_apks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_apks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsApksListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks
 /// Lists all current APKs of the app and edit.
 ///
@@ -2101,15 +2265,15 @@ pub fn androidpublisher_edits_apks_list_execute(
 
 pub fn androidpublisher_edits_apks_list(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    args: &AndroidpublisherEditsApksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApksListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_apks_list_builder(client, packageName, editId)?;
+    let builder =
+        androidpublisher_edits_apks_list_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_apks_list_execute(builder)
 }
 
@@ -2204,6 +2368,15 @@ pub fn androidpublisher_edits_apks_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_apks_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsApksUploadArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks
 /// Uploads an APK and adds to the current edit.
 ///
@@ -2216,13 +2389,13 @@ pub fn androidpublisher_edits_apks_upload_execute(
 
 pub fn androidpublisher_edits_apks_upload(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    args: &AndroidpublisherEditsApksUploadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Apk>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_apks_upload_builder(client, packageName, editId)?;
+    let builder =
+        androidpublisher_edits_apks_upload_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_apks_upload_execute(builder)
 }
 
@@ -2320,6 +2493,15 @@ pub fn androidpublisher_edits_bundles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_bundles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsBundlesListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/bundles
 /// Lists all current Android App Bundles of the app and edit.
 ///
@@ -2332,15 +2514,15 @@ pub fn androidpublisher_edits_bundles_list_execute(
 
 pub fn androidpublisher_edits_bundles_list(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    args: &AndroidpublisherEditsBundlesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BundlesListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_bundles_list_builder(client, packageName, editId)?;
+    let builder =
+        androidpublisher_edits_bundles_list_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_bundles_list_execute(builder)
 }
 
@@ -2452,6 +2634,19 @@ pub fn androidpublisher_edits_bundles_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_bundles_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsBundlesUploadArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Query parameter: ackBundleInstallationWarning
+    pub ackBundleInstallationWarning: Option<bool>,
+    /// Query parameter: deviceTierConfigId
+    pub deviceTierConfigId: Option<String>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/bundles
 /// Uploads a new Android App Bundle to this edit. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
 ///
@@ -2464,20 +2659,17 @@ pub fn androidpublisher_edits_bundles_upload_execute(
 
 pub fn androidpublisher_edits_bundles_upload(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    ackBundleInstallationWarning: Option<bool>,
-    deviceTierConfigId: Option<&str>,
+    args: &AndroidpublisherEditsBundlesUploadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Bundle>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_edits_bundles_upload_builder(
         client,
-        packageName,
-        editId,
-        ackBundleInstallationWarning,
-        deviceTierConfigId,
+        &args.packageName,
+        &args.editId,
+        args.ackBundleInstallationWarning,
+        args.deviceTierConfigId.as_deref(),
     )?;
     androidpublisher_edits_bundles_upload_execute(builder)
 }
@@ -2578,6 +2770,17 @@ pub fn androidpublisher_edits_countryavailability_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_countryavailability_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsCountryavailabilityGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: track
+    pub track: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/countryAvailability/{track}
 /// Gets country availability.
 ///
@@ -2590,17 +2793,19 @@ pub fn androidpublisher_edits_countryavailability_get_execute(
 
 pub fn androidpublisher_edits_countryavailability_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    track: &str,
+    args: &AndroidpublisherEditsCountryavailabilityGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TrackCountryAvailability>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_edits_countryavailability_get_builder(client, packageName, editId, track)?;
+    let builder = androidpublisher_edits_countryavailability_get_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.track,
+    )?;
     androidpublisher_edits_countryavailability_get_execute(builder)
 }
 
@@ -2704,6 +2909,19 @@ pub fn androidpublisher_edits_deobfuscationfiles_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_deobfuscationfiles_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsDeobfuscationfilesUploadArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: apkVersionCode
+    pub apkVersionCode: String,
+    /// Path parameter: deobfuscationFileType
+    pub deobfuscationFileType: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/deobfuscationFiles/{deobfuscationFileType}
 /// Uploads a new deobfuscation file and attaches to the specified APK.
 ///
@@ -2716,10 +2934,7 @@ pub fn androidpublisher_edits_deobfuscationfiles_upload_execute(
 
 pub fn androidpublisher_edits_deobfuscationfiles_upload(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    apkVersionCode: &str,
-    deobfuscationFileType: &str,
+    args: &AndroidpublisherEditsDeobfuscationfilesUploadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DeobfuscationFilesUploadResponse>, ApiError>,
@@ -2730,10 +2945,10 @@ pub fn androidpublisher_edits_deobfuscationfiles_upload(
 > {
     let builder = androidpublisher_edits_deobfuscationfiles_upload_builder(
         client,
-        packageName,
-        editId,
-        apkVersionCode,
-        deobfuscationFileType,
+        &args.packageName,
+        &args.editId,
+        &args.apkVersionCode,
+        &args.deobfuscationFileType,
     )?;
     androidpublisher_edits_deobfuscationfiles_upload_execute(builder)
 }
@@ -2830,6 +3045,15 @@ pub fn androidpublisher_edits_details_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_details_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsDetailsGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/details
 /// Gets details of an app.
 ///
@@ -2842,13 +3066,13 @@ pub fn androidpublisher_edits_details_get_execute(
 
 pub fn androidpublisher_edits_details_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    args: &AndroidpublisherEditsDetailsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppDetails>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_details_get_builder(client, packageName, editId)?;
+    let builder =
+        androidpublisher_edits_details_get_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_details_get_execute(builder)
 }
 
@@ -2947,6 +3171,17 @@ pub fn androidpublisher_edits_details_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_details_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsDetailsPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Request body.
+    pub body: AppDetails,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/details
 /// Patches details of an app.
 ///
@@ -2959,14 +3194,17 @@ pub fn androidpublisher_edits_details_patch_execute(
 
 pub fn androidpublisher_edits_details_patch(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    body: &AppDetails,
+    args: &AndroidpublisherEditsDetailsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppDetails>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_details_patch_builder(client, packageName, editId, body)?;
+    let builder = androidpublisher_edits_details_patch_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.body,
+    )?;
     androidpublisher_edits_details_patch_execute(builder)
 }
 
@@ -3065,6 +3303,17 @@ pub fn androidpublisher_edits_details_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_details_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsDetailsUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Request body.
+    pub body: AppDetails,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/details
 /// Updates details of an app.
 ///
@@ -3077,14 +3326,17 @@ pub fn androidpublisher_edits_details_update_execute(
 
 pub fn androidpublisher_edits_details_update(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    body: &AppDetails,
+    args: &AndroidpublisherEditsDetailsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppDetails>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_details_update_builder(client, packageName, editId, body)?;
+    let builder = androidpublisher_edits_details_update_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.body,
+    )?;
     androidpublisher_edits_details_update_execute(builder)
 }
 
@@ -3186,6 +3438,19 @@ pub fn androidpublisher_edits_expansionfiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_expansionfiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsExpansionfilesGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: apkVersionCode
+    pub apkVersionCode: String,
+    /// Path parameter: expansionFileType
+    pub expansionFileType: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
 /// Fetches the expansion file configuration for the specified APK.
 ///
@@ -3198,10 +3463,7 @@ pub fn androidpublisher_edits_expansionfiles_get_execute(
 
 pub fn androidpublisher_edits_expansionfiles_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    apkVersionCode: &str,
-    expansionFileType: &str,
+    args: &AndroidpublisherEditsExpansionfilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExpansionFile>, ApiError>, P = ApiPending>
         + Send
@@ -3210,10 +3472,10 @@ pub fn androidpublisher_edits_expansionfiles_get(
 > {
     let builder = androidpublisher_edits_expansionfiles_get_builder(
         client,
-        packageName,
-        editId,
-        apkVersionCode,
-        expansionFileType,
+        &args.packageName,
+        &args.editId,
+        &args.apkVersionCode,
+        &args.expansionFileType,
     )?;
     androidpublisher_edits_expansionfiles_get_execute(builder)
 }
@@ -3319,6 +3581,21 @@ pub fn androidpublisher_edits_expansionfiles_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_expansionfiles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsExpansionfilesPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: apkVersionCode
+    pub apkVersionCode: String,
+    /// Path parameter: expansionFileType
+    pub expansionFileType: String,
+    /// Request body.
+    pub body: ExpansionFile,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
 /// Patches the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
 ///
@@ -3331,11 +3608,7 @@ pub fn androidpublisher_edits_expansionfiles_patch_execute(
 
 pub fn androidpublisher_edits_expansionfiles_patch(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    apkVersionCode: &str,
-    expansionFileType: &str,
-    body: &ExpansionFile,
+    args: &AndroidpublisherEditsExpansionfilesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExpansionFile>, ApiError>, P = ApiPending>
         + Send
@@ -3344,11 +3617,11 @@ pub fn androidpublisher_edits_expansionfiles_patch(
 > {
     let builder = androidpublisher_edits_expansionfiles_patch_builder(
         client,
-        packageName,
-        editId,
-        apkVersionCode,
-        expansionFileType,
-        body,
+        &args.packageName,
+        &args.editId,
+        &args.apkVersionCode,
+        &args.expansionFileType,
+        &args.body,
     )?;
     androidpublisher_edits_expansionfiles_patch_execute(builder)
 }
@@ -3454,6 +3727,21 @@ pub fn androidpublisher_edits_expansionfiles_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_expansionfiles_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsExpansionfilesUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: apkVersionCode
+    pub apkVersionCode: String,
+    /// Path parameter: expansionFileType
+    pub expansionFileType: String,
+    /// Request body.
+    pub body: ExpansionFile,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
 /// Updates the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
 ///
@@ -3466,11 +3754,7 @@ pub fn androidpublisher_edits_expansionfiles_update_execute(
 
 pub fn androidpublisher_edits_expansionfiles_update(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    apkVersionCode: &str,
-    expansionFileType: &str,
-    body: &ExpansionFile,
+    args: &AndroidpublisherEditsExpansionfilesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExpansionFile>, ApiError>, P = ApiPending>
         + Send
@@ -3479,11 +3763,11 @@ pub fn androidpublisher_edits_expansionfiles_update(
 > {
     let builder = androidpublisher_edits_expansionfiles_update_builder(
         client,
-        packageName,
-        editId,
-        apkVersionCode,
-        expansionFileType,
-        body,
+        &args.packageName,
+        &args.editId,
+        &args.apkVersionCode,
+        &args.expansionFileType,
+        &args.body,
     )?;
     androidpublisher_edits_expansionfiles_update_execute(builder)
 }
@@ -3588,6 +3872,19 @@ pub fn androidpublisher_edits_expansionfiles_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_expansionfiles_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsExpansionfilesUploadArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: apkVersionCode
+    pub apkVersionCode: String,
+    /// Path parameter: expansionFileType
+    pub expansionFileType: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
 /// Uploads a new expansion file and attaches to the specified APK.
 ///
@@ -3600,10 +3897,7 @@ pub fn androidpublisher_edits_expansionfiles_upload_execute(
 
 pub fn androidpublisher_edits_expansionfiles_upload(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    apkVersionCode: &str,
-    expansionFileType: &str,
+    args: &AndroidpublisherEditsExpansionfilesUploadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ExpansionFilesUploadResponse>, ApiError>,
@@ -3614,10 +3908,10 @@ pub fn androidpublisher_edits_expansionfiles_upload(
 > {
     let builder = androidpublisher_edits_expansionfiles_upload_builder(
         client,
-        packageName,
-        editId,
-        apkVersionCode,
-        expansionFileType,
+        &args.packageName,
+        &args.editId,
+        &args.apkVersionCode,
+        &args.expansionFileType,
     )?;
     androidpublisher_edits_expansionfiles_upload_execute(builder)
 }
@@ -3717,6 +4011,21 @@ pub fn androidpublisher_edits_images_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_images_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsImagesDeleteArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: language
+    pub language: String,
+    /// Path parameter: imageType
+    pub imageType: String,
+    /// Path parameter: imageId
+    pub imageId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}/{imageId}
 /// Deletes the image (specified by id) from the edit.
 ///
@@ -3729,22 +4038,18 @@ pub fn androidpublisher_edits_images_delete_execute(
 
 pub fn androidpublisher_edits_images_delete(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    language: &str,
-    imageType: &str,
-    imageId: &str,
+    args: &AndroidpublisherEditsImagesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_edits_images_delete_builder(
         client,
-        packageName,
-        editId,
-        language,
-        imageType,
-        imageId,
+        &args.packageName,
+        &args.editId,
+        &args.language,
+        &args.imageType,
+        &args.imageId,
     )?;
     androidpublisher_edits_images_delete_execute(builder)
 }
@@ -3847,6 +4152,19 @@ pub fn androidpublisher_edits_images_deleteall_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_images_deleteall`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsImagesDeleteallArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: language
+    pub language: String,
+    /// Path parameter: imageType
+    pub imageType: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
 /// Deletes all images for the specified language and image type. Returns an empty response if no images are found.
 ///
@@ -3859,10 +4177,7 @@ pub fn androidpublisher_edits_images_deleteall_execute(
 
 pub fn androidpublisher_edits_images_deleteall(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    language: &str,
-    imageType: &str,
+    args: &AndroidpublisherEditsImagesDeleteallArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ImagesDeleteAllResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3871,10 +4186,10 @@ pub fn androidpublisher_edits_images_deleteall(
 > {
     let builder = androidpublisher_edits_images_deleteall_builder(
         client,
-        packageName,
-        editId,
-        language,
-        imageType,
+        &args.packageName,
+        &args.editId,
+        &args.language,
+        &args.imageType,
     )?;
     androidpublisher_edits_images_deleteall_execute(builder)
 }
@@ -3977,6 +4292,19 @@ pub fn androidpublisher_edits_images_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_images_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsImagesListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: language
+    pub language: String,
+    /// Path parameter: imageType
+    pub imageType: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
 /// Lists all images. The response may be empty.
 ///
@@ -3989,10 +4317,7 @@ pub fn androidpublisher_edits_images_list_execute(
 
 pub fn androidpublisher_edits_images_list(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    language: &str,
-    imageType: &str,
+    args: &AndroidpublisherEditsImagesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ImagesListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4001,10 +4326,10 @@ pub fn androidpublisher_edits_images_list(
 > {
     let builder = androidpublisher_edits_images_list_builder(
         client,
-        packageName,
-        editId,
-        language,
-        imageType,
+        &args.packageName,
+        &args.editId,
+        &args.language,
+        &args.imageType,
     )?;
     androidpublisher_edits_images_list_execute(builder)
 }
@@ -4107,6 +4432,19 @@ pub fn androidpublisher_edits_images_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_images_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsImagesUploadArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: language
+    pub language: String,
+    /// Path parameter: imageType
+    pub imageType: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
 /// Uploads an image of the specified language and image type, and adds to the edit.
 ///
@@ -4119,10 +4457,7 @@ pub fn androidpublisher_edits_images_upload_execute(
 
 pub fn androidpublisher_edits_images_upload(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    language: &str,
-    imageType: &str,
+    args: &AndroidpublisherEditsImagesUploadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ImagesUploadResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4131,10 +4466,10 @@ pub fn androidpublisher_edits_images_upload(
 > {
     let builder = androidpublisher_edits_images_upload_builder(
         client,
-        packageName,
-        editId,
-        language,
-        imageType,
+        &args.packageName,
+        &args.editId,
+        &args.language,
+        &args.imageType,
     )?;
     androidpublisher_edits_images_upload_execute(builder)
 }
@@ -4230,6 +4565,17 @@ pub fn androidpublisher_edits_listings_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_listings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsListingsDeleteArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: language
+    pub language: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
 /// Deletes a localized store listing.
 ///
@@ -4242,15 +4588,17 @@ pub fn androidpublisher_edits_listings_delete_execute(
 
 pub fn androidpublisher_edits_listings_delete(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    language: &str,
+    args: &AndroidpublisherEditsListingsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_edits_listings_delete_builder(client, packageName, editId, language)?;
+    let builder = androidpublisher_edits_listings_delete_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.language,
+    )?;
     androidpublisher_edits_listings_delete_execute(builder)
 }
 
@@ -4343,6 +4691,15 @@ pub fn androidpublisher_edits_listings_deleteall_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_listings_deleteall`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsListingsDeleteallArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
 /// Deletes all store listings.
 ///
@@ -4355,13 +4712,13 @@ pub fn androidpublisher_edits_listings_deleteall_execute(
 
 pub fn androidpublisher_edits_listings_deleteall(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    args: &AndroidpublisherEditsListingsDeleteallArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_listings_deleteall_builder(client, packageName, editId)?;
+    let builder =
+        androidpublisher_edits_listings_deleteall_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_listings_deleteall_execute(builder)
 }
 
@@ -4459,6 +4816,17 @@ pub fn androidpublisher_edits_listings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_listings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsListingsGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: language
+    pub language: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
 /// Gets a localized store listing.
 ///
@@ -4471,15 +4839,17 @@ pub fn androidpublisher_edits_listings_get_execute(
 
 pub fn androidpublisher_edits_listings_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    language: &str,
+    args: &AndroidpublisherEditsListingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_edits_listings_get_builder(client, packageName, editId, language)?;
+    let builder = androidpublisher_edits_listings_get_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.language,
+    )?;
     androidpublisher_edits_listings_get_execute(builder)
 }
 
@@ -4577,6 +4947,15 @@ pub fn androidpublisher_edits_listings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_listings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsListingsListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
 /// Lists all localized store listings.
 ///
@@ -4589,15 +4968,15 @@ pub fn androidpublisher_edits_listings_list_execute(
 
 pub fn androidpublisher_edits_listings_list(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    args: &AndroidpublisherEditsListingsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListingsListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_listings_list_builder(client, packageName, editId)?;
+    let builder =
+        androidpublisher_edits_listings_list_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_listings_list_execute(builder)
 }
 
@@ -4698,6 +5077,19 @@ pub fn androidpublisher_edits_listings_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_listings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsListingsPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: language
+    pub language: String,
+    /// Request body.
+    pub body: Listing,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
 /// Patches a localized store listing.
 ///
@@ -4710,16 +5102,18 @@ pub fn androidpublisher_edits_listings_patch_execute(
 
 pub fn androidpublisher_edits_listings_patch(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    language: &str,
-    body: &Listing,
+    args: &AndroidpublisherEditsListingsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_edits_listings_patch_builder(client, packageName, editId, language, body)?;
+    let builder = androidpublisher_edits_listings_patch_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.language,
+        &args.body,
+    )?;
     androidpublisher_edits_listings_patch_execute(builder)
 }
 
@@ -4820,6 +5214,19 @@ pub fn androidpublisher_edits_listings_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_listings_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsListingsUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: language
+    pub language: String,
+    /// Request body.
+    pub body: Listing,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
 /// Creates or updates a localized store listing.
 ///
@@ -4832,20 +5239,17 @@ pub fn androidpublisher_edits_listings_update_execute(
 
 pub fn androidpublisher_edits_listings_update(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    language: &str,
-    body: &Listing,
+    args: &AndroidpublisherEditsListingsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_edits_listings_update_builder(
         client,
-        packageName,
-        editId,
-        language,
-        body,
+        &args.packageName,
+        &args.editId,
+        &args.language,
+        &args.body,
     )?;
     androidpublisher_edits_listings_update_execute(builder)
 }
@@ -4944,6 +5348,17 @@ pub fn androidpublisher_edits_testers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_testers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsTestersGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: track
+    pub track: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
 /// Gets testers. Note: Testers resource does not support email lists.
 ///
@@ -4956,14 +5371,17 @@ pub fn androidpublisher_edits_testers_get_execute(
 
 pub fn androidpublisher_edits_testers_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    track: &str,
+    args: &AndroidpublisherEditsTestersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Testers>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_testers_get_builder(client, packageName, editId, track)?;
+    let builder = androidpublisher_edits_testers_get_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.track,
+    )?;
     androidpublisher_edits_testers_get_execute(builder)
 }
 
@@ -5064,6 +5482,19 @@ pub fn androidpublisher_edits_testers_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_testers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsTestersPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: track
+    pub track: String,
+    /// Request body.
+    pub body: Testers,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
 /// Patches testers. Note: Testers resource does not support email lists.
 ///
@@ -5076,16 +5507,18 @@ pub fn androidpublisher_edits_testers_patch_execute(
 
 pub fn androidpublisher_edits_testers_patch(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    track: &str,
-    body: &Testers,
+    args: &AndroidpublisherEditsTestersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Testers>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_edits_testers_patch_builder(client, packageName, editId, track, body)?;
+    let builder = androidpublisher_edits_testers_patch_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.track,
+        &args.body,
+    )?;
     androidpublisher_edits_testers_patch_execute(builder)
 }
 
@@ -5186,6 +5619,19 @@ pub fn androidpublisher_edits_testers_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_testers_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsTestersUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: track
+    pub track: String,
+    /// Request body.
+    pub body: Testers,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
 /// Updates testers. Note: Testers resource does not support email lists.
 ///
@@ -5198,16 +5644,18 @@ pub fn androidpublisher_edits_testers_update_execute(
 
 pub fn androidpublisher_edits_testers_update(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    track: &str,
-    body: &Testers,
+    args: &AndroidpublisherEditsTestersUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Testers>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_edits_testers_update_builder(client, packageName, editId, track, body)?;
+    let builder = androidpublisher_edits_testers_update_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.track,
+        &args.body,
+    )?;
     androidpublisher_edits_testers_update_execute(builder)
 }
 
@@ -5306,6 +5754,17 @@ pub fn androidpublisher_edits_tracks_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_tracks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsTracksCreateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Request body.
+    pub body: TrackConfig,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
 /// Creates a new track.
 ///
@@ -5318,14 +5777,17 @@ pub fn androidpublisher_edits_tracks_create_execute(
 
 pub fn androidpublisher_edits_tracks_create(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    body: &TrackConfig,
+    args: &AndroidpublisherEditsTracksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_tracks_create_builder(client, packageName, editId, body)?;
+    let builder = androidpublisher_edits_tracks_create_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.body,
+    )?;
     androidpublisher_edits_tracks_create_execute(builder)
 }
 
@@ -5423,6 +5885,17 @@ pub fn androidpublisher_edits_tracks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_tracks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsTracksGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: track
+    pub track: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
 /// Gets a track.
 ///
@@ -5435,14 +5908,17 @@ pub fn androidpublisher_edits_tracks_get_execute(
 
 pub fn androidpublisher_edits_tracks_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    track: &str,
+    args: &AndroidpublisherEditsTracksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_tracks_get_builder(client, packageName, editId, track)?;
+    let builder = androidpublisher_edits_tracks_get_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.track,
+    )?;
     androidpublisher_edits_tracks_get_execute(builder)
 }
 
@@ -5540,6 +6016,15 @@ pub fn androidpublisher_edits_tracks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_tracks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsTracksListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
 /// Lists all tracks.
 ///
@@ -5552,15 +6037,15 @@ pub fn androidpublisher_edits_tracks_list_execute(
 
 pub fn androidpublisher_edits_tracks_list(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    args: &AndroidpublisherEditsTracksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TracksListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_tracks_list_builder(client, packageName, editId)?;
+    let builder =
+        androidpublisher_edits_tracks_list_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_tracks_list_execute(builder)
 }
 
@@ -5661,6 +6146,19 @@ pub fn androidpublisher_edits_tracks_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_tracks_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsTracksPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: track
+    pub track: String,
+    /// Request body.
+    pub body: Track,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
 /// Patches a track.
 ///
@@ -5673,16 +6171,18 @@ pub fn androidpublisher_edits_tracks_patch_execute(
 
 pub fn androidpublisher_edits_tracks_patch(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    track: &str,
-    body: &Track,
+    args: &AndroidpublisherEditsTracksPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_edits_tracks_patch_builder(client, packageName, editId, track, body)?;
+    let builder = androidpublisher_edits_tracks_patch_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.track,
+        &args.body,
+    )?;
     androidpublisher_edits_tracks_patch_execute(builder)
 }
 
@@ -5783,6 +6283,19 @@ pub fn androidpublisher_edits_tracks_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_edits_tracks_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherEditsTracksUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: editId
+    pub editId: String,
+    /// Path parameter: track
+    pub track: String,
+    /// Request body.
+    pub body: Track,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
 /// Updates a track.
 ///
@@ -5795,16 +6308,18 @@ pub fn androidpublisher_edits_tracks_update_execute(
 
 pub fn androidpublisher_edits_tracks_update(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    track: &str,
-    body: &Track,
+    args: &AndroidpublisherEditsTracksUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_edits_tracks_update_builder(client, packageName, editId, track, body)?;
+    let builder = androidpublisher_edits_tracks_update_builder(
+        client,
+        &args.packageName,
+        &args.editId,
+        &args.track,
+        &args.body,
+    )?;
     androidpublisher_edits_tracks_update_execute(builder)
 }
 
@@ -5915,6 +6430,17 @@ pub fn androidpublisher_externaltransactions_createexternaltransaction_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_externaltransactions_createexternaltransaction`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherExternaltransactionsCreateexternaltransactionArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: externalTransactionId
+    pub externalTransactionId: Option<String>,
+    /// Request body.
+    pub body: ExternalTransaction,
+}
+
 /// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions
 /// Creates a new external transaction.
 ///
@@ -5927,9 +6453,7 @@ pub fn androidpublisher_externaltransactions_createexternaltransaction_execute(
 
 pub fn androidpublisher_externaltransactions_createexternaltransaction(
     client: &SimpleHttpClient,
-    parent: &str,
-    externalTransactionId: Option<&str>,
-    body: &ExternalTransaction,
+    args: &AndroidpublisherExternaltransactionsCreateexternaltransactionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExternalTransaction>, ApiError>, P = ApiPending>
         + Send
@@ -5938,9 +6462,9 @@ pub fn androidpublisher_externaltransactions_createexternaltransaction(
 > {
     let builder = androidpublisher_externaltransactions_createexternaltransaction_builder(
         client,
-        parent,
-        externalTransactionId,
-        body,
+        &args.parent,
+        args.externalTransactionId.as_deref(),
+        &args.body,
     )?;
     androidpublisher_externaltransactions_createexternaltransaction_execute(builder)
 }
@@ -6037,6 +6561,13 @@ pub fn androidpublisher_externaltransactions_getexternaltransaction_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_externaltransactions_getexternaltransaction`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherExternaltransactionsGetexternaltransactionArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}
 /// Gets an existing external transaction.
 ///
@@ -6049,7 +6580,7 @@ pub fn androidpublisher_externaltransactions_getexternaltransaction_execute(
 
 pub fn androidpublisher_externaltransactions_getexternaltransaction(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroidpublisherExternaltransactionsGetexternaltransactionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExternalTransaction>, ApiError>, P = ApiPending>
         + Send
@@ -6057,7 +6588,7 @@ pub fn androidpublisher_externaltransactions_getexternaltransaction(
     ApiError,
 > {
     let builder =
-        androidpublisher_externaltransactions_getexternaltransaction_builder(client, name)?;
+        androidpublisher_externaltransactions_getexternaltransaction_builder(client, &args.name)?;
     androidpublisher_externaltransactions_getexternaltransaction_execute(builder)
 }
 
@@ -6156,6 +6687,15 @@ pub fn androidpublisher_externaltransactions_refundexternaltransaction_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_externaltransactions_refundexternaltransaction`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherExternaltransactionsRefundexternaltransactionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RefundExternalTransactionRequest,
+}
+
 /// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}:refund
 /// Refunds or partially refunds an existing external transaction.
 ///
@@ -6168,8 +6708,7 @@ pub fn androidpublisher_externaltransactions_refundexternaltransaction_execute(
 
 pub fn androidpublisher_externaltransactions_refundexternaltransaction(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RefundExternalTransactionRequest,
+    args: &AndroidpublisherExternaltransactionsRefundexternaltransactionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExternalTransaction>, ApiError>, P = ApiPending>
         + Send
@@ -6177,7 +6716,7 @@ pub fn androidpublisher_externaltransactions_refundexternaltransaction(
     ApiError,
 > {
     let builder = androidpublisher_externaltransactions_refundexternaltransaction_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     androidpublisher_externaltransactions_refundexternaltransaction_execute(builder)
 }
@@ -6273,6 +6812,17 @@ pub fn androidpublisher_generatedapks_download_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_generatedapks_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherGeneratedapksDownloadArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: versionCode
+    pub versionCode: String,
+    /// Path parameter: downloadId
+    pub downloadId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/generatedApks/{versionCode}/downloads/{downloadId}:download
 /// Downloads a single signed APK generated from an app bundle.
 ///
@@ -6285,18 +6835,16 @@ pub fn androidpublisher_generatedapks_download_execute(
 
 pub fn androidpublisher_generatedapks_download(
     client: &SimpleHttpClient,
-    packageName: &str,
-    versionCode: &str,
-    downloadId: &str,
+    args: &AndroidpublisherGeneratedapksDownloadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_generatedapks_download_builder(
         client,
-        packageName,
-        versionCode,
-        downloadId,
+        &args.packageName,
+        &args.versionCode,
+        &args.downloadId,
     )?;
     androidpublisher_generatedapks_download_execute(builder)
 }
@@ -6395,6 +6943,15 @@ pub fn androidpublisher_generatedapks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_generatedapks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherGeneratedapksListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: versionCode
+    pub versionCode: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/generatedApks/{versionCode}
 /// Returns download metadata for all APKs that were generated from a given app bundle.
 ///
@@ -6407,15 +6964,15 @@ pub fn androidpublisher_generatedapks_list_execute(
 
 pub fn androidpublisher_generatedapks_list(
     client: &SimpleHttpClient,
-    packageName: &str,
-    versionCode: &str,
+    args: &AndroidpublisherGeneratedapksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GeneratedApksListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_generatedapks_list_builder(client, packageName, versionCode)?;
+    let builder =
+        androidpublisher_generatedapks_list_builder(client, &args.packageName, &args.versionCode)?;
     androidpublisher_generatedapks_list_execute(builder)
 }
 
@@ -6512,6 +7069,15 @@ pub fn androidpublisher_grants_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_grants_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherGrantsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Grant,
+}
+
 /// GET androidpublisher/v3/developers/{developersId}/users/{usersId}/grants
 /// Grant access for a user to the given package.
 ///
@@ -6524,13 +7090,12 @@ pub fn androidpublisher_grants_create_execute(
 
 pub fn androidpublisher_grants_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Grant,
+    args: &AndroidpublisherGrantsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Grant>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_grants_create_builder(client, parent, body)?;
+    let builder = androidpublisher_grants_create_builder(client, &args.parent, &args.body)?;
     androidpublisher_grants_create_execute(builder)
 }
 
@@ -6621,6 +7186,13 @@ pub fn androidpublisher_grants_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_grants_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherGrantsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
 /// Removes all access for the user to the given package or developer account.
 ///
@@ -6633,12 +7205,12 @@ pub fn androidpublisher_grants_delete_execute(
 
 pub fn androidpublisher_grants_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroidpublisherGrantsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_grants_delete_builder(client, name)?;
+    let builder = androidpublisher_grants_delete_builder(client, &args.name)?;
     androidpublisher_grants_delete_execute(builder)
 }
 
@@ -6747,6 +7319,17 @@ pub fn androidpublisher_grants_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_grants_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherGrantsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Grant,
+}
+
 /// GET androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
 /// Updates access for the user to the given package.
 ///
@@ -6759,14 +7342,17 @@ pub fn androidpublisher_grants_patch_execute(
 
 pub fn androidpublisher_grants_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Grant,
+    args: &AndroidpublisherGrantsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Grant>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_grants_patch_builder(client, name, updateMask, body)?;
+    let builder = androidpublisher_grants_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     androidpublisher_grants_patch_execute(builder)
 }
 
@@ -6860,6 +7446,15 @@ pub fn androidpublisher_inappproducts_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_inappproducts_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherInappproductsBatchDeleteArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Request body.
+    pub body: InappproductsBatchDeleteRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/inappproducts:batchDelete
 /// Deletes in-app products (managed products or subscriptions). Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput. This method should not be used to delete subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
@@ -6872,13 +7467,13 @@ pub fn androidpublisher_inappproducts_batch_delete_execute(
 
 pub fn androidpublisher_inappproducts_batch_delete(
     client: &SimpleHttpClient,
-    packageName: &str,
-    body: &InappproductsBatchDeleteRequest,
+    args: &AndroidpublisherInappproductsBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_inappproducts_batch_delete_builder(client, packageName, body)?;
+    let builder =
+        androidpublisher_inappproducts_batch_delete_builder(client, &args.packageName, &args.body)?;
     androidpublisher_inappproducts_batch_delete_execute(builder)
 }
 
@@ -6988,6 +7583,15 @@ pub fn androidpublisher_inappproducts_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_inappproducts_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherInappproductsBatchGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: sku
+    pub sku: Option<String>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/inappproducts:batchGet
 /// Reads multiple in-app products, which can be managed products or subscriptions. This method should not be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
@@ -7000,8 +7604,7 @@ pub fn androidpublisher_inappproducts_batch_get_execute(
 
 pub fn androidpublisher_inappproducts_batch_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    sku: Option<&str>,
+    args: &AndroidpublisherInappproductsBatchGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<InappproductsBatchGetResponse>, ApiError>,
@@ -7010,7 +7613,11 @@ pub fn androidpublisher_inappproducts_batch_get(
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_inappproducts_batch_get_builder(client, packageName, sku)?;
+    let builder = androidpublisher_inappproducts_batch_get_builder(
+        client,
+        &args.packageName,
+        args.sku.as_deref(),
+    )?;
     androidpublisher_inappproducts_batch_get_execute(builder)
 }
 
@@ -7111,6 +7718,15 @@ pub fn androidpublisher_inappproducts_batch_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_inappproducts_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherInappproductsBatchUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Request body.
+    pub body: InappproductsBatchUpdateRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/inappproducts:batchUpdate
 /// Updates or inserts one or more in-app products (managed products or subscriptions). Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput. This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
@@ -7123,8 +7739,7 @@ pub fn androidpublisher_inappproducts_batch_update_execute(
 
 pub fn androidpublisher_inappproducts_batch_update(
     client: &SimpleHttpClient,
-    packageName: &str,
-    body: &InappproductsBatchUpdateRequest,
+    args: &AndroidpublisherInappproductsBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<InappproductsBatchUpdateResponse>, ApiError>,
@@ -7133,7 +7748,8 @@ pub fn androidpublisher_inappproducts_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_inappproducts_batch_update_builder(client, packageName, body)?;
+    let builder =
+        androidpublisher_inappproducts_batch_update_builder(client, &args.packageName, &args.body)?;
     androidpublisher_inappproducts_batch_update_execute(builder)
 }
 
@@ -7238,6 +7854,17 @@ pub fn androidpublisher_inappproducts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_inappproducts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherInappproductsDeleteArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: sku
+    pub sku: String,
+    /// Query parameter: latencyTolerance
+    pub latencyTolerance: Option<String>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
 /// Deletes an in-app product (a managed product or a subscription). This method should no longer be used to delete subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
@@ -7250,15 +7877,17 @@ pub fn androidpublisher_inappproducts_delete_execute(
 
 pub fn androidpublisher_inappproducts_delete(
     client: &SimpleHttpClient,
-    packageName: &str,
-    sku: &str,
-    latencyTolerance: Option<&str>,
+    args: &AndroidpublisherInappproductsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_inappproducts_delete_builder(client, packageName, sku, latencyTolerance)?;
+    let builder = androidpublisher_inappproducts_delete_builder(
+        client,
+        &args.packageName,
+        &args.sku,
+        args.latencyTolerance.as_deref(),
+    )?;
     androidpublisher_inappproducts_delete_execute(builder)
 }
 
@@ -7356,6 +7985,15 @@ pub fn androidpublisher_inappproducts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_inappproducts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherInappproductsGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: sku
+    pub sku: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
 /// Gets an in-app product, which can be a managed product or a subscription. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
@@ -7368,15 +8006,14 @@ pub fn androidpublisher_inappproducts_get_execute(
 
 pub fn androidpublisher_inappproducts_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    sku: &str,
+    args: &AndroidpublisherInappproductsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_inappproducts_get_builder(client, packageName, sku)?;
+    let builder = androidpublisher_inappproducts_get_builder(client, &args.packageName, &args.sku)?;
     androidpublisher_inappproducts_get_execute(builder)
 }
 
@@ -7487,6 +8124,17 @@ pub fn androidpublisher_inappproducts_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_inappproducts_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherInappproductsInsertArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: autoConvertMissingPrices
+    pub autoConvertMissingPrices: Option<bool>,
+    /// Request body.
+    pub body: InAppProduct,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/inappproducts
 /// Creates an in-app product (a managed product or a subscription). This method should no longer be used to create subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
@@ -7499,9 +8147,7 @@ pub fn androidpublisher_inappproducts_insert_execute(
 
 pub fn androidpublisher_inappproducts_insert(
     client: &SimpleHttpClient,
-    packageName: &str,
-    autoConvertMissingPrices: Option<bool>,
-    body: &InAppProduct,
+    args: &AndroidpublisherInappproductsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending>
         + Send
@@ -7510,9 +8156,9 @@ pub fn androidpublisher_inappproducts_insert(
 > {
     let builder = androidpublisher_inappproducts_insert_builder(
         client,
-        packageName,
-        autoConvertMissingPrices,
-        body,
+        &args.packageName,
+        args.autoConvertMissingPrices,
+        &args.body,
     )?;
     androidpublisher_inappproducts_insert_execute(builder)
 }
@@ -7629,6 +8275,19 @@ pub fn androidpublisher_inappproducts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_inappproducts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherInappproductsListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: startIndex
+    pub startIndex: Option<i32>,
+    /// Query parameter: token
+    pub token: Option<String>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/inappproducts
 /// Lists all in-app products - both managed products and subscriptions. If an app has a large number of in-app products, the response may be paginated. In this case the response field `tokenPagination`.`nextPageToken` will be set and the caller should provide its value as a token request parameter to retrieve the next page. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
@@ -7641,10 +8300,7 @@ pub fn androidpublisher_inappproducts_list_execute(
 
 pub fn androidpublisher_inappproducts_list(
     client: &SimpleHttpClient,
-    packageName: &str,
-    maxResults: Option<i32>,
-    startIndex: Option<i32>,
-    token: Option<&str>,
+    args: &AndroidpublisherInappproductsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InappproductsListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7653,10 +8309,10 @@ pub fn androidpublisher_inappproducts_list(
 > {
     let builder = androidpublisher_inappproducts_list_builder(
         client,
-        packageName,
-        maxResults,
-        startIndex,
-        token,
+        &args.packageName,
+        args.maxResults,
+        args.startIndex,
+        args.token.as_deref(),
     )?;
     androidpublisher_inappproducts_list_execute(builder)
 }
@@ -7774,6 +8430,21 @@ pub fn androidpublisher_inappproducts_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_inappproducts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherInappproductsPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: sku
+    pub sku: String,
+    /// Query parameter: autoConvertMissingPrices
+    pub autoConvertMissingPrices: Option<bool>,
+    /// Query parameter: latencyTolerance
+    pub latencyTolerance: Option<String>,
+    /// Request body.
+    pub body: InAppProduct,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
 /// Patches an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
@@ -7786,11 +8457,7 @@ pub fn androidpublisher_inappproducts_patch_execute(
 
 pub fn androidpublisher_inappproducts_patch(
     client: &SimpleHttpClient,
-    packageName: &str,
-    sku: &str,
-    autoConvertMissingPrices: Option<bool>,
-    latencyTolerance: Option<&str>,
-    body: &InAppProduct,
+    args: &AndroidpublisherInappproductsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending>
         + Send
@@ -7799,11 +8466,11 @@ pub fn androidpublisher_inappproducts_patch(
 > {
     let builder = androidpublisher_inappproducts_patch_builder(
         client,
-        packageName,
-        sku,
-        autoConvertMissingPrices,
-        latencyTolerance,
-        body,
+        &args.packageName,
+        &args.sku,
+        args.autoConvertMissingPrices,
+        args.latencyTolerance.as_deref(),
+        &args.body,
     )?;
     androidpublisher_inappproducts_patch_execute(builder)
 }
@@ -7925,6 +8592,23 @@ pub fn androidpublisher_inappproducts_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_inappproducts_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherInappproductsUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: sku
+    pub sku: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: autoConvertMissingPrices
+    pub autoConvertMissingPrices: Option<bool>,
+    /// Query parameter: latencyTolerance
+    pub latencyTolerance: Option<String>,
+    /// Request body.
+    pub body: InAppProduct,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
 /// Updates an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
 ///
@@ -7937,12 +8621,7 @@ pub fn androidpublisher_inappproducts_update_execute(
 
 pub fn androidpublisher_inappproducts_update(
     client: &SimpleHttpClient,
-    packageName: &str,
-    sku: &str,
-    allowMissing: Option<bool>,
-    autoConvertMissingPrices: Option<bool>,
-    latencyTolerance: Option<&str>,
-    body: &InAppProduct,
+    args: &AndroidpublisherInappproductsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending>
         + Send
@@ -7951,12 +8630,12 @@ pub fn androidpublisher_inappproducts_update(
 > {
     let builder = androidpublisher_inappproducts_update_builder(
         client,
-        packageName,
-        sku,
-        allowMissing,
-        autoConvertMissingPrices,
-        latencyTolerance,
-        body,
+        &args.packageName,
+        &args.sku,
+        args.allowMissing,
+        args.autoConvertMissingPrices,
+        args.latencyTolerance.as_deref(),
+        &args.body,
     )?;
     androidpublisher_inappproducts_update_execute(builder)
 }
@@ -8055,6 +8734,13 @@ pub fn androidpublisher_internalappsharingartifacts_uploadapk_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_internalappsharingartifacts_uploadapk`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherInternalappsharingartifactsUploadapkArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+}
+
 /// GET androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/apk
 /// Uploads an APK to internal app sharing. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
 ///
@@ -8067,7 +8753,7 @@ pub fn androidpublisher_internalappsharingartifacts_uploadapk_execute(
 
 pub fn androidpublisher_internalappsharingartifacts_uploadapk(
     client: &SimpleHttpClient,
-    packageName: &str,
+    args: &AndroidpublisherInternalappsharingartifactsUploadapkArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<InternalAppSharingArtifact>, ApiError>,
@@ -8077,7 +8763,7 @@ pub fn androidpublisher_internalappsharingartifacts_uploadapk(
     ApiError,
 > {
     let builder =
-        androidpublisher_internalappsharingartifacts_uploadapk_builder(client, packageName)?;
+        androidpublisher_internalappsharingartifacts_uploadapk_builder(client, &args.packageName)?;
     androidpublisher_internalappsharingartifacts_uploadapk_execute(builder)
 }
 
@@ -8175,6 +8861,13 @@ pub fn androidpublisher_internalappsharingartifacts_uploadbundle_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_internalappsharingartifacts_uploadbundle`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherInternalappsharingartifactsUploadbundleArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+}
+
 /// GET androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/bundle
 /// Uploads an app bundle to internal app sharing. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
 ///
@@ -8187,7 +8880,7 @@ pub fn androidpublisher_internalappsharingartifacts_uploadbundle_execute(
 
 pub fn androidpublisher_internalappsharingartifacts_uploadbundle(
     client: &SimpleHttpClient,
-    packageName: &str,
+    args: &AndroidpublisherInternalappsharingartifactsUploadbundleArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<InternalAppSharingArtifact>, ApiError>,
@@ -8196,8 +8889,10 @@ pub fn androidpublisher_internalappsharingartifacts_uploadbundle(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_internalappsharingartifacts_uploadbundle_builder(client, packageName)?;
+    let builder = androidpublisher_internalappsharingartifacts_uploadbundle_builder(
+        client,
+        &args.packageName,
+    )?;
     androidpublisher_internalappsharingartifacts_uploadbundle_execute(builder)
 }
 
@@ -8298,6 +8993,15 @@ pub fn androidpublisher_monetization_convert_region_prices_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_convert_region_prices`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationConvertRegionPricesArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Request body.
+    pub body: ConvertRegionPricesRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/pricing:convertRegionPrices
 /// Calculates the region prices, using today's exchange rate and country-specific pricing patterns, based on the price in the request for a set of regions.
 ///
@@ -8310,8 +9014,7 @@ pub fn androidpublisher_monetization_convert_region_prices_execute(
 
 pub fn androidpublisher_monetization_convert_region_prices(
     client: &SimpleHttpClient,
-    packageName: &str,
-    body: &ConvertRegionPricesRequest,
+    args: &AndroidpublisherMonetizationConvertRegionPricesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ConvertRegionPricesResponse>, ApiError>,
@@ -8320,8 +9023,11 @@ pub fn androidpublisher_monetization_convert_region_prices(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_monetization_convert_region_prices_builder(client, packageName, body)?;
+    let builder = androidpublisher_monetization_convert_region_prices_builder(
+        client,
+        &args.packageName,
+        &args.body,
+    )?;
     androidpublisher_monetization_convert_region_prices_execute(builder)
 }
 
@@ -8415,6 +9121,15 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsBatchDeleteArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Request body.
+    pub body: BatchDeleteOneTimeProductsRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchDelete
 /// Deletes one or more one-time products.
 ///
@@ -8427,16 +9142,15 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_delete_execute(
 
 pub fn androidpublisher_monetization_onetimeproducts_batch_delete(
     client: &SimpleHttpClient,
-    packageName: &str,
-    body: &BatchDeleteOneTimeProductsRequest,
+    args: &AndroidpublisherMonetizationOnetimeproductsBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_monetization_onetimeproducts_batch_delete_builder(
         client,
-        packageName,
-        body,
+        &args.packageName,
+        &args.body,
     )?;
     androidpublisher_monetization_onetimeproducts_batch_delete_execute(builder)
 }
@@ -8547,6 +9261,15 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsBatchGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: productIds
+    pub productIds: Option<String>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchGet
 /// Reads one or more one-time products.
 ///
@@ -8559,8 +9282,7 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_get_execute(
 
 pub fn androidpublisher_monetization_onetimeproducts_batch_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productIds: Option<&str>,
+    args: &AndroidpublisherMonetizationOnetimeproductsBatchGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchGetOneTimeProductsResponse>, ApiError>,
@@ -8571,8 +9293,8 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_get(
 > {
     let builder = androidpublisher_monetization_onetimeproducts_batch_get_builder(
         client,
-        packageName,
-        productIds,
+        &args.packageName,
+        args.productIds.as_deref(),
     )?;
     androidpublisher_monetization_onetimeproducts_batch_get_execute(builder)
 }
@@ -8674,6 +9396,15 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsBatchUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Request body.
+    pub body: BatchUpdateOneTimeProductsRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchUpdate
 /// Creates or updates one or more one-time products.
 ///
@@ -8686,8 +9417,7 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_update_execute(
 
 pub fn androidpublisher_monetization_onetimeproducts_batch_update(
     client: &SimpleHttpClient,
-    packageName: &str,
-    body: &BatchUpdateOneTimeProductsRequest,
+    args: &AndroidpublisherMonetizationOnetimeproductsBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUpdateOneTimeProductsResponse>, ApiError>,
@@ -8698,8 +9428,8 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_update(
 > {
     let builder = androidpublisher_monetization_onetimeproducts_batch_update_builder(
         client,
-        packageName,
-        body,
+        &args.packageName,
+        &args.body,
     )?;
     androidpublisher_monetization_onetimeproducts_batch_update_execute(builder)
 }
@@ -8805,6 +9535,17 @@ pub fn androidpublisher_monetization_onetimeproducts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsDeleteArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Query parameter: latencyTolerance
+    pub latencyTolerance: Option<String>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
 /// Deletes a one-time product.
 ///
@@ -8817,18 +9558,16 @@ pub fn androidpublisher_monetization_onetimeproducts_delete_execute(
 
 pub fn androidpublisher_monetization_onetimeproducts_delete(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    latencyTolerance: Option<&str>,
+    args: &AndroidpublisherMonetizationOnetimeproductsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_monetization_onetimeproducts_delete_builder(
         client,
-        packageName,
-        productId,
-        latencyTolerance,
+        &args.packageName,
+        &args.productId,
+        args.latencyTolerance.as_deref(),
     )?;
     androidpublisher_monetization_onetimeproducts_delete_execute(builder)
 }
@@ -8927,6 +9666,15 @@ pub fn androidpublisher_monetization_onetimeproducts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
 /// Reads a single one-time product.
 ///
@@ -8939,16 +9687,18 @@ pub fn androidpublisher_monetization_onetimeproducts_get_execute(
 
 pub fn androidpublisher_monetization_onetimeproducts_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
+    args: &AndroidpublisherMonetizationOnetimeproductsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OneTimeProduct>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_monetization_onetimeproducts_get_builder(client, packageName, productId)?;
+    let builder = androidpublisher_monetization_onetimeproducts_get_builder(
+        client,
+        &args.packageName,
+        &args.productId,
+    )?;
     androidpublisher_monetization_onetimeproducts_get_execute(builder)
 }
 
@@ -9062,6 +9812,17 @@ pub fn androidpublisher_monetization_onetimeproducts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts
 /// Lists all one-time products under a given app.
 ///
@@ -9074,9 +9835,7 @@ pub fn androidpublisher_monetization_onetimeproducts_list_execute(
 
 pub fn androidpublisher_monetization_onetimeproducts_list(
     client: &SimpleHttpClient,
-    packageName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AndroidpublisherMonetizationOnetimeproductsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListOneTimeProductsResponse>, ApiError>,
@@ -9087,9 +9846,9 @@ pub fn androidpublisher_monetization_onetimeproducts_list(
 > {
     let builder = androidpublisher_monetization_onetimeproducts_list_builder(
         client,
-        packageName,
-        pageSize,
-        pageToken,
+        &args.packageName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     androidpublisher_monetization_onetimeproducts_list_execute(builder)
 }
@@ -9215,6 +9974,25 @@ pub fn androidpublisher_monetization_onetimeproducts_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: latencyTolerance
+    pub latencyTolerance: Option<String>,
+    /// Query parameter: regionsVersion_version
+    pub regionsVersion_version: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: OneTimeProduct,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/onetimeproducts/{productId}
 /// Creates or updates a one-time product.
 ///
@@ -9227,13 +10005,7 @@ pub fn androidpublisher_monetization_onetimeproducts_patch_execute(
 
 pub fn androidpublisher_monetization_onetimeproducts_patch(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    allowMissing: Option<bool>,
-    latencyTolerance: Option<&str>,
-    regionsVersion_version: Option<&str>,
-    updateMask: Option<&str>,
-    body: &OneTimeProduct,
+    args: &AndroidpublisherMonetizationOnetimeproductsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OneTimeProduct>, ApiError>, P = ApiPending>
         + Send
@@ -9242,13 +10014,13 @@ pub fn androidpublisher_monetization_onetimeproducts_patch(
 > {
     let builder = androidpublisher_monetization_onetimeproducts_patch_builder(
         client,
-        packageName,
-        productId,
-        allowMissing,
-        latencyTolerance,
-        regionsVersion_version,
-        updateMask,
-        body,
+        &args.packageName,
+        &args.productId,
+        args.allowMissing,
+        args.latencyTolerance.as_deref(),
+        args.regionsVersion_version.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     androidpublisher_monetization_onetimeproducts_patch_execute(builder)
 }
@@ -9345,6 +10117,17 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_dele
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_purchase_options_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsBatchDeleteArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Request body.
+    pub body: BatchDeletePurchaseOptionsRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchDelete
 /// Deletes purchase options across one or multiple one-time products. By default this operation will fail if there are any existing offers under the deleted purchase options. Use the force parameter to override the default behavior.
 ///
@@ -9357,9 +10140,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_dele
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_delete(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    body: &BatchDeletePurchaseOptionsRequest,
+    args: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -9367,9 +10148,9 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_dele
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_batch_delete_builder(
             client,
-            packageName,
-            productId,
-            body,
+            &args.packageName,
+            &args.productId,
+            &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_batch_delete_execute(builder)
 }
@@ -9474,6 +10255,17 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_upda
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_purchase_options_batch_update_states`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsBatchUpdateStatesArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Request body.
+    pub body: BatchUpdatePurchaseOptionStatesRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions:batchUpdateStates
 /// Activates or deactivates purchase options across one or multiple one-time products.
 ///
@@ -9486,9 +10278,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_upda
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_update_states(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    body: &BatchUpdatePurchaseOptionStatesRequest,
+    args: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsBatchUpdateStatesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUpdatePurchaseOptionStatesResponse>, ApiError>,
@@ -9500,9 +10290,9 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_upda
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_batch_update_states_builder(
             client,
-            packageName,
-            productId,
-            body,
+            &args.packageName,
+            &args.productId,
+            &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_batch_update_states_execute(
         builder,
@@ -9610,6 +10400,21 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_act
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_purchase_options_offers_activate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersActivateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: purchaseOptionId
+    pub purchaseOptionId: String,
+    /// Path parameter: offerId
+    pub offerId: String,
+    /// Request body.
+    pub body: ActivateOneTimeProductOfferRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:activate
 /// Activates a one-time product offer.
 ///
@@ -9622,11 +10427,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_act
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_activate(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    purchaseOptionId: &str,
-    offerId: &str,
-    body: &ActivateOneTimeProductOfferRequest,
+    args: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersActivateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OneTimeProductOffer>, ApiError>, P = ApiPending>
         + Send
@@ -9636,11 +10437,11 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_act
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_activate_builder(
             client,
-            packageName,
-            productId,
-            purchaseOptionId,
-            offerId,
-            body,
+            &args.packageName,
+            &args.productId,
+            &args.purchaseOptionId,
+            &args.offerId,
+            &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_activate_execute(builder)
 }
@@ -9739,6 +10540,19 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchDeleteArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: purchaseOptionId
+    pub purchaseOptionId: String,
+    /// Request body.
+    pub body: BatchDeleteOneTimeProductOffersRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchDelete
 /// Deletes one or more one-time product offers.
 ///
@@ -9751,10 +10565,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_delete(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    purchaseOptionId: &str,
-    body: &BatchDeleteOneTimeProductOffersRequest,
+    args: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -9762,10 +10573,10 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_delete_builder(
             client,
-            packageName,
-            productId,
-            purchaseOptionId,
-            body,
+            &args.packageName,
+            &args.productId,
+            &args.purchaseOptionId,
+            &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_delete_execute(
         builder,
@@ -9873,6 +10684,19 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: purchaseOptionId
+    pub purchaseOptionId: String,
+    /// Request body.
+    pub body: BatchGetOneTimeProductOffersRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchGet
 /// Reads one or more one-time product offers.
 ///
@@ -9885,10 +10709,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    purchaseOptionId: &str,
-    body: &BatchGetOneTimeProductOffersRequest,
+    args: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchGetOneTimeProductOffersResponse>, ApiError>,
@@ -9900,10 +10721,10 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_get_builder(
             client,
-            packageName,
-            productId,
-            purchaseOptionId,
-            body,
+            &args.packageName,
+            &args.productId,
+            &args.purchaseOptionId,
+            &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_get_execute(builder)
 }
@@ -10010,6 +10831,19 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: purchaseOptionId
+    pub purchaseOptionId: String,
+    /// Request body.
+    pub body: BatchUpdateOneTimeProductOffersRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdate
 /// Creates or updates one or more one-time product offers.
 ///
@@ -10022,10 +10856,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    purchaseOptionId: &str,
-    body: &BatchUpdateOneTimeProductOffersRequest,
+    args: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUpdateOneTimeProductOffersResponse>, ApiError>,
@@ -10037,10 +10868,10 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_builder(
             client,
-            packageName,
-            productId,
-            purchaseOptionId,
-            body,
+            &args.packageName,
+            &args.productId,
+            &args.purchaseOptionId,
+            &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_execute(
         builder,
@@ -10149,6 +10980,19 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchUpdateStatesArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: purchaseOptionId
+    pub purchaseOptionId: String,
+    /// Request body.
+    pub body: BatchUpdateOneTimeProductOfferStatesRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers:batchUpdateStates
 /// Updates a batch of one-time product offer states.
 ///
@@ -10161,10 +11005,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    purchaseOptionId: &str,
-    body: &BatchUpdateOneTimeProductOfferStatesRequest,
+    args: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersBatchUpdateStatesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUpdateOneTimeProductOfferStatesResponse>, ApiError>,
@@ -10173,7 +11014,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_builder(client, packageName, productId, purchaseOptionId, body)?;
+    let builder = androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_builder(client, &args.packageName, &args.productId, &args.purchaseOptionId, &args.body)?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_execute(builder)
 }
 
@@ -10278,6 +11119,21 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_can
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_purchase_options_offers_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersCancelArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: purchaseOptionId
+    pub purchaseOptionId: String,
+    /// Path parameter: offerId
+    pub offerId: String,
+    /// Request body.
+    pub body: CancelOneTimeProductOfferRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:cancel
 /// Cancels a one-time product offer.
 ///
@@ -10290,11 +11146,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_can
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_cancel(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    purchaseOptionId: &str,
-    offerId: &str,
-    body: &CancelOneTimeProductOfferRequest,
+    args: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OneTimeProductOffer>, ApiError>, P = ApiPending>
         + Send
@@ -10304,11 +11156,11 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_can
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_cancel_builder(
             client,
-            packageName,
-            productId,
-            purchaseOptionId,
-            offerId,
-            body,
+            &args.packageName,
+            &args.productId,
+            &args.purchaseOptionId,
+            &args.offerId,
+            &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_cancel_execute(builder)
 }
@@ -10414,6 +11266,21 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_dea
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_purchase_options_offers_deactivate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersDeactivateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: purchaseOptionId
+    pub purchaseOptionId: String,
+    /// Path parameter: offerId
+    pub offerId: String,
+    /// Request body.
+    pub body: DeactivateOneTimeProductOfferRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers/{offerId}:deactivate
 /// Deactivates a one-time product offer.
 ///
@@ -10426,11 +11293,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_dea
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_deactivate(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    purchaseOptionId: &str,
-    offerId: &str,
-    body: &DeactivateOneTimeProductOfferRequest,
+    args: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersDeactivateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OneTimeProductOffer>, ApiError>, P = ApiPending>
         + Send
@@ -10440,11 +11303,11 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_dea
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_deactivate_builder(
             client,
-            packageName,
-            productId,
-            purchaseOptionId,
-            offerId,
-            body,
+            &args.packageName,
+            &args.productId,
+            &args.purchaseOptionId,
+            &args.offerId,
+            &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_deactivate_execute(
         builder,
@@ -10565,6 +11428,21 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_lis
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_onetimeproducts_purchase_options_offers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: purchaseOptionId
+    pub purchaseOptionId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers
 /// Lists all offers under a given app, product, or purchase option.
 ///
@@ -10577,11 +11455,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_lis
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_list(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    purchaseOptionId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListOneTimeProductOffersResponse>, ApiError>,
@@ -10593,11 +11467,11 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_lis
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_list_builder(
             client,
-            packageName,
-            productId,
-            purchaseOptionId,
-            pageSize,
-            pageToken,
+            &args.packageName,
+            &args.productId,
+            &args.purchaseOptionId,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_list_execute(builder)
 }
@@ -10699,6 +11573,17 @@ pub fn androidpublisher_monetization_subscriptions_archive_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_archive`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsArchiveArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Request body.
+    pub body: ArchiveSubscriptionRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}:archive
 /// Deprecated: subscription archiving is not supported.
 ///
@@ -10711,9 +11596,7 @@ pub fn androidpublisher_monetization_subscriptions_archive_execute(
 
 pub fn androidpublisher_monetization_subscriptions_archive(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    body: &ArchiveSubscriptionRequest,
+    args: &AndroidpublisherMonetizationSubscriptionsArchiveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
@@ -10722,9 +11605,9 @@ pub fn androidpublisher_monetization_subscriptions_archive(
 > {
     let builder = androidpublisher_monetization_subscriptions_archive_builder(
         client,
-        packageName,
-        productId,
-        body,
+        &args.packageName,
+        &args.productId,
+        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_archive_execute(builder)
 }
@@ -10835,6 +11718,15 @@ pub fn androidpublisher_monetization_subscriptions_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBatchGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: productIds
+    pub productIds: Option<String>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions:batchGet
 /// Reads one or more subscriptions.
 ///
@@ -10847,8 +11739,7 @@ pub fn androidpublisher_monetization_subscriptions_batch_get_execute(
 
 pub fn androidpublisher_monetization_subscriptions_batch_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productIds: Option<&str>,
+    args: &AndroidpublisherMonetizationSubscriptionsBatchGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchGetSubscriptionsResponse>, ApiError>,
@@ -10859,8 +11750,8 @@ pub fn androidpublisher_monetization_subscriptions_batch_get(
 > {
     let builder = androidpublisher_monetization_subscriptions_batch_get_builder(
         client,
-        packageName,
-        productIds,
+        &args.packageName,
+        args.productIds.as_deref(),
     )?;
     androidpublisher_monetization_subscriptions_batch_get_execute(builder)
 }
@@ -10962,6 +11853,15 @@ pub fn androidpublisher_monetization_subscriptions_batch_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBatchUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Request body.
+    pub body: BatchUpdateSubscriptionsRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions:batchUpdate
 /// Updates a batch of subscriptions. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
@@ -10974,8 +11874,7 @@ pub fn androidpublisher_monetization_subscriptions_batch_update_execute(
 
 pub fn androidpublisher_monetization_subscriptions_batch_update(
     client: &SimpleHttpClient,
-    packageName: &str,
-    body: &BatchUpdateSubscriptionsRequest,
+    args: &AndroidpublisherMonetizationSubscriptionsBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUpdateSubscriptionsResponse>, ApiError>,
@@ -10986,8 +11885,8 @@ pub fn androidpublisher_monetization_subscriptions_batch_update(
 > {
     let builder = androidpublisher_monetization_subscriptions_batch_update_builder(
         client,
-        packageName,
-        body,
+        &args.packageName,
+        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_batch_update_execute(builder)
 }
@@ -11103,6 +12002,19 @@ pub fn androidpublisher_monetization_subscriptions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsCreateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: productId
+    pub productId: Option<String>,
+    /// Query parameter: regionsVersion_version
+    pub regionsVersion_version: Option<String>,
+    /// Request body.
+    pub body: Subscription,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions
 /// Creates a new subscription. Newly added base plans will remain in draft state until activated.
 ///
@@ -11115,10 +12027,7 @@ pub fn androidpublisher_monetization_subscriptions_create_execute(
 
 pub fn androidpublisher_monetization_subscriptions_create(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: Option<&str>,
-    regionsVersion_version: Option<&str>,
-    body: &Subscription,
+    args: &AndroidpublisherMonetizationSubscriptionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
@@ -11127,10 +12036,10 @@ pub fn androidpublisher_monetization_subscriptions_create(
 > {
     let builder = androidpublisher_monetization_subscriptions_create_builder(
         client,
-        packageName,
-        productId,
-        regionsVersion_version,
-        body,
+        &args.packageName,
+        args.productId.as_deref(),
+        args.regionsVersion_version.as_deref(),
+        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_create_execute(builder)
 }
@@ -11224,6 +12133,15 @@ pub fn androidpublisher_monetization_subscriptions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsDeleteArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
 /// Deletes a subscription. A subscription can only be deleted if it has never had a base plan published.
 ///
@@ -11236,14 +12154,16 @@ pub fn androidpublisher_monetization_subscriptions_delete_execute(
 
 pub fn androidpublisher_monetization_subscriptions_delete(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
+    args: &AndroidpublisherMonetizationSubscriptionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_monetization_subscriptions_delete_builder(client, packageName, productId)?;
+    let builder = androidpublisher_monetization_subscriptions_delete_builder(
+        client,
+        &args.packageName,
+        &args.productId,
+    )?;
     androidpublisher_monetization_subscriptions_delete_execute(builder)
 }
 
@@ -11341,6 +12261,15 @@ pub fn androidpublisher_monetization_subscriptions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
 /// Reads a single subscription.
 ///
@@ -11353,16 +12282,18 @@ pub fn androidpublisher_monetization_subscriptions_get_execute(
 
 pub fn androidpublisher_monetization_subscriptions_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
+    args: &AndroidpublisherMonetizationSubscriptionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_monetization_subscriptions_get_builder(client, packageName, productId)?;
+    let builder = androidpublisher_monetization_subscriptions_get_builder(
+        client,
+        &args.packageName,
+        &args.productId,
+    )?;
     androidpublisher_monetization_subscriptions_get_execute(builder)
 }
 
@@ -11478,6 +12409,19 @@ pub fn androidpublisher_monetization_subscriptions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showArchived
+    pub showArchived: Option<bool>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions
 /// Lists all subscriptions under a given app.
 ///
@@ -11490,10 +12434,7 @@ pub fn androidpublisher_monetization_subscriptions_list_execute(
 
 pub fn androidpublisher_monetization_subscriptions_list(
     client: &SimpleHttpClient,
-    packageName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showArchived: Option<bool>,
+    args: &AndroidpublisherMonetizationSubscriptionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSubscriptionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -11502,10 +12443,10 @@ pub fn androidpublisher_monetization_subscriptions_list(
 > {
     let builder = androidpublisher_monetization_subscriptions_list_builder(
         client,
-        packageName,
-        pageSize,
-        pageToken,
-        showArchived,
+        &args.packageName,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showArchived,
     )?;
     androidpublisher_monetization_subscriptions_list_execute(builder)
 }
@@ -11631,6 +12572,25 @@ pub fn androidpublisher_monetization_subscriptions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: latencyTolerance
+    pub latencyTolerance: Option<String>,
+    /// Query parameter: regionsVersion_version
+    pub regionsVersion_version: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Subscription,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
 /// Updates an existing subscription.
 ///
@@ -11643,13 +12603,7 @@ pub fn androidpublisher_monetization_subscriptions_patch_execute(
 
 pub fn androidpublisher_monetization_subscriptions_patch(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    allowMissing: Option<bool>,
-    latencyTolerance: Option<&str>,
-    regionsVersion_version: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Subscription,
+    args: &AndroidpublisherMonetizationSubscriptionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
@@ -11658,13 +12612,13 @@ pub fn androidpublisher_monetization_subscriptions_patch(
 > {
     let builder = androidpublisher_monetization_subscriptions_patch_builder(
         client,
-        packageName,
-        productId,
-        allowMissing,
-        latencyTolerance,
-        regionsVersion_version,
-        updateMask,
-        body,
+        &args.packageName,
+        &args.productId,
+        args.allowMissing,
+        args.latencyTolerance.as_deref(),
+        args.regionsVersion_version.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_patch_execute(builder)
 }
@@ -11768,6 +12722,19 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_activate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_activate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansActivateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+    /// Request body.
+    pub body: ActivateBasePlanRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:activate
 /// Activates a base plan. Once activated, base plans will be available to new subscribers.
 ///
@@ -11780,10 +12747,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_activate_execute(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_activate(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    body: &ActivateBasePlanRequest,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansActivateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
@@ -11792,10 +12756,10 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_activate(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_activate_builder(
         client,
-        packageName,
-        productId,
-        basePlanId,
-        body,
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_activate_execute(builder)
 }
@@ -11899,6 +12863,17 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_pric
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_batch_migrate_prices`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansBatchMigratePricesArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Request body.
+    pub body: BatchMigrateBasePlanPricesRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchMigratePrices
 /// Batch variant of the MigrateBasePlanPrices endpoint. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
@@ -11911,9 +12886,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_pric
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_prices(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    body: &BatchMigrateBasePlanPricesRequest,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansBatchMigratePricesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchMigrateBasePlanPricesResponse>, ApiError>,
@@ -11925,9 +12898,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_pric
     let builder =
         androidpublisher_monetization_subscriptions_base_plans_batch_migrate_prices_builder(
             client,
-            packageName,
-            productId,
-            body,
+            &args.packageName,
+            &args.productId,
+            &args.body,
         )?;
     androidpublisher_monetization_subscriptions_base_plans_batch_migrate_prices_execute(builder)
 }
@@ -12031,6 +13004,17 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_state
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_batch_update_states`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansBatchUpdateStatesArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Request body.
+    pub body: BatchUpdateBasePlanStatesRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans:batchUpdateStates
 /// Activates or deactivates base plans across one or multiple subscriptions. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
@@ -12043,9 +13027,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_state
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_states(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    body: &BatchUpdateBasePlanStatesRequest,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansBatchUpdateStatesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUpdateBasePlanStatesResponse>, ApiError>,
@@ -12057,9 +13039,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_state
     let builder =
         androidpublisher_monetization_subscriptions_base_plans_batch_update_states_builder(
             client,
-            packageName,
-            productId,
-            body,
+            &args.packageName,
+            &args.productId,
+            &args.body,
         )?;
     androidpublisher_monetization_subscriptions_base_plans_batch_update_states_execute(builder)
 }
@@ -12163,6 +13145,19 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_deactivate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansDeactivateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+    /// Request body.
+    pub body: DeactivateBasePlanRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:deactivate
 /// Deactivates a base plan. Once deactivated, the base plan will become unavailable to new subscribers, but existing subscribers will maintain their subscription
 ///
@@ -12175,10 +13170,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate_execute
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    body: &DeactivateBasePlanRequest,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansDeactivateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
@@ -12187,10 +13179,10 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_deactivate_builder(
         client,
-        packageName,
-        productId,
-        basePlanId,
-        body,
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_deactivate_execute(builder)
 }
@@ -12286,6 +13278,17 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansDeleteArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}
 /// Deletes a base plan. Can only be done for draft base plans. This action is irreversible.
 ///
@@ -12298,18 +13301,16 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_delete_execute(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_delete(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_delete_builder(
         client,
-        packageName,
-        productId,
-        basePlanId,
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_delete_execute(builder)
 }
@@ -12415,6 +13416,19 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_migrate_prices`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansMigratePricesArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+    /// Request body.
+    pub body: MigrateBasePlanPricesRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:migratePrices
 /// Migrates subscribers from one or more legacy price cohorts to the current price. Requests result in Google Play notifying affected subscribers. Only up to 250 simultaneous legacy price cohorts are supported.
 ///
@@ -12427,10 +13441,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices_exe
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    body: &MigrateBasePlanPricesRequest,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansMigratePricesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<MigrateBasePlanPricesResponse>, ApiError>,
@@ -12441,10 +13452,10 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_migrate_prices_builder(
         client,
-        packageName,
-        productId,
-        basePlanId,
-        body,
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_migrate_prices_execute(builder)
 }
@@ -12550,6 +13561,21 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_offers_activate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersActivateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+    /// Path parameter: offerId
+    pub offerId: String,
+    /// Request body.
+    pub body: ActivateSubscriptionOfferRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:activate
 /// Activates a subscription offer. Once activated, subscription offers will be available to new subscribers.
 ///
@@ -12562,11 +13588,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate_ex
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    offerId: &str,
-    body: &ActivateSubscriptionOfferRequest,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersActivateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
         + Send
@@ -12575,11 +13597,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_activate_builder(
         client,
-        packageName,
-        productId,
-        basePlanId,
-        offerId,
-        body,
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        &args.offerId,
+        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_activate_execute(builder)
 }
@@ -12685,6 +13707,19 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_offers_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+    /// Request body.
+    pub body: BatchGetSubscriptionOffersRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchGet
 /// Reads one or more subscription offers.
 ///
@@ -12697,10 +13732,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_e
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    body: &BatchGetSubscriptionOffersRequest,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchGetSubscriptionOffersResponse>, ApiError>,
@@ -12711,10 +13743,10 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_builder(
         client,
-        packageName,
-        productId,
-        basePlanId,
-        body,
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_execute(builder)
 }
@@ -12820,6 +13852,19 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_offers_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchUpdateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+    /// Request body.
+    pub body: BatchUpdateSubscriptionOffersRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdate
 /// Updates a batch of subscription offers. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
@@ -12832,10 +13877,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_update(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    body: &BatchUpdateSubscriptionOffersRequest,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUpdateSubscriptionOffersResponse>, ApiError>,
@@ -12847,10 +13889,10 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
     let builder =
         androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_builder(
             client,
-            packageName,
-            productId,
-            basePlanId,
-            body,
+            &args.packageName,
+            &args.productId,
+            &args.basePlanId,
+            &args.body,
         )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_execute(builder)
 }
@@ -12957,6 +13999,19 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_states`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchUpdateStatesArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+    /// Request body.
+    pub body: BatchUpdateSubscriptionOfferStatesRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers:batchUpdateStates
 /// Updates a batch of subscription offer states. Set the `latencyTolerance` field on nested requests to PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT to achieve maximum update throughput.
 ///
@@ -12969,10 +14024,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_states(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    body: &BatchUpdateSubscriptionOfferStatesRequest,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersBatchUpdateStatesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUpdateSubscriptionOfferStatesResponse>, ApiError>,
@@ -12984,10 +14036,10 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
     let builder =
         androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_states_builder(
             client,
-            packageName,
-            productId,
-            basePlanId,
-            body,
+            &args.packageName,
+            &args.productId,
+            &args.basePlanId,
+            &args.body,
         )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_states_execute(
         builder,
@@ -13109,6 +14161,23 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_offers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersCreateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+    /// Query parameter: offerId
+    pub offerId: Option<String>,
+    /// Query parameter: regionsVersion_version
+    pub regionsVersion_version: Option<String>,
+    /// Request body.
+    pub body: SubscriptionOffer,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
 /// Creates a new subscription offer. Only auto-renewing base plans can have subscription offers. The offer state will be DRAFT until it is activated.
 ///
@@ -13121,12 +14190,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create_exec
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    offerId: Option<&str>,
-    regionsVersion_version: Option<&str>,
-    body: &SubscriptionOffer,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
         + Send
@@ -13135,12 +14199,12 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_create_builder(
         client,
-        packageName,
-        productId,
-        basePlanId,
-        offerId,
-        regionsVersion_version,
-        body,
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        args.offerId.as_deref(),
+        args.regionsVersion_version.as_deref(),
+        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_create_execute(builder)
 }
@@ -13246,6 +14310,21 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_offers_deactivate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersDeactivateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+    /// Path parameter: offerId
+    pub offerId: String,
+    /// Request body.
+    pub body: DeactivateSubscriptionOfferRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}:deactivate
 /// Deactivates a subscription offer. Once deactivated, existing subscribers will maintain their subscription, but the offer will become unavailable to new subscribers.
 ///
@@ -13258,11 +14337,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    offerId: &str,
-    body: &DeactivateSubscriptionOfferRequest,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersDeactivateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
         + Send
@@ -13271,11 +14346,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_builder(
         client,
-        packageName,
-        productId,
-        basePlanId,
-        offerId,
-        body,
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        &args.offerId,
+        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_execute(builder)
 }
@@ -13373,6 +14448,19 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_offers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersDeleteArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+    /// Path parameter: offerId
+    pub offerId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
 /// Deletes a subscription offer. Can only be done for draft offers. This action is irreversible.
 ///
@@ -13385,20 +14473,17 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete_exec
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    offerId: &str,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_delete_builder(
         client,
-        packageName,
-        productId,
-        basePlanId,
-        offerId,
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        &args.offerId,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_delete_execute(builder)
 }
@@ -13501,6 +14586,19 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_offers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+    /// Path parameter: offerId
+    pub offerId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
 /// Reads a single offer
 ///
@@ -13513,10 +14611,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_get_execute
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    offerId: &str,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
         + Send
@@ -13525,10 +14620,10 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_get(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_get_builder(
         client,
-        packageName,
-        productId,
-        basePlanId,
-        offerId,
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        &args.offerId,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_get_execute(builder)
 }
@@ -13647,6 +14742,21 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_offers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
 /// Lists all offers under a given subscription.
 ///
@@ -13659,11 +14769,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_list_execut
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_list(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSubscriptionOffersResponse>, ApiError>,
@@ -13674,11 +14780,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_list(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_list_builder(
         client,
-        packageName,
-        productId,
-        basePlanId,
-        pageSize,
-        pageToken,
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_list_execute(builder)
 }
@@ -13808,6 +14914,29 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_offers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersPatchArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: basePlanId
+    pub basePlanId: String,
+    /// Path parameter: offerId
+    pub offerId: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: latencyTolerance
+    pub latencyTolerance: Option<String>,
+    /// Query parameter: regionsVersion_version
+    pub regionsVersion_version: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SubscriptionOffer,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
 /// Updates an existing subscription offer.
 ///
@@ -13820,15 +14949,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch_execu
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    offerId: &str,
-    allowMissing: Option<bool>,
-    latencyTolerance: Option<&str>,
-    regionsVersion_version: Option<&str>,
-    updateMask: Option<&str>,
-    body: &SubscriptionOffer,
+    args: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
         + Send
@@ -13837,15 +14958,15 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_patch_builder(
         client,
-        packageName,
-        productId,
-        basePlanId,
-        offerId,
-        allowMissing,
-        latencyTolerance,
-        regionsVersion_version,
-        updateMask,
-        body,
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        &args.offerId,
+        args.allowMissing,
+        args.latencyTolerance.as_deref(),
+        args.regionsVersion_version.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_patch_execute(builder)
 }
@@ -13954,6 +15075,15 @@ pub fn androidpublisher_orders_batchget_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_orders_batchget`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherOrdersBatchgetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: orderIds
+    pub orderIds: Option<String>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/orders:batchGet
 /// Get order details for a list of orders.
 ///
@@ -13966,15 +15096,18 @@ pub fn androidpublisher_orders_batchget_execute(
 
 pub fn androidpublisher_orders_batchget(
     client: &SimpleHttpClient,
-    packageName: &str,
-    orderIds: Option<&str>,
+    args: &AndroidpublisherOrdersBatchgetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchGetOrdersResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_orders_batchget_builder(client, packageName, orderIds)?;
+    let builder = androidpublisher_orders_batchget_builder(
+        client,
+        &args.packageName,
+        args.orderIds.as_deref(),
+    )?;
     androidpublisher_orders_batchget_execute(builder)
 }
 
@@ -14069,6 +15202,15 @@ pub fn androidpublisher_orders_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_orders_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherOrdersGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: orderId
+    pub orderId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/orders/{orderId}
 /// Get order details for a single order.
 ///
@@ -14081,13 +15223,12 @@ pub fn androidpublisher_orders_get_execute(
 
 pub fn androidpublisher_orders_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    orderId: &str,
+    args: &AndroidpublisherOrdersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Order>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_orders_get_builder(client, packageName, orderId)?;
+    let builder = androidpublisher_orders_get_builder(client, &args.packageName, &args.orderId)?;
     androidpublisher_orders_get_execute(builder)
 }
 
@@ -14192,6 +15333,17 @@ pub fn androidpublisher_orders_refund_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_orders_refund`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherOrdersRefundArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: orderId
+    pub orderId: String,
+    /// Query parameter: revoke
+    pub revoke: Option<bool>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/orders/{orderId}:refund
 /// Refunds a user's subscription or in-app purchase order. Orders older than 3 years cannot be refunded.
 ///
@@ -14204,14 +15356,17 @@ pub fn androidpublisher_orders_refund_execute(
 
 pub fn androidpublisher_orders_refund(
     client: &SimpleHttpClient,
-    packageName: &str,
-    orderId: &str,
-    revoke: Option<bool>,
+    args: &AndroidpublisherOrdersRefundArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_orders_refund_builder(client, packageName, orderId, revoke)?;
+    let builder = androidpublisher_orders_refund_builder(
+        client,
+        &args.packageName,
+        &args.orderId,
+        args.revoke,
+    )?;
     androidpublisher_orders_refund_execute(builder)
 }
 
@@ -14309,6 +15464,19 @@ pub fn androidpublisher_purchases_products_acknowledge_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_purchases_products_acknowledge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherPurchasesProductsAcknowledgeArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: token
+    pub token: String,
+    /// Request body.
+    pub body: ProductPurchasesAcknowledgeRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:acknowledge
 /// Acknowledges a purchase of an inapp item.
 ///
@@ -14321,20 +15489,17 @@ pub fn androidpublisher_purchases_products_acknowledge_execute(
 
 pub fn androidpublisher_purchases_products_acknowledge(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    token: &str,
-    body: &ProductPurchasesAcknowledgeRequest,
+    args: &AndroidpublisherPurchasesProductsAcknowledgeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_purchases_products_acknowledge_builder(
         client,
-        packageName,
-        productId,
-        token,
-        body,
+        &args.packageName,
+        &args.productId,
+        &args.token,
+        &args.body,
     )?;
     androidpublisher_purchases_products_acknowledge_execute(builder)
 }
@@ -14430,6 +15595,17 @@ pub fn androidpublisher_purchases_products_consume_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_purchases_products_consume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherPurchasesProductsConsumeArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: token
+    pub token: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}:consume
 /// Consumes a purchase for an inapp item.
 ///
@@ -14442,15 +15618,17 @@ pub fn androidpublisher_purchases_products_consume_execute(
 
 pub fn androidpublisher_purchases_products_consume(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    token: &str,
+    args: &AndroidpublisherPurchasesProductsConsumeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_purchases_products_consume_builder(client, packageName, productId, token)?;
+    let builder = androidpublisher_purchases_products_consume_builder(
+        client,
+        &args.packageName,
+        &args.productId,
+        &args.token,
+    )?;
     androidpublisher_purchases_products_consume_execute(builder)
 }
 
@@ -14550,6 +15728,17 @@ pub fn androidpublisher_purchases_products_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_purchases_products_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherPurchasesProductsGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: token
+    pub token: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/purchases/products/{productId}/tokens/{token}
 /// Checks the purchase and consumption status of an inapp item.
 ///
@@ -14562,17 +15751,19 @@ pub fn androidpublisher_purchases_products_get_execute(
 
 pub fn androidpublisher_purchases_products_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    token: &str,
+    args: &AndroidpublisherPurchasesProductsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductPurchase>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_purchases_products_get_builder(client, packageName, productId, token)?;
+    let builder = androidpublisher_purchases_products_get_builder(
+        client,
+        &args.packageName,
+        &args.productId,
+        &args.token,
+    )?;
     androidpublisher_purchases_products_get_execute(builder)
 }
 
@@ -14670,6 +15861,15 @@ pub fn androidpublisher_purchases_productsv2_getproductpurchasev2_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_purchases_productsv2_getproductpurchasev2`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherPurchasesProductsv2Getproductpurchasev2Args {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: token
+    pub token: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/purchases/productsv2/tokens/{token}
 /// Checks the purchase and consumption status of an inapp item.
 ///
@@ -14682,8 +15882,7 @@ pub fn androidpublisher_purchases_productsv2_getproductpurchasev2_execute(
 
 pub fn androidpublisher_purchases_productsv2_getproductpurchasev2(
     client: &SimpleHttpClient,
-    packageName: &str,
-    token: &str,
+    args: &AndroidpublisherPurchasesProductsv2Getproductpurchasev2Args,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductPurchaseV2>, ApiError>, P = ApiPending>
         + Send
@@ -14692,8 +15891,8 @@ pub fn androidpublisher_purchases_productsv2_getproductpurchasev2(
 > {
     let builder = androidpublisher_purchases_productsv2_getproductpurchasev2_builder(
         client,
-        packageName,
-        token,
+        &args.packageName,
+        &args.token,
     )?;
     androidpublisher_purchases_productsv2_getproductpurchasev2_execute(builder)
 }
@@ -14792,6 +15991,19 @@ pub fn androidpublisher_purchases_subscriptions_acknowledge_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_purchases_subscriptions_acknowledge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherPurchasesSubscriptionsAcknowledgeArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: subscriptionId
+    pub subscriptionId: String,
+    /// Path parameter: token
+    pub token: String,
+    /// Request body.
+    pub body: SubscriptionPurchasesAcknowledgeRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:acknowledge
 /// Acknowledges a subscription purchase.
 ///
@@ -14804,20 +16016,17 @@ pub fn androidpublisher_purchases_subscriptions_acknowledge_execute(
 
 pub fn androidpublisher_purchases_subscriptions_acknowledge(
     client: &SimpleHttpClient,
-    packageName: &str,
-    subscriptionId: &str,
-    token: &str,
-    body: &SubscriptionPurchasesAcknowledgeRequest,
+    args: &AndroidpublisherPurchasesSubscriptionsAcknowledgeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_purchases_subscriptions_acknowledge_builder(
         client,
-        packageName,
-        subscriptionId,
-        token,
-        body,
+        &args.packageName,
+        &args.subscriptionId,
+        &args.token,
+        &args.body,
     )?;
     androidpublisher_purchases_subscriptions_acknowledge_execute(builder)
 }
@@ -14913,6 +16122,17 @@ pub fn androidpublisher_purchases_subscriptions_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_purchases_subscriptions_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherPurchasesSubscriptionsCancelArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: subscriptionId
+    pub subscriptionId: String,
+    /// Path parameter: token
+    pub token: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:cancel
 /// Cancels a user's subscription purchase. The subscription remains valid until its expiration time. Newer version is available at purchases.subscriptionsv2.cancel for better client library support.
 ///
@@ -14925,18 +16145,16 @@ pub fn androidpublisher_purchases_subscriptions_cancel_execute(
 
 pub fn androidpublisher_purchases_subscriptions_cancel(
     client: &SimpleHttpClient,
-    packageName: &str,
-    subscriptionId: &str,
-    token: &str,
+    args: &AndroidpublisherPurchasesSubscriptionsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_purchases_subscriptions_cancel_builder(
         client,
-        packageName,
-        subscriptionId,
-        token,
+        &args.packageName,
+        &args.subscriptionId,
+        &args.token,
     )?;
     androidpublisher_purchases_subscriptions_cancel_execute(builder)
 }
@@ -15042,6 +16260,19 @@ pub fn androidpublisher_purchases_subscriptions_defer_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_purchases_subscriptions_defer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherPurchasesSubscriptionsDeferArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: subscriptionId
+    pub subscriptionId: String,
+    /// Path parameter: token
+    pub token: String,
+    /// Request body.
+    pub body: SubscriptionPurchasesDeferRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:defer
 /// Defers a user's subscription purchase until a specified future expiration time.
 ///
@@ -15054,10 +16285,7 @@ pub fn androidpublisher_purchases_subscriptions_defer_execute(
 
 pub fn androidpublisher_purchases_subscriptions_defer(
     client: &SimpleHttpClient,
-    packageName: &str,
-    subscriptionId: &str,
-    token: &str,
-    body: &SubscriptionPurchasesDeferRequest,
+    args: &AndroidpublisherPurchasesSubscriptionsDeferArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SubscriptionPurchasesDeferResponse>, ApiError>,
@@ -15068,10 +16296,10 @@ pub fn androidpublisher_purchases_subscriptions_defer(
 > {
     let builder = androidpublisher_purchases_subscriptions_defer_builder(
         client,
-        packageName,
-        subscriptionId,
-        token,
-        body,
+        &args.packageName,
+        &args.subscriptionId,
+        &args.token,
+        &args.body,
     )?;
     androidpublisher_purchases_subscriptions_defer_execute(builder)
 }
@@ -15172,6 +16400,17 @@ pub fn androidpublisher_purchases_subscriptions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_purchases_subscriptions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherPurchasesSubscriptionsGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: subscriptionId
+    pub subscriptionId: String,
+    /// Path parameter: token
+    pub token: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}
 /// Deprecated: Use purchases.subscriptionsv2.get instead. Checks whether a user's subscription purchase is valid and returns its expiry time.
 ///
@@ -15184,9 +16423,7 @@ pub fn androidpublisher_purchases_subscriptions_get_execute(
 
 pub fn androidpublisher_purchases_subscriptions_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    subscriptionId: &str,
-    token: &str,
+    args: &AndroidpublisherPurchasesSubscriptionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SubscriptionPurchase>, ApiError>, P = ApiPending>
         + Send
@@ -15195,9 +16432,9 @@ pub fn androidpublisher_purchases_subscriptions_get(
 > {
     let builder = androidpublisher_purchases_subscriptions_get_builder(
         client,
-        packageName,
-        subscriptionId,
-        token,
+        &args.packageName,
+        &args.subscriptionId,
+        &args.token,
     )?;
     androidpublisher_purchases_subscriptions_get_execute(builder)
 }
@@ -15293,6 +16530,17 @@ pub fn androidpublisher_purchases_subscriptions_refund_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_purchases_subscriptions_refund`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherPurchasesSubscriptionsRefundArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: subscriptionId
+    pub subscriptionId: String,
+    /// Path parameter: token
+    pub token: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:refund
 /// Deprecated: Use orders.refund instead. Refunds a user's subscription purchase, but the subscription remains valid until its expiration time and it will continue to recur.
 ///
@@ -15305,18 +16553,16 @@ pub fn androidpublisher_purchases_subscriptions_refund_execute(
 
 pub fn androidpublisher_purchases_subscriptions_refund(
     client: &SimpleHttpClient,
-    packageName: &str,
-    subscriptionId: &str,
-    token: &str,
+    args: &AndroidpublisherPurchasesSubscriptionsRefundArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_purchases_subscriptions_refund_builder(
         client,
-        packageName,
-        subscriptionId,
-        token,
+        &args.packageName,
+        &args.subscriptionId,
+        &args.token,
     )?;
     androidpublisher_purchases_subscriptions_refund_execute(builder)
 }
@@ -15412,6 +16658,17 @@ pub fn androidpublisher_purchases_subscriptions_revoke_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_purchases_subscriptions_revoke`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherPurchasesSubscriptionsRevokeArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: subscriptionId
+    pub subscriptionId: String,
+    /// Path parameter: token
+    pub token: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptions/{subscriptionId}/tokens/{token}:revoke
 /// Deprecated: Use purchases.subscriptionsv2.revoke instead. Refunds and immediately revokes a user's subscription purchase. Access to the subscription will be terminated immediately and it will stop recurring.
 ///
@@ -15424,18 +16681,16 @@ pub fn androidpublisher_purchases_subscriptions_revoke_execute(
 
 pub fn androidpublisher_purchases_subscriptions_revoke(
     client: &SimpleHttpClient,
-    packageName: &str,
-    subscriptionId: &str,
-    token: &str,
+    args: &AndroidpublisherPurchasesSubscriptionsRevokeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_purchases_subscriptions_revoke_builder(
         client,
-        packageName,
-        subscriptionId,
-        token,
+        &args.packageName,
+        &args.subscriptionId,
+        &args.token,
     )?;
     androidpublisher_purchases_subscriptions_revoke_execute(builder)
 }
@@ -15539,6 +16794,17 @@ pub fn androidpublisher_purchases_subscriptionsv2_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_purchases_subscriptionsv2_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherPurchasesSubscriptionsv2CancelArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: token
+    pub token: String,
+    /// Request body.
+    pub body: CancelSubscriptionPurchaseRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:cancel
 /// Cancel a subscription purchase for the user.
 ///
@@ -15551,9 +16817,7 @@ pub fn androidpublisher_purchases_subscriptionsv2_cancel_execute(
 
 pub fn androidpublisher_purchases_subscriptionsv2_cancel(
     client: &SimpleHttpClient,
-    packageName: &str,
-    token: &str,
-    body: &CancelSubscriptionPurchaseRequest,
+    args: &AndroidpublisherPurchasesSubscriptionsv2CancelArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CancelSubscriptionPurchaseResponse>, ApiError>,
@@ -15564,9 +16828,9 @@ pub fn androidpublisher_purchases_subscriptionsv2_cancel(
 > {
     let builder = androidpublisher_purchases_subscriptionsv2_cancel_builder(
         client,
-        packageName,
-        token,
-        body,
+        &args.packageName,
+        &args.token,
+        &args.body,
     )?;
     androidpublisher_purchases_subscriptionsv2_cancel_execute(builder)
 }
@@ -15670,6 +16934,17 @@ pub fn androidpublisher_purchases_subscriptionsv2_defer_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_purchases_subscriptionsv2_defer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherPurchasesSubscriptionsv2DeferArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: token
+    pub token: String,
+    /// Request body.
+    pub body: DeferSubscriptionPurchaseRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:defer
 /// Defers the renewal of a subscription.
 ///
@@ -15682,9 +16957,7 @@ pub fn androidpublisher_purchases_subscriptionsv2_defer_execute(
 
 pub fn androidpublisher_purchases_subscriptionsv2_defer(
     client: &SimpleHttpClient,
-    packageName: &str,
-    token: &str,
-    body: &DeferSubscriptionPurchaseRequest,
+    args: &AndroidpublisherPurchasesSubscriptionsv2DeferArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DeferSubscriptionPurchaseResponse>, ApiError>,
@@ -15693,8 +16966,12 @@ pub fn androidpublisher_purchases_subscriptionsv2_defer(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_purchases_subscriptionsv2_defer_builder(client, packageName, token, body)?;
+    let builder = androidpublisher_purchases_subscriptionsv2_defer_builder(
+        client,
+        &args.packageName,
+        &args.token,
+        &args.body,
+    )?;
     androidpublisher_purchases_subscriptionsv2_defer_execute(builder)
 }
 
@@ -15792,6 +17069,15 @@ pub fn androidpublisher_purchases_subscriptionsv2_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_purchases_subscriptionsv2_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherPurchasesSubscriptionsv2GetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: token
+    pub token: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}
 /// Get metadata about a subscription
 ///
@@ -15804,16 +17090,18 @@ pub fn androidpublisher_purchases_subscriptionsv2_get_execute(
 
 pub fn androidpublisher_purchases_subscriptionsv2_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    token: &str,
+    args: &AndroidpublisherPurchasesSubscriptionsv2GetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SubscriptionPurchaseV2>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_purchases_subscriptionsv2_get_builder(client, packageName, token)?;
+    let builder = androidpublisher_purchases_subscriptionsv2_get_builder(
+        client,
+        &args.packageName,
+        &args.token,
+    )?;
     androidpublisher_purchases_subscriptionsv2_get_execute(builder)
 }
 
@@ -15916,6 +17204,17 @@ pub fn androidpublisher_purchases_subscriptionsv2_revoke_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_purchases_subscriptionsv2_revoke`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherPurchasesSubscriptionsv2RevokeArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: token
+    pub token: String,
+    /// Request body.
+    pub body: RevokeSubscriptionPurchaseRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:revoke
 /// Revoke a subscription purchase for the user.
 ///
@@ -15928,9 +17227,7 @@ pub fn androidpublisher_purchases_subscriptionsv2_revoke_execute(
 
 pub fn androidpublisher_purchases_subscriptionsv2_revoke(
     client: &SimpleHttpClient,
-    packageName: &str,
-    token: &str,
-    body: &RevokeSubscriptionPurchaseRequest,
+    args: &AndroidpublisherPurchasesSubscriptionsv2RevokeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RevokeSubscriptionPurchaseResponse>, ApiError>,
@@ -15941,9 +17238,9 @@ pub fn androidpublisher_purchases_subscriptionsv2_revoke(
 > {
     let builder = androidpublisher_purchases_subscriptionsv2_revoke_builder(
         client,
-        packageName,
-        token,
-        body,
+        &args.packageName,
+        &args.token,
+        &args.body,
     )?;
     androidpublisher_purchases_subscriptionsv2_revoke_execute(builder)
 }
@@ -16078,6 +17375,27 @@ pub fn androidpublisher_purchases_voidedpurchases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_purchases_voidedpurchases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherPurchasesVoidedpurchasesListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: endTime
+    pub endTime: Option<String>,
+    /// Query parameter: includeQuantityBasedPartialRefund
+    pub includeQuantityBasedPartialRefund: Option<bool>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: startIndex
+    pub startIndex: Option<i32>,
+    /// Query parameter: startTime
+    pub startTime: Option<String>,
+    /// Query parameter: token
+    pub token: Option<String>,
+    /// Query parameter: type
+    pub type_rs: Option<i32>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/purchases/voidedpurchases
 /// Lists the purchases that were canceled, refunded or charged-back.
 ///
@@ -16090,14 +17408,7 @@ pub fn androidpublisher_purchases_voidedpurchases_list_execute(
 
 pub fn androidpublisher_purchases_voidedpurchases_list(
     client: &SimpleHttpClient,
-    packageName: &str,
-    endTime: Option<&str>,
-    includeQuantityBasedPartialRefund: Option<bool>,
-    maxResults: Option<i32>,
-    startIndex: Option<i32>,
-    startTime: Option<&str>,
-    token: Option<&str>,
-    type_rs: Option<i32>,
+    args: &AndroidpublisherPurchasesVoidedpurchasesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<VoidedPurchasesListResponse>, ApiError>,
@@ -16108,14 +17419,14 @@ pub fn androidpublisher_purchases_voidedpurchases_list(
 > {
     let builder = androidpublisher_purchases_voidedpurchases_list_builder(
         client,
-        packageName,
-        endTime,
-        includeQuantityBasedPartialRefund,
-        maxResults,
-        startIndex,
-        startTime,
-        token,
-        type_rs,
+        &args.packageName,
+        args.endTime.as_deref(),
+        args.includeQuantityBasedPartialRefund,
+        args.maxResults,
+        args.startIndex,
+        args.startTime.as_deref(),
+        args.token.as_deref(),
+        args.type_rs,
     )?;
     androidpublisher_purchases_voidedpurchases_list_execute(builder)
 }
@@ -16223,6 +17534,17 @@ pub fn androidpublisher_reviews_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_reviews_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherReviewsGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: reviewId
+    pub reviewId: String,
+    /// Query parameter: translationLanguage
+    pub translationLanguage: Option<String>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/reviews/{reviewId}
 /// Gets a single review.
 ///
@@ -16235,15 +17557,17 @@ pub fn androidpublisher_reviews_get_execute(
 
 pub fn androidpublisher_reviews_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    reviewId: &str,
-    translationLanguage: Option<&str>,
+    args: &AndroidpublisherReviewsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Review>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_reviews_get_builder(client, packageName, reviewId, translationLanguage)?;
+    let builder = androidpublisher_reviews_get_builder(
+        client,
+        &args.packageName,
+        &args.reviewId,
+        args.translationLanguage.as_deref(),
+    )?;
     androidpublisher_reviews_get_execute(builder)
 }
 
@@ -16363,6 +17687,21 @@ pub fn androidpublisher_reviews_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_reviews_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherReviewsListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: startIndex
+    pub startIndex: Option<i32>,
+    /// Query parameter: token
+    pub token: Option<String>,
+    /// Query parameter: translationLanguage
+    pub translationLanguage: Option<String>,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/reviews
 /// Lists all reviews.
 ///
@@ -16375,11 +17714,7 @@ pub fn androidpublisher_reviews_list_execute(
 
 pub fn androidpublisher_reviews_list(
     client: &SimpleHttpClient,
-    packageName: &str,
-    maxResults: Option<i32>,
-    startIndex: Option<i32>,
-    token: Option<&str>,
-    translationLanguage: Option<&str>,
+    args: &AndroidpublisherReviewsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReviewsListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -16388,11 +17723,11 @@ pub fn androidpublisher_reviews_list(
 > {
     let builder = androidpublisher_reviews_list_builder(
         client,
-        packageName,
-        maxResults,
-        startIndex,
-        token,
-        translationLanguage,
+        &args.packageName,
+        args.maxResults,
+        args.startIndex,
+        args.token.as_deref(),
+        args.translationLanguage.as_deref(),
     )?;
     androidpublisher_reviews_list_execute(builder)
 }
@@ -16494,6 +17829,17 @@ pub fn androidpublisher_reviews_reply_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_reviews_reply`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherReviewsReplyArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: reviewId
+    pub reviewId: String,
+    /// Request body.
+    pub body: ReviewsReplyRequest,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/reviews/{reviewId}:reply
 /// Replies to a single review, or updates an existing reply.
 ///
@@ -16506,16 +17852,19 @@ pub fn androidpublisher_reviews_reply_execute(
 
 pub fn androidpublisher_reviews_reply(
     client: &SimpleHttpClient,
-    packageName: &str,
-    reviewId: &str,
-    body: &ReviewsReplyRequest,
+    args: &AndroidpublisherReviewsReplyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReviewsReplyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_reviews_reply_builder(client, packageName, reviewId, body)?;
+    let builder = androidpublisher_reviews_reply_builder(
+        client,
+        &args.packageName,
+        &args.reviewId,
+        &args.body,
+    )?;
     androidpublisher_reviews_reply_execute(builder)
 }
 
@@ -16614,6 +17963,17 @@ pub fn androidpublisher_systemapks_variants_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_systemapks_variants_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherSystemapksVariantsCreateArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: versionCode
+    pub versionCode: String,
+    /// Request body.
+    pub body: Variant,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
 /// Creates an APK which is suitable for inclusion in a system image from an already uploaded Android App Bundle.
 ///
@@ -16626,18 +17986,16 @@ pub fn androidpublisher_systemapks_variants_create_execute(
 
 pub fn androidpublisher_systemapks_variants_create(
     client: &SimpleHttpClient,
-    packageName: &str,
-    versionCode: &str,
-    body: &Variant,
+    args: &AndroidpublisherSystemapksVariantsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Variant>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_systemapks_variants_create_builder(
         client,
-        packageName,
-        versionCode,
-        body,
+        &args.packageName,
+        &args.versionCode,
+        &args.body,
     )?;
     androidpublisher_systemapks_variants_create_execute(builder)
 }
@@ -16733,6 +18091,17 @@ pub fn androidpublisher_systemapks_variants_download_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_systemapks_variants_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherSystemapksVariantsDownloadArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: versionCode
+    pub versionCode: String,
+    /// Path parameter: variantId
+    pub variantId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants/{variantId}:download
 /// Downloads a previously created system APK which is suitable for inclusion in a system image.
 ///
@@ -16745,18 +18114,16 @@ pub fn androidpublisher_systemapks_variants_download_execute(
 
 pub fn androidpublisher_systemapks_variants_download(
     client: &SimpleHttpClient,
-    packageName: &str,
-    versionCode: &str,
-    variantId: &str,
+    args: &AndroidpublisherSystemapksVariantsDownloadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_systemapks_variants_download_builder(
         client,
-        packageName,
-        versionCode,
-        variantId,
+        &args.packageName,
+        &args.versionCode,
+        &args.variantId,
     )?;
     androidpublisher_systemapks_variants_download_execute(builder)
 }
@@ -16855,6 +18222,17 @@ pub fn androidpublisher_systemapks_variants_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_systemapks_variants_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherSystemapksVariantsGetArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: versionCode
+    pub versionCode: String,
+    /// Path parameter: variantId
+    pub variantId: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants/{variantId}
 /// Returns a previously created system APK variant.
 ///
@@ -16867,18 +18245,16 @@ pub fn androidpublisher_systemapks_variants_get_execute(
 
 pub fn androidpublisher_systemapks_variants_get(
     client: &SimpleHttpClient,
-    packageName: &str,
-    versionCode: &str,
-    variantId: &str,
+    args: &AndroidpublisherSystemapksVariantsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Variant>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidpublisher_systemapks_variants_get_builder(
         client,
-        packageName,
-        versionCode,
-        variantId,
+        &args.packageName,
+        &args.versionCode,
+        &args.variantId,
     )?;
     androidpublisher_systemapks_variants_get_execute(builder)
 }
@@ -16977,6 +18353,15 @@ pub fn androidpublisher_systemapks_variants_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_systemapks_variants_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherSystemapksVariantsListArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Path parameter: versionCode
+    pub versionCode: String,
+}
+
 /// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
 /// Returns the list of previously created system APK variants.
 ///
@@ -16989,16 +18374,18 @@ pub fn androidpublisher_systemapks_variants_list_execute(
 
 pub fn androidpublisher_systemapks_variants_list(
     client: &SimpleHttpClient,
-    packageName: &str,
-    versionCode: &str,
+    args: &AndroidpublisherSystemapksVariantsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SystemApksListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_systemapks_variants_list_builder(client, packageName, versionCode)?;
+    let builder = androidpublisher_systemapks_variants_list_builder(
+        client,
+        &args.packageName,
+        &args.versionCode,
+    )?;
     androidpublisher_systemapks_variants_list_execute(builder)
 }
 
@@ -17095,6 +18482,15 @@ pub fn androidpublisher_users_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_users_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherUsersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: User,
+}
+
 /// GET androidpublisher/v3/developers/{developersId}/users
 /// Grant access for a user to the given developer account.
 ///
@@ -17107,13 +18503,12 @@ pub fn androidpublisher_users_create_execute(
 
 pub fn androidpublisher_users_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &User,
+    args: &AndroidpublisherUsersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_users_create_builder(client, parent, body)?;
+    let builder = androidpublisher_users_create_builder(client, &args.parent, &args.body)?;
     androidpublisher_users_create_execute(builder)
 }
 
@@ -17204,6 +18599,13 @@ pub fn androidpublisher_users_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_users_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherUsersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET androidpublisher/v3/developers/{developersId}/users/{usersId}
 /// Removes all access for the user to the given developer account.
 ///
@@ -17216,12 +18618,12 @@ pub fn androidpublisher_users_delete_execute(
 
 pub fn androidpublisher_users_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroidpublisherUsersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_users_delete_builder(client, name)?;
+    let builder = androidpublisher_users_delete_builder(client, &args.name)?;
     androidpublisher_users_delete_execute(builder)
 }
 
@@ -17333,6 +18735,17 @@ pub fn androidpublisher_users_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_users_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherUsersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET androidpublisher/v3/developers/{developersId}/users
 /// Lists all users with access to a developer account.
 ///
@@ -17345,16 +18758,19 @@ pub fn androidpublisher_users_list_execute(
 
 pub fn androidpublisher_users_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AndroidpublisherUsersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListUsersResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_users_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = androidpublisher_users_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     androidpublisher_users_list_execute(builder)
 }
 
@@ -17463,6 +18879,17 @@ pub fn androidpublisher_users_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidpublisher_users_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidpublisherUsersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: User,
+}
+
 /// GET androidpublisher/v3/developers/{developersId}/users/{usersId}
 /// Updates access for the user to the developer account.
 ///
@@ -17475,13 +18902,16 @@ pub fn androidpublisher_users_patch_execute(
 
 pub fn androidpublisher_users_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &User,
+    args: &AndroidpublisherUsersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_users_patch_builder(client, name, updateMask, body)?;
+    let builder = androidpublisher_users_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     androidpublisher_users_patch_execute(builder)
 }

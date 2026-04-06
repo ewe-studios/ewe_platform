@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/folders/{foldersId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn observability_folders_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_folders_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityFoldersLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn observability_folders_locations_get_execute(
 
 pub fn observability_folders_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityFoldersLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_folders_locations_get_builder(client, name)?;
+    let builder = observability_folders_locations_get_builder(client, &args.name)?;
     observability_folders_locations_get_execute(builder)
 }
 
@@ -217,6 +226,13 @@ pub fn observability_folders_locations_get_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_folders_locations_get_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityFoldersLocationsGetSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/settings
 /// Get Settings
 ///
@@ -229,12 +245,12 @@ pub fn observability_folders_locations_get_settings_execute(
 
 pub fn observability_folders_locations_get_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityFoldersLocationsGetSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_folders_locations_get_settings_builder(client, name)?;
+    let builder = observability_folders_locations_get_settings_builder(client, &args.name)?;
     observability_folders_locations_get_settings_execute(builder)
 }
 
@@ -354,6 +370,21 @@ pub fn observability_folders_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_folders_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityFoldersLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -366,11 +397,7 @@ pub fn observability_folders_locations_list_execute(
 
 pub fn observability_folders_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ObservabilityFoldersLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -379,11 +406,11 @@ pub fn observability_folders_locations_list(
 > {
     let builder = observability_folders_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     observability_folders_locations_list_execute(builder)
 }
@@ -493,6 +520,17 @@ pub fn observability_folders_locations_update_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_folders_locations_update_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityFoldersLocationsUpdateSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Settings,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/settings
 /// Update Settings
 ///
@@ -505,15 +543,17 @@ pub fn observability_folders_locations_update_settings_execute(
 
 pub fn observability_folders_locations_update_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Settings,
+    args: &ObservabilityFoldersLocationsUpdateSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        observability_folders_locations_update_settings_builder(client, name, updateMask, body)?;
+    let builder = observability_folders_locations_update_settings_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     observability_folders_locations_update_settings_execute(builder)
 }
 
@@ -610,6 +650,15 @@ pub fn observability_folders_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_folders_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityFoldersLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -622,13 +671,13 @@ pub fn observability_folders_locations_operations_cancel_execute(
 
 pub fn observability_folders_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ObservabilityFoldersLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_folders_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        observability_folders_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     observability_folders_locations_operations_cancel_execute(builder)
 }
 
@@ -722,6 +771,13 @@ pub fn observability_folders_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_folders_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityFoldersLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -734,12 +790,12 @@ pub fn observability_folders_locations_operations_delete_execute(
 
 pub fn observability_folders_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityFoldersLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_folders_locations_operations_delete_builder(client, name)?;
+    let builder = observability_folders_locations_operations_delete_builder(client, &args.name)?;
     observability_folders_locations_operations_delete_execute(builder)
 }
 
@@ -833,6 +889,13 @@ pub fn observability_folders_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_folders_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityFoldersLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -845,12 +908,12 @@ pub fn observability_folders_locations_operations_get_execute(
 
 pub fn observability_folders_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityFoldersLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_folders_locations_operations_get_builder(client, name)?;
+    let builder = observability_folders_locations_operations_get_builder(client, &args.name)?;
     observability_folders_locations_operations_get_execute(builder)
 }
 
@@ -970,6 +1033,21 @@ pub fn observability_folders_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_folders_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityFoldersLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -982,11 +1060,7 @@ pub fn observability_folders_locations_operations_list_execute(
 
 pub fn observability_folders_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ObservabilityFoldersLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -995,11 +1069,11 @@ pub fn observability_folders_locations_operations_list(
 > {
     let builder = observability_folders_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     observability_folders_locations_operations_list_execute(builder)
 }
@@ -1094,6 +1168,13 @@ pub fn observability_organizations_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_organizations_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityOrganizationsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -1106,12 +1187,12 @@ pub fn observability_organizations_locations_get_execute(
 
 pub fn observability_organizations_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityOrganizationsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_organizations_locations_get_builder(client, name)?;
+    let builder = observability_organizations_locations_get_builder(client, &args.name)?;
     observability_organizations_locations_get_execute(builder)
 }
 
@@ -1205,6 +1286,13 @@ pub fn observability_organizations_locations_get_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_organizations_locations_get_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityOrganizationsLocationsGetSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/settings
 /// Get Settings
 ///
@@ -1217,12 +1305,12 @@ pub fn observability_organizations_locations_get_settings_execute(
 
 pub fn observability_organizations_locations_get_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityOrganizationsLocationsGetSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_organizations_locations_get_settings_builder(client, name)?;
+    let builder = observability_organizations_locations_get_settings_builder(client, &args.name)?;
     observability_organizations_locations_get_settings_execute(builder)
 }
 
@@ -1342,6 +1430,21 @@ pub fn observability_organizations_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_organizations_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityOrganizationsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -1354,11 +1457,7 @@ pub fn observability_organizations_locations_list_execute(
 
 pub fn observability_organizations_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ObservabilityOrganizationsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1367,11 +1466,11 @@ pub fn observability_organizations_locations_list(
 > {
     let builder = observability_organizations_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     observability_organizations_locations_list_execute(builder)
 }
@@ -1481,6 +1580,17 @@ pub fn observability_organizations_locations_update_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_organizations_locations_update_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityOrganizationsLocationsUpdateSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Settings,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/settings
 /// Update Settings
 ///
@@ -1493,15 +1603,16 @@ pub fn observability_organizations_locations_update_settings_execute(
 
 pub fn observability_organizations_locations_update_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Settings,
+    args: &ObservabilityOrganizationsLocationsUpdateSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = observability_organizations_locations_update_settings_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     observability_organizations_locations_update_settings_execute(builder)
 }
@@ -1599,6 +1710,15 @@ pub fn observability_organizations_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_organizations_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityOrganizationsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1611,14 +1731,14 @@ pub fn observability_organizations_locations_operations_cancel_execute(
 
 pub fn observability_organizations_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ObservabilityOrganizationsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        observability_organizations_locations_operations_cancel_builder(client, name, body)?;
+    let builder = observability_organizations_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     observability_organizations_locations_operations_cancel_execute(builder)
 }
 
@@ -1712,6 +1832,13 @@ pub fn observability_organizations_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_organizations_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityOrganizationsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1724,12 +1851,13 @@ pub fn observability_organizations_locations_operations_delete_execute(
 
 pub fn observability_organizations_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityOrganizationsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_organizations_locations_operations_delete_builder(client, name)?;
+    let builder =
+        observability_organizations_locations_operations_delete_builder(client, &args.name)?;
     observability_organizations_locations_operations_delete_execute(builder)
 }
 
@@ -1823,6 +1951,13 @@ pub fn observability_organizations_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_organizations_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityOrganizationsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1835,12 +1970,12 @@ pub fn observability_organizations_locations_operations_get_execute(
 
 pub fn observability_organizations_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityOrganizationsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_organizations_locations_operations_get_builder(client, name)?;
+    let builder = observability_organizations_locations_operations_get_builder(client, &args.name)?;
     observability_organizations_locations_operations_get_execute(builder)
 }
 
@@ -1960,6 +2095,21 @@ pub fn observability_organizations_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_organizations_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityOrganizationsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1972,11 +2122,7 @@ pub fn observability_organizations_locations_operations_list_execute(
 
 pub fn observability_organizations_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ObservabilityOrganizationsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1985,11 +2131,11 @@ pub fn observability_organizations_locations_operations_list(
 > {
     let builder = observability_organizations_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     observability_organizations_locations_operations_list_execute(builder)
 }
@@ -2084,6 +2230,13 @@ pub fn observability_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -2096,12 +2249,12 @@ pub fn observability_projects_locations_get_execute(
 
 pub fn observability_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_projects_locations_get_builder(client, name)?;
+    let builder = observability_projects_locations_get_builder(client, &args.name)?;
     observability_projects_locations_get_execute(builder)
 }
 
@@ -2195,6 +2348,13 @@ pub fn observability_projects_locations_get_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_get_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsGetSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/settings
 /// Get Settings
 ///
@@ -2207,12 +2367,12 @@ pub fn observability_projects_locations_get_settings_execute(
 
 pub fn observability_projects_locations_get_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityProjectsLocationsGetSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_projects_locations_get_settings_builder(client, name)?;
+    let builder = observability_projects_locations_get_settings_builder(client, &args.name)?;
     observability_projects_locations_get_settings_execute(builder)
 }
 
@@ -2332,6 +2492,21 @@ pub fn observability_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -2344,11 +2519,7 @@ pub fn observability_projects_locations_list_execute(
 
 pub fn observability_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ObservabilityProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2357,11 +2528,11 @@ pub fn observability_projects_locations_list(
 > {
     let builder = observability_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     observability_projects_locations_list_execute(builder)
 }
@@ -2471,6 +2642,17 @@ pub fn observability_projects_locations_update_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_update_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsUpdateSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Settings,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/settings
 /// Update Settings
 ///
@@ -2483,15 +2665,17 @@ pub fn observability_projects_locations_update_settings_execute(
 
 pub fn observability_projects_locations_update_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Settings,
+    args: &ObservabilityProjectsLocationsUpdateSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        observability_projects_locations_update_settings_builder(client, name, updateMask, body)?;
+    let builder = observability_projects_locations_update_settings_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     observability_projects_locations_update_settings_execute(builder)
 }
 
@@ -2585,6 +2769,13 @@ pub fn observability_projects_locations_buckets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_buckets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsBucketsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}
 /// Get bucket resource.
 ///
@@ -2597,12 +2788,12 @@ pub fn observability_projects_locations_buckets_get_execute(
 
 pub fn observability_projects_locations_buckets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityProjectsLocationsBucketsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_projects_locations_buckets_get_builder(client, name)?;
+    let builder = observability_projects_locations_buckets_get_builder(client, &args.name)?;
     observability_projects_locations_buckets_get_execute(builder)
 }
 
@@ -2718,6 +2909,19 @@ pub fn observability_projects_locations_buckets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_buckets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsBucketsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/buckets
 /// List buckets of a project in a particular location.
 ///
@@ -2730,10 +2934,7 @@ pub fn observability_projects_locations_buckets_list_execute(
 
 pub fn observability_projects_locations_buckets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &ObservabilityProjectsLocationsBucketsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBucketsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2742,10 +2943,10 @@ pub fn observability_projects_locations_buckets_list(
 > {
     let builder = observability_projects_locations_buckets_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     observability_projects_locations_buckets_list_execute(builder)
 }
@@ -2840,6 +3041,13 @@ pub fn observability_projects_locations_buckets_datasets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_buckets_datasets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsBucketsDatasetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/datasets/{datasetsId}
 /// Get a dataset.
 ///
@@ -2852,12 +3060,13 @@ pub fn observability_projects_locations_buckets_datasets_get_execute(
 
 pub fn observability_projects_locations_buckets_datasets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityProjectsLocationsBucketsDatasetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_projects_locations_buckets_datasets_get_builder(client, name)?;
+    let builder =
+        observability_projects_locations_buckets_datasets_get_builder(client, &args.name)?;
     observability_projects_locations_buckets_datasets_get_execute(builder)
 }
 
@@ -2973,6 +3182,19 @@ pub fn observability_projects_locations_buckets_datasets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_buckets_datasets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsBucketsDatasetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/datasets
 /// List datasets of a bucket.
 ///
@@ -2985,10 +3207,7 @@ pub fn observability_projects_locations_buckets_datasets_list_execute(
 
 pub fn observability_projects_locations_buckets_datasets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &ObservabilityProjectsLocationsBucketsDatasetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDatasetsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2997,10 +3216,10 @@ pub fn observability_projects_locations_buckets_datasets_list(
 > {
     let builder = observability_projects_locations_buckets_datasets_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     observability_projects_locations_buckets_datasets_list_execute(builder)
 }
@@ -3110,6 +3329,17 @@ pub fn observability_projects_locations_buckets_datasets_links_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_buckets_datasets_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsBucketsDatasetsLinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: linkId
+    pub linkId: Option<String>,
+    /// Request body.
+    pub body: Link,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/datasets/{datasetsId}/links
 /// Create a new link.
 ///
@@ -3122,15 +3352,16 @@ pub fn observability_projects_locations_buckets_datasets_links_create_execute(
 
 pub fn observability_projects_locations_buckets_datasets_links_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    linkId: Option<&str>,
-    body: &Link,
+    args: &ObservabilityProjectsLocationsBucketsDatasetsLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = observability_projects_locations_buckets_datasets_links_create_builder(
-        client, parent, linkId, body,
+        client,
+        &args.parent,
+        args.linkId.as_deref(),
+        &args.body,
     )?;
     observability_projects_locations_buckets_datasets_links_create_execute(builder)
 }
@@ -3225,6 +3456,13 @@ pub fn observability_projects_locations_buckets_datasets_links_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_buckets_datasets_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsBucketsDatasetsLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/datasets/{datasetsId}/links/{linksId}
 /// Delete a link.
 ///
@@ -3237,13 +3475,13 @@ pub fn observability_projects_locations_buckets_datasets_links_delete_execute(
 
 pub fn observability_projects_locations_buckets_datasets_links_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityProjectsLocationsBucketsDatasetsLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        observability_projects_locations_buckets_datasets_links_delete_builder(client, name)?;
+        observability_projects_locations_buckets_datasets_links_delete_builder(client, &args.name)?;
     observability_projects_locations_buckets_datasets_links_delete_execute(builder)
 }
 
@@ -3337,6 +3575,13 @@ pub fn observability_projects_locations_buckets_datasets_links_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_buckets_datasets_links_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsBucketsDatasetsLinksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/datasets/{datasetsId}/links/{linksId}
 /// Get a link.
 ///
@@ -3349,13 +3594,13 @@ pub fn observability_projects_locations_buckets_datasets_links_get_execute(
 
 pub fn observability_projects_locations_buckets_datasets_links_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityProjectsLocationsBucketsDatasetsLinksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Link>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        observability_projects_locations_buckets_datasets_links_get_builder(client, name)?;
+        observability_projects_locations_buckets_datasets_links_get_builder(client, &args.name)?;
     observability_projects_locations_buckets_datasets_links_get_execute(builder)
 }
 
@@ -3467,6 +3712,17 @@ pub fn observability_projects_locations_buckets_datasets_links_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_buckets_datasets_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsBucketsDatasetsLinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/datasets/{datasetsId}/links
 /// List links of a dataset.
 ///
@@ -3479,9 +3735,7 @@ pub fn observability_projects_locations_buckets_datasets_links_list_execute(
 
 pub fn observability_projects_locations_buckets_datasets_links_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ObservabilityProjectsLocationsBucketsDatasetsLinksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLinksResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3489,7 +3743,10 @@ pub fn observability_projects_locations_buckets_datasets_links_list(
     ApiError,
 > {
     let builder = observability_projects_locations_buckets_datasets_links_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     observability_projects_locations_buckets_datasets_links_list_execute(builder)
 }
@@ -3599,6 +3856,17 @@ pub fn observability_projects_locations_buckets_datasets_links_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_buckets_datasets_links_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsBucketsDatasetsLinksPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Link,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/datasets/{datasetsId}/links/{linksId}
 /// Update a link.
 ///
@@ -3611,15 +3879,16 @@ pub fn observability_projects_locations_buckets_datasets_links_patch_execute(
 
 pub fn observability_projects_locations_buckets_datasets_links_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Link,
+    args: &ObservabilityProjectsLocationsBucketsDatasetsLinksPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = observability_projects_locations_buckets_datasets_links_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     observability_projects_locations_buckets_datasets_links_patch_execute(builder)
 }
@@ -3714,6 +3983,13 @@ pub fn observability_projects_locations_buckets_datasets_views_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_buckets_datasets_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsBucketsDatasetsViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/datasets/{datasetsId}/views/{viewsId}
 /// Get a view.
 ///
@@ -3726,13 +4002,13 @@ pub fn observability_projects_locations_buckets_datasets_views_get_execute(
 
 pub fn observability_projects_locations_buckets_datasets_views_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityProjectsLocationsBucketsDatasetsViewsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<View>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        observability_projects_locations_buckets_datasets_views_get_builder(client, name)?;
+        observability_projects_locations_buckets_datasets_views_get_builder(client, &args.name)?;
     observability_projects_locations_buckets_datasets_views_get_execute(builder)
 }
 
@@ -3844,6 +4120,17 @@ pub fn observability_projects_locations_buckets_datasets_views_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_buckets_datasets_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsBucketsDatasetsViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/datasets/{datasetsId}/views
 /// List views of a dataset.
 ///
@@ -3856,9 +4143,7 @@ pub fn observability_projects_locations_buckets_datasets_views_list_execute(
 
 pub fn observability_projects_locations_buckets_datasets_views_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ObservabilityProjectsLocationsBucketsDatasetsViewsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListViewsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3866,7 +4151,10 @@ pub fn observability_projects_locations_buckets_datasets_views_list(
     ApiError,
 > {
     let builder = observability_projects_locations_buckets_datasets_views_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     observability_projects_locations_buckets_datasets_views_list_execute(builder)
 }
@@ -3964,6 +4252,15 @@ pub fn observability_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -3976,13 +4273,13 @@ pub fn observability_projects_locations_operations_cancel_execute(
 
 pub fn observability_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ObservabilityProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        observability_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     observability_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -4076,6 +4373,13 @@ pub fn observability_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -4088,12 +4392,12 @@ pub fn observability_projects_locations_operations_delete_execute(
 
 pub fn observability_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_projects_locations_operations_delete_builder(client, name)?;
+    let builder = observability_projects_locations_operations_delete_builder(client, &args.name)?;
     observability_projects_locations_operations_delete_execute(builder)
 }
 
@@ -4187,6 +4491,13 @@ pub fn observability_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -4199,12 +4510,12 @@ pub fn observability_projects_locations_operations_get_execute(
 
 pub fn observability_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_projects_locations_operations_get_builder(client, name)?;
+    let builder = observability_projects_locations_operations_get_builder(client, &args.name)?;
     observability_projects_locations_operations_get_execute(builder)
 }
 
@@ -4324,6 +4635,21 @@ pub fn observability_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -4336,11 +4662,7 @@ pub fn observability_projects_locations_operations_list_execute(
 
 pub fn observability_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ObservabilityProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4349,11 +4671,11 @@ pub fn observability_projects_locations_operations_list(
 > {
     let builder = observability_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     observability_projects_locations_operations_list_execute(builder)
 }
@@ -4448,6 +4770,13 @@ pub fn observability_projects_locations_scopes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_scopes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsScopesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/scopes/{scopesId}
 /// Gets details of a single Scope.
 ///
@@ -4460,12 +4789,12 @@ pub fn observability_projects_locations_scopes_get_execute(
 
 pub fn observability_projects_locations_scopes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityProjectsLocationsScopesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Scope>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_projects_locations_scopes_get_builder(client, name)?;
+    let builder = observability_projects_locations_scopes_get_builder(client, &args.name)?;
     observability_projects_locations_scopes_get_execute(builder)
 }
 
@@ -4574,6 +4903,17 @@ pub fn observability_projects_locations_scopes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_scopes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsScopesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Scope,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/scopes/{scopesId}
 /// Updates the parameters of a single Scope.
 ///
@@ -4586,15 +4926,17 @@ pub fn observability_projects_locations_scopes_patch_execute(
 
 pub fn observability_projects_locations_scopes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Scope,
+    args: &ObservabilityProjectsLocationsScopesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Scope>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        observability_projects_locations_scopes_patch_builder(client, name, updateMask, body)?;
+    let builder = observability_projects_locations_scopes_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     observability_projects_locations_scopes_patch_execute(builder)
 }
 
@@ -4703,6 +5045,17 @@ pub fn observability_projects_locations_trace_scopes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_trace_scopes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsTraceScopesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: traceScopeId
+    pub traceScopeId: Option<String>,
+    /// Request body.
+    pub body: TraceScope,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/traceScopes
 /// Create a new TraceScope.
 ///
@@ -4715,18 +5068,16 @@ pub fn observability_projects_locations_trace_scopes_create_execute(
 
 pub fn observability_projects_locations_trace_scopes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    traceScopeId: Option<&str>,
-    body: &TraceScope,
+    args: &ObservabilityProjectsLocationsTraceScopesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TraceScope>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = observability_projects_locations_trace_scopes_create_builder(
         client,
-        parent,
-        traceScopeId,
-        body,
+        &args.parent,
+        args.traceScopeId.as_deref(),
+        &args.body,
     )?;
     observability_projects_locations_trace_scopes_create_execute(builder)
 }
@@ -4821,6 +5172,13 @@ pub fn observability_projects_locations_trace_scopes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_trace_scopes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsTraceScopesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/traceScopes/{traceScopesId}
 /// Delete a TraceScope.
 ///
@@ -4833,12 +5191,12 @@ pub fn observability_projects_locations_trace_scopes_delete_execute(
 
 pub fn observability_projects_locations_trace_scopes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityProjectsLocationsTraceScopesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_projects_locations_trace_scopes_delete_builder(client, name)?;
+    let builder = observability_projects_locations_trace_scopes_delete_builder(client, &args.name)?;
     observability_projects_locations_trace_scopes_delete_execute(builder)
 }
 
@@ -4932,6 +5290,13 @@ pub fn observability_projects_locations_trace_scopes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_trace_scopes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsTraceScopesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/traceScopes/{traceScopesId}
 /// Get TraceScope resource.
 ///
@@ -4944,12 +5309,12 @@ pub fn observability_projects_locations_trace_scopes_get_execute(
 
 pub fn observability_projects_locations_trace_scopes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ObservabilityProjectsLocationsTraceScopesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TraceScope>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = observability_projects_locations_trace_scopes_get_builder(client, name)?;
+    let builder = observability_projects_locations_trace_scopes_get_builder(client, &args.name)?;
     observability_projects_locations_trace_scopes_get_execute(builder)
 }
 
@@ -5061,6 +5426,17 @@ pub fn observability_projects_locations_trace_scopes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_trace_scopes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsTraceScopesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/traceScopes
 /// List TraceScopes of a project in a particular location.
 ///
@@ -5073,9 +5449,7 @@ pub fn observability_projects_locations_trace_scopes_list_execute(
 
 pub fn observability_projects_locations_trace_scopes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ObservabilityProjectsLocationsTraceScopesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTraceScopesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5083,7 +5457,10 @@ pub fn observability_projects_locations_trace_scopes_list(
     ApiError,
 > {
     let builder = observability_projects_locations_trace_scopes_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     observability_projects_locations_trace_scopes_list_execute(builder)
 }
@@ -5193,6 +5570,17 @@ pub fn observability_projects_locations_trace_scopes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`observability_projects_locations_trace_scopes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ObservabilityProjectsLocationsTraceScopesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: TraceScope,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/traceScopes/{traceScopesId}
 /// Update a TraceScope.
 ///
@@ -5205,15 +5593,16 @@ pub fn observability_projects_locations_trace_scopes_patch_execute(
 
 pub fn observability_projects_locations_trace_scopes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &TraceScope,
+    args: &ObservabilityProjectsLocationsTraceScopesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TraceScope>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = observability_projects_locations_trace_scopes_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     observability_projects_locations_trace_scopes_patch_execute(builder)
 }

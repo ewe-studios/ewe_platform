@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET customsearch/v1
 /// Returns metadata about the search performed, metadata about the engine used for the search, and the search results.
@@ -242,6 +244,77 @@ pub fn search_cse_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`search_cse_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SearchCseListArgs {
+    /// Query parameter: c2coff
+    pub c2coff: Option<String>,
+    /// Query parameter: cr
+    pub cr: Option<String>,
+    /// Query parameter: cx
+    pub cx: Option<String>,
+    /// Query parameter: dateRestrict
+    pub dateRestrict: Option<String>,
+    /// Query parameter: enableAlternateSearchHandler
+    pub enableAlternateSearchHandler: Option<bool>,
+    /// Query parameter: exactTerms
+    pub exactTerms: Option<String>,
+    /// Query parameter: excludeTerms
+    pub excludeTerms: Option<String>,
+    /// Query parameter: fileType
+    pub fileType: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: gl
+    pub gl: Option<String>,
+    /// Query parameter: googlehost
+    pub googlehost: Option<String>,
+    /// Query parameter: highRange
+    pub highRange: Option<String>,
+    /// Query parameter: hl
+    pub hl: Option<String>,
+    /// Query parameter: hq
+    pub hq: Option<String>,
+    /// Query parameter: imgColorType
+    pub imgColorType: Option<String>,
+    /// Query parameter: imgDominantColor
+    pub imgDominantColor: Option<String>,
+    /// Query parameter: imgSize
+    pub imgSize: Option<String>,
+    /// Query parameter: imgType
+    pub imgType: Option<String>,
+    /// Query parameter: linkSite
+    pub linkSite: Option<String>,
+    /// Query parameter: lowRange
+    pub lowRange: Option<String>,
+    /// Query parameter: lr
+    pub lr: Option<String>,
+    /// Query parameter: num
+    pub num: Option<i32>,
+    /// Query parameter: orTerms
+    pub orTerms: Option<String>,
+    /// Query parameter: q
+    pub q: Option<String>,
+    /// Query parameter: relatedSite
+    pub relatedSite: Option<String>,
+    /// Query parameter: rights
+    pub rights: Option<String>,
+    /// Query parameter: safe
+    pub safe: Option<String>,
+    /// Query parameter: searchType
+    pub searchType: Option<String>,
+    /// Query parameter: siteSearch
+    pub siteSearch: Option<String>,
+    /// Query parameter: siteSearchFilter
+    pub siteSearchFilter: Option<String>,
+    /// Query parameter: snippetLength
+    pub snippetLength: Option<i32>,
+    /// Query parameter: sort
+    pub sort: Option<String>,
+    /// Query parameter: start
+    pub start: Option<i32>,
+}
+
 /// GET customsearch/v1
 /// Returns metadata about the search performed, metadata about the engine used for the search, and the search results.
 ///
@@ -254,78 +327,46 @@ pub fn search_cse_list_execute(
 
 pub fn search_cse_list(
     client: &SimpleHttpClient,
-    c2coff: Option<&str>,
-    cr: Option<&str>,
-    cx: Option<&str>,
-    dateRestrict: Option<&str>,
-    enableAlternateSearchHandler: Option<bool>,
-    exactTerms: Option<&str>,
-    excludeTerms: Option<&str>,
-    fileType: Option<&str>,
-    filter: Option<&str>,
-    gl: Option<&str>,
-    googlehost: Option<&str>,
-    highRange: Option<&str>,
-    hl: Option<&str>,
-    hq: Option<&str>,
-    imgColorType: Option<&str>,
-    imgDominantColor: Option<&str>,
-    imgSize: Option<&str>,
-    imgType: Option<&str>,
-    linkSite: Option<&str>,
-    lowRange: Option<&str>,
-    lr: Option<&str>,
-    num: Option<i32>,
-    orTerms: Option<&str>,
-    q: Option<&str>,
-    relatedSite: Option<&str>,
-    rights: Option<&str>,
-    safe: Option<&str>,
-    searchType: Option<&str>,
-    siteSearch: Option<&str>,
-    siteSearchFilter: Option<&str>,
-    snippetLength: Option<i32>,
-    sort: Option<&str>,
-    start: Option<i32>,
+    args: &SearchCseListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Search>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = search_cse_list_builder(
         client,
-        c2coff,
-        cr,
-        cx,
-        dateRestrict,
-        enableAlternateSearchHandler,
-        exactTerms,
-        excludeTerms,
-        fileType,
-        filter,
-        gl,
-        googlehost,
-        highRange,
-        hl,
-        hq,
-        imgColorType,
-        imgDominantColor,
-        imgSize,
-        imgType,
-        linkSite,
-        lowRange,
-        lr,
-        num,
-        orTerms,
-        q,
-        relatedSite,
-        rights,
-        safe,
-        searchType,
-        siteSearch,
-        siteSearchFilter,
-        snippetLength,
-        sort,
-        start,
+        args.c2coff.as_deref(),
+        args.cr.as_deref(),
+        args.cx.as_deref(),
+        args.dateRestrict.as_deref(),
+        args.enableAlternateSearchHandler,
+        args.exactTerms.as_deref(),
+        args.excludeTerms.as_deref(),
+        args.fileType.as_deref(),
+        args.filter.as_deref(),
+        args.gl.as_deref(),
+        args.googlehost.as_deref(),
+        args.highRange.as_deref(),
+        args.hl.as_deref(),
+        args.hq.as_deref(),
+        args.imgColorType.as_deref(),
+        args.imgDominantColor.as_deref(),
+        args.imgSize.as_deref(),
+        args.imgType.as_deref(),
+        args.linkSite.as_deref(),
+        args.lowRange.as_deref(),
+        args.lr.as_deref(),
+        args.num,
+        args.orTerms.as_deref(),
+        args.q.as_deref(),
+        args.relatedSite.as_deref(),
+        args.rights.as_deref(),
+        args.safe.as_deref(),
+        args.searchType.as_deref(),
+        args.siteSearch.as_deref(),
+        args.siteSearchFilter.as_deref(),
+        args.snippetLength,
+        args.sort.as_deref(),
+        args.start,
     )?;
     search_cse_list_execute(builder)
 }
@@ -556,6 +597,77 @@ pub fn search_cse_siterestrict_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`search_cse_siterestrict_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SearchCseSiterestrictListArgs {
+    /// Query parameter: c2coff
+    pub c2coff: Option<String>,
+    /// Query parameter: cr
+    pub cr: Option<String>,
+    /// Query parameter: cx
+    pub cx: Option<String>,
+    /// Query parameter: dateRestrict
+    pub dateRestrict: Option<String>,
+    /// Query parameter: enableAlternateSearchHandler
+    pub enableAlternateSearchHandler: Option<bool>,
+    /// Query parameter: exactTerms
+    pub exactTerms: Option<String>,
+    /// Query parameter: excludeTerms
+    pub excludeTerms: Option<String>,
+    /// Query parameter: fileType
+    pub fileType: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: gl
+    pub gl: Option<String>,
+    /// Query parameter: googlehost
+    pub googlehost: Option<String>,
+    /// Query parameter: highRange
+    pub highRange: Option<String>,
+    /// Query parameter: hl
+    pub hl: Option<String>,
+    /// Query parameter: hq
+    pub hq: Option<String>,
+    /// Query parameter: imgColorType
+    pub imgColorType: Option<String>,
+    /// Query parameter: imgDominantColor
+    pub imgDominantColor: Option<String>,
+    /// Query parameter: imgSize
+    pub imgSize: Option<String>,
+    /// Query parameter: imgType
+    pub imgType: Option<String>,
+    /// Query parameter: linkSite
+    pub linkSite: Option<String>,
+    /// Query parameter: lowRange
+    pub lowRange: Option<String>,
+    /// Query parameter: lr
+    pub lr: Option<String>,
+    /// Query parameter: num
+    pub num: Option<i32>,
+    /// Query parameter: orTerms
+    pub orTerms: Option<String>,
+    /// Query parameter: q
+    pub q: Option<String>,
+    /// Query parameter: relatedSite
+    pub relatedSite: Option<String>,
+    /// Query parameter: rights
+    pub rights: Option<String>,
+    /// Query parameter: safe
+    pub safe: Option<String>,
+    /// Query parameter: searchType
+    pub searchType: Option<String>,
+    /// Query parameter: siteSearch
+    pub siteSearch: Option<String>,
+    /// Query parameter: siteSearchFilter
+    pub siteSearchFilter: Option<String>,
+    /// Query parameter: snippetLength
+    pub snippetLength: Option<i32>,
+    /// Query parameter: sort
+    pub sort: Option<String>,
+    /// Query parameter: start
+    pub start: Option<i32>,
+}
+
 /// GET customsearch/v1/siterestrict
 /// Returns metadata about the search performed, metadata about the engine used for the search, and the search results. Uses a small set of url patterns.
 ///
@@ -568,78 +680,46 @@ pub fn search_cse_siterestrict_list_execute(
 
 pub fn search_cse_siterestrict_list(
     client: &SimpleHttpClient,
-    c2coff: Option<&str>,
-    cr: Option<&str>,
-    cx: Option<&str>,
-    dateRestrict: Option<&str>,
-    enableAlternateSearchHandler: Option<bool>,
-    exactTerms: Option<&str>,
-    excludeTerms: Option<&str>,
-    fileType: Option<&str>,
-    filter: Option<&str>,
-    gl: Option<&str>,
-    googlehost: Option<&str>,
-    highRange: Option<&str>,
-    hl: Option<&str>,
-    hq: Option<&str>,
-    imgColorType: Option<&str>,
-    imgDominantColor: Option<&str>,
-    imgSize: Option<&str>,
-    imgType: Option<&str>,
-    linkSite: Option<&str>,
-    lowRange: Option<&str>,
-    lr: Option<&str>,
-    num: Option<i32>,
-    orTerms: Option<&str>,
-    q: Option<&str>,
-    relatedSite: Option<&str>,
-    rights: Option<&str>,
-    safe: Option<&str>,
-    searchType: Option<&str>,
-    siteSearch: Option<&str>,
-    siteSearchFilter: Option<&str>,
-    snippetLength: Option<i32>,
-    sort: Option<&str>,
-    start: Option<i32>,
+    args: &SearchCseSiterestrictListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Search>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = search_cse_siterestrict_list_builder(
         client,
-        c2coff,
-        cr,
-        cx,
-        dateRestrict,
-        enableAlternateSearchHandler,
-        exactTerms,
-        excludeTerms,
-        fileType,
-        filter,
-        gl,
-        googlehost,
-        highRange,
-        hl,
-        hq,
-        imgColorType,
-        imgDominantColor,
-        imgSize,
-        imgType,
-        linkSite,
-        lowRange,
-        lr,
-        num,
-        orTerms,
-        q,
-        relatedSite,
-        rights,
-        safe,
-        searchType,
-        siteSearch,
-        siteSearchFilter,
-        snippetLength,
-        sort,
-        start,
+        args.c2coff.as_deref(),
+        args.cr.as_deref(),
+        args.cx.as_deref(),
+        args.dateRestrict.as_deref(),
+        args.enableAlternateSearchHandler,
+        args.exactTerms.as_deref(),
+        args.excludeTerms.as_deref(),
+        args.fileType.as_deref(),
+        args.filter.as_deref(),
+        args.gl.as_deref(),
+        args.googlehost.as_deref(),
+        args.highRange.as_deref(),
+        args.hl.as_deref(),
+        args.hq.as_deref(),
+        args.imgColorType.as_deref(),
+        args.imgDominantColor.as_deref(),
+        args.imgSize.as_deref(),
+        args.imgType.as_deref(),
+        args.linkSite.as_deref(),
+        args.lowRange.as_deref(),
+        args.lr.as_deref(),
+        args.num,
+        args.orTerms.as_deref(),
+        args.q.as_deref(),
+        args.relatedSite.as_deref(),
+        args.rights.as_deref(),
+        args.safe.as_deref(),
+        args.searchType.as_deref(),
+        args.siteSearch.as_deref(),
+        args.siteSearchFilter.as_deref(),
+        args.snippetLength,
+        args.sort.as_deref(),
+        args.start,
     )?;
     search_cse_siterestrict_list_execute(builder)
 }

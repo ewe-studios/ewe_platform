@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/forceReportUpload
 /// Uploads a report containing any changes in app states on the device since the last report was generated. You can call this method up to 3 times every 24 hours for a given device. If you exceed the quota, then the Google Play EMM API returns HTTP 429 Too Many Requests.
@@ -107,6 +109,17 @@ pub fn androidenterprise_devices_force_report_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_devices_force_report_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseDevicesForceReportUploadArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/forceReportUpload
 /// Uploads a report containing any changes in app states on the device since the last report was generated. You can call this method up to 3 times every 24 hours for a given device. If you exceed the quota, then the Google Play EMM API returns HTTP 429 Too Many Requests.
 ///
@@ -119,18 +132,16 @@ pub fn androidenterprise_devices_force_report_upload_execute(
 
 pub fn androidenterprise_devices_force_report_upload(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    deviceId: &str,
+    args: &AndroidenterpriseDevicesForceReportUploadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidenterprise_devices_force_report_upload_builder(
         client,
-        enterpriseId,
-        userId,
-        deviceId,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
     )?;
     androidenterprise_devices_force_report_upload_execute(builder)
 }
@@ -229,6 +240,17 @@ pub fn androidenterprise_devices_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseDevicesGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}
 /// Retrieves the details of a device.
 ///
@@ -241,14 +263,17 @@ pub fn androidenterprise_devices_get_execute(
 
 pub fn androidenterprise_devices_get(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    deviceId: &str,
+    args: &AndroidenterpriseDevicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_devices_get_builder(client, enterpriseId, userId, deviceId)?;
+    let builder = androidenterprise_devices_get_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+    )?;
     androidenterprise_devices_get_execute(builder)
 }
 
@@ -346,6 +371,17 @@ pub fn androidenterprise_devices_get_state_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_devices_get_state`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseDevicesGetStateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/state
 /// Checks if a device can access Google apps and services for a user. Returns whether access is "enabled" or "disabled". A "disabled" state prevents the user's Managed Google Account on the device from successfully authenticating with Google. This blocks access to most Google applications and services, including Google Play, as the device cannot prove its entitlement to access them. New devices default to "disabled". Important: Enforcement of this state depends on the following conditions: * The user must be a managed google account. * The enterprise must be a managed google domain. * Third-party Android mobile management must be active in the Google Admin Console for the user's Organizational Unit. If these conditions aren't met, access may still be possible even in a "disabled" state.
 ///
@@ -358,15 +394,17 @@ pub fn androidenterprise_devices_get_state_execute(
 
 pub fn androidenterprise_devices_get_state(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    deviceId: &str,
+    args: &AndroidenterpriseDevicesGetStateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeviceState>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_devices_get_state_builder(client, enterpriseId, userId, deviceId)?;
+    let builder = androidenterprise_devices_get_state_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+    )?;
     androidenterprise_devices_get_state_execute(builder)
 }
 
@@ -464,6 +502,15 @@ pub fn androidenterprise_devices_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseDevicesListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices
 /// Retrieves the IDs of all of a user's devices.
 ///
@@ -476,15 +523,14 @@ pub fn androidenterprise_devices_list_execute(
 
 pub fn androidenterprise_devices_list(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
+    args: &AndroidenterpriseDevicesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DevicesListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_devices_list_builder(client, enterpriseId, userId)?;
+    let builder = androidenterprise_devices_list_builder(client, &args.enterpriseId, &args.userId)?;
     androidenterprise_devices_list_execute(builder)
 }
 
@@ -585,6 +631,19 @@ pub fn androidenterprise_devices_set_state_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_devices_set_state`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseDevicesSetStateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+    /// Request body.
+    pub body: DeviceState,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/state
 /// Sets whether a device's access to Google services (including Google Play) is enabled or disabled for the specified user. Setting the state to "enabled" allows the Google Account to access Google services, while "disabled" blocks access by preventing OAuth token issuance. Preconditions for Enforcement: 1. This setting is only effective for Google-managed users. 2. The enterprise must be linked to a Google Managed Domain. 3. Enforcement requires third-party Android mobile management to be enabled within the Google Admin Console for the user's Organizational Unit. If these preconditions are not met, changes to this state may be ignored.
 ///
@@ -597,16 +656,18 @@ pub fn androidenterprise_devices_set_state_execute(
 
 pub fn androidenterprise_devices_set_state(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    deviceId: &str,
-    body: &DeviceState,
+    args: &AndroidenterpriseDevicesSetStateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeviceState>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_devices_set_state_builder(client, enterpriseId, userId, deviceId, body)?;
+    let builder = androidenterprise_devices_set_state_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+        &args.body,
+    )?;
     androidenterprise_devices_set_state_execute(builder)
 }
 
@@ -719,6 +780,21 @@ pub fn androidenterprise_devices_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_devices_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseDevicesUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Device,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}
 /// Updates the device policy. To ensure the policy is properly enforced, you need to prevent unmanaged accounts from accessing Google Play by setting the allowed_accounts in the managed configuration for the Google Play package. See restrict accounts in Google Play. When provisioning a new device, you should set the device policy using this method before adding the managed Google Play Account to the device, otherwise the policy will not be applied for a short period of time after adding the account to the device.
 ///
@@ -731,22 +807,18 @@ pub fn androidenterprise_devices_update_execute(
 
 pub fn androidenterprise_devices_update(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    deviceId: &str,
-    updateMask: Option<&str>,
-    body: &Device,
+    args: &AndroidenterpriseDevicesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidenterprise_devices_update_builder(
         client,
-        enterpriseId,
-        userId,
-        deviceId,
-        updateMask,
-        body,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     androidenterprise_devices_update_execute(builder)
 }
@@ -846,6 +918,15 @@ pub fn androidenterprise_enrollment_tokens_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_enrollment_tokens_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnrollmentTokensCreateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Request body.
+    pub body: EnrollmentToken,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/enrollmentTokens
 /// Returns a token for device enrollment. The DPC can encode this token within the QR/NFC/zero-touch enrollment payload or fetch it before calling the on-device API to authenticate the user. The token can be generated for each device or reused across multiple devices.
 ///
@@ -858,15 +939,15 @@ pub fn androidenterprise_enrollment_tokens_create_execute(
 
 pub fn androidenterprise_enrollment_tokens_create(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    body: &EnrollmentToken,
+    args: &AndroidenterpriseEnrollmentTokensCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EnrollmentToken>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_enrollment_tokens_create_builder(client, enterpriseId, body)?;
+    let builder =
+        androidenterprise_enrollment_tokens_create_builder(client, &args.enterpriseId, &args.body)?;
     androidenterprise_enrollment_tokens_create_execute(builder)
 }
 
@@ -967,6 +1048,13 @@ pub fn androidenterprise_enterprises_acknowledge_notification_set_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_enterprises_acknowledge_notification_set`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesAcknowledgeNotificationSetArgs {
+    /// Query parameter: notificationSetId
+    pub notificationSetId: Option<String>,
+}
+
 /// GET androidenterprise/v1/enterprises/acknowledgeNotificationSet
 /// Acknowledges notifications that were received from Enterprises.PullNotificationSet to prevent subsequent calls from returning the same notifications.
 ///
@@ -979,14 +1067,14 @@ pub fn androidenterprise_enterprises_acknowledge_notification_set_execute(
 
 pub fn androidenterprise_enterprises_acknowledge_notification_set(
     client: &SimpleHttpClient,
-    notificationSetId: Option<&str>,
+    args: &AndroidenterpriseEnterprisesAcknowledgeNotificationSetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidenterprise_enterprises_acknowledge_notification_set_builder(
         client,
-        notificationSetId,
+        args.notificationSetId.as_deref(),
     )?;
     androidenterprise_enterprises_acknowledge_notification_set_execute(builder)
 }
@@ -1095,6 +1183,15 @@ pub fn androidenterprise_enterprises_complete_signup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_enterprises_complete_signup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesCompleteSignupArgs {
+    /// Query parameter: completionToken
+    pub completionToken: Option<String>,
+    /// Query parameter: enterpriseToken
+    pub enterpriseToken: Option<String>,
+}
+
 /// GET androidenterprise/v1/enterprises/completeSignup
 /// Completes the signup flow, by specifying the Completion token and Enterprise token. This request must not be called multiple times for a given Enterprise Token.
 ///
@@ -1107,16 +1204,15 @@ pub fn androidenterprise_enterprises_complete_signup_execute(
 
 pub fn androidenterprise_enterprises_complete_signup(
     client: &SimpleHttpClient,
-    completionToken: Option<&str>,
-    enterpriseToken: Option<&str>,
+    args: &AndroidenterpriseEnterprisesCompleteSignupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Enterprise>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidenterprise_enterprises_complete_signup_builder(
         client,
-        completionToken,
-        enterpriseToken,
+        args.completionToken.as_deref(),
+        args.enterpriseToken.as_deref(),
     )?;
     androidenterprise_enterprises_complete_signup_execute(builder)
 }
@@ -1216,6 +1312,15 @@ pub fn androidenterprise_enterprises_create_web_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_enterprises_create_web_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesCreateWebTokenArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Request body.
+    pub body: AdministratorWebTokenSpec,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/createWebToken
 /// Returns a unique token to access an embeddable UI. To generate a web UI, pass the generated token into the managed Google Play javascript API. Each token may only be used to start one UI session. See the JavaScript API documentation for further information.
 ///
@@ -1228,16 +1333,18 @@ pub fn androidenterprise_enterprises_create_web_token_execute(
 
 pub fn androidenterprise_enterprises_create_web_token(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    body: &AdministratorWebTokenSpec,
+    args: &AndroidenterpriseEnterprisesCreateWebTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdministratorWebToken>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_enterprises_create_web_token_builder(client, enterpriseId, body)?;
+    let builder = androidenterprise_enterprises_create_web_token_builder(
+        client,
+        &args.enterpriseId,
+        &args.body,
+    )?;
     androidenterprise_enterprises_create_web_token_execute(builder)
 }
 
@@ -1334,6 +1441,15 @@ pub fn androidenterprise_enterprises_enroll_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_enterprises_enroll`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesEnrollArgs {
+    /// Path parameter: token
+    pub token: String,
+    /// Request body.
+    pub body: Enterprise,
+}
+
 /// GET androidenterprise/v1/enterprises/enroll
 /// Enrolls an enterprise with the calling EMM.
 ///
@@ -1346,13 +1462,12 @@ pub fn androidenterprise_enterprises_enroll_execute(
 
 pub fn androidenterprise_enterprises_enroll(
     client: &SimpleHttpClient,
-    token: &str,
-    body: &Enterprise,
+    args: &AndroidenterpriseEnterprisesEnrollArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Enterprise>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_enterprises_enroll_builder(client, token, body)?;
+    let builder = androidenterprise_enterprises_enroll_builder(client, &args.token, &args.body)?;
     androidenterprise_enterprises_enroll_execute(builder)
 }
 
@@ -1466,6 +1581,17 @@ pub fn androidenterprise_enterprises_generate_enterprise_upgrade_url_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_enterprises_generate_enterprise_upgrade_url`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesGenerateEnterpriseUpgradeUrlArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Query parameter: adminEmail
+    pub adminEmail: Option<String>,
+    /// Query parameter: allowedDomains
+    pub allowedDomains: Option<String>,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/generateEnterpriseUpgradeUrl
 /// Generates an enterprise upgrade URL to upgrade an existing managed Google Play Accounts enterprise to a managed Google domain. See the guide to upgrading an enterprise for more details.
 ///
@@ -1478,9 +1604,7 @@ pub fn androidenterprise_enterprises_generate_enterprise_upgrade_url_execute(
 
 pub fn androidenterprise_enterprises_generate_enterprise_upgrade_url(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    adminEmail: Option<&str>,
-    allowedDomains: Option<&str>,
+    args: &AndroidenterpriseEnterprisesGenerateEnterpriseUpgradeUrlArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateEnterpriseUpgradeUrlResponse>, ApiError>,
@@ -1491,9 +1615,9 @@ pub fn androidenterprise_enterprises_generate_enterprise_upgrade_url(
 > {
     let builder = androidenterprise_enterprises_generate_enterprise_upgrade_url_builder(
         client,
-        enterpriseId,
-        adminEmail,
-        allowedDomains,
+        &args.enterpriseId,
+        args.adminEmail.as_deref(),
+        args.allowedDomains.as_deref(),
     )?;
     androidenterprise_enterprises_generate_enterprise_upgrade_url_execute(builder)
 }
@@ -1606,6 +1730,17 @@ pub fn androidenterprise_enterprises_generate_signup_url_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_enterprises_generate_signup_url`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesGenerateSignupUrlArgs {
+    /// Query parameter: adminEmail
+    pub adminEmail: Option<String>,
+    /// Query parameter: allowedDomains
+    pub allowedDomains: Option<String>,
+    /// Query parameter: callbackUrl
+    pub callbackUrl: Option<String>,
+}
+
 /// GET androidenterprise/v1/enterprises/signupUrl
 /// Generates a sign-up URL.
 ///
@@ -1618,18 +1753,16 @@ pub fn androidenterprise_enterprises_generate_signup_url_execute(
 
 pub fn androidenterprise_enterprises_generate_signup_url(
     client: &SimpleHttpClient,
-    adminEmail: Option<&str>,
-    allowedDomains: Option<&str>,
-    callbackUrl: Option<&str>,
+    args: &AndroidenterpriseEnterprisesGenerateSignupUrlArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SignupInfo>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidenterprise_enterprises_generate_signup_url_builder(
         client,
-        adminEmail,
-        allowedDomains,
-        callbackUrl,
+        args.adminEmail.as_deref(),
+        args.allowedDomains.as_deref(),
+        args.callbackUrl.as_deref(),
     )?;
     androidenterprise_enterprises_generate_signup_url_execute(builder)
 }
@@ -1724,6 +1857,13 @@ pub fn androidenterprise_enterprises_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_enterprises_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}
 /// Retrieves the name and domain of an enterprise.
 ///
@@ -1736,12 +1876,12 @@ pub fn androidenterprise_enterprises_get_execute(
 
 pub fn androidenterprise_enterprises_get(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
+    args: &AndroidenterpriseEnterprisesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Enterprise>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_enterprises_get_builder(client, enterpriseId)?;
+    let builder = androidenterprise_enterprises_get_builder(client, &args.enterpriseId)?;
     androidenterprise_enterprises_get_execute(builder)
 }
 
@@ -1849,6 +1989,15 @@ pub fn androidenterprise_enterprises_get_service_account_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_enterprises_get_service_account`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesGetServiceAccountArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Query parameter: keyType
+    pub keyType: Option<String>,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccount
 /// Returns a service account and credentials. The service account can be bound to the enterprise by calling `setAccount`. The service account is unique to this enterprise and EMM, and will be deleted if the enterprise is unbound. The credentials contain private key data and are not stored server-side. This method can only be called after calling Enterprises.Enroll or Enterprises.CompleteSignup, and before Enterprises.SetAccount; at other times it will return an error. Subsequent calls after the first will generate a new, unique set of credentials, and invalidate the previously generated credentials. Once the service account is bound to the enterprise, it can be managed using the `serviceAccountKeys` resource. *Note:* After you create a key, you might need to wait for 60 seconds or more before you perform another operation with the key. If you try to perform an operation with the key immediately after you create the key, and you receive an error, you can retry the request with exponential backoff .
 ///
@@ -1861,16 +2010,18 @@ pub fn androidenterprise_enterprises_get_service_account_execute(
 
 pub fn androidenterprise_enterprises_get_service_account(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    keyType: Option<&str>,
+    args: &AndroidenterpriseEnterprisesGetServiceAccountArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ServiceAccount>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_enterprises_get_service_account_builder(client, enterpriseId, keyType)?;
+    let builder = androidenterprise_enterprises_get_service_account_builder(
+        client,
+        &args.enterpriseId,
+        args.keyType.as_deref(),
+    )?;
     androidenterprise_enterprises_get_service_account_execute(builder)
 }
 
@@ -1964,6 +2115,13 @@ pub fn androidenterprise_enterprises_get_store_layout_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_enterprises_get_store_layout`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesGetStoreLayoutArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout
 /// Returns the store layout for the enterprise. If the store layout has not been set, returns "basic" as the store layout type and no homepage.
 ///
@@ -1976,12 +2134,13 @@ pub fn androidenterprise_enterprises_get_store_layout_execute(
 
 pub fn androidenterprise_enterprises_get_store_layout(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
+    args: &AndroidenterpriseEnterprisesGetStoreLayoutArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StoreLayout>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_enterprises_get_store_layout_builder(client, enterpriseId)?;
+    let builder =
+        androidenterprise_enterprises_get_store_layout_builder(client, &args.enterpriseId)?;
     androidenterprise_enterprises_get_store_layout_execute(builder)
 }
 
@@ -2077,6 +2236,13 @@ pub fn androidenterprise_enterprises_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_enterprises_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesListArgs {
+    /// Path parameter: domain
+    pub domain: String,
+}
+
 /// GET androidenterprise/v1/enterprises
 /// Looks up an enterprise by domain name. This is only supported for enterprises created via the Google-initiated creation flow. Lookup of the id is not needed for enterprises created via the EMM-initiated flow since the EMM learns the enterprise ID in the callback specified in the Enterprises.`generateSignupUrl` call.
 ///
@@ -2089,14 +2255,14 @@ pub fn androidenterprise_enterprises_list_execute(
 
 pub fn androidenterprise_enterprises_list(
     client: &SimpleHttpClient,
-    domain: &str,
+    args: &AndroidenterpriseEnterprisesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EnterprisesListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_enterprises_list_builder(client, domain)?;
+    let builder = androidenterprise_enterprises_list_builder(client, &args.domain)?;
     androidenterprise_enterprises_list_execute(builder)
 }
 
@@ -2202,6 +2368,13 @@ pub fn androidenterprise_enterprises_pull_notification_set_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_enterprises_pull_notification_set`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesPullNotificationSetArgs {
+    /// Query parameter: requestMode
+    pub requestMode: Option<String>,
+}
+
 /// GET androidenterprise/v1/enterprises/pullNotificationSet
 /// Pulls and returns a notification set for the enterprises associated with the service account authenticated for the request. The notification set may be empty if no notification are pending. A notification set returned needs to be acknowledged within 20 seconds by calling Enterprises.AcknowledgeNotificationSet, unless the notification set is empty. Notifications that are not acknowledged within the 20 seconds will eventually be included again in the response to another PullNotificationSet request, and those that are never acknowledged will ultimately be deleted according to the Google Cloud Platform P`ub/Sub` system policy. Multiple requests might be performed concurrently to retrieve notifications, in which case the pending notifications (if any) will be split among each caller, if any are pending. If no notifications are present, an empty notification list is returned. Subsequent requests may return more notifications once they become available.
 ///
@@ -2214,14 +2387,17 @@ pub fn androidenterprise_enterprises_pull_notification_set_execute(
 
 pub fn androidenterprise_enterprises_pull_notification_set(
     client: &SimpleHttpClient,
-    requestMode: Option<&str>,
+    args: &AndroidenterpriseEnterprisesPullNotificationSetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NotificationSet>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_enterprises_pull_notification_set_builder(client, requestMode)?;
+    let builder = androidenterprise_enterprises_pull_notification_set_builder(
+        client,
+        args.requestMode.as_deref(),
+    )?;
     androidenterprise_enterprises_pull_notification_set_execute(builder)
 }
 
@@ -2320,6 +2496,13 @@ pub fn androidenterprise_enterprises_send_test_push_notification_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_enterprises_send_test_push_notification`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesSendTestPushNotificationArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/sendTestPushNotification
 /// Sends a test notification to validate the EMM integration with the Google Cloud P`ub/Sub` service for this enterprise.
 ///
@@ -2332,7 +2515,7 @@ pub fn androidenterprise_enterprises_send_test_push_notification_execute(
 
 pub fn androidenterprise_enterprises_send_test_push_notification(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
+    args: &AndroidenterpriseEnterprisesSendTestPushNotificationArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EnterprisesSendTestPushNotificationResponse>, ApiError>,
@@ -2341,8 +2524,10 @@ pub fn androidenterprise_enterprises_send_test_push_notification(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_enterprises_send_test_push_notification_builder(client, enterpriseId)?;
+    let builder = androidenterprise_enterprises_send_test_push_notification_builder(
+        client,
+        &args.enterpriseId,
+    )?;
     androidenterprise_enterprises_send_test_push_notification_execute(builder)
 }
 
@@ -2441,6 +2626,15 @@ pub fn androidenterprise_enterprises_set_account_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_enterprises_set_account`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesSetAccountArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Request body.
+    pub body: EnterpriseAccount,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/account
 /// Sets the account that will be used to authenticate to the API as the enterprise.
 ///
@@ -2453,15 +2647,15 @@ pub fn androidenterprise_enterprises_set_account_execute(
 
 pub fn androidenterprise_enterprises_set_account(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    body: &EnterpriseAccount,
+    args: &AndroidenterpriseEnterprisesSetAccountArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EnterpriseAccount>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_enterprises_set_account_builder(client, enterpriseId, body)?;
+    let builder =
+        androidenterprise_enterprises_set_account_builder(client, &args.enterpriseId, &args.body)?;
     androidenterprise_enterprises_set_account_execute(builder)
 }
 
@@ -2558,6 +2752,15 @@ pub fn androidenterprise_enterprises_set_store_layout_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_enterprises_set_store_layout`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesSetStoreLayoutArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Request body.
+    pub body: StoreLayout,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout
 /// Sets the store layout for the enterprise. By default, `storeLayoutType` is set to "basic" and the basic store layout is enabled. The basic layout only contains apps approved by the admin, and that have been added to the available product set for a user (using the `setAvailableProductSet` call). Apps on the page are sorted in order of their product ID value. If you create a custom store layout (by setting `storeLayoutType` = "custom" and setting a homepage), the basic store layout is disabled.
 ///
@@ -2570,14 +2773,16 @@ pub fn androidenterprise_enterprises_set_store_layout_execute(
 
 pub fn androidenterprise_enterprises_set_store_layout(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    body: &StoreLayout,
+    args: &AndroidenterpriseEnterprisesSetStoreLayoutArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StoreLayout>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_enterprises_set_store_layout_builder(client, enterpriseId, body)?;
+    let builder = androidenterprise_enterprises_set_store_layout_builder(
+        client,
+        &args.enterpriseId,
+        &args.body,
+    )?;
     androidenterprise_enterprises_set_store_layout_execute(builder)
 }
 
@@ -2668,6 +2873,13 @@ pub fn androidenterprise_enterprises_unenroll_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_enterprises_unenroll`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEnterprisesUnenrollArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/unenroll
 /// Unenrolls an enterprise from the calling EMM.
 ///
@@ -2680,12 +2892,12 @@ pub fn androidenterprise_enterprises_unenroll_execute(
 
 pub fn androidenterprise_enterprises_unenroll(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
+    args: &AndroidenterpriseEnterprisesUnenrollArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_enterprises_unenroll_builder(client, enterpriseId)?;
+    let builder = androidenterprise_enterprises_unenroll_builder(client, &args.enterpriseId)?;
     androidenterprise_enterprises_unenroll_execute(builder)
 }
 
@@ -2780,6 +2992,17 @@ pub fn androidenterprise_entitlements_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_entitlements_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEntitlementsDeleteArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: entitlementId
+    pub entitlementId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
 /// Removes an entitlement to an app for a user. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
@@ -2792,15 +3015,17 @@ pub fn androidenterprise_entitlements_delete_execute(
 
 pub fn androidenterprise_entitlements_delete(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    entitlementId: &str,
+    args: &AndroidenterpriseEntitlementsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_entitlements_delete_builder(client, enterpriseId, userId, entitlementId)?;
+    let builder = androidenterprise_entitlements_delete_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.entitlementId,
+    )?;
     androidenterprise_entitlements_delete_execute(builder)
 }
 
@@ -2898,6 +3123,17 @@ pub fn androidenterprise_entitlements_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_entitlements_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEntitlementsGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: entitlementId
+    pub entitlementId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
 /// Retrieves details of an entitlement. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
@@ -2910,15 +3146,17 @@ pub fn androidenterprise_entitlements_get_execute(
 
 pub fn androidenterprise_entitlements_get(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    entitlementId: &str,
+    args: &AndroidenterpriseEntitlementsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Entitlement>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_entitlements_get_builder(client, enterpriseId, userId, entitlementId)?;
+    let builder = androidenterprise_entitlements_get_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.entitlementId,
+    )?;
     androidenterprise_entitlements_get_execute(builder)
 }
 
@@ -3016,6 +3254,15 @@ pub fn androidenterprise_entitlements_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_entitlements_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEntitlementsListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements
 /// Lists all entitlements for the specified user. Only the ID is set. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
@@ -3028,15 +3275,15 @@ pub fn androidenterprise_entitlements_list_execute(
 
 pub fn androidenterprise_entitlements_list(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
+    args: &AndroidenterpriseEntitlementsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EntitlementsListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_entitlements_list_builder(client, enterpriseId, userId)?;
+    let builder =
+        androidenterprise_entitlements_list_builder(client, &args.enterpriseId, &args.userId)?;
     androidenterprise_entitlements_list_execute(builder)
 }
 
@@ -3149,6 +3396,21 @@ pub fn androidenterprise_entitlements_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_entitlements_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseEntitlementsUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: entitlementId
+    pub entitlementId: String,
+    /// Query parameter: install
+    pub install: Option<bool>,
+    /// Request body.
+    pub body: Entitlement,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
 /// Adds or updates an entitlement to an app for a user. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
@@ -3161,22 +3423,18 @@ pub fn androidenterprise_entitlements_update_execute(
 
 pub fn androidenterprise_entitlements_update(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    entitlementId: &str,
-    install: Option<bool>,
-    body: &Entitlement,
+    args: &AndroidenterpriseEntitlementsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Entitlement>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidenterprise_entitlements_update_builder(
         client,
-        enterpriseId,
-        userId,
-        entitlementId,
-        install,
-        body,
+        &args.enterpriseId,
+        &args.userId,
+        &args.entitlementId,
+        args.install,
+        &args.body,
     )?;
     androidenterprise_entitlements_update_execute(builder)
 }
@@ -3275,6 +3533,15 @@ pub fn androidenterprise_grouplicenses_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_grouplicenses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseGrouplicensesGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: groupLicenseId
+    pub groupLicenseId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/groupLicenses/{groupLicenseId}
 /// Retrieves details of an enterprise's group license for a product. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
@@ -3287,16 +3554,18 @@ pub fn androidenterprise_grouplicenses_get_execute(
 
 pub fn androidenterprise_grouplicenses_get(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    groupLicenseId: &str,
+    args: &AndroidenterpriseGrouplicensesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GroupLicense>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_grouplicenses_get_builder(client, enterpriseId, groupLicenseId)?;
+    let builder = androidenterprise_grouplicenses_get_builder(
+        client,
+        &args.enterpriseId,
+        &args.groupLicenseId,
+    )?;
     androidenterprise_grouplicenses_get_execute(builder)
 }
 
@@ -3392,6 +3661,13 @@ pub fn androidenterprise_grouplicenses_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_grouplicenses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseGrouplicensesListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/groupLicenses
 /// Retrieves IDs of all products for which the enterprise has a group license. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
@@ -3404,14 +3680,14 @@ pub fn androidenterprise_grouplicenses_list_execute(
 
 pub fn androidenterprise_grouplicenses_list(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
+    args: &AndroidenterpriseGrouplicensesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GroupLicensesListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_grouplicenses_list_builder(client, enterpriseId)?;
+    let builder = androidenterprise_grouplicenses_list_builder(client, &args.enterpriseId)?;
     androidenterprise_grouplicenses_list_execute(builder)
 }
 
@@ -3511,6 +3787,15 @@ pub fn androidenterprise_grouplicenseusers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_grouplicenseusers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseGrouplicenseusersListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: groupLicenseId
+    pub groupLicenseId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/groupLicenses/{groupLicenseId}/users
 /// Retrieves the IDs of the users who have been granted entitlements under the license. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
@@ -3523,8 +3808,7 @@ pub fn androidenterprise_grouplicenseusers_list_execute(
 
 pub fn androidenterprise_grouplicenseusers_list(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    groupLicenseId: &str,
+    args: &AndroidenterpriseGrouplicenseusersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GroupLicenseUsersListResponse>, ApiError>,
@@ -3533,8 +3817,11 @@ pub fn androidenterprise_grouplicenseusers_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_grouplicenseusers_list_builder(client, enterpriseId, groupLicenseId)?;
+    let builder = androidenterprise_grouplicenseusers_list_builder(
+        client,
+        &args.enterpriseId,
+        &args.groupLicenseId,
+    )?;
     androidenterprise_grouplicenseusers_list_execute(builder)
 }
 
@@ -3631,6 +3918,19 @@ pub fn androidenterprise_installs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_installs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseInstallsDeleteArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+    /// Path parameter: installId
+    pub installId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
 /// Requests to remove an app from a device. A call to get or list will still show the app as installed on the device until it is actually removed. A successful response indicates that a removal request has been sent to the device. The call will be considered successful even if the app is not present on the device (e.g. it was never installed, or was removed by the user).
 ///
@@ -3643,20 +3943,17 @@ pub fn androidenterprise_installs_delete_execute(
 
 pub fn androidenterprise_installs_delete(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    deviceId: &str,
-    installId: &str,
+    args: &AndroidenterpriseInstallsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidenterprise_installs_delete_builder(
         client,
-        enterpriseId,
-        userId,
-        deviceId,
-        installId,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+        &args.installId,
     )?;
     androidenterprise_installs_delete_execute(builder)
 }
@@ -3757,6 +4054,19 @@ pub fn androidenterprise_installs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_installs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseInstallsGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+    /// Path parameter: installId
+    pub installId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
 /// Retrieves details of an installation of an app on a device.
 ///
@@ -3769,16 +4079,18 @@ pub fn androidenterprise_installs_get_execute(
 
 pub fn androidenterprise_installs_get(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    deviceId: &str,
-    installId: &str,
+    args: &AndroidenterpriseInstallsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Install>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_installs_get_builder(client, enterpriseId, userId, deviceId, installId)?;
+    let builder = androidenterprise_installs_get_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+        &args.installId,
+    )?;
     androidenterprise_installs_get_execute(builder)
 }
 
@@ -3878,6 +4190,17 @@ pub fn androidenterprise_installs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_installs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseInstallsListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs
 /// Retrieves the details of all apps installed on the specified device.
 ///
@@ -3890,16 +4213,19 @@ pub fn androidenterprise_installs_list_execute(
 
 pub fn androidenterprise_installs_list(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    deviceId: &str,
+    args: &AndroidenterpriseInstallsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InstallsListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_installs_list_builder(client, enterpriseId, userId, deviceId)?;
+    let builder = androidenterprise_installs_list_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+    )?;
     androidenterprise_installs_list_execute(builder)
 }
 
@@ -4002,6 +4328,21 @@ pub fn androidenterprise_installs_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_installs_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseInstallsUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+    /// Path parameter: installId
+    pub installId: String,
+    /// Request body.
+    pub body: Install,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/installs/{installId}
 /// Requests to install the latest version of an app to a device. If the app is already installed, then it is updated to the latest version if necessary.
 ///
@@ -4014,22 +4355,18 @@ pub fn androidenterprise_installs_update_execute(
 
 pub fn androidenterprise_installs_update(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    deviceId: &str,
-    installId: &str,
-    body: &Install,
+    args: &AndroidenterpriseInstallsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Install>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidenterprise_installs_update_builder(
         client,
-        enterpriseId,
-        userId,
-        deviceId,
-        installId,
-        body,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+        &args.installId,
+        &args.body,
     )?;
     androidenterprise_installs_update_execute(builder)
 }
@@ -4127,6 +4464,19 @@ pub fn androidenterprise_managedconfigurationsfordevice_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_managedconfigurationsfordevice_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseManagedconfigurationsfordeviceDeleteArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+    /// Path parameter: managedConfigurationForDeviceId
+    pub managedConfigurationForDeviceId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
 /// Removes a per-device managed configuration for an app for the specified device.
 ///
@@ -4139,20 +4489,17 @@ pub fn androidenterprise_managedconfigurationsfordevice_delete_execute(
 
 pub fn androidenterprise_managedconfigurationsfordevice_delete(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    deviceId: &str,
-    managedConfigurationForDeviceId: &str,
+    args: &AndroidenterpriseManagedconfigurationsfordeviceDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidenterprise_managedconfigurationsfordevice_delete_builder(
         client,
-        enterpriseId,
-        userId,
-        deviceId,
-        managedConfigurationForDeviceId,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+        &args.managedConfigurationForDeviceId,
     )?;
     androidenterprise_managedconfigurationsfordevice_delete_execute(builder)
 }
@@ -4255,6 +4602,19 @@ pub fn androidenterprise_managedconfigurationsfordevice_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_managedconfigurationsfordevice_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseManagedconfigurationsfordeviceGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+    /// Path parameter: managedConfigurationForDeviceId
+    pub managedConfigurationForDeviceId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
 /// Retrieves details of a per-device managed configuration.
 ///
@@ -4267,10 +4627,7 @@ pub fn androidenterprise_managedconfigurationsfordevice_get_execute(
 
 pub fn androidenterprise_managedconfigurationsfordevice_get(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    deviceId: &str,
-    managedConfigurationForDeviceId: &str,
+    args: &AndroidenterpriseManagedconfigurationsfordeviceGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ManagedConfiguration>, ApiError>, P = ApiPending>
         + Send
@@ -4279,10 +4636,10 @@ pub fn androidenterprise_managedconfigurationsfordevice_get(
 > {
     let builder = androidenterprise_managedconfigurationsfordevice_get_builder(
         client,
-        enterpriseId,
-        userId,
-        deviceId,
-        managedConfigurationForDeviceId,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+        &args.managedConfigurationForDeviceId,
     )?;
     androidenterprise_managedconfigurationsfordevice_get_execute(builder)
 }
@@ -4386,6 +4743,17 @@ pub fn androidenterprise_managedconfigurationsfordevice_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_managedconfigurationsfordevice_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseManagedconfigurationsfordeviceListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice
 /// Lists all the per-device managed configurations for the specified device. Only the ID is set.
 ///
@@ -4398,9 +4766,7 @@ pub fn androidenterprise_managedconfigurationsfordevice_list_execute(
 
 pub fn androidenterprise_managedconfigurationsfordevice_list(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    deviceId: &str,
+    args: &AndroidenterpriseManagedconfigurationsfordeviceListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ManagedConfigurationsForDeviceListResponse>, ApiError>,
@@ -4411,9 +4777,9 @@ pub fn androidenterprise_managedconfigurationsfordevice_list(
 > {
     let builder = androidenterprise_managedconfigurationsfordevice_list_builder(
         client,
-        enterpriseId,
-        userId,
-        deviceId,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
     )?;
     androidenterprise_managedconfigurationsfordevice_list_execute(builder)
 }
@@ -4519,6 +4885,21 @@ pub fn androidenterprise_managedconfigurationsfordevice_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_managedconfigurationsfordevice_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseManagedconfigurationsfordeviceUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+    /// Path parameter: managedConfigurationForDeviceId
+    pub managedConfigurationForDeviceId: String,
+    /// Request body.
+    pub body: ManagedConfiguration,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}/managedConfigurationsForDevice/{managedConfigurationForDeviceId}
 /// Adds or updates a per-device managed configuration for an app for the specified device.
 ///
@@ -4531,11 +4912,7 @@ pub fn androidenterprise_managedconfigurationsfordevice_update_execute(
 
 pub fn androidenterprise_managedconfigurationsfordevice_update(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    deviceId: &str,
-    managedConfigurationForDeviceId: &str,
-    body: &ManagedConfiguration,
+    args: &AndroidenterpriseManagedconfigurationsfordeviceUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ManagedConfiguration>, ApiError>, P = ApiPending>
         + Send
@@ -4544,11 +4921,11 @@ pub fn androidenterprise_managedconfigurationsfordevice_update(
 > {
     let builder = androidenterprise_managedconfigurationsfordevice_update_builder(
         client,
-        enterpriseId,
-        userId,
-        deviceId,
-        managedConfigurationForDeviceId,
-        body,
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+        &args.managedConfigurationForDeviceId,
+        &args.body,
     )?;
     androidenterprise_managedconfigurationsfordevice_update_execute(builder)
 }
@@ -4644,6 +5021,17 @@ pub fn androidenterprise_managedconfigurationsforuser_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_managedconfigurationsforuser_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseManagedconfigurationsforuserDeleteArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: managedConfigurationForUserId
+    pub managedConfigurationForUserId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
 /// Removes a per-user managed configuration for an app for the specified user.
 ///
@@ -4656,18 +5044,16 @@ pub fn androidenterprise_managedconfigurationsforuser_delete_execute(
 
 pub fn androidenterprise_managedconfigurationsforuser_delete(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    managedConfigurationForUserId: &str,
+    args: &AndroidenterpriseManagedconfigurationsforuserDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidenterprise_managedconfigurationsforuser_delete_builder(
         client,
-        enterpriseId,
-        userId,
-        managedConfigurationForUserId,
+        &args.enterpriseId,
+        &args.userId,
+        &args.managedConfigurationForUserId,
     )?;
     androidenterprise_managedconfigurationsforuser_delete_execute(builder)
 }
@@ -4768,6 +5154,17 @@ pub fn androidenterprise_managedconfigurationsforuser_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_managedconfigurationsforuser_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseManagedconfigurationsforuserGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: managedConfigurationForUserId
+    pub managedConfigurationForUserId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
 /// Retrieves details of a per-user managed configuration for an app for the specified user.
 ///
@@ -4780,9 +5177,7 @@ pub fn androidenterprise_managedconfigurationsforuser_get_execute(
 
 pub fn androidenterprise_managedconfigurationsforuser_get(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    managedConfigurationForUserId: &str,
+    args: &AndroidenterpriseManagedconfigurationsforuserGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ManagedConfiguration>, ApiError>, P = ApiPending>
         + Send
@@ -4791,9 +5186,9 @@ pub fn androidenterprise_managedconfigurationsforuser_get(
 > {
     let builder = androidenterprise_managedconfigurationsforuser_get_builder(
         client,
-        enterpriseId,
-        userId,
-        managedConfigurationForUserId,
+        &args.enterpriseId,
+        &args.userId,
+        &args.managedConfigurationForUserId,
     )?;
     androidenterprise_managedconfigurationsforuser_get_execute(builder)
 }
@@ -4894,6 +5289,15 @@ pub fn androidenterprise_managedconfigurationsforuser_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_managedconfigurationsforuser_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseManagedconfigurationsforuserListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser
 /// Lists all the per-user managed configurations for the specified user. Only the ID is set.
 ///
@@ -4906,8 +5310,7 @@ pub fn androidenterprise_managedconfigurationsforuser_list_execute(
 
 pub fn androidenterprise_managedconfigurationsforuser_list(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
+    args: &AndroidenterpriseManagedconfigurationsforuserListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ManagedConfigurationsForUserListResponse>, ApiError>,
@@ -4916,8 +5319,11 @@ pub fn androidenterprise_managedconfigurationsforuser_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_managedconfigurationsforuser_list_builder(client, enterpriseId, userId)?;
+    let builder = androidenterprise_managedconfigurationsforuser_list_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+    )?;
     androidenterprise_managedconfigurationsforuser_list_execute(builder)
 }
 
@@ -5020,6 +5426,19 @@ pub fn androidenterprise_managedconfigurationsforuser_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_managedconfigurationsforuser_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseManagedconfigurationsforuserUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: managedConfigurationForUserId
+    pub managedConfigurationForUserId: String,
+    /// Request body.
+    pub body: ManagedConfiguration,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/managedConfigurationsForUser/{managedConfigurationForUserId}
 /// Adds or updates the managed configuration settings for an app for the specified user. If you support the Managed configurations iframe, you can apply managed configurations to a user by specifying an `mcmId` and its associated configuration variables (if any) in the request. Alternatively, all EMMs can apply managed configurations by passing a list of managed properties.
 ///
@@ -5032,10 +5451,7 @@ pub fn androidenterprise_managedconfigurationsforuser_update_execute(
 
 pub fn androidenterprise_managedconfigurationsforuser_update(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    managedConfigurationForUserId: &str,
-    body: &ManagedConfiguration,
+    args: &AndroidenterpriseManagedconfigurationsforuserUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ManagedConfiguration>, ApiError>, P = ApiPending>
         + Send
@@ -5044,10 +5460,10 @@ pub fn androidenterprise_managedconfigurationsforuser_update(
 > {
     let builder = androidenterprise_managedconfigurationsforuser_update_builder(
         client,
-        enterpriseId,
-        userId,
-        managedConfigurationForUserId,
-        body,
+        &args.enterpriseId,
+        &args.userId,
+        &args.managedConfigurationForUserId,
+        &args.body,
     )?;
     androidenterprise_managedconfigurationsforuser_update_execute(builder)
 }
@@ -5148,6 +5564,15 @@ pub fn androidenterprise_managedconfigurationssettings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_managedconfigurationssettings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseManagedconfigurationssettingsListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: productId
+    pub productId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/managedConfigurationsSettings
 /// Lists all the managed configurations settings for the specified app.
 ///
@@ -5160,8 +5585,7 @@ pub fn androidenterprise_managedconfigurationssettings_list_execute(
 
 pub fn androidenterprise_managedconfigurationssettings_list(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    productId: &str,
+    args: &AndroidenterpriseManagedconfigurationssettingsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ManagedConfigurationsSettingsListResponse>, ApiError>,
@@ -5172,8 +5596,8 @@ pub fn androidenterprise_managedconfigurationssettings_list(
 > {
     let builder = androidenterprise_managedconfigurationssettings_list_builder(
         client,
-        enterpriseId,
-        productId,
+        &args.enterpriseId,
+        &args.productId,
     )?;
     androidenterprise_managedconfigurationssettings_list_execute(builder)
 }
@@ -5280,6 +5704,15 @@ pub fn androidenterprise_permissions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_permissions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterprisePermissionsGetArgs {
+    /// Path parameter: permissionId
+    pub permissionId: String,
+    /// Query parameter: language
+    pub language: Option<String>,
+}
+
 /// GET androidenterprise/v1/permissions/{permissionId}
 /// Retrieves details of an Android app permission for display to an enterprise admin.
 ///
@@ -5292,13 +5725,16 @@ pub fn androidenterprise_permissions_get_execute(
 
 pub fn androidenterprise_permissions_get(
     client: &SimpleHttpClient,
-    permissionId: &str,
-    language: Option<&str>,
+    args: &AndroidenterprisePermissionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Permission>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_permissions_get_builder(client, permissionId, language)?;
+    let builder = androidenterprise_permissions_get_builder(
+        client,
+        &args.permissionId,
+        args.language.as_deref(),
+    )?;
     androidenterprise_permissions_get_execute(builder)
 }
 
@@ -5394,6 +5830,17 @@ pub fn androidenterprise_products_approve_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_products_approve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseProductsApproveArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Request body.
+    pub body: ProductsApproveRequest,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/approve
 /// Approves the specified product and the relevant app permissions, if any. The maximum number of products that you can approve per enterprise customer is 1,000. To learn how to use managed Google Play to design and create a store layout to display approved products to your users, see Store Layout Design. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
@@ -5406,15 +5853,17 @@ pub fn androidenterprise_products_approve_execute(
 
 pub fn androidenterprise_products_approve(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    productId: &str,
-    body: &ProductsApproveRequest,
+    args: &AndroidenterpriseProductsApproveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_products_approve_builder(client, enterpriseId, productId, body)?;
+    let builder = androidenterprise_products_approve_builder(
+        client,
+        &args.enterpriseId,
+        &args.productId,
+        &args.body,
+    )?;
     androidenterprise_products_approve_execute(builder)
 }
 
@@ -5526,6 +5975,17 @@ pub fn androidenterprise_products_generate_approval_url_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_products_generate_approval_url`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseProductsGenerateApprovalUrlArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/generateApprovalUrl
 /// Generates a URL that can be rendered in an iframe to display the permissions (if any) of a product. An enterprise admin must view these permissions and accept them on behalf of their organization in order to approve that product. Admins should accept the displayed permissions by interacting with a separate UI element in the EMM console, which in turn should trigger the use of this URL as the `approvalUrlInfo`.`approvalUrl` property in a Products.approve call to approve the product. This URL can only be used to display permissions for up to 1 day. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
@@ -5538,9 +5998,7 @@ pub fn androidenterprise_products_generate_approval_url_execute(
 
 pub fn androidenterprise_products_generate_approval_url(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    productId: &str,
-    languageCode: Option<&str>,
+    args: &AndroidenterpriseProductsGenerateApprovalUrlArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ProductsGenerateApprovalUrlResponse>, ApiError>,
@@ -5551,9 +6009,9 @@ pub fn androidenterprise_products_generate_approval_url(
 > {
     let builder = androidenterprise_products_generate_approval_url_builder(
         client,
-        enterpriseId,
-        productId,
-        languageCode,
+        &args.enterpriseId,
+        &args.productId,
+        args.languageCode.as_deref(),
     )?;
     androidenterprise_products_generate_approval_url_execute(builder)
 }
@@ -5661,6 +6119,17 @@ pub fn androidenterprise_products_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_products_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseProductsGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Query parameter: language
+    pub language: Option<String>,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}
 /// Retrieves details of a product for display to an enterprise admin.
 ///
@@ -5673,15 +6142,17 @@ pub fn androidenterprise_products_get_execute(
 
 pub fn androidenterprise_products_get(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    productId: &str,
-    language: Option<&str>,
+    args: &AndroidenterpriseProductsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_products_get_builder(client, enterpriseId, productId, language)?;
+    let builder = androidenterprise_products_get_builder(
+        client,
+        &args.enterpriseId,
+        &args.productId,
+        args.language.as_deref(),
+    )?;
     androidenterprise_products_get_execute(builder)
 }
 
@@ -5791,6 +6262,17 @@ pub fn androidenterprise_products_get_app_restrictions_schema_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_products_get_app_restrictions_schema`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseProductsGetAppRestrictionsSchemaArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: productId
+    pub productId: String,
+    /// Query parameter: language
+    pub language: Option<String>,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/appRestrictionsSchema
 /// Retrieves the schema that defines the configurable properties for this product. All products have a schema, but this schema may be empty if no managed configurations have been defined. This schema can be used to populate a UI that allows an admin to configure the product. To apply a managed configuration based on the schema obtained using this API, see Managed Configurations through Play.
 ///
@@ -5803,9 +6285,7 @@ pub fn androidenterprise_products_get_app_restrictions_schema_execute(
 
 pub fn androidenterprise_products_get_app_restrictions_schema(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    productId: &str,
-    language: Option<&str>,
+    args: &AndroidenterpriseProductsGetAppRestrictionsSchemaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppRestrictionsSchema>, ApiError>, P = ApiPending>
         + Send
@@ -5814,9 +6294,9 @@ pub fn androidenterprise_products_get_app_restrictions_schema(
 > {
     let builder = androidenterprise_products_get_app_restrictions_schema_builder(
         client,
-        enterpriseId,
-        productId,
-        language,
+        &args.enterpriseId,
+        &args.productId,
+        args.language.as_deref(),
     )?;
     androidenterprise_products_get_app_restrictions_schema_execute(builder)
 }
@@ -5915,6 +6395,15 @@ pub fn androidenterprise_products_get_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_products_get_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseProductsGetPermissionsArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: productId
+    pub productId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/permissions
 /// Retrieves the Android app permissions required by this app.
 ///
@@ -5927,16 +6416,18 @@ pub fn androidenterprise_products_get_permissions_execute(
 
 pub fn androidenterprise_products_get_permissions(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    productId: &str,
+    args: &AndroidenterpriseProductsGetPermissionsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductPermissions>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_products_get_permissions_builder(client, enterpriseId, productId)?;
+    let builder = androidenterprise_products_get_permissions_builder(
+        client,
+        &args.enterpriseId,
+        &args.productId,
+    )?;
     androidenterprise_products_get_permissions_execute(builder)
 }
 
@@ -6060,6 +6551,23 @@ pub fn androidenterprise_products_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_products_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseProductsListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Query parameter: approved
+    pub approved: Option<bool>,
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: token
+    pub token: Option<String>,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/products
 /// Finds approved products that match a query, or all approved products if there is no query. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
@@ -6072,12 +6580,7 @@ pub fn androidenterprise_products_list_execute(
 
 pub fn androidenterprise_products_list(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    approved: Option<bool>,
-    language: Option<&str>,
-    maxResults: Option<i32>,
-    query: Option<&str>,
-    token: Option<&str>,
+    args: &AndroidenterpriseProductsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductsListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6086,12 +6589,12 @@ pub fn androidenterprise_products_list(
 > {
     let builder = androidenterprise_products_list_builder(
         client,
-        enterpriseId,
-        approved,
-        language,
-        maxResults,
-        query,
-        token,
+        &args.enterpriseId,
+        args.approved,
+        args.language.as_deref(),
+        args.maxResults,
+        args.query.as_deref(),
+        args.token.as_deref(),
     )?;
     androidenterprise_products_list_execute(builder)
 }
@@ -6185,6 +6688,15 @@ pub fn androidenterprise_products_unapprove_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_products_unapprove`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseProductsUnapproveArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: productId
+    pub productId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/unapprove
 /// Unapproves the specified product (and the relevant app permissions, if any) **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
@@ -6197,13 +6709,13 @@ pub fn androidenterprise_products_unapprove_execute(
 
 pub fn androidenterprise_products_unapprove(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    productId: &str,
+    args: &AndroidenterpriseProductsUnapproveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_products_unapprove_builder(client, enterpriseId, productId)?;
+    let builder =
+        androidenterprise_products_unapprove_builder(client, &args.enterpriseId, &args.productId)?;
     androidenterprise_products_unapprove_execute(builder)
 }
 
@@ -6296,6 +6808,15 @@ pub fn androidenterprise_serviceaccountkeys_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_serviceaccountkeys_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseServiceaccountkeysDeleteArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: keyId
+    pub keyId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys/{keyId}
 /// Removes and invalidates the specified credentials for the service account associated with this enterprise. The calling service account must have been retrieved by calling Enterprises.GetServiceAccount and must have been set as the enterprise service account by calling Enterprises.SetAccount.
 ///
@@ -6308,13 +6829,16 @@ pub fn androidenterprise_serviceaccountkeys_delete_execute(
 
 pub fn androidenterprise_serviceaccountkeys_delete(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    keyId: &str,
+    args: &AndroidenterpriseServiceaccountkeysDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_serviceaccountkeys_delete_builder(client, enterpriseId, keyId)?;
+    let builder = androidenterprise_serviceaccountkeys_delete_builder(
+        client,
+        &args.enterpriseId,
+        &args.keyId,
+    )?;
     androidenterprise_serviceaccountkeys_delete_execute(builder)
 }
 
@@ -6413,6 +6937,15 @@ pub fn androidenterprise_serviceaccountkeys_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_serviceaccountkeys_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseServiceaccountkeysInsertArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Request body.
+    pub body: ServiceAccountKey,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys
 /// Generates new credentials for the service account associated with this enterprise. The calling service account must have been retrieved by calling Enterprises.GetServiceAccount and must have been set as the enterprise service account by calling Enterprises.SetAccount. Only the type of the key should be populated in the resource to be inserted.
 ///
@@ -6425,15 +6958,18 @@ pub fn androidenterprise_serviceaccountkeys_insert_execute(
 
 pub fn androidenterprise_serviceaccountkeys_insert(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    body: &ServiceAccountKey,
+    args: &AndroidenterpriseServiceaccountkeysInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ServiceAccountKey>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_serviceaccountkeys_insert_builder(client, enterpriseId, body)?;
+    let builder = androidenterprise_serviceaccountkeys_insert_builder(
+        client,
+        &args.enterpriseId,
+        &args.body,
+    )?;
     androidenterprise_serviceaccountkeys_insert_execute(builder)
 }
 
@@ -6531,6 +7067,13 @@ pub fn androidenterprise_serviceaccountkeys_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_serviceaccountkeys_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseServiceaccountkeysListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccountKeys
 /// Lists all active credentials for the service account associated with this enterprise. Only the ID and key type are returned. The calling service account must have been retrieved by calling Enterprises.GetServiceAccount and must have been set as the enterprise service account by calling Enterprises.SetAccount.
 ///
@@ -6543,7 +7086,7 @@ pub fn androidenterprise_serviceaccountkeys_list_execute(
 
 pub fn androidenterprise_serviceaccountkeys_list(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
+    args: &AndroidenterpriseServiceaccountkeysListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ServiceAccountKeysListResponse>, ApiError>,
@@ -6552,7 +7095,7 @@ pub fn androidenterprise_serviceaccountkeys_list(
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_serviceaccountkeys_list_builder(client, enterpriseId)?;
+    let builder = androidenterprise_serviceaccountkeys_list_builder(client, &args.enterpriseId)?;
     androidenterprise_serviceaccountkeys_list_execute(builder)
 }
 
@@ -6647,6 +7190,17 @@ pub fn androidenterprise_storelayoutclusters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_storelayoutclusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseStorelayoutclustersDeleteArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+    /// Path parameter: clusterId
+    pub clusterId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
 /// Deletes a cluster.
 ///
@@ -6659,18 +7213,16 @@ pub fn androidenterprise_storelayoutclusters_delete_execute(
 
 pub fn androidenterprise_storelayoutclusters_delete(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    pageId: &str,
-    clusterId: &str,
+    args: &AndroidenterpriseStorelayoutclustersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidenterprise_storelayoutclusters_delete_builder(
         client,
-        enterpriseId,
-        pageId,
-        clusterId,
+        &args.enterpriseId,
+        &args.pageId,
+        &args.clusterId,
     )?;
     androidenterprise_storelayoutclusters_delete_execute(builder)
 }
@@ -6771,6 +7323,17 @@ pub fn androidenterprise_storelayoutclusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_storelayoutclusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseStorelayoutclustersGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+    /// Path parameter: clusterId
+    pub clusterId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
 /// Retrieves details of a cluster.
 ///
@@ -6783,17 +7346,19 @@ pub fn androidenterprise_storelayoutclusters_get_execute(
 
 pub fn androidenterprise_storelayoutclusters_get(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    pageId: &str,
-    clusterId: &str,
+    args: &AndroidenterpriseStorelayoutclustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StoreCluster>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_storelayoutclusters_get_builder(client, enterpriseId, pageId, clusterId)?;
+    let builder = androidenterprise_storelayoutclusters_get_builder(
+        client,
+        &args.enterpriseId,
+        &args.pageId,
+        &args.clusterId,
+    )?;
     androidenterprise_storelayoutclusters_get_execute(builder)
 }
 
@@ -6894,6 +7459,17 @@ pub fn androidenterprise_storelayoutclusters_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_storelayoutclusters_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseStorelayoutclustersInsertArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+    /// Request body.
+    pub body: StoreCluster,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters
 /// Inserts a new cluster in a page.
 ///
@@ -6906,17 +7482,19 @@ pub fn androidenterprise_storelayoutclusters_insert_execute(
 
 pub fn androidenterprise_storelayoutclusters_insert(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    pageId: &str,
-    body: &StoreCluster,
+    args: &AndroidenterpriseStorelayoutclustersInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StoreCluster>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_storelayoutclusters_insert_builder(client, enterpriseId, pageId, body)?;
+    let builder = androidenterprise_storelayoutclusters_insert_builder(
+        client,
+        &args.enterpriseId,
+        &args.pageId,
+        &args.body,
+    )?;
     androidenterprise_storelayoutclusters_insert_execute(builder)
 }
 
@@ -7016,6 +7594,15 @@ pub fn androidenterprise_storelayoutclusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_storelayoutclusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseStorelayoutclustersListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters
 /// Retrieves the details of all clusters on the specified page.
 ///
@@ -7028,8 +7615,7 @@ pub fn androidenterprise_storelayoutclusters_list_execute(
 
 pub fn androidenterprise_storelayoutclusters_list(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    pageId: &str,
+    args: &AndroidenterpriseStorelayoutclustersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<StoreLayoutClustersListResponse>, ApiError>,
@@ -7038,7 +7624,11 @@ pub fn androidenterprise_storelayoutclusters_list(
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_storelayoutclusters_list_builder(client, enterpriseId, pageId)?;
+    let builder = androidenterprise_storelayoutclusters_list_builder(
+        client,
+        &args.enterpriseId,
+        &args.pageId,
+    )?;
     androidenterprise_storelayoutclusters_list_execute(builder)
 }
 
@@ -7141,6 +7731,19 @@ pub fn androidenterprise_storelayoutclusters_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_storelayoutclusters_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseStorelayoutclustersUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+    /// Path parameter: clusterId
+    pub clusterId: String,
+    /// Request body.
+    pub body: StoreCluster,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}
 /// Updates a cluster.
 ///
@@ -7153,10 +7756,7 @@ pub fn androidenterprise_storelayoutclusters_update_execute(
 
 pub fn androidenterprise_storelayoutclusters_update(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    pageId: &str,
-    clusterId: &str,
-    body: &StoreCluster,
+    args: &AndroidenterpriseStorelayoutclustersUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StoreCluster>, ApiError>, P = ApiPending>
         + Send
@@ -7165,10 +7765,10 @@ pub fn androidenterprise_storelayoutclusters_update(
 > {
     let builder = androidenterprise_storelayoutclusters_update_builder(
         client,
-        enterpriseId,
-        pageId,
-        clusterId,
-        body,
+        &args.enterpriseId,
+        &args.pageId,
+        &args.clusterId,
+        &args.body,
     )?;
     androidenterprise_storelayoutclusters_update_execute(builder)
 }
@@ -7262,6 +7862,15 @@ pub fn androidenterprise_storelayoutpages_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_storelayoutpages_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseStorelayoutpagesDeleteArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
 /// Deletes a store page.
 ///
@@ -7274,13 +7883,16 @@ pub fn androidenterprise_storelayoutpages_delete_execute(
 
 pub fn androidenterprise_storelayoutpages_delete(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    pageId: &str,
+    args: &AndroidenterpriseStorelayoutpagesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_storelayoutpages_delete_builder(client, enterpriseId, pageId)?;
+    let builder = androidenterprise_storelayoutpages_delete_builder(
+        client,
+        &args.enterpriseId,
+        &args.pageId,
+    )?;
     androidenterprise_storelayoutpages_delete_execute(builder)
 }
 
@@ -7376,6 +7988,15 @@ pub fn androidenterprise_storelayoutpages_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_storelayoutpages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseStorelayoutpagesGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
 /// Retrieves details of a store page.
 ///
@@ -7388,13 +8009,13 @@ pub fn androidenterprise_storelayoutpages_get_execute(
 
 pub fn androidenterprise_storelayoutpages_get(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    pageId: &str,
+    args: &AndroidenterpriseStorelayoutpagesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StorePage>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_storelayoutpages_get_builder(client, enterpriseId, pageId)?;
+    let builder =
+        androidenterprise_storelayoutpages_get_builder(client, &args.enterpriseId, &args.pageId)?;
     androidenterprise_storelayoutpages_get_execute(builder)
 }
 
@@ -7491,6 +8112,15 @@ pub fn androidenterprise_storelayoutpages_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_storelayoutpages_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseStorelayoutpagesInsertArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Request body.
+    pub body: StorePage,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages
 /// Inserts a new store page.
 ///
@@ -7503,13 +8133,13 @@ pub fn androidenterprise_storelayoutpages_insert_execute(
 
 pub fn androidenterprise_storelayoutpages_insert(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    body: &StorePage,
+    args: &AndroidenterpriseStorelayoutpagesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StorePage>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_storelayoutpages_insert_builder(client, enterpriseId, body)?;
+    let builder =
+        androidenterprise_storelayoutpages_insert_builder(client, &args.enterpriseId, &args.body)?;
     androidenterprise_storelayoutpages_insert_execute(builder)
 }
 
@@ -7607,6 +8237,13 @@ pub fn androidenterprise_storelayoutpages_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_storelayoutpages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseStorelayoutpagesListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages
 /// Retrieves the details of all pages in the store.
 ///
@@ -7619,7 +8256,7 @@ pub fn androidenterprise_storelayoutpages_list_execute(
 
 pub fn androidenterprise_storelayoutpages_list(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
+    args: &AndroidenterpriseStorelayoutpagesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<StoreLayoutPagesListResponse>, ApiError>,
@@ -7628,7 +8265,7 @@ pub fn androidenterprise_storelayoutpages_list(
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_storelayoutpages_list_builder(client, enterpriseId)?;
+    let builder = androidenterprise_storelayoutpages_list_builder(client, &args.enterpriseId)?;
     androidenterprise_storelayoutpages_list_execute(builder)
 }
 
@@ -7727,6 +8364,17 @@ pub fn androidenterprise_storelayoutpages_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_storelayoutpages_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseStorelayoutpagesUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+    /// Request body.
+    pub body: StorePage,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/storeLayout/pages/{pageId}
 /// Updates the content of a store page.
 ///
@@ -7739,15 +8387,17 @@ pub fn androidenterprise_storelayoutpages_update_execute(
 
 pub fn androidenterprise_storelayoutpages_update(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    pageId: &str,
-    body: &StorePage,
+    args: &AndroidenterpriseStorelayoutpagesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StorePage>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_storelayoutpages_update_builder(client, enterpriseId, pageId, body)?;
+    let builder = androidenterprise_storelayoutpages_update_builder(
+        client,
+        &args.enterpriseId,
+        &args.pageId,
+        &args.body,
+    )?;
     androidenterprise_storelayoutpages_update_execute(builder)
 }
 
@@ -7839,6 +8489,15 @@ pub fn androidenterprise_users_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_users_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseUsersDeleteArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
 /// Deleted an EMM-managed user.
 ///
@@ -7851,13 +8510,12 @@ pub fn androidenterprise_users_delete_execute(
 
 pub fn androidenterprise_users_delete(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
+    args: &AndroidenterpriseUsersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_users_delete_builder(client, enterpriseId, userId)?;
+    let builder = androidenterprise_users_delete_builder(client, &args.enterpriseId, &args.userId)?;
     androidenterprise_users_delete_execute(builder)
 }
 
@@ -7955,6 +8613,15 @@ pub fn androidenterprise_users_generate_authentication_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_users_generate_authentication_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseUsersGenerateAuthenticationTokenArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/authenticationToken
 /// Generates an authentication token which the device policy client can use to provision the given EMM-managed user account on a device. The generated token is single-use and expires after a few minutes. You can provision a maximum of 10 devices per user. This call only works with EMM-managed accounts.
 ///
@@ -7967,8 +8634,7 @@ pub fn androidenterprise_users_generate_authentication_token_execute(
 
 pub fn androidenterprise_users_generate_authentication_token(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
+    args: &AndroidenterpriseUsersGenerateAuthenticationTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthenticationToken>, ApiError>, P = ApiPending>
         + Send
@@ -7977,8 +8643,8 @@ pub fn androidenterprise_users_generate_authentication_token(
 > {
     let builder = androidenterprise_users_generate_authentication_token_builder(
         client,
-        enterpriseId,
-        userId,
+        &args.enterpriseId,
+        &args.userId,
     )?;
     androidenterprise_users_generate_authentication_token_execute(builder)
 }
@@ -8074,6 +8740,15 @@ pub fn androidenterprise_users_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_users_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseUsersGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
 /// Retrieves a user's details.
 ///
@@ -8086,13 +8761,12 @@ pub fn androidenterprise_users_get_execute(
 
 pub fn androidenterprise_users_get(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
+    args: &AndroidenterpriseUsersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_users_get_builder(client, enterpriseId, userId)?;
+    let builder = androidenterprise_users_get_builder(client, &args.enterpriseId, &args.userId)?;
     androidenterprise_users_get_execute(builder)
 }
 
@@ -8188,6 +8862,15 @@ pub fn androidenterprise_users_get_available_product_set_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_users_get_available_product_set`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseUsersGetAvailableProductSetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/availableProductSet
 /// Retrieves the set of products a user is entitled to access. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
@@ -8200,14 +8883,16 @@ pub fn androidenterprise_users_get_available_product_set_execute(
 
 pub fn androidenterprise_users_get_available_product_set(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
+    args: &AndroidenterpriseUsersGetAvailableProductSetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductSet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_users_get_available_product_set_builder(client, enterpriseId, userId)?;
+    let builder = androidenterprise_users_get_available_product_set_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+    )?;
     androidenterprise_users_get_available_product_set_execute(builder)
 }
 
@@ -8304,6 +8989,15 @@ pub fn androidenterprise_users_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_users_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseUsersInsertArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Request body.
+    pub body: User,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users
 /// Creates a new EMM-managed user. The Users resource passed in the body of the request should include an `accountIdentifier` and an `accountType`. If a corresponding user already exists with the same account identifier, the user will be updated with the resource. In this case only the `displayName` field can be changed.
 ///
@@ -8316,13 +9010,12 @@ pub fn androidenterprise_users_insert_execute(
 
 pub fn androidenterprise_users_insert(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    body: &User,
+    args: &AndroidenterpriseUsersInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_users_insert_builder(client, enterpriseId, body)?;
+    let builder = androidenterprise_users_insert_builder(client, &args.enterpriseId, &args.body)?;
     androidenterprise_users_insert_execute(builder)
 }
 
@@ -8419,6 +9112,15 @@ pub fn androidenterprise_users_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_users_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseUsersListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: email
+    pub email: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users
 /// Looks up a user by primary email address. This is only supported for Google-managed users. Lookup of the id is not needed for EMM-managed users because the id is already returned in the result of the Users.insert call.
 ///
@@ -8431,15 +9133,14 @@ pub fn androidenterprise_users_list_execute(
 
 pub fn androidenterprise_users_list(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    email: &str,
+    args: &AndroidenterpriseUsersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UsersListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_users_list_builder(client, enterpriseId, email)?;
+    let builder = androidenterprise_users_list_builder(client, &args.enterpriseId, &args.email)?;
     androidenterprise_users_list_execute(builder)
 }
 
@@ -8532,6 +9233,15 @@ pub fn androidenterprise_users_revoke_device_access_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_users_revoke_device_access`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseUsersRevokeDeviceAccessArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/deviceAccess
 /// Revokes access to all devices currently provisioned to the user. The user will no longer be able to use the managed Play store on any of their managed devices. This call only works with EMM-managed accounts.
 ///
@@ -8544,14 +9254,16 @@ pub fn androidenterprise_users_revoke_device_access_execute(
 
 pub fn androidenterprise_users_revoke_device_access(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
+    args: &AndroidenterpriseUsersRevokeDeviceAccessArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_users_revoke_device_access_builder(client, enterpriseId, userId)?;
+    let builder = androidenterprise_users_revoke_device_access_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+    )?;
     androidenterprise_users_revoke_device_access_execute(builder)
 }
 
@@ -8650,6 +9362,17 @@ pub fn androidenterprise_users_set_available_product_set_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_users_set_available_product_set`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseUsersSetAvailableProductSetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: ProductSet,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/availableProductSet
 /// Modifies the set of products that a user is entitled to access (referred to as *whitelisted* products). Only products that are approved or products that were previously approved (products with revoked approval) can be whitelisted. **Note:** This item has been deprecated. New integrations cannot use this method and can refer to our new recommendations.
 ///
@@ -8662,18 +9385,16 @@ pub fn androidenterprise_users_set_available_product_set_execute(
 
 pub fn androidenterprise_users_set_available_product_set(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    body: &ProductSet,
+    args: &AndroidenterpriseUsersSetAvailableProductSetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductSet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidenterprise_users_set_available_product_set_builder(
         client,
-        enterpriseId,
-        userId,
-        body,
+        &args.enterpriseId,
+        &args.userId,
+        &args.body,
     )?;
     androidenterprise_users_set_available_product_set_execute(builder)
 }
@@ -8772,6 +9493,17 @@ pub fn androidenterprise_users_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_users_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseUsersUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: User,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}
 /// Updates the details of an EMM-managed user. Can be used with EMM-managed users only (not Google managed users). Pass the new details in the Users resource in the request body. Only the `displayName` field can be changed. Other fields must either be unset or have the currently active value.
 ///
@@ -8784,14 +9516,17 @@ pub fn androidenterprise_users_update_execute(
 
 pub fn androidenterprise_users_update(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    userId: &str,
-    body: &User,
+    args: &AndroidenterpriseUsersUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_users_update_builder(client, enterpriseId, userId, body)?;
+    let builder = androidenterprise_users_update_builder(
+        client,
+        &args.enterpriseId,
+        &args.userId,
+        &args.body,
+    )?;
     androidenterprise_users_update_execute(builder)
 }
 
@@ -8883,6 +9618,15 @@ pub fn androidenterprise_webapps_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_webapps_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseWebappsDeleteArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: webAppId
+    pub webAppId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
 /// Deletes an existing web app.
 ///
@@ -8895,13 +9639,13 @@ pub fn androidenterprise_webapps_delete_execute(
 
 pub fn androidenterprise_webapps_delete(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    webAppId: &str,
+    args: &AndroidenterpriseWebappsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_webapps_delete_builder(client, enterpriseId, webAppId)?;
+    let builder =
+        androidenterprise_webapps_delete_builder(client, &args.enterpriseId, &args.webAppId)?;
     androidenterprise_webapps_delete_execute(builder)
 }
 
@@ -8996,6 +9740,15 @@ pub fn androidenterprise_webapps_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_webapps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseWebappsGetArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: webAppId
+    pub webAppId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
 /// Gets an existing web app.
 ///
@@ -9008,13 +9761,13 @@ pub fn androidenterprise_webapps_get_execute(
 
 pub fn androidenterprise_webapps_get(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    webAppId: &str,
+    args: &AndroidenterpriseWebappsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_webapps_get_builder(client, enterpriseId, webAppId)?;
+    let builder =
+        androidenterprise_webapps_get_builder(client, &args.enterpriseId, &args.webAppId)?;
     androidenterprise_webapps_get_execute(builder)
 }
 
@@ -9111,6 +9864,15 @@ pub fn androidenterprise_webapps_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_webapps_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseWebappsInsertArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Request body.
+    pub body: WebApp,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps
 /// Creates a new web app for the enterprise.
 ///
@@ -9123,13 +9885,12 @@ pub fn androidenterprise_webapps_insert_execute(
 
 pub fn androidenterprise_webapps_insert(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    body: &WebApp,
+    args: &AndroidenterpriseWebappsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_webapps_insert_builder(client, enterpriseId, body)?;
+    let builder = androidenterprise_webapps_insert_builder(client, &args.enterpriseId, &args.body)?;
     androidenterprise_webapps_insert_execute(builder)
 }
 
@@ -9225,6 +9986,13 @@ pub fn androidenterprise_webapps_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_webapps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseWebappsListArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps
 /// Retrieves the details of all web apps for a given enterprise.
 ///
@@ -9237,14 +10005,14 @@ pub fn androidenterprise_webapps_list_execute(
 
 pub fn androidenterprise_webapps_list(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
+    args: &AndroidenterpriseWebappsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WebAppsListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_webapps_list_builder(client, enterpriseId)?;
+    let builder = androidenterprise_webapps_list_builder(client, &args.enterpriseId)?;
     androidenterprise_webapps_list_execute(builder)
 }
 
@@ -9342,6 +10110,17 @@ pub fn androidenterprise_webapps_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidenterprise_webapps_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidenterpriseWebappsUpdateArgs {
+    /// Path parameter: enterpriseId
+    pub enterpriseId: String,
+    /// Path parameter: webAppId
+    pub webAppId: String,
+    /// Request body.
+    pub body: WebApp,
+}
+
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/webApps/{webAppId}
 /// Updates an existing web app.
 ///
@@ -9354,13 +10133,16 @@ pub fn androidenterprise_webapps_update_execute(
 
 pub fn androidenterprise_webapps_update(
     client: &SimpleHttpClient,
-    enterpriseId: &str,
-    webAppId: &str,
-    body: &WebApp,
+    args: &AndroidenterpriseWebappsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_webapps_update_builder(client, enterpriseId, webAppId, body)?;
+    let builder = androidenterprise_webapps_update_builder(
+        client,
+        &args.enterpriseId,
+        &args.webAppId,
+        &args.body,
+    )?;
     androidenterprise_webapps_update_execute(builder)
 }

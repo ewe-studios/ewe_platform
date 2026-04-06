@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/billingAccounts/{billingAccountsId}/budgets
 /// Creates a new budget. See [Quotas and limits](<https://cloud.google.`com/billing/quotas`>) for more information on the limits of the number of budgets you can create.
@@ -113,6 +115,15 @@ pub fn billingbudgets_billing_accounts_budgets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`billingbudgets_billing_accounts_budgets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BillingbudgetsBillingAccountsBudgetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudBillingBudgetsV1Budget,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/budgets
 /// Creates a new budget. See [Quotas and limits](<https://cloud.google.`com/billing/quotas`>) for more information on the limits of the number of budgets you can create.
 ///
@@ -125,8 +136,7 @@ pub fn billingbudgets_billing_accounts_budgets_create_execute(
 
 pub fn billingbudgets_billing_accounts_budgets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudBillingBudgetsV1Budget,
+    args: &BillingbudgetsBillingAccountsBudgetsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudBillingBudgetsV1Budget>, ApiError>,
@@ -135,7 +145,8 @@ pub fn billingbudgets_billing_accounts_budgets_create(
         + 'static,
     ApiError,
 > {
-    let builder = billingbudgets_billing_accounts_budgets_create_builder(client, parent, body)?;
+    let builder =
+        billingbudgets_billing_accounts_budgets_create_builder(client, &args.parent, &args.body)?;
     billingbudgets_billing_accounts_budgets_create_execute(builder)
 }
 
@@ -231,6 +242,13 @@ pub fn billingbudgets_billing_accounts_budgets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`billingbudgets_billing_accounts_budgets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BillingbudgetsBillingAccountsBudgetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/budgets/{budgetsId}
 /// Deletes a budget. Returns successfully if already deleted.
 ///
@@ -243,14 +261,14 @@ pub fn billingbudgets_billing_accounts_budgets_delete_execute(
 
 pub fn billingbudgets_billing_accounts_budgets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BillingbudgetsBillingAccountsBudgetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = billingbudgets_billing_accounts_budgets_delete_builder(client, name)?;
+    let builder = billingbudgets_billing_accounts_budgets_delete_builder(client, &args.name)?;
     billingbudgets_billing_accounts_budgets_delete_execute(builder)
 }
 
@@ -348,6 +366,13 @@ pub fn billingbudgets_billing_accounts_budgets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`billingbudgets_billing_accounts_budgets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BillingbudgetsBillingAccountsBudgetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/budgets/{budgetsId}
 /// Returns a budget. WARNING: There are some fields exposed on the Google Cloud Console that aren't available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
 ///
@@ -360,7 +385,7 @@ pub fn billingbudgets_billing_accounts_budgets_get_execute(
 
 pub fn billingbudgets_billing_accounts_budgets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BillingbudgetsBillingAccountsBudgetsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudBillingBudgetsV1Budget>, ApiError>,
@@ -369,7 +394,7 @@ pub fn billingbudgets_billing_accounts_budgets_get(
         + 'static,
     ApiError,
 > {
-    let builder = billingbudgets_billing_accounts_budgets_get_builder(client, name)?;
+    let builder = billingbudgets_billing_accounts_budgets_get_builder(client, &args.name)?;
     billingbudgets_billing_accounts_budgets_get_execute(builder)
 }
 
@@ -488,6 +513,19 @@ pub fn billingbudgets_billing_accounts_budgets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`billingbudgets_billing_accounts_budgets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BillingbudgetsBillingAccountsBudgetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: scope
+    pub scope: Option<String>,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/budgets
 /// Returns a list of budgets for a billing account. WARNING: There are some fields exposed on the Google Cloud Console that aren't available on this API. When reading from the API, you will not see these fields in the return value, though they may have been set in the Cloud Console.
 ///
@@ -500,10 +538,7 @@ pub fn billingbudgets_billing_accounts_budgets_list_execute(
 
 pub fn billingbudgets_billing_accounts_budgets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    scope: Option<&str>,
+    args: &BillingbudgetsBillingAccountsBudgetsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudBillingBudgetsV1ListBudgetsResponse>, ApiError>,
@@ -513,7 +548,11 @@ pub fn billingbudgets_billing_accounts_budgets_list(
     ApiError,
 > {
     let builder = billingbudgets_billing_accounts_budgets_list_builder(
-        client, parent, pageSize, pageToken, scope,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.scope.as_deref(),
     )?;
     billingbudgets_billing_accounts_budgets_list_execute(builder)
 }
@@ -627,6 +666,17 @@ pub fn billingbudgets_billing_accounts_budgets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`billingbudgets_billing_accounts_budgets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BillingbudgetsBillingAccountsBudgetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudBillingBudgetsV1Budget,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/budgets/{budgetsId}
 /// Updates a budget and returns the updated budget. WARNING: There are some fields exposed on the Google Cloud Console that aren't available on this API. Budget fields that are not exposed in this API will not be changed by this method.
 ///
@@ -639,9 +689,7 @@ pub fn billingbudgets_billing_accounts_budgets_patch_execute(
 
 pub fn billingbudgets_billing_accounts_budgets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudBillingBudgetsV1Budget,
+    args: &BillingbudgetsBillingAccountsBudgetsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudBillingBudgetsV1Budget>, ApiError>,
@@ -650,7 +698,11 @@ pub fn billingbudgets_billing_accounts_budgets_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        billingbudgets_billing_accounts_budgets_patch_builder(client, name, updateMask, body)?;
+    let builder = billingbudgets_billing_accounts_budgets_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     billingbudgets_billing_accounts_budgets_patch_execute(builder)
 }

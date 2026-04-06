@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/currentConditions:lookup
 /// The Current Conditions endpoint provides hourly air quality information in more than 100 countries, up to a 500 x 500 meters resolution. Includes over 70 local indexes and global air quality index and categories.
@@ -109,6 +111,13 @@ pub fn airquality_current_conditions_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`airquality_current_conditions_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AirqualityCurrentConditionsLookupArgs {
+    /// Request body.
+    pub body: LookupCurrentConditionsRequest,
+}
+
 /// GET v1/currentConditions:lookup
 /// The Current Conditions endpoint provides hourly air quality information in more than 100 countries, up to a 500 x 500 meters resolution. Includes over 70 local indexes and global air quality index and categories.
 ///
@@ -121,7 +130,7 @@ pub fn airquality_current_conditions_lookup_execute(
 
 pub fn airquality_current_conditions_lookup(
     client: &SimpleHttpClient,
-    body: &LookupCurrentConditionsRequest,
+    args: &AirqualityCurrentConditionsLookupArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LookupCurrentConditionsResponse>, ApiError>,
@@ -130,7 +139,7 @@ pub fn airquality_current_conditions_lookup(
         + 'static,
     ApiError,
 > {
-    let builder = airquality_current_conditions_lookup_builder(client, body)?;
+    let builder = airquality_current_conditions_lookup_builder(client, &args.body)?;
     airquality_current_conditions_lookup_execute(builder)
 }
 
@@ -225,6 +234,13 @@ pub fn airquality_forecast_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`airquality_forecast_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AirqualityForecastLookupArgs {
+    /// Request body.
+    pub body: LookupForecastRequest,
+}
+
 /// GET v1/forecast:lookup
 /// Returns air quality forecast for a specific location for a given time range.
 ///
@@ -237,14 +253,14 @@ pub fn airquality_forecast_lookup_execute(
 
 pub fn airquality_forecast_lookup(
     client: &SimpleHttpClient,
-    body: &LookupForecastRequest,
+    args: &AirqualityForecastLookupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LookupForecastResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = airquality_forecast_lookup_builder(client, body)?;
+    let builder = airquality_forecast_lookup_builder(client, &args.body)?;
     airquality_forecast_lookup_execute(builder)
 }
 
@@ -339,6 +355,13 @@ pub fn airquality_history_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`airquality_history_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AirqualityHistoryLookupArgs {
+    /// Request body.
+    pub body: LookupHistoryRequest,
+}
+
 /// GET v1/history:lookup
 /// Returns air quality history for a specific location for a given time range.
 ///
@@ -351,14 +374,14 @@ pub fn airquality_history_lookup_execute(
 
 pub fn airquality_history_lookup(
     client: &SimpleHttpClient,
-    body: &LookupHistoryRequest,
+    args: &AirqualityHistoryLookupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LookupHistoryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = airquality_history_lookup_builder(client, body)?;
+    let builder = airquality_history_lookup_builder(client, &args.body)?;
     airquality_history_lookup_execute(builder)
 }
 
@@ -455,6 +478,19 @@ pub fn airquality_map_types_heatmap_tiles_lookup_heatmap_tile_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`airquality_map_types_heatmap_tiles_lookup_heatmap_tile`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AirqualityMapTypesHeatmapTilesLookupHeatmapTileArgs {
+    /// Path parameter: mapType
+    pub mapType: String,
+    /// Path parameter: zoom
+    pub zoom: String,
+    /// Path parameter: x
+    pub x: String,
+    /// Path parameter: y
+    pub y: String,
+}
+
 /// GET v1/mapTypes/{mapType}/heatmapTiles/{zoom}/{x}/{y}
 /// Returns a bytes array containing the data of the tile PNG image.
 ///
@@ -467,16 +503,17 @@ pub fn airquality_map_types_heatmap_tiles_lookup_heatmap_tile_execute(
 
 pub fn airquality_map_types_heatmap_tiles_lookup_heatmap_tile(
     client: &SimpleHttpClient,
-    mapType: &str,
-    zoom: &str,
-    x: &str,
-    y: &str,
+    args: &AirqualityMapTypesHeatmapTilesLookupHeatmapTileArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = airquality_map_types_heatmap_tiles_lookup_heatmap_tile_builder(
-        client, mapType, zoom, x, y,
+        client,
+        &args.mapType,
+        &args.zoom,
+        &args.x,
+        &args.y,
     )?;
     airquality_map_types_heatmap_tiles_lookup_heatmap_tile_execute(builder)
 }

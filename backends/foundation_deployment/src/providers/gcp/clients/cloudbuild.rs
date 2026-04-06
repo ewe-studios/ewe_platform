@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn cloudbuild_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn cloudbuild_projects_locations_get_execute(
 
 pub fn cloudbuild_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudbuildProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudbuild_projects_locations_get_builder(client, name)?;
+    let builder = cloudbuild_projects_locations_get_builder(client, &args.name)?;
     cloudbuild_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn cloudbuild_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
 ///
@@ -255,11 +279,7 @@ pub fn cloudbuild_projects_locations_list_execute(
 
 pub fn cloudbuild_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudbuildProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn cloudbuild_projects_locations_list(
 > {
     let builder = cloudbuild_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudbuild_projects_locations_list_execute(builder)
 }
@@ -382,6 +402,17 @@ pub fn cloudbuild_projects_locations_connections_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: connectionId
+    pub connectionId: Option<String>,
+    /// Request body.
+    pub body: Connection,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections
 /// Creates a Connection.
 ///
@@ -394,18 +425,16 @@ pub fn cloudbuild_projects_locations_connections_create_execute(
 
 pub fn cloudbuild_projects_locations_connections_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    connectionId: Option<&str>,
-    body: &Connection,
+    args: &CloudbuildProjectsLocationsConnectionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudbuild_projects_locations_connections_create_builder(
         client,
-        parent,
-        connectionId,
-        body,
+        &args.parent,
+        args.connectionId.as_deref(),
+        &args.body,
     )?;
     cloudbuild_projects_locations_connections_create_execute(builder)
 }
@@ -516,6 +545,17 @@ pub fn cloudbuild_projects_locations_connections_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}
 /// Deletes a single connection.
 ///
@@ -528,15 +568,17 @@ pub fn cloudbuild_projects_locations_connections_delete_execute(
 
 pub fn cloudbuild_projects_locations_connections_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &CloudbuildProjectsLocationsConnectionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudbuild_projects_locations_connections_delete_builder(client, name, etag, validateOnly)?;
+    let builder = cloudbuild_projects_locations_connections_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.validateOnly,
+    )?;
     cloudbuild_projects_locations_connections_delete_execute(builder)
 }
 
@@ -650,6 +692,17 @@ pub fn cloudbuild_projects_locations_connections_fetch_linkable_repositories_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_fetch_linkable_repositories`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsFetchLinkableRepositoriesArgs {
+    /// Path parameter: connection
+    pub connection: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:fetchLinkableRepositories
 /// FetchLinkableRepositories get repositories from SCM that are accessible and could be added to the connection.
 ///
@@ -662,9 +715,7 @@ pub fn cloudbuild_projects_locations_connections_fetch_linkable_repositories_exe
 
 pub fn cloudbuild_projects_locations_connections_fetch_linkable_repositories(
     client: &SimpleHttpClient,
-    connection: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudbuildProjectsLocationsConnectionsFetchLinkableRepositoriesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchLinkableRepositoriesResponse>, ApiError>,
@@ -674,7 +725,10 @@ pub fn cloudbuild_projects_locations_connections_fetch_linkable_repositories(
     ApiError,
 > {
     let builder = cloudbuild_projects_locations_connections_fetch_linkable_repositories_builder(
-        client, connection, pageSize, pageToken,
+        client,
+        &args.connection,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudbuild_projects_locations_connections_fetch_linkable_repositories_execute(builder)
 }
@@ -769,6 +823,13 @@ pub fn cloudbuild_projects_locations_connections_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}
 /// Gets details of a single connection.
 ///
@@ -781,12 +842,12 @@ pub fn cloudbuild_projects_locations_connections_get_execute(
 
 pub fn cloudbuild_projects_locations_connections_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudbuildProjectsLocationsConnectionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Connection>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudbuild_projects_locations_connections_get_builder(client, name)?;
+    let builder = cloudbuild_projects_locations_connections_get_builder(client, &args.name)?;
     cloudbuild_projects_locations_connections_get_execute(builder)
 }
 
@@ -892,6 +953,15 @@ pub fn cloudbuild_projects_locations_connections_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -904,16 +974,15 @@ pub fn cloudbuild_projects_locations_connections_get_iam_policy_execute(
 
 pub fn cloudbuild_projects_locations_connections_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &CloudbuildProjectsLocationsConnectionsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudbuild_projects_locations_connections_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     cloudbuild_projects_locations_connections_get_iam_policy_execute(builder)
 }
@@ -1030,6 +1099,19 @@ pub fn cloudbuild_projects_locations_connections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections
 /// Lists Connections in a given project and location.
 ///
@@ -1042,10 +1124,7 @@ pub fn cloudbuild_projects_locations_connections_list_execute(
 
 pub fn cloudbuild_projects_locations_connections_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &CloudbuildProjectsLocationsConnectionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListConnectionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1054,10 +1133,10 @@ pub fn cloudbuild_projects_locations_connections_list(
 > {
     let builder = cloudbuild_projects_locations_connections_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     cloudbuild_projects_locations_connections_list_execute(builder)
 }
@@ -1175,6 +1254,21 @@ pub fn cloudbuild_projects_locations_connections_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Connection,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}
 /// Updates a single connection.
 ///
@@ -1187,22 +1281,18 @@ pub fn cloudbuild_projects_locations_connections_patch_execute(
 
 pub fn cloudbuild_projects_locations_connections_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Connection,
+    args: &CloudbuildProjectsLocationsConnectionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudbuild_projects_locations_connections_patch_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        updateMask,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     cloudbuild_projects_locations_connections_patch_execute(builder)
 }
@@ -1312,6 +1402,17 @@ pub fn cloudbuild_projects_locations_connections_process_webhook_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_process_webhook`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsProcessWebhookArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: webhookKey
+    pub webhookKey: Option<String>,
+    /// Request body.
+    pub body: HttpBody,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections:processWebhook
 /// ProcessWebhook is called by the external SCM for notifying of events.
 ///
@@ -1324,15 +1425,16 @@ pub fn cloudbuild_projects_locations_connections_process_webhook_execute(
 
 pub fn cloudbuild_projects_locations_connections_process_webhook(
     client: &SimpleHttpClient,
-    parent: &str,
-    webhookKey: Option<&str>,
-    body: &HttpBody,
+    args: &CloudbuildProjectsLocationsConnectionsProcessWebhookArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudbuild_projects_locations_connections_process_webhook_builder(
-        client, parent, webhookKey, body,
+        client,
+        &args.parent,
+        args.webhookKey.as_deref(),
+        &args.body,
     )?;
     cloudbuild_projects_locations_connections_process_webhook_execute(builder)
 }
@@ -1430,6 +1532,15 @@ pub fn cloudbuild_projects_locations_connections_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1442,14 +1553,16 @@ pub fn cloudbuild_projects_locations_connections_set_iam_policy_execute(
 
 pub fn cloudbuild_projects_locations_connections_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &CloudbuildProjectsLocationsConnectionsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudbuild_projects_locations_connections_set_iam_policy_builder(client, resource, body)?;
+    let builder = cloudbuild_projects_locations_connections_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudbuild_projects_locations_connections_set_iam_policy_execute(builder)
 }
 
@@ -1550,6 +1663,15 @@ pub fn cloudbuild_projects_locations_connections_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1562,8 +1684,7 @@ pub fn cloudbuild_projects_locations_connections_test_iam_permissions_execute(
 
 pub fn cloudbuild_projects_locations_connections_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &CloudbuildProjectsLocationsConnectionsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1573,7 +1694,9 @@ pub fn cloudbuild_projects_locations_connections_test_iam_permissions(
     ApiError,
 > {
     let builder = cloudbuild_projects_locations_connections_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     cloudbuild_projects_locations_connections_test_iam_permissions_execute(builder)
 }
@@ -1673,6 +1796,15 @@ pub fn cloudbuild_projects_locations_connections_repositories_access_read_token_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_repositories_access_read_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsRepositoriesAccessReadTokenArgs {
+    /// Path parameter: repository
+    pub repository: String,
+    /// Request body.
+    pub body: FetchReadTokenRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/repositories/{repositoriesId}:accessReadToken
 /// Fetches read token of a given repository.
 ///
@@ -1685,8 +1817,7 @@ pub fn cloudbuild_projects_locations_connections_repositories_access_read_token_
 
 pub fn cloudbuild_projects_locations_connections_repositories_access_read_token(
     client: &SimpleHttpClient,
-    repository: &str,
-    body: &FetchReadTokenRequest,
+    args: &CloudbuildProjectsLocationsConnectionsRepositoriesAccessReadTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FetchReadTokenResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1694,7 +1825,9 @@ pub fn cloudbuild_projects_locations_connections_repositories_access_read_token(
     ApiError,
 > {
     let builder = cloudbuild_projects_locations_connections_repositories_access_read_token_builder(
-        client, repository, body,
+        client,
+        &args.repository,
+        &args.body,
     )?;
     cloudbuild_projects_locations_connections_repositories_access_read_token_execute(builder)
 }
@@ -1796,6 +1929,15 @@ pub fn cloudbuild_projects_locations_connections_repositories_access_read_write_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_repositories_access_read_write_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsRepositoriesAccessReadWriteTokenArgs {
+    /// Path parameter: repository
+    pub repository: String,
+    /// Request body.
+    pub body: FetchReadWriteTokenRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/repositories/{repositoriesId}:accessReadWriteToken
 /// Fetches `read/write` token of a given repository.
 ///
@@ -1808,8 +1950,7 @@ pub fn cloudbuild_projects_locations_connections_repositories_access_read_write_
 
 pub fn cloudbuild_projects_locations_connections_repositories_access_read_write_token(
     client: &SimpleHttpClient,
-    repository: &str,
-    body: &FetchReadWriteTokenRequest,
+    args: &CloudbuildProjectsLocationsConnectionsRepositoriesAccessReadWriteTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchReadWriteTokenResponse>, ApiError>,
@@ -1820,7 +1961,9 @@ pub fn cloudbuild_projects_locations_connections_repositories_access_read_write_
 > {
     let builder =
         cloudbuild_projects_locations_connections_repositories_access_read_write_token_builder(
-            client, repository, body,
+            client,
+            &args.repository,
+            &args.body,
         )?;
     cloudbuild_projects_locations_connections_repositories_access_read_write_token_execute(builder)
 }
@@ -1918,6 +2061,15 @@ pub fn cloudbuild_projects_locations_connections_repositories_batch_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_repositories_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsRepositoriesBatchCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchCreateRepositoriesRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/repositories:batchCreate
 /// Creates multiple repositories inside a connection.
 ///
@@ -1930,14 +2082,15 @@ pub fn cloudbuild_projects_locations_connections_repositories_batch_create_execu
 
 pub fn cloudbuild_projects_locations_connections_repositories_batch_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchCreateRepositoriesRequest,
+    args: &CloudbuildProjectsLocationsConnectionsRepositoriesBatchCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudbuild_projects_locations_connections_repositories_batch_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     cloudbuild_projects_locations_connections_repositories_batch_create_execute(builder)
 }
@@ -2047,6 +2200,17 @@ pub fn cloudbuild_projects_locations_connections_repositories_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_repositories_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsRepositoriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: repositoryId
+    pub repositoryId: Option<String>,
+    /// Request body.
+    pub body: Repository,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/repositories
 /// Creates a Repository.
 ///
@@ -2059,18 +2223,16 @@ pub fn cloudbuild_projects_locations_connections_repositories_create_execute(
 
 pub fn cloudbuild_projects_locations_connections_repositories_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    repositoryId: Option<&str>,
-    body: &Repository,
+    args: &CloudbuildProjectsLocationsConnectionsRepositoriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudbuild_projects_locations_connections_repositories_create_builder(
         client,
-        parent,
-        repositoryId,
-        body,
+        &args.parent,
+        args.repositoryId.as_deref(),
+        &args.body,
     )?;
     cloudbuild_projects_locations_connections_repositories_create_execute(builder)
 }
@@ -2181,6 +2343,17 @@ pub fn cloudbuild_projects_locations_connections_repositories_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_repositories_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsRepositoriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/repositories/{repositoriesId}
 /// Deletes a single repository.
 ///
@@ -2193,18 +2366,16 @@ pub fn cloudbuild_projects_locations_connections_repositories_delete_execute(
 
 pub fn cloudbuild_projects_locations_connections_repositories_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &CloudbuildProjectsLocationsConnectionsRepositoriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudbuild_projects_locations_connections_repositories_delete_builder(
         client,
-        name,
-        etag,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.validateOnly,
     )?;
     cloudbuild_projects_locations_connections_repositories_delete_execute(builder)
 }
@@ -2321,6 +2492,19 @@ pub fn cloudbuild_projects_locations_connections_repositories_fetch_git_refs_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_repositories_fetch_git_refs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsRepositoriesFetchGitRefsArgs {
+    /// Path parameter: repository
+    pub repository: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: refType
+    pub refType: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/repositories/{repositoriesId}:fetchGitRefs
 /// Fetch the list of branches or tags for a given repository.
 ///
@@ -2333,10 +2517,7 @@ pub fn cloudbuild_projects_locations_connections_repositories_fetch_git_refs_exe
 
 pub fn cloudbuild_projects_locations_connections_repositories_fetch_git_refs(
     client: &SimpleHttpClient,
-    repository: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    refType: Option<&str>,
+    args: &CloudbuildProjectsLocationsConnectionsRepositoriesFetchGitRefsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FetchGitRefsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2344,7 +2525,11 @@ pub fn cloudbuild_projects_locations_connections_repositories_fetch_git_refs(
     ApiError,
 > {
     let builder = cloudbuild_projects_locations_connections_repositories_fetch_git_refs_builder(
-        client, repository, pageSize, pageToken, refType,
+        client,
+        &args.repository,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.refType.as_deref(),
     )?;
     cloudbuild_projects_locations_connections_repositories_fetch_git_refs_execute(builder)
 }
@@ -2439,6 +2624,13 @@ pub fn cloudbuild_projects_locations_connections_repositories_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_repositories_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsRepositoriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/repositories/{repositoriesId}
 /// Gets details of a single repository.
 ///
@@ -2451,12 +2643,13 @@ pub fn cloudbuild_projects_locations_connections_repositories_get_execute(
 
 pub fn cloudbuild_projects_locations_connections_repositories_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudbuildProjectsLocationsConnectionsRepositoriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Repository>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudbuild_projects_locations_connections_repositories_get_builder(client, name)?;
+    let builder =
+        cloudbuild_projects_locations_connections_repositories_get_builder(client, &args.name)?;
     cloudbuild_projects_locations_connections_repositories_get_execute(builder)
 }
 
@@ -2576,6 +2769,21 @@ pub fn cloudbuild_projects_locations_connections_repositories_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_connections_repositories_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsConnectionsRepositoriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/repositories
 /// Lists Repositories in a given connection.
 ///
@@ -2588,11 +2796,7 @@ pub fn cloudbuild_projects_locations_connections_repositories_list_execute(
 
 pub fn cloudbuild_projects_locations_connections_repositories_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &CloudbuildProjectsLocationsConnectionsRepositoriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRepositoriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2601,11 +2805,11 @@ pub fn cloudbuild_projects_locations_connections_repositories_list(
 > {
     let builder = cloudbuild_projects_locations_connections_repositories_list_builder(
         client,
-        parent,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     cloudbuild_projects_locations_connections_repositories_list_execute(builder)
 }
@@ -2703,6 +2907,15 @@ pub fn cloudbuild_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -2715,13 +2928,13 @@ pub fn cloudbuild_projects_locations_operations_cancel_execute(
 
 pub fn cloudbuild_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &CloudbuildProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudbuild_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        cloudbuild_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     cloudbuild_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -2815,6 +3028,13 @@ pub fn cloudbuild_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbuild_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbuildProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2827,11 +3047,11 @@ pub fn cloudbuild_projects_locations_operations_get_execute(
 
 pub fn cloudbuild_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudbuildProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudbuild_projects_locations_operations_get_builder(client, name)?;
+    let builder = cloudbuild_projects_locations_operations_get_builder(client, &args.name)?;
     cloudbuild_projects_locations_operations_get_execute(builder)
 }

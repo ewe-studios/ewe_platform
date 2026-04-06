@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET b/{bucket}/anywhereCaches/{anywhereCacheId}/disable
 /// Disables an Anywhere Cache instance.
@@ -109,6 +111,15 @@ pub fn storage_anywhere_caches_disable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_anywhere_caches_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageAnywhereCachesDisableArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: anywhereCacheId
+    pub anywhereCacheId: String,
+}
+
 /// GET b/{bucket}/anywhereCaches/{anywhereCacheId}/disable
 /// Disables an Anywhere Cache instance.
 ///
@@ -121,15 +132,15 @@ pub fn storage_anywhere_caches_disable_execute(
 
 pub fn storage_anywhere_caches_disable(
     client: &SimpleHttpClient,
-    bucket: &str,
-    anywhereCacheId: &str,
+    args: &StorageAnywhereCachesDisableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnywhereCache>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storage_anywhere_caches_disable_builder(client, bucket, anywhereCacheId)?;
+    let builder =
+        storage_anywhere_caches_disable_builder(client, &args.bucket, &args.anywhereCacheId)?;
     storage_anywhere_caches_disable_execute(builder)
 }
 
@@ -226,6 +237,15 @@ pub fn storage_anywhere_caches_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_anywhere_caches_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageAnywhereCachesGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: anywhereCacheId
+    pub anywhereCacheId: String,
+}
+
 /// GET b/{bucket}/anywhereCaches/{anywhereCacheId}
 /// Returns the metadata of an Anywhere Cache instance.
 ///
@@ -238,15 +258,14 @@ pub fn storage_anywhere_caches_get_execute(
 
 pub fn storage_anywhere_caches_get(
     client: &SimpleHttpClient,
-    bucket: &str,
-    anywhereCacheId: &str,
+    args: &StorageAnywhereCachesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnywhereCache>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storage_anywhere_caches_get_builder(client, bucket, anywhereCacheId)?;
+    let builder = storage_anywhere_caches_get_builder(client, &args.bucket, &args.anywhereCacheId)?;
     storage_anywhere_caches_get_execute(builder)
 }
 
@@ -347,6 +366,15 @@ pub fn storage_anywhere_caches_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_anywhere_caches_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageAnywhereCachesInsertArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Request body.
+    pub body: AnywhereCache,
+}
+
 /// GET b/{bucket}/anywhereCaches
 /// Creates an Anywhere Cache instance.
 ///
@@ -359,8 +387,7 @@ pub fn storage_anywhere_caches_insert_execute(
 
 pub fn storage_anywhere_caches_insert(
     client: &SimpleHttpClient,
-    bucket: &str,
-    body: &AnywhereCache,
+    args: &StorageAnywhereCachesInsertArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -369,7 +396,7 @@ pub fn storage_anywhere_caches_insert(
         + 'static,
     ApiError,
 > {
-    let builder = storage_anywhere_caches_insert_builder(client, bucket, body)?;
+    let builder = storage_anywhere_caches_insert_builder(client, &args.bucket, &args.body)?;
     storage_anywhere_caches_insert_execute(builder)
 }
 
@@ -481,6 +508,17 @@ pub fn storage_anywhere_caches_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_anywhere_caches_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageAnywhereCachesListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET b/{bucket}/anywhereCaches
 /// Returns a list of Anywhere Cache instances of the bucket matching the criteria.
 ///
@@ -493,16 +531,19 @@ pub fn storage_anywhere_caches_list_execute(
 
 pub fn storage_anywhere_caches_list(
     client: &SimpleHttpClient,
-    bucket: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &StorageAnywhereCachesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnywhereCaches>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storage_anywhere_caches_list_builder(client, bucket, pageSize, pageToken)?;
+    let builder = storage_anywhere_caches_list_builder(
+        client,
+        &args.bucket,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     storage_anywhere_caches_list_execute(builder)
 }
 
@@ -599,6 +640,15 @@ pub fn storage_anywhere_caches_pause_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_anywhere_caches_pause`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageAnywhereCachesPauseArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: anywhereCacheId
+    pub anywhereCacheId: String,
+}
+
 /// GET b/{bucket}/anywhereCaches/{anywhereCacheId}/pause
 /// Pauses an Anywhere Cache instance.
 ///
@@ -611,15 +661,15 @@ pub fn storage_anywhere_caches_pause_execute(
 
 pub fn storage_anywhere_caches_pause(
     client: &SimpleHttpClient,
-    bucket: &str,
-    anywhereCacheId: &str,
+    args: &StorageAnywhereCachesPauseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnywhereCache>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storage_anywhere_caches_pause_builder(client, bucket, anywhereCacheId)?;
+    let builder =
+        storage_anywhere_caches_pause_builder(client, &args.bucket, &args.anywhereCacheId)?;
     storage_anywhere_caches_pause_execute(builder)
 }
 
@@ -716,6 +766,15 @@ pub fn storage_anywhere_caches_resume_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_anywhere_caches_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageAnywhereCachesResumeArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: anywhereCacheId
+    pub anywhereCacheId: String,
+}
+
 /// GET b/{bucket}/anywhereCaches/{anywhereCacheId}/resume
 /// Resumes a paused or disabled Anywhere Cache instance.
 ///
@@ -728,15 +787,15 @@ pub fn storage_anywhere_caches_resume_execute(
 
 pub fn storage_anywhere_caches_resume(
     client: &SimpleHttpClient,
-    bucket: &str,
-    anywhereCacheId: &str,
+    args: &StorageAnywhereCachesResumeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnywhereCache>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storage_anywhere_caches_resume_builder(client, bucket, anywhereCacheId)?;
+    let builder =
+        storage_anywhere_caches_resume_builder(client, &args.bucket, &args.anywhereCacheId)?;
     storage_anywhere_caches_resume_execute(builder)
 }
 
@@ -838,6 +897,17 @@ pub fn storage_anywhere_caches_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_anywhere_caches_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageAnywhereCachesUpdateArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: anywhereCacheId
+    pub anywhereCacheId: String,
+    /// Request body.
+    pub body: AnywhereCache,
+}
+
 /// GET b/{bucket}/anywhereCaches/{anywhereCacheId}
 /// Updates the config(ttl and `admissionPolicy`) of an Anywhere Cache instance.
 ///
@@ -850,9 +920,7 @@ pub fn storage_anywhere_caches_update_execute(
 
 pub fn storage_anywhere_caches_update(
     client: &SimpleHttpClient,
-    bucket: &str,
-    anywhereCacheId: &str,
-    body: &AnywhereCache,
+    args: &StorageAnywhereCachesUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -861,7 +929,12 @@ pub fn storage_anywhere_caches_update(
         + 'static,
     ApiError,
 > {
-    let builder = storage_anywhere_caches_update_builder(client, bucket, anywhereCacheId, body)?;
+    let builder = storage_anywhere_caches_update_builder(
+        client,
+        &args.bucket,
+        &args.anywhereCacheId,
+        &args.body,
+    )?;
     storage_anywhere_caches_update_execute(builder)
 }
 
@@ -965,6 +1038,17 @@ pub fn storage_bucket_access_controls_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_bucket_access_controls_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketAccessControlsDeleteArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/acl/{entity}
 /// Permanently deletes the ACL entry for the specified entity on the specified bucket.
 ///
@@ -977,15 +1061,17 @@ pub fn storage_bucket_access_controls_delete_execute(
 
 pub fn storage_bucket_access_controls_delete(
     client: &SimpleHttpClient,
-    bucket: &str,
-    entity: &str,
-    userProject: Option<&str>,
+    args: &StorageBucketAccessControlsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        storage_bucket_access_controls_delete_builder(client, bucket, entity, userProject)?;
+    let builder = storage_bucket_access_controls_delete_builder(
+        client,
+        &args.bucket,
+        &args.entity,
+        args.userProject.as_deref(),
+    )?;
     storage_bucket_access_controls_delete_execute(builder)
 }
 
@@ -1094,6 +1180,17 @@ pub fn storage_bucket_access_controls_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_bucket_access_controls_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketAccessControlsGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/acl/{entity}
 /// Returns the ACL entry for the specified entity on the specified bucket.
 ///
@@ -1106,16 +1203,19 @@ pub fn storage_bucket_access_controls_get_execute(
 
 pub fn storage_bucket_access_controls_get(
     client: &SimpleHttpClient,
-    bucket: &str,
-    entity: &str,
-    userProject: Option<&str>,
+    args: &StorageBucketAccessControlsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BucketAccessControl>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storage_bucket_access_controls_get_builder(client, bucket, entity, userProject)?;
+    let builder = storage_bucket_access_controls_get_builder(
+        client,
+        &args.bucket,
+        &args.entity,
+        args.userProject.as_deref(),
+    )?;
     storage_bucket_access_controls_get_execute(builder)
 }
 
@@ -1223,6 +1323,17 @@ pub fn storage_bucket_access_controls_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_bucket_access_controls_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketAccessControlsInsertArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: BucketAccessControl,
+}
+
 /// GET b/{bucket}/acl
 /// Creates a new ACL entry on the specified bucket.
 ///
@@ -1235,16 +1346,19 @@ pub fn storage_bucket_access_controls_insert_execute(
 
 pub fn storage_bucket_access_controls_insert(
     client: &SimpleHttpClient,
-    bucket: &str,
-    userProject: Option<&str>,
-    body: &BucketAccessControl,
+    args: &StorageBucketAccessControlsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BucketAccessControl>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storage_bucket_access_controls_insert_builder(client, bucket, userProject, body)?;
+    let builder = storage_bucket_access_controls_insert_builder(
+        client,
+        &args.bucket,
+        args.userProject.as_deref(),
+        &args.body,
+    )?;
     storage_bucket_access_controls_insert_execute(builder)
 }
 
@@ -1349,6 +1463,15 @@ pub fn storage_bucket_access_controls_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_bucket_access_controls_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketAccessControlsListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/acl
 /// Retrieves ACL entries on the specified bucket.
 ///
@@ -1361,15 +1484,18 @@ pub fn storage_bucket_access_controls_list_execute(
 
 pub fn storage_bucket_access_controls_list(
     client: &SimpleHttpClient,
-    bucket: &str,
-    userProject: Option<&str>,
+    args: &StorageBucketAccessControlsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BucketAccessControls>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storage_bucket_access_controls_list_builder(client, bucket, userProject)?;
+    let builder = storage_bucket_access_controls_list_builder(
+        client,
+        &args.bucket,
+        args.userProject.as_deref(),
+    )?;
     storage_bucket_access_controls_list_execute(builder)
 }
 
@@ -1481,6 +1607,19 @@ pub fn storage_bucket_access_controls_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_bucket_access_controls_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketAccessControlsPatchArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: BucketAccessControl,
+}
+
 /// GET b/{bucket}/acl/{entity}
 /// Patches an ACL entry on the specified bucket.
 ///
@@ -1493,18 +1632,20 @@ pub fn storage_bucket_access_controls_patch_execute(
 
 pub fn storage_bucket_access_controls_patch(
     client: &SimpleHttpClient,
-    bucket: &str,
-    entity: &str,
-    userProject: Option<&str>,
-    body: &BucketAccessControl,
+    args: &StorageBucketAccessControlsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BucketAccessControl>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        storage_bucket_access_controls_patch_builder(client, bucket, entity, userProject, body)?;
+    let builder = storage_bucket_access_controls_patch_builder(
+        client,
+        &args.bucket,
+        &args.entity,
+        args.userProject.as_deref(),
+        &args.body,
+    )?;
     storage_bucket_access_controls_patch_execute(builder)
 }
 
@@ -1616,6 +1757,19 @@ pub fn storage_bucket_access_controls_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_bucket_access_controls_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketAccessControlsUpdateArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: BucketAccessControl,
+}
+
 /// GET b/{bucket}/acl/{entity}
 /// Updates an ACL entry on the specified bucket.
 ///
@@ -1628,18 +1782,20 @@ pub fn storage_bucket_access_controls_update_execute(
 
 pub fn storage_bucket_access_controls_update(
     client: &SimpleHttpClient,
-    bucket: &str,
-    entity: &str,
-    userProject: Option<&str>,
-    body: &BucketAccessControl,
+    args: &StorageBucketAccessControlsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BucketAccessControl>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        storage_bucket_access_controls_update_builder(client, bucket, entity, userProject, body)?;
+    let builder = storage_bucket_access_controls_update_builder(
+        client,
+        &args.bucket,
+        &args.entity,
+        args.userProject.as_deref(),
+        &args.body,
+    )?;
     storage_bucket_access_controls_update_execute(builder)
 }
 
@@ -1747,6 +1903,19 @@ pub fn storage_buckets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsDeleteArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}
 /// Deletes an empty bucket. Deletions are permanent unless soft delete is enabled on the bucket.
 ///
@@ -1759,20 +1928,17 @@ pub fn storage_buckets_delete_execute(
 
 pub fn storage_buckets_delete(
     client: &SimpleHttpClient,
-    bucket: &str,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
-    userProject: Option<&str>,
+    args: &StorageBucketsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_buckets_delete_builder(
         client,
-        bucket,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
-        userProject,
+        &args.bucket,
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
+        args.userProject.as_deref(),
     )?;
     storage_buckets_delete_execute(builder)
 }
@@ -1896,6 +2062,25 @@ pub fn storage_buckets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: generation
+    pub generation: Option<String>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: softDeleted
+    pub softDeleted: Option<bool>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}
 /// Returns metadata for the specified bucket.
 ///
@@ -1908,26 +2093,20 @@ pub fn storage_buckets_get_execute(
 
 pub fn storage_buckets_get(
     client: &SimpleHttpClient,
-    bucket: &str,
-    generation: Option<&str>,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
-    projection: Option<&str>,
-    softDeleted: Option<bool>,
-    userProject: Option<&str>,
+    args: &StorageBucketsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_buckets_get_builder(
         client,
-        bucket,
-        generation,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
-        projection,
-        softDeleted,
-        userProject,
+        &args.bucket,
+        args.generation.as_deref(),
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
+        args.projection.as_deref(),
+        args.softDeleted,
+        args.userProject.as_deref(),
     )?;
     storage_buckets_get_execute(builder)
 }
@@ -2035,6 +2214,17 @@ pub fn storage_buckets_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsGetIamPolicyArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: optionsRequestedPolicyVersion
+    pub optionsRequestedPolicyVersion: Option<i32>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/iam
 /// Returns an IAM policy for the specified bucket.
 ///
@@ -2047,18 +2237,16 @@ pub fn storage_buckets_get_iam_policy_execute(
 
 pub fn storage_buckets_get_iam_policy(
     client: &SimpleHttpClient,
-    bucket: &str,
-    optionsRequestedPolicyVersion: Option<i32>,
-    userProject: Option<&str>,
+    args: &StorageBucketsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_buckets_get_iam_policy_builder(
         client,
-        bucket,
-        optionsRequestedPolicyVersion,
-        userProject,
+        &args.bucket,
+        args.optionsRequestedPolicyVersion,
+        args.userProject.as_deref(),
     )?;
     storage_buckets_get_iam_policy_execute(builder)
 }
@@ -2167,6 +2355,15 @@ pub fn storage_buckets_get_storage_layout_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_get_storage_layout`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsGetStorageLayoutArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: prefix
+    pub prefix: Option<String>,
+}
+
 /// GET b/{bucket}/storageLayout
 /// Returns the storage layout configuration for the specified bucket. Note that this operation requires storage.objects.list permission.
 ///
@@ -2179,15 +2376,15 @@ pub fn storage_buckets_get_storage_layout_execute(
 
 pub fn storage_buckets_get_storage_layout(
     client: &SimpleHttpClient,
-    bucket: &str,
-    prefix: Option<&str>,
+    args: &StorageBucketsGetStorageLayoutArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BucketStorageLayout>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storage_buckets_get_storage_layout_builder(client, bucket, prefix)?;
+    let builder =
+        storage_buckets_get_storage_layout_builder(client, &args.bucket, args.prefix.as_deref())?;
     storage_buckets_get_storage_layout_execute(builder)
 }
 
@@ -2309,6 +2506,25 @@ pub fn storage_buckets_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsInsertArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: enableObjectRetention
+    pub enableObjectRetention: Option<bool>,
+    /// Query parameter: predefinedAcl
+    pub predefinedAcl: Option<String>,
+    /// Query parameter: predefinedDefaultObjectAcl
+    pub predefinedDefaultObjectAcl: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: Bucket,
+}
+
 /// GET b
 /// Creates a new bucket.
 ///
@@ -2321,26 +2537,20 @@ pub fn storage_buckets_insert_execute(
 
 pub fn storage_buckets_insert(
     client: &SimpleHttpClient,
-    project: &str,
-    enableObjectRetention: Option<bool>,
-    predefinedAcl: Option<&str>,
-    predefinedDefaultObjectAcl: Option<&str>,
-    projection: Option<&str>,
-    userProject: Option<&str>,
-    body: &Bucket,
+    args: &StorageBucketsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_buckets_insert_builder(
         client,
-        project,
-        enableObjectRetention,
-        predefinedAcl,
-        predefinedDefaultObjectAcl,
-        projection,
-        userProject,
-        body,
+        &args.project,
+        args.enableObjectRetention,
+        args.predefinedAcl.as_deref(),
+        args.predefinedDefaultObjectAcl.as_deref(),
+        args.projection.as_deref(),
+        args.userProject.as_deref(),
+        &args.body,
     )?;
     storage_buckets_insert_execute(builder)
 }
@@ -2468,6 +2678,27 @@ pub fn storage_buckets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: prefix
+    pub prefix: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+    /// Query parameter: softDeleted
+    pub softDeleted: Option<bool>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b
 /// Retrieves a list of buckets for a given project.
 ///
@@ -2480,28 +2711,21 @@ pub fn storage_buckets_list_execute(
 
 pub fn storage_buckets_list(
     client: &SimpleHttpClient,
-    project: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    prefix: Option<&str>,
-    projection: Option<&str>,
-    returnPartialSuccess: Option<bool>,
-    softDeleted: Option<bool>,
-    userProject: Option<&str>,
+    args: &StorageBucketsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Buckets>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_buckets_list_builder(
         client,
-        project,
-        maxResults,
-        pageToken,
-        prefix,
-        projection,
-        returnPartialSuccess,
-        softDeleted,
-        userProject,
+        &args.project,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.prefix.as_deref(),
+        args.projection.as_deref(),
+        args.returnPartialSuccess,
+        args.softDeleted,
+        args.userProject.as_deref(),
     )?;
     storage_buckets_list_execute(builder)
 }
@@ -2609,6 +2833,17 @@ pub fn storage_buckets_lock_retention_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_lock_retention_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsLockRetentionPolicyArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/lockRetentionPolicy
 /// Locks retention policy on a bucket.
 ///
@@ -2621,18 +2856,16 @@ pub fn storage_buckets_lock_retention_policy_execute(
 
 pub fn storage_buckets_lock_retention_policy(
     client: &SimpleHttpClient,
-    bucket: &str,
-    ifMetagenerationMatch: &str,
-    userProject: Option<&str>,
+    args: &StorageBucketsLockRetentionPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_buckets_lock_retention_policy_builder(
         client,
-        bucket,
-        ifMetagenerationMatch,
-        userProject,
+        &args.bucket,
+        &args.ifMetagenerationMatch,
+        args.userProject.as_deref(),
     )?;
     storage_buckets_lock_retention_policy_execute(builder)
 }
@@ -2759,6 +2992,27 @@ pub fn storage_buckets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsPatchArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+    /// Query parameter: predefinedAcl
+    pub predefinedAcl: Option<String>,
+    /// Query parameter: predefinedDefaultObjectAcl
+    pub predefinedDefaultObjectAcl: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: Bucket,
+}
+
 /// GET b/{bucket}
 /// Patches a bucket. Changes to the bucket will be readable immediately after writing, but configuration changes may take time to propagate.
 ///
@@ -2771,28 +3025,21 @@ pub fn storage_buckets_patch_execute(
 
 pub fn storage_buckets_patch(
     client: &SimpleHttpClient,
-    bucket: &str,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
-    predefinedAcl: Option<&str>,
-    predefinedDefaultObjectAcl: Option<&str>,
-    projection: Option<&str>,
-    userProject: Option<&str>,
-    body: &Bucket,
+    args: &StorageBucketsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_buckets_patch_builder(
         client,
-        bucket,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
-        predefinedAcl,
-        predefinedDefaultObjectAcl,
-        projection,
-        userProject,
-        body,
+        &args.bucket,
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
+        args.predefinedAcl.as_deref(),
+        args.predefinedDefaultObjectAcl.as_deref(),
+        args.projection.as_deref(),
+        args.userProject.as_deref(),
+        &args.body,
     )?;
     storage_buckets_patch_execute(builder)
 }
@@ -2894,6 +3141,15 @@ pub fn storage_buckets_relocate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_relocate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsRelocateArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Request body.
+    pub body: RelocateBucketRequest,
+}
+
 /// GET b/{bucket}/relocate
 /// Initiates a long-running Relocate Bucket operation on the specified bucket.
 ///
@@ -2906,8 +3162,7 @@ pub fn storage_buckets_relocate_execute(
 
 pub fn storage_buckets_relocate(
     client: &SimpleHttpClient,
-    bucket: &str,
-    body: &RelocateBucketRequest,
+    args: &StorageBucketsRelocateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2916,7 +3171,7 @@ pub fn storage_buckets_relocate(
         + 'static,
     ApiError,
 > {
-    let builder = storage_buckets_relocate_builder(client, bucket, body)?;
+    let builder = storage_buckets_relocate_builder(client, &args.bucket, &args.body)?;
     storage_buckets_relocate_execute(builder)
 }
 
@@ -3027,6 +3282,19 @@ pub fn storage_buckets_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsRestoreArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: generation
+    pub generation: String,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/restore
 /// Restores a soft-deleted bucket.
 ///
@@ -3039,16 +3307,18 @@ pub fn storage_buckets_restore_execute(
 
 pub fn storage_buckets_restore(
     client: &SimpleHttpClient,
-    bucket: &str,
-    generation: &str,
-    projection: Option<&str>,
-    userProject: Option<&str>,
+    args: &StorageBucketsRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        storage_buckets_restore_builder(client, bucket, generation, projection, userProject)?;
+    let builder = storage_buckets_restore_builder(
+        client,
+        &args.bucket,
+        &args.generation,
+        args.projection.as_deref(),
+        args.userProject.as_deref(),
+    )?;
     storage_buckets_restore_execute(builder)
 }
 
@@ -3154,6 +3424,17 @@ pub fn storage_buckets_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsSetIamPolicyArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: Policy,
+}
+
 /// GET b/{bucket}/iam
 /// Updates an IAM policy for the specified bucket.
 ///
@@ -3166,14 +3447,17 @@ pub fn storage_buckets_set_iam_policy_execute(
 
 pub fn storage_buckets_set_iam_policy(
     client: &SimpleHttpClient,
-    bucket: &str,
-    userProject: Option<&str>,
-    body: &Policy,
+    args: &StorageBucketsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storage_buckets_set_iam_policy_builder(client, bucket, userProject, body)?;
+    let builder = storage_buckets_set_iam_policy_builder(
+        client,
+        &args.bucket,
+        args.userProject.as_deref(),
+        &args.body,
+    )?;
     storage_buckets_set_iam_policy_execute(builder)
 }
 
@@ -3284,6 +3568,17 @@ pub fn storage_buckets_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsTestIamPermissionsArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: permissions
+    pub permissions: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/iam/testPermissions
 /// Tests a set of permissions on the given bucket to see which, if any, are held by the caller.
 ///
@@ -3296,9 +3591,7 @@ pub fn storage_buckets_test_iam_permissions_execute(
 
 pub fn storage_buckets_test_iam_permissions(
     client: &SimpleHttpClient,
-    bucket: &str,
-    permissions: &str,
-    userProject: Option<&str>,
+    args: &StorageBucketsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3307,8 +3600,12 @@ pub fn storage_buckets_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        storage_buckets_test_iam_permissions_builder(client, bucket, permissions, userProject)?;
+    let builder = storage_buckets_test_iam_permissions_builder(
+        client,
+        &args.bucket,
+        &args.permissions,
+        args.userProject.as_deref(),
+    )?;
     storage_buckets_test_iam_permissions_execute(builder)
 }
 
@@ -3434,6 +3731,27 @@ pub fn storage_buckets_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsUpdateArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+    /// Query parameter: predefinedAcl
+    pub predefinedAcl: Option<String>,
+    /// Query parameter: predefinedDefaultObjectAcl
+    pub predefinedDefaultObjectAcl: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: Bucket,
+}
+
 /// GET b/{bucket}
 /// Updates a bucket. Changes to the bucket will be readable immediately after writing, but configuration changes may take time to propagate.
 ///
@@ -3446,28 +3764,21 @@ pub fn storage_buckets_update_execute(
 
 pub fn storage_buckets_update(
     client: &SimpleHttpClient,
-    bucket: &str,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
-    predefinedAcl: Option<&str>,
-    predefinedDefaultObjectAcl: Option<&str>,
-    projection: Option<&str>,
-    userProject: Option<&str>,
-    body: &Bucket,
+    args: &StorageBucketsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_buckets_update_builder(
         client,
-        bucket,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
-        predefinedAcl,
-        predefinedDefaultObjectAcl,
-        projection,
-        userProject,
-        body,
+        &args.bucket,
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
+        args.predefinedAcl.as_deref(),
+        args.predefinedDefaultObjectAcl.as_deref(),
+        args.projection.as_deref(),
+        args.userProject.as_deref(),
+        &args.body,
     )?;
     storage_buckets_update_execute(builder)
 }
@@ -3558,6 +3869,13 @@ pub fn storage_channels_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_channels_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageChannelsStopArgs {
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET channels/stop
 /// Stop watching resources through this channel
 ///
@@ -3570,12 +3888,12 @@ pub fn storage_channels_stop_execute(
 
 pub fn storage_channels_stop(
     client: &SimpleHttpClient,
-    body: &Channel,
+    args: &StorageChannelsStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storage_channels_stop_builder(client, body)?;
+    let builder = storage_channels_stop_builder(client, &args.body)?;
     storage_channels_stop_execute(builder)
 }
 
@@ -3679,6 +3997,17 @@ pub fn storage_default_object_access_controls_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_default_object_access_controls_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageDefaultObjectAccessControlsDeleteArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/defaultObjectAcl/{entity}
 /// Permanently deletes the default object ACL entry for the specified entity on the specified bucket.
 ///
@@ -3691,15 +4020,17 @@ pub fn storage_default_object_access_controls_delete_execute(
 
 pub fn storage_default_object_access_controls_delete(
     client: &SimpleHttpClient,
-    bucket: &str,
-    entity: &str,
-    userProject: Option<&str>,
+    args: &StorageDefaultObjectAccessControlsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        storage_default_object_access_controls_delete_builder(client, bucket, entity, userProject)?;
+    let builder = storage_default_object_access_controls_delete_builder(
+        client,
+        &args.bucket,
+        &args.entity,
+        args.userProject.as_deref(),
+    )?;
     storage_default_object_access_controls_delete_execute(builder)
 }
 
@@ -3808,6 +4139,17 @@ pub fn storage_default_object_access_controls_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_default_object_access_controls_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageDefaultObjectAccessControlsGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/defaultObjectAcl/{entity}
 /// Returns the default object ACL entry for the specified entity on the specified bucket.
 ///
@@ -3820,17 +4162,19 @@ pub fn storage_default_object_access_controls_get_execute(
 
 pub fn storage_default_object_access_controls_get(
     client: &SimpleHttpClient,
-    bucket: &str,
-    entity: &str,
-    userProject: Option<&str>,
+    args: &StorageDefaultObjectAccessControlsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        storage_default_object_access_controls_get_builder(client, bucket, entity, userProject)?;
+    let builder = storage_default_object_access_controls_get_builder(
+        client,
+        &args.bucket,
+        &args.entity,
+        args.userProject.as_deref(),
+    )?;
     storage_default_object_access_controls_get_execute(builder)
 }
 
@@ -3941,6 +4285,17 @@ pub fn storage_default_object_access_controls_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_default_object_access_controls_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageDefaultObjectAccessControlsInsertArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: ObjectAccessControl,
+}
+
 /// GET b/{bucket}/defaultObjectAcl
 /// Creates a new default object ACL entry on the specified bucket.
 ///
@@ -3953,17 +4308,19 @@ pub fn storage_default_object_access_controls_insert_execute(
 
 pub fn storage_default_object_access_controls_insert(
     client: &SimpleHttpClient,
-    bucket: &str,
-    userProject: Option<&str>,
-    body: &ObjectAccessControl,
+    args: &StorageDefaultObjectAccessControlsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        storage_default_object_access_controls_insert_builder(client, bucket, userProject, body)?;
+    let builder = storage_default_object_access_controls_insert_builder(
+        client,
+        &args.bucket,
+        args.userProject.as_deref(),
+        &args.body,
+    )?;
     storage_default_object_access_controls_insert_execute(builder)
 }
 
@@ -4079,6 +4436,19 @@ pub fn storage_default_object_access_controls_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_default_object_access_controls_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageDefaultObjectAccessControlsListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/defaultObjectAcl
 /// Retrieves default object ACL entries on the specified bucket.
 ///
@@ -4091,10 +4461,7 @@ pub fn storage_default_object_access_controls_list_execute(
 
 pub fn storage_default_object_access_controls_list(
     client: &SimpleHttpClient,
-    bucket: &str,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
-    userProject: Option<&str>,
+    args: &StorageDefaultObjectAccessControlsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ObjectAccessControls>, ApiError>, P = ApiPending>
         + Send
@@ -4103,10 +4470,10 @@ pub fn storage_default_object_access_controls_list(
 > {
     let builder = storage_default_object_access_controls_list_builder(
         client,
-        bucket,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
-        userProject,
+        &args.bucket,
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
+        args.userProject.as_deref(),
     )?;
     storage_default_object_access_controls_list_execute(builder)
 }
@@ -4219,6 +4586,19 @@ pub fn storage_default_object_access_controls_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_default_object_access_controls_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageDefaultObjectAccessControlsPatchArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: ObjectAccessControl,
+}
+
 /// GET b/{bucket}/defaultObjectAcl/{entity}
 /// Patches a default object ACL entry on the specified bucket.
 ///
@@ -4231,10 +4611,7 @@ pub fn storage_default_object_access_controls_patch_execute(
 
 pub fn storage_default_object_access_controls_patch(
     client: &SimpleHttpClient,
-    bucket: &str,
-    entity: &str,
-    userProject: Option<&str>,
-    body: &ObjectAccessControl,
+    args: &StorageDefaultObjectAccessControlsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
         + Send
@@ -4243,10 +4620,10 @@ pub fn storage_default_object_access_controls_patch(
 > {
     let builder = storage_default_object_access_controls_patch_builder(
         client,
-        bucket,
-        entity,
-        userProject,
-        body,
+        &args.bucket,
+        &args.entity,
+        args.userProject.as_deref(),
+        &args.body,
     )?;
     storage_default_object_access_controls_patch_execute(builder)
 }
@@ -4359,6 +4736,19 @@ pub fn storage_default_object_access_controls_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_default_object_access_controls_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageDefaultObjectAccessControlsUpdateArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: ObjectAccessControl,
+}
+
 /// GET b/{bucket}/defaultObjectAcl/{entity}
 /// Updates a default object ACL entry on the specified bucket.
 ///
@@ -4371,10 +4761,7 @@ pub fn storage_default_object_access_controls_update_execute(
 
 pub fn storage_default_object_access_controls_update(
     client: &SimpleHttpClient,
-    bucket: &str,
-    entity: &str,
-    userProject: Option<&str>,
-    body: &ObjectAccessControl,
+    args: &StorageDefaultObjectAccessControlsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
         + Send
@@ -4383,10 +4770,10 @@ pub fn storage_default_object_access_controls_update(
 > {
     let builder = storage_default_object_access_controls_update_builder(
         client,
-        bucket,
-        entity,
-        userProject,
-        body,
+        &args.bucket,
+        &args.entity,
+        args.userProject.as_deref(),
+        &args.body,
     )?;
     storage_default_object_access_controls_update_execute(builder)
 }
@@ -4495,6 +4882,19 @@ pub fn storage_folders_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_folders_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageFoldersDeleteArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: folder
+    pub folder: String,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+}
+
 /// GET b/{bucket}/folders/{folder}
 /// Permanently deletes a folder. Only applicable to buckets with hierarchical namespace enabled.
 ///
@@ -4507,20 +4907,17 @@ pub fn storage_folders_delete_execute(
 
 pub fn storage_folders_delete(
     client: &SimpleHttpClient,
-    bucket: &str,
-    folder: &str,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
+    args: &StorageFoldersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_folders_delete_builder(
         client,
-        bucket,
-        folder,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
+        &args.bucket,
+        &args.folder,
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
     )?;
     storage_folders_delete_execute(builder)
 }
@@ -4636,6 +5033,19 @@ pub fn storage_folders_delete_recursive_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_folders_delete_recursive`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageFoldersDeleteRecursiveArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: folder
+    pub folder: String,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+}
+
 /// GET b/{bucket}/folders/{folder}/deleteRecursive
 /// Deletes a folder recursively. Only applicable to buckets with hierarchical namespace enabled.
 ///
@@ -4648,10 +5058,7 @@ pub fn storage_folders_delete_recursive_execute(
 
 pub fn storage_folders_delete_recursive(
     client: &SimpleHttpClient,
-    bucket: &str,
-    folder: &str,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
+    args: &StorageFoldersDeleteRecursiveArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4662,10 +5069,10 @@ pub fn storage_folders_delete_recursive(
 > {
     let builder = storage_folders_delete_recursive_builder(
         client,
-        bucket,
-        folder,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
+        &args.bucket,
+        &args.folder,
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
     )?;
     storage_folders_delete_recursive_execute(builder)
 }
@@ -4777,6 +5184,19 @@ pub fn storage_folders_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_folders_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageFoldersGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: folder
+    pub folder: String,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+}
+
 /// GET b/{bucket}/folders/{folder}
 /// Returns metadata for the specified folder. Only applicable to buckets with hierarchical namespace enabled.
 ///
@@ -4789,20 +5209,17 @@ pub fn storage_folders_get_execute(
 
 pub fn storage_folders_get(
     client: &SimpleHttpClient,
-    bucket: &str,
-    folder: &str,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
+    args: &StorageFoldersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_folders_get_builder(
         client,
-        bucket,
-        folder,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
+        &args.bucket,
+        &args.folder,
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
     )?;
     storage_folders_get_execute(builder)
 }
@@ -4912,6 +5329,17 @@ pub fn storage_folders_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_folders_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageFoldersInsertArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: recursive
+    pub recursive: Option<bool>,
+    /// Request body.
+    pub body: Folder,
+}
+
 /// GET b/{bucket}/folders
 /// Creates a new folder. Only applicable to buckets with hierarchical namespace enabled.
 ///
@@ -4924,14 +5352,12 @@ pub fn storage_folders_insert_execute(
 
 pub fn storage_folders_insert(
     client: &SimpleHttpClient,
-    bucket: &str,
-    recursive: Option<bool>,
-    body: &Folder,
+    args: &StorageFoldersInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storage_folders_insert_builder(client, bucket, recursive, body)?;
+    let builder = storage_folders_insert_builder(client, &args.bucket, args.recursive, &args.body)?;
     storage_folders_insert_execute(builder)
 }
 
@@ -5057,6 +5483,25 @@ pub fn storage_folders_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_folders_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageFoldersListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: delimiter
+    pub delimiter: Option<String>,
+    /// Query parameter: endOffset
+    pub endOffset: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: prefix
+    pub prefix: Option<String>,
+    /// Query parameter: startOffset
+    pub startOffset: Option<String>,
+}
+
 /// GET b/{bucket}/folders
 /// Retrieves a list of folders matching the criteria. Only applicable to buckets with hierarchical namespace enabled.
 ///
@@ -5069,26 +5514,20 @@ pub fn storage_folders_list_execute(
 
 pub fn storage_folders_list(
     client: &SimpleHttpClient,
-    bucket: &str,
-    delimiter: Option<&str>,
-    endOffset: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    prefix: Option<&str>,
-    startOffset: Option<&str>,
+    args: &StorageFoldersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Folders>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_folders_list_builder(
         client,
-        bucket,
-        delimiter,
-        endOffset,
-        pageSize,
-        pageToken,
-        prefix,
-        startOffset,
+        &args.bucket,
+        args.delimiter.as_deref(),
+        args.endOffset.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.prefix.as_deref(),
+        args.startOffset.as_deref(),
     )?;
     storage_folders_list_execute(builder)
 }
@@ -5205,6 +5644,21 @@ pub fn storage_folders_rename_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_folders_rename`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageFoldersRenameArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: sourceFolder
+    pub sourceFolder: String,
+    /// Path parameter: destinationFolder
+    pub destinationFolder: String,
+    /// Query parameter: ifSourceMetagenerationMatch
+    pub ifSourceMetagenerationMatch: Option<String>,
+    /// Query parameter: ifSourceMetagenerationNotMatch
+    pub ifSourceMetagenerationNotMatch: Option<String>,
+}
+
 /// GET b/{bucket}/folders/{sourceFolder}/renameTo/folders/{destinationFolder}
 /// Renames a source folder to a destination folder. Only applicable to buckets with hierarchical namespace enabled.
 ///
@@ -5217,11 +5671,7 @@ pub fn storage_folders_rename_execute(
 
 pub fn storage_folders_rename(
     client: &SimpleHttpClient,
-    bucket: &str,
-    sourceFolder: &str,
-    destinationFolder: &str,
-    ifSourceMetagenerationMatch: Option<&str>,
-    ifSourceMetagenerationNotMatch: Option<&str>,
+    args: &StorageFoldersRenameArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5232,11 +5682,11 @@ pub fn storage_folders_rename(
 > {
     let builder = storage_folders_rename_builder(
         client,
-        bucket,
-        sourceFolder,
-        destinationFolder,
-        ifSourceMetagenerationMatch,
-        ifSourceMetagenerationNotMatch,
+        &args.bucket,
+        &args.sourceFolder,
+        &args.destinationFolder,
+        args.ifSourceMetagenerationMatch.as_deref(),
+        args.ifSourceMetagenerationNotMatch.as_deref(),
     )?;
     storage_folders_rename_execute(builder)
 }
@@ -5349,6 +5799,21 @@ pub fn storage_managed_folders_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_managed_folders_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageManagedFoldersDeleteArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: managedFolder
+    pub managedFolder: String,
+    /// Query parameter: allowNonEmpty
+    pub allowNonEmpty: Option<bool>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+}
+
 /// GET b/{bucket}/managedFolders/{managedFolder}
 /// Permanently deletes a managed folder.
 ///
@@ -5361,22 +5826,18 @@ pub fn storage_managed_folders_delete_execute(
 
 pub fn storage_managed_folders_delete(
     client: &SimpleHttpClient,
-    bucket: &str,
-    managedFolder: &str,
-    allowNonEmpty: Option<bool>,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
+    args: &StorageManagedFoldersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_managed_folders_delete_builder(
         client,
-        bucket,
-        managedFolder,
-        allowNonEmpty,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
+        &args.bucket,
+        &args.managedFolder,
+        args.allowNonEmpty,
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
     )?;
     storage_managed_folders_delete_execute(builder)
 }
@@ -5490,6 +5951,19 @@ pub fn storage_managed_folders_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_managed_folders_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageManagedFoldersGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: managedFolder
+    pub managedFolder: String,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+}
+
 /// GET b/{bucket}/managedFolders/{managedFolder}
 /// Returns metadata of the specified managed folder.
 ///
@@ -5502,10 +5976,7 @@ pub fn storage_managed_folders_get_execute(
 
 pub fn storage_managed_folders_get(
     client: &SimpleHttpClient,
-    bucket: &str,
-    managedFolder: &str,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
+    args: &StorageManagedFoldersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ManagedFolder>, ApiError>, P = ApiPending>
         + Send
@@ -5514,10 +5985,10 @@ pub fn storage_managed_folders_get(
 > {
     let builder = storage_managed_folders_get_builder(
         client,
-        bucket,
-        managedFolder,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
+        &args.bucket,
+        &args.managedFolder,
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
     )?;
     storage_managed_folders_get_execute(builder)
 }
@@ -5629,6 +6100,19 @@ pub fn storage_managed_folders_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_managed_folders_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageManagedFoldersGetIamPolicyArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: managedFolder
+    pub managedFolder: String,
+    /// Query parameter: optionsRequestedPolicyVersion
+    pub optionsRequestedPolicyVersion: Option<i32>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/managedFolders/{managedFolder}/iam
 /// Returns an IAM policy for the specified managed folder.
 ///
@@ -5641,20 +6125,17 @@ pub fn storage_managed_folders_get_iam_policy_execute(
 
 pub fn storage_managed_folders_get_iam_policy(
     client: &SimpleHttpClient,
-    bucket: &str,
-    managedFolder: &str,
-    optionsRequestedPolicyVersion: Option<i32>,
-    userProject: Option<&str>,
+    args: &StorageManagedFoldersGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_managed_folders_get_iam_policy_builder(
         client,
-        bucket,
-        managedFolder,
-        optionsRequestedPolicyVersion,
-        userProject,
+        &args.bucket,
+        &args.managedFolder,
+        args.optionsRequestedPolicyVersion,
+        args.userProject.as_deref(),
     )?;
     storage_managed_folders_get_iam_policy_execute(builder)
 }
@@ -5754,6 +6235,15 @@ pub fn storage_managed_folders_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_managed_folders_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageManagedFoldersInsertArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Request body.
+    pub body: ManagedFolder,
+}
+
 /// GET b/{bucket}/managedFolders
 /// Creates a new managed folder.
 ///
@@ -5766,15 +6256,14 @@ pub fn storage_managed_folders_insert_execute(
 
 pub fn storage_managed_folders_insert(
     client: &SimpleHttpClient,
-    bucket: &str,
-    body: &ManagedFolder,
+    args: &StorageManagedFoldersInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ManagedFolder>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storage_managed_folders_insert_builder(client, bucket, body)?;
+    let builder = storage_managed_folders_insert_builder(client, &args.bucket, &args.body)?;
     storage_managed_folders_insert_execute(builder)
 }
 
@@ -5890,6 +6379,19 @@ pub fn storage_managed_folders_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_managed_folders_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageManagedFoldersListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: prefix
+    pub prefix: Option<String>,
+}
+
 /// GET b/{bucket}/managedFolders
 /// Lists managed folders in the given bucket.
 ///
@@ -5902,18 +6404,20 @@ pub fn storage_managed_folders_list_execute(
 
 pub fn storage_managed_folders_list(
     client: &SimpleHttpClient,
-    bucket: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    prefix: Option<&str>,
+    args: &StorageManagedFoldersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ManagedFolders>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        storage_managed_folders_list_builder(client, bucket, pageSize, pageToken, prefix)?;
+    let builder = storage_managed_folders_list_builder(
+        client,
+        &args.bucket,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.prefix.as_deref(),
+    )?;
     storage_managed_folders_list_execute(builder)
 }
 
@@ -6023,6 +6527,19 @@ pub fn storage_managed_folders_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_managed_folders_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageManagedFoldersSetIamPolicyArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: managedFolder
+    pub managedFolder: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: Policy,
+}
+
 /// GET b/{bucket}/managedFolders/{managedFolder}/iam
 /// Updates an IAM policy for the specified managed folder.
 ///
@@ -6035,20 +6552,17 @@ pub fn storage_managed_folders_set_iam_policy_execute(
 
 pub fn storage_managed_folders_set_iam_policy(
     client: &SimpleHttpClient,
-    bucket: &str,
-    managedFolder: &str,
-    userProject: Option<&str>,
-    body: &Policy,
+    args: &StorageManagedFoldersSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_managed_folders_set_iam_policy_builder(
         client,
-        bucket,
-        managedFolder,
-        userProject,
-        body,
+        &args.bucket,
+        &args.managedFolder,
+        args.userProject.as_deref(),
+        &args.body,
     )?;
     storage_managed_folders_set_iam_policy_execute(builder)
 }
@@ -6161,6 +6675,19 @@ pub fn storage_managed_folders_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_managed_folders_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageManagedFoldersTestIamPermissionsArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: managedFolder
+    pub managedFolder: String,
+    /// Path parameter: permissions
+    pub permissions: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/managedFolders/{managedFolder}/iam/testPermissions
 /// Tests a set of permissions on the given managed folder to see which, if any, are held by the caller.
 ///
@@ -6173,10 +6700,7 @@ pub fn storage_managed_folders_test_iam_permissions_execute(
 
 pub fn storage_managed_folders_test_iam_permissions(
     client: &SimpleHttpClient,
-    bucket: &str,
-    managedFolder: &str,
-    permissions: &str,
-    userProject: Option<&str>,
+    args: &StorageManagedFoldersTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -6187,10 +6711,10 @@ pub fn storage_managed_folders_test_iam_permissions(
 > {
     let builder = storage_managed_folders_test_iam_permissions_builder(
         client,
-        bucket,
-        managedFolder,
-        permissions,
-        userProject,
+        &args.bucket,
+        &args.managedFolder,
+        &args.permissions,
+        args.userProject.as_deref(),
     )?;
     storage_managed_folders_test_iam_permissions_execute(builder)
 }
@@ -6295,6 +6819,17 @@ pub fn storage_notifications_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_notifications_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageNotificationsDeleteArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: notification
+    pub notification: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/notificationConfigs/{notification}
 /// Permanently deletes a notification subscription.
 ///
@@ -6307,14 +6842,17 @@ pub fn storage_notifications_delete_execute(
 
 pub fn storage_notifications_delete(
     client: &SimpleHttpClient,
-    bucket: &str,
-    notification: &str,
-    userProject: Option<&str>,
+    args: &StorageNotificationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storage_notifications_delete_builder(client, bucket, notification, userProject)?;
+    let builder = storage_notifications_delete_builder(
+        client,
+        &args.bucket,
+        &args.notification,
+        args.userProject.as_deref(),
+    )?;
     storage_notifications_delete_execute(builder)
 }
 
@@ -6423,6 +6961,17 @@ pub fn storage_notifications_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_notifications_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageNotificationsGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: notification
+    pub notification: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/notificationConfigs/{notification}
 /// View a notification configuration.
 ///
@@ -6435,16 +6984,19 @@ pub fn storage_notifications_get_execute(
 
 pub fn storage_notifications_get(
     client: &SimpleHttpClient,
-    bucket: &str,
-    notification: &str,
-    userProject: Option<&str>,
+    args: &StorageNotificationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Notification>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storage_notifications_get_builder(client, bucket, notification, userProject)?;
+    let builder = storage_notifications_get_builder(
+        client,
+        &args.bucket,
+        &args.notification,
+        args.userProject.as_deref(),
+    )?;
     storage_notifications_get_execute(builder)
 }
 
@@ -6555,6 +7107,17 @@ pub fn storage_notifications_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_notifications_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageNotificationsInsertArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: Notification,
+}
+
 /// GET b/{bucket}/notificationConfigs
 /// Creates a notification subscription for a given bucket.
 ///
@@ -6567,16 +7130,19 @@ pub fn storage_notifications_insert_execute(
 
 pub fn storage_notifications_insert(
     client: &SimpleHttpClient,
-    bucket: &str,
-    userProject: Option<&str>,
-    body: &Notification,
+    args: &StorageNotificationsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Notification>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storage_notifications_insert_builder(client, bucket, userProject, body)?;
+    let builder = storage_notifications_insert_builder(
+        client,
+        &args.bucket,
+        args.userProject.as_deref(),
+        &args.body,
+    )?;
     storage_notifications_insert_execute(builder)
 }
 
@@ -6684,6 +7250,15 @@ pub fn storage_notifications_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_notifications_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageNotificationsListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/notificationConfigs
 /// Retrieves a list of notification subscriptions for a given bucket.
 ///
@@ -6696,15 +7271,15 @@ pub fn storage_notifications_list_execute(
 
 pub fn storage_notifications_list(
     client: &SimpleHttpClient,
-    bucket: &str,
-    userProject: Option<&str>,
+    args: &StorageNotificationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Notifications>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storage_notifications_list_builder(client, bucket, userProject)?;
+    let builder =
+        storage_notifications_list_builder(client, &args.bucket, args.userProject.as_deref())?;
     storage_notifications_list_execute(builder)
 }
 
@@ -6813,6 +7388,21 @@ pub fn storage_object_access_controls_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_object_access_controls_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectAccessControlsDeleteArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: generation
+    pub generation: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/o/{object}/acl/{entity}
 /// Permanently deletes the ACL entry for the specified entity on the specified object.
 ///
@@ -6825,22 +7415,18 @@ pub fn storage_object_access_controls_delete_execute(
 
 pub fn storage_object_access_controls_delete(
     client: &SimpleHttpClient,
-    bucket: &str,
-    object: &str,
-    entity: &str,
-    generation: Option<&str>,
-    userProject: Option<&str>,
+    args: &StorageObjectAccessControlsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_object_access_controls_delete_builder(
         client,
-        bucket,
-        object,
-        entity,
-        generation,
-        userProject,
+        &args.bucket,
+        &args.object,
+        &args.entity,
+        args.generation.as_deref(),
+        args.userProject.as_deref(),
     )?;
     storage_object_access_controls_delete_execute(builder)
 }
@@ -6955,6 +7541,21 @@ pub fn storage_object_access_controls_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_object_access_controls_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectAccessControlsGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: generation
+    pub generation: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/o/{object}/acl/{entity}
 /// Returns the ACL entry for the specified entity on the specified object.
 ///
@@ -6967,11 +7568,7 @@ pub fn storage_object_access_controls_get_execute(
 
 pub fn storage_object_access_controls_get(
     client: &SimpleHttpClient,
-    bucket: &str,
-    object: &str,
-    entity: &str,
-    generation: Option<&str>,
-    userProject: Option<&str>,
+    args: &StorageObjectAccessControlsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
         + Send
@@ -6980,11 +7577,11 @@ pub fn storage_object_access_controls_get(
 > {
     let builder = storage_object_access_controls_get_builder(
         client,
-        bucket,
-        object,
-        entity,
-        generation,
-        userProject,
+        &args.bucket,
+        &args.object,
+        &args.entity,
+        args.generation.as_deref(),
+        args.userProject.as_deref(),
     )?;
     storage_object_access_controls_get_execute(builder)
 }
@@ -7101,6 +7698,21 @@ pub fn storage_object_access_controls_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_object_access_controls_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectAccessControlsInsertArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Query parameter: generation
+    pub generation: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: ObjectAccessControl,
+}
+
 /// GET b/{bucket}/o/{object}/acl
 /// Creates a new ACL entry on the specified object.
 ///
@@ -7113,11 +7725,7 @@ pub fn storage_object_access_controls_insert_execute(
 
 pub fn storage_object_access_controls_insert(
     client: &SimpleHttpClient,
-    bucket: &str,
-    object: &str,
-    generation: Option<&str>,
-    userProject: Option<&str>,
-    body: &ObjectAccessControl,
+    args: &StorageObjectAccessControlsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
         + Send
@@ -7126,11 +7734,11 @@ pub fn storage_object_access_controls_insert(
 > {
     let builder = storage_object_access_controls_insert_builder(
         client,
-        bucket,
-        object,
-        generation,
-        userProject,
-        body,
+        &args.bucket,
+        &args.object,
+        args.generation.as_deref(),
+        args.userProject.as_deref(),
+        &args.body,
     )?;
     storage_object_access_controls_insert_execute(builder)
 }
@@ -7244,6 +7852,19 @@ pub fn storage_object_access_controls_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_object_access_controls_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectAccessControlsListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Query parameter: generation
+    pub generation: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/o/{object}/acl
 /// Retrieves ACL entries on the specified object.
 ///
@@ -7256,10 +7877,7 @@ pub fn storage_object_access_controls_list_execute(
 
 pub fn storage_object_access_controls_list(
     client: &SimpleHttpClient,
-    bucket: &str,
-    object: &str,
-    generation: Option<&str>,
-    userProject: Option<&str>,
+    args: &StorageObjectAccessControlsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ObjectAccessControls>, ApiError>, P = ApiPending>
         + Send
@@ -7268,10 +7886,10 @@ pub fn storage_object_access_controls_list(
 > {
     let builder = storage_object_access_controls_list_builder(
         client,
-        bucket,
-        object,
-        generation,
-        userProject,
+        &args.bucket,
+        &args.object,
+        args.generation.as_deref(),
+        args.userProject.as_deref(),
     )?;
     storage_object_access_controls_list_execute(builder)
 }
@@ -7389,6 +8007,23 @@ pub fn storage_object_access_controls_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_object_access_controls_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectAccessControlsPatchArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: generation
+    pub generation: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: ObjectAccessControl,
+}
+
 /// GET b/{bucket}/o/{object}/acl/{entity}
 /// Patches an ACL entry on the specified object.
 ///
@@ -7401,12 +8036,7 @@ pub fn storage_object_access_controls_patch_execute(
 
 pub fn storage_object_access_controls_patch(
     client: &SimpleHttpClient,
-    bucket: &str,
-    object: &str,
-    entity: &str,
-    generation: Option<&str>,
-    userProject: Option<&str>,
-    body: &ObjectAccessControl,
+    args: &StorageObjectAccessControlsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
         + Send
@@ -7415,12 +8045,12 @@ pub fn storage_object_access_controls_patch(
 > {
     let builder = storage_object_access_controls_patch_builder(
         client,
-        bucket,
-        object,
-        entity,
-        generation,
-        userProject,
-        body,
+        &args.bucket,
+        &args.object,
+        &args.entity,
+        args.generation.as_deref(),
+        args.userProject.as_deref(),
+        &args.body,
     )?;
     storage_object_access_controls_patch_execute(builder)
 }
@@ -7538,6 +8168,23 @@ pub fn storage_object_access_controls_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_object_access_controls_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectAccessControlsUpdateArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Path parameter: entity
+    pub entity: String,
+    /// Query parameter: generation
+    pub generation: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: ObjectAccessControl,
+}
+
 /// GET b/{bucket}/o/{object}/acl/{entity}
 /// Updates an ACL entry on the specified object.
 ///
@@ -7550,12 +8197,7 @@ pub fn storage_object_access_controls_update_execute(
 
 pub fn storage_object_access_controls_update(
     client: &SimpleHttpClient,
-    bucket: &str,
-    object: &str,
-    entity: &str,
-    generation: Option<&str>,
-    userProject: Option<&str>,
-    body: &ObjectAccessControl,
+    args: &StorageObjectAccessControlsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ObjectAccessControl>, ApiError>, P = ApiPending>
         + Send
@@ -7564,12 +8206,12 @@ pub fn storage_object_access_controls_update(
 > {
     let builder = storage_object_access_controls_update_builder(
         client,
-        bucket,
-        object,
-        entity,
-        generation,
-        userProject,
-        body,
+        &args.bucket,
+        &args.object,
+        &args.entity,
+        args.generation.as_deref(),
+        args.userProject.as_deref(),
+        &args.body,
     )?;
     storage_object_access_controls_update_execute(builder)
 }
@@ -7671,6 +8313,15 @@ pub fn storage_objects_bulk_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_objects_bulk_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsBulkRestoreArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Request body.
+    pub body: BulkRestoreObjectsRequest,
+}
+
 /// GET b/{bucket}/o/bulkRestore
 /// Initiates a long-running bulk restore operation on the specified bucket.
 ///
@@ -7683,8 +8334,7 @@ pub fn storage_objects_bulk_restore_execute(
 
 pub fn storage_objects_bulk_restore(
     client: &SimpleHttpClient,
-    bucket: &str,
-    body: &BulkRestoreObjectsRequest,
+    args: &StorageObjectsBulkRestoreArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7693,7 +8343,7 @@ pub fn storage_objects_bulk_restore(
         + 'static,
     ApiError,
 > {
-    let builder = storage_objects_bulk_restore_builder(client, bucket, body)?;
+    let builder = storage_objects_bulk_restore_builder(client, &args.bucket, &args.body)?;
     storage_objects_bulk_restore_execute(builder)
 }
 
@@ -7823,6 +8473,29 @@ pub fn storage_objects_compose_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_objects_compose`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsComposeArgs {
+    /// Path parameter: destinationBucket
+    pub destinationBucket: String,
+    /// Path parameter: destinationObject
+    pub destinationObject: String,
+    /// Query parameter: destinationPredefinedAcl
+    pub destinationPredefinedAcl: Option<String>,
+    /// Query parameter: dropContextGroups
+    pub dropContextGroups: Option<String>,
+    /// Query parameter: ifGenerationMatch
+    pub ifGenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: kmsKeyName
+    pub kmsKeyName: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: ComposeRequest,
+}
+
 /// GET b/{destinationBucket}/o/{destinationObject}/compose
 /// Concatenates a list of existing objects into a new object in the same bucket.
 ///
@@ -7835,30 +8508,22 @@ pub fn storage_objects_compose_execute(
 
 pub fn storage_objects_compose(
     client: &SimpleHttpClient,
-    destinationBucket: &str,
-    destinationObject: &str,
-    destinationPredefinedAcl: Option<&str>,
-    dropContextGroups: Option<&str>,
-    ifGenerationMatch: Option<&str>,
-    ifMetagenerationMatch: Option<&str>,
-    kmsKeyName: Option<&str>,
-    userProject: Option<&str>,
-    body: &ComposeRequest,
+    args: &StorageObjectsComposeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Object>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_objects_compose_builder(
         client,
-        destinationBucket,
-        destinationObject,
-        destinationPredefinedAcl,
-        dropContextGroups,
-        ifGenerationMatch,
-        ifMetagenerationMatch,
-        kmsKeyName,
-        userProject,
-        body,
+        &args.destinationBucket,
+        &args.destinationObject,
+        args.destinationPredefinedAcl.as_deref(),
+        args.dropContextGroups.as_deref(),
+        args.ifGenerationMatch.as_deref(),
+        args.ifMetagenerationMatch.as_deref(),
+        args.kmsKeyName.as_deref(),
+        args.userProject.as_deref(),
+        &args.body,
     )?;
     storage_objects_compose_execute(builder)
 }
@@ -8019,6 +8684,47 @@ pub fn storage_objects_copy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_objects_copy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsCopyArgs {
+    /// Path parameter: sourceBucket
+    pub sourceBucket: String,
+    /// Path parameter: sourceObject
+    pub sourceObject: String,
+    /// Path parameter: destinationBucket
+    pub destinationBucket: String,
+    /// Path parameter: destinationObject
+    pub destinationObject: String,
+    /// Query parameter: destinationKmsKeyName
+    pub destinationKmsKeyName: Option<String>,
+    /// Query parameter: destinationPredefinedAcl
+    pub destinationPredefinedAcl: Option<String>,
+    /// Query parameter: ifGenerationMatch
+    pub ifGenerationMatch: Option<String>,
+    /// Query parameter: ifGenerationNotMatch
+    pub ifGenerationNotMatch: Option<String>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+    /// Query parameter: ifSourceGenerationMatch
+    pub ifSourceGenerationMatch: Option<String>,
+    /// Query parameter: ifSourceGenerationNotMatch
+    pub ifSourceGenerationNotMatch: Option<String>,
+    /// Query parameter: ifSourceMetagenerationMatch
+    pub ifSourceMetagenerationMatch: Option<String>,
+    /// Query parameter: ifSourceMetagenerationNotMatch
+    pub ifSourceMetagenerationNotMatch: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: sourceGeneration
+    pub sourceGeneration: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: Object,
+}
+
 /// GET b/{sourceBucket}/o/{sourceObject}/copyTo/b/{destinationBucket}/o/{destinationObject}
 /// Copies a source object to a destination object. Optionally overrides metadata.
 ///
@@ -8031,48 +8737,31 @@ pub fn storage_objects_copy_execute(
 
 pub fn storage_objects_copy(
     client: &SimpleHttpClient,
-    sourceBucket: &str,
-    sourceObject: &str,
-    destinationBucket: &str,
-    destinationObject: &str,
-    destinationKmsKeyName: Option<&str>,
-    destinationPredefinedAcl: Option<&str>,
-    ifGenerationMatch: Option<&str>,
-    ifGenerationNotMatch: Option<&str>,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
-    ifSourceGenerationMatch: Option<&str>,
-    ifSourceGenerationNotMatch: Option<&str>,
-    ifSourceMetagenerationMatch: Option<&str>,
-    ifSourceMetagenerationNotMatch: Option<&str>,
-    projection: Option<&str>,
-    sourceGeneration: Option<&str>,
-    userProject: Option<&str>,
-    body: &Object,
+    args: &StorageObjectsCopyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Object>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_objects_copy_builder(
         client,
-        sourceBucket,
-        sourceObject,
-        destinationBucket,
-        destinationObject,
-        destinationKmsKeyName,
-        destinationPredefinedAcl,
-        ifGenerationMatch,
-        ifGenerationNotMatch,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
-        ifSourceGenerationMatch,
-        ifSourceGenerationNotMatch,
-        ifSourceMetagenerationMatch,
-        ifSourceMetagenerationNotMatch,
-        projection,
-        sourceGeneration,
-        userProject,
-        body,
+        &args.sourceBucket,
+        &args.sourceObject,
+        &args.destinationBucket,
+        &args.destinationObject,
+        args.destinationKmsKeyName.as_deref(),
+        args.destinationPredefinedAcl.as_deref(),
+        args.ifGenerationMatch.as_deref(),
+        args.ifGenerationNotMatch.as_deref(),
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
+        args.ifSourceGenerationMatch.as_deref(),
+        args.ifSourceGenerationNotMatch.as_deref(),
+        args.ifSourceMetagenerationMatch.as_deref(),
+        args.ifSourceMetagenerationNotMatch.as_deref(),
+        args.projection.as_deref(),
+        args.sourceGeneration.as_deref(),
+        args.userProject.as_deref(),
+        &args.body,
     )?;
     storage_objects_copy_execute(builder)
 }
@@ -8197,6 +8886,27 @@ pub fn storage_objects_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_objects_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsDeleteArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Query parameter: generation
+    pub generation: Option<String>,
+    /// Query parameter: ifGenerationMatch
+    pub ifGenerationMatch: Option<String>,
+    /// Query parameter: ifGenerationNotMatch
+    pub ifGenerationNotMatch: Option<String>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/o/{object}
 /// Deletes an object and its metadata. Deletions are permanent if versioning is not enabled for the bucket, or if the generation parameter is used.
 ///
@@ -8209,28 +8919,21 @@ pub fn storage_objects_delete_execute(
 
 pub fn storage_objects_delete(
     client: &SimpleHttpClient,
-    bucket: &str,
-    object: &str,
-    generation: Option<&str>,
-    ifGenerationMatch: Option<&str>,
-    ifGenerationNotMatch: Option<&str>,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
-    userProject: Option<&str>,
+    args: &StorageObjectsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_objects_delete_builder(
         client,
-        bucket,
-        object,
-        generation,
-        ifGenerationMatch,
-        ifGenerationNotMatch,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
-        userProject,
+        &args.bucket,
+        &args.object,
+        args.generation.as_deref(),
+        args.ifGenerationMatch.as_deref(),
+        args.ifGenerationNotMatch.as_deref(),
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
+        args.userProject.as_deref(),
     )?;
     storage_objects_delete_execute(builder)
 }
@@ -8370,6 +9073,33 @@ pub fn storage_objects_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_objects_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Query parameter: generation
+    pub generation: Option<String>,
+    /// Query parameter: ifGenerationMatch
+    pub ifGenerationMatch: Option<String>,
+    /// Query parameter: ifGenerationNotMatch
+    pub ifGenerationNotMatch: Option<String>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: restoreToken
+    pub restoreToken: Option<String>,
+    /// Query parameter: softDeleted
+    pub softDeleted: Option<bool>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/o/{object}
 /// Retrieves an object or its metadata.
 ///
@@ -8382,34 +9112,24 @@ pub fn storage_objects_get_execute(
 
 pub fn storage_objects_get(
     client: &SimpleHttpClient,
-    bucket: &str,
-    object: &str,
-    generation: Option<&str>,
-    ifGenerationMatch: Option<&str>,
-    ifGenerationNotMatch: Option<&str>,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
-    projection: Option<&str>,
-    restoreToken: Option<&str>,
-    softDeleted: Option<bool>,
-    userProject: Option<&str>,
+    args: &StorageObjectsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Object>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_objects_get_builder(
         client,
-        bucket,
-        object,
-        generation,
-        ifGenerationMatch,
-        ifGenerationNotMatch,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
-        projection,
-        restoreToken,
-        softDeleted,
-        userProject,
+        &args.bucket,
+        &args.object,
+        args.generation.as_deref(),
+        args.ifGenerationMatch.as_deref(),
+        args.ifGenerationNotMatch.as_deref(),
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
+        args.projection.as_deref(),
+        args.restoreToken.as_deref(),
+        args.softDeleted,
+        args.userProject.as_deref(),
     )?;
     storage_objects_get_execute(builder)
 }
@@ -8521,6 +9241,19 @@ pub fn storage_objects_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_objects_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsGetIamPolicyArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Query parameter: generation
+    pub generation: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/o/{object}/iam
 /// Returns an IAM policy for the specified object.
 ///
@@ -8533,16 +9266,18 @@ pub fn storage_objects_get_iam_policy_execute(
 
 pub fn storage_objects_get_iam_policy(
     client: &SimpleHttpClient,
-    bucket: &str,
-    object: &str,
-    generation: Option<&str>,
-    userProject: Option<&str>,
+    args: &StorageObjectsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        storage_objects_get_iam_policy_builder(client, bucket, object, generation, userProject)?;
+    let builder = storage_objects_get_iam_policy_builder(
+        client,
+        &args.bucket,
+        &args.object,
+        args.generation.as_deref(),
+        args.userProject.as_deref(),
+    )?;
     storage_objects_get_iam_policy_execute(builder)
 }
 
@@ -8684,6 +9419,35 @@ pub fn storage_objects_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_objects_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsInsertArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: contentEncoding
+    pub contentEncoding: Option<String>,
+    /// Query parameter: ifGenerationMatch
+    pub ifGenerationMatch: Option<String>,
+    /// Query parameter: ifGenerationNotMatch
+    pub ifGenerationNotMatch: Option<String>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+    /// Query parameter: kmsKeyName
+    pub kmsKeyName: Option<String>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: predefinedAcl
+    pub predefinedAcl: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: Object,
+}
+
 /// GET b/{bucket}/o
 /// Stores a new object and metadata.
 ///
@@ -8696,36 +9460,25 @@ pub fn storage_objects_insert_execute(
 
 pub fn storage_objects_insert(
     client: &SimpleHttpClient,
-    bucket: &str,
-    contentEncoding: Option<&str>,
-    ifGenerationMatch: Option<&str>,
-    ifGenerationNotMatch: Option<&str>,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
-    kmsKeyName: Option<&str>,
-    name: Option<&str>,
-    predefinedAcl: Option<&str>,
-    projection: Option<&str>,
-    userProject: Option<&str>,
-    body: &Object,
+    args: &StorageObjectsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Object>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_objects_insert_builder(
         client,
-        bucket,
-        contentEncoding,
-        ifGenerationMatch,
-        ifGenerationNotMatch,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
-        kmsKeyName,
-        name,
-        predefinedAcl,
-        projection,
-        userProject,
-        body,
+        &args.bucket,
+        args.contentEncoding.as_deref(),
+        args.ifGenerationMatch.as_deref(),
+        args.ifGenerationNotMatch.as_deref(),
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
+        args.kmsKeyName.as_deref(),
+        args.name.as_deref(),
+        args.predefinedAcl.as_deref(),
+        args.projection.as_deref(),
+        args.userProject.as_deref(),
+        &args.body,
     )?;
     storage_objects_insert_execute(builder)
 }
@@ -8881,6 +9634,41 @@ pub fn storage_objects_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_objects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: delimiter
+    pub delimiter: Option<String>,
+    /// Query parameter: endOffset
+    pub endOffset: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: includeFoldersAsPrefixes
+    pub includeFoldersAsPrefixes: Option<bool>,
+    /// Query parameter: includeTrailingDelimiter
+    pub includeTrailingDelimiter: Option<bool>,
+    /// Query parameter: matchGlob
+    pub matchGlob: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: prefix
+    pub prefix: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: softDeleted
+    pub softDeleted: Option<bool>,
+    /// Query parameter: startOffset
+    pub startOffset: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Query parameter: versions
+    pub versions: Option<bool>,
+}
+
 /// GET b/{bucket}/o
 /// Retrieves a list of objects matching the criteria.
 ///
@@ -8893,42 +9681,28 @@ pub fn storage_objects_list_execute(
 
 pub fn storage_objects_list(
     client: &SimpleHttpClient,
-    bucket: &str,
-    delimiter: Option<&str>,
-    endOffset: Option<&str>,
-    filter: Option<&str>,
-    includeFoldersAsPrefixes: Option<bool>,
-    includeTrailingDelimiter: Option<bool>,
-    matchGlob: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    prefix: Option<&str>,
-    projection: Option<&str>,
-    softDeleted: Option<bool>,
-    startOffset: Option<&str>,
-    userProject: Option<&str>,
-    versions: Option<bool>,
+    args: &StorageObjectsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Objects>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_objects_list_builder(
         client,
-        bucket,
-        delimiter,
-        endOffset,
-        filter,
-        includeFoldersAsPrefixes,
-        includeTrailingDelimiter,
-        matchGlob,
-        maxResults,
-        pageToken,
-        prefix,
-        projection,
-        softDeleted,
-        startOffset,
-        userProject,
-        versions,
+        &args.bucket,
+        args.delimiter.as_deref(),
+        args.endOffset.as_deref(),
+        args.filter.as_deref(),
+        args.includeFoldersAsPrefixes,
+        args.includeTrailingDelimiter,
+        args.matchGlob.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.prefix.as_deref(),
+        args.projection.as_deref(),
+        args.softDeleted,
+        args.startOffset.as_deref(),
+        args.userProject.as_deref(),
+        args.versions,
     )?;
     storage_objects_list_execute(builder)
 }
@@ -9073,6 +9847,37 @@ pub fn storage_objects_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_objects_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsMoveArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: sourceObject
+    pub sourceObject: String,
+    /// Path parameter: destinationObject
+    pub destinationObject: String,
+    /// Query parameter: ifGenerationMatch
+    pub ifGenerationMatch: Option<String>,
+    /// Query parameter: ifGenerationNotMatch
+    pub ifGenerationNotMatch: Option<String>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+    /// Query parameter: ifSourceGenerationMatch
+    pub ifSourceGenerationMatch: Option<String>,
+    /// Query parameter: ifSourceGenerationNotMatch
+    pub ifSourceGenerationNotMatch: Option<String>,
+    /// Query parameter: ifSourceMetagenerationMatch
+    pub ifSourceMetagenerationMatch: Option<String>,
+    /// Query parameter: ifSourceMetagenerationNotMatch
+    pub ifSourceMetagenerationNotMatch: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/o/{sourceObject}/moveTo/o/{destinationObject}
 /// Moves the source object to the destination object in the same bucket.
 ///
@@ -9085,38 +9890,26 @@ pub fn storage_objects_move_execute(
 
 pub fn storage_objects_move(
     client: &SimpleHttpClient,
-    bucket: &str,
-    sourceObject: &str,
-    destinationObject: &str,
-    ifGenerationMatch: Option<&str>,
-    ifGenerationNotMatch: Option<&str>,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
-    ifSourceGenerationMatch: Option<&str>,
-    ifSourceGenerationNotMatch: Option<&str>,
-    ifSourceMetagenerationMatch: Option<&str>,
-    ifSourceMetagenerationNotMatch: Option<&str>,
-    projection: Option<&str>,
-    userProject: Option<&str>,
+    args: &StorageObjectsMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Object>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_objects_move_builder(
         client,
-        bucket,
-        sourceObject,
-        destinationObject,
-        ifGenerationMatch,
-        ifGenerationNotMatch,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
-        ifSourceGenerationMatch,
-        ifSourceGenerationNotMatch,
-        ifSourceMetagenerationMatch,
-        ifSourceMetagenerationNotMatch,
-        projection,
-        userProject,
+        &args.bucket,
+        &args.sourceObject,
+        &args.destinationObject,
+        args.ifGenerationMatch.as_deref(),
+        args.ifGenerationNotMatch.as_deref(),
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
+        args.ifSourceGenerationMatch.as_deref(),
+        args.ifSourceGenerationNotMatch.as_deref(),
+        args.ifSourceMetagenerationMatch.as_deref(),
+        args.ifSourceMetagenerationNotMatch.as_deref(),
+        args.projection.as_deref(),
+        args.userProject.as_deref(),
     )?;
     storage_objects_move_execute(builder)
 }
@@ -9259,6 +10052,35 @@ pub fn storage_objects_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_objects_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsPatchArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Query parameter: generation
+    pub generation: Option<String>,
+    /// Query parameter: ifGenerationMatch
+    pub ifGenerationMatch: Option<String>,
+    /// Query parameter: ifGenerationNotMatch
+    pub ifGenerationNotMatch: Option<String>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+    /// Query parameter: overrideUnlockedRetention
+    pub overrideUnlockedRetention: Option<bool>,
+    /// Query parameter: predefinedAcl
+    pub predefinedAcl: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: Object,
+}
+
 /// GET b/{bucket}/o/{object}
 /// Patches an object's metadata.
 ///
@@ -9271,36 +10093,25 @@ pub fn storage_objects_patch_execute(
 
 pub fn storage_objects_patch(
     client: &SimpleHttpClient,
-    bucket: &str,
-    object: &str,
-    generation: Option<&str>,
-    ifGenerationMatch: Option<&str>,
-    ifGenerationNotMatch: Option<&str>,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
-    overrideUnlockedRetention: Option<bool>,
-    predefinedAcl: Option<&str>,
-    projection: Option<&str>,
-    userProject: Option<&str>,
-    body: &Object,
+    args: &StorageObjectsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Object>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_objects_patch_builder(
         client,
-        bucket,
-        object,
-        generation,
-        ifGenerationMatch,
-        ifGenerationNotMatch,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
-        overrideUnlockedRetention,
-        predefinedAcl,
-        projection,
-        userProject,
-        body,
+        &args.bucket,
+        &args.object,
+        args.generation.as_deref(),
+        args.ifGenerationMatch.as_deref(),
+        args.ifGenerationNotMatch.as_deref(),
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
+        args.overrideUnlockedRetention,
+        args.predefinedAcl.as_deref(),
+        args.projection.as_deref(),
+        args.userProject.as_deref(),
+        &args.body,
     )?;
     storage_objects_patch_execute(builder)
 }
@@ -9437,6 +10248,33 @@ pub fn storage_objects_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_objects_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsRestoreArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Path parameter: generation
+    pub generation: String,
+    /// Query parameter: copySourceAcl
+    pub copySourceAcl: Option<bool>,
+    /// Query parameter: ifGenerationMatch
+    pub ifGenerationMatch: Option<String>,
+    /// Query parameter: ifGenerationNotMatch
+    pub ifGenerationNotMatch: Option<String>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: restoreToken
+    pub restoreToken: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/o/{object}/restore
 /// Restores a soft-deleted object.
 ///
@@ -9449,34 +10287,24 @@ pub fn storage_objects_restore_execute(
 
 pub fn storage_objects_restore(
     client: &SimpleHttpClient,
-    bucket: &str,
-    object: &str,
-    generation: &str,
-    copySourceAcl: Option<bool>,
-    ifGenerationMatch: Option<&str>,
-    ifGenerationNotMatch: Option<&str>,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
-    projection: Option<&str>,
-    restoreToken: Option<&str>,
-    userProject: Option<&str>,
+    args: &StorageObjectsRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Object>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_objects_restore_builder(
         client,
-        bucket,
-        object,
-        generation,
-        copySourceAcl,
-        ifGenerationMatch,
-        ifGenerationNotMatch,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
-        projection,
-        restoreToken,
-        userProject,
+        &args.bucket,
+        &args.object,
+        &args.generation,
+        args.copySourceAcl,
+        args.ifGenerationMatch.as_deref(),
+        args.ifGenerationNotMatch.as_deref(),
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
+        args.projection.as_deref(),
+        args.restoreToken.as_deref(),
+        args.userProject.as_deref(),
     )?;
     storage_objects_restore_execute(builder)
 }
@@ -9651,6 +10479,53 @@ pub fn storage_objects_rewrite_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_objects_rewrite`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsRewriteArgs {
+    /// Path parameter: sourceBucket
+    pub sourceBucket: String,
+    /// Path parameter: sourceObject
+    pub sourceObject: String,
+    /// Path parameter: destinationBucket
+    pub destinationBucket: String,
+    /// Path parameter: destinationObject
+    pub destinationObject: String,
+    /// Query parameter: destinationKmsKeyName
+    pub destinationKmsKeyName: Option<String>,
+    /// Query parameter: destinationPredefinedAcl
+    pub destinationPredefinedAcl: Option<String>,
+    /// Query parameter: dropContextGroups
+    pub dropContextGroups: Option<String>,
+    /// Query parameter: ifGenerationMatch
+    pub ifGenerationMatch: Option<String>,
+    /// Query parameter: ifGenerationNotMatch
+    pub ifGenerationNotMatch: Option<String>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+    /// Query parameter: ifSourceGenerationMatch
+    pub ifSourceGenerationMatch: Option<String>,
+    /// Query parameter: ifSourceGenerationNotMatch
+    pub ifSourceGenerationNotMatch: Option<String>,
+    /// Query parameter: ifSourceMetagenerationMatch
+    pub ifSourceMetagenerationMatch: Option<String>,
+    /// Query parameter: ifSourceMetagenerationNotMatch
+    pub ifSourceMetagenerationNotMatch: Option<String>,
+    /// Query parameter: maxBytesRewrittenPerCall
+    pub maxBytesRewrittenPerCall: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: rewriteToken
+    pub rewriteToken: Option<String>,
+    /// Query parameter: sourceGeneration
+    pub sourceGeneration: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: Object,
+}
+
 /// GET b/{sourceBucket}/o/{sourceObject}/rewriteTo/b/{destinationBucket}/o/{destinationObject}
 /// Rewrites a source object to a destination object. Optionally overrides metadata.
 ///
@@ -9663,27 +10538,7 @@ pub fn storage_objects_rewrite_execute(
 
 pub fn storage_objects_rewrite(
     client: &SimpleHttpClient,
-    sourceBucket: &str,
-    sourceObject: &str,
-    destinationBucket: &str,
-    destinationObject: &str,
-    destinationKmsKeyName: Option<&str>,
-    destinationPredefinedAcl: Option<&str>,
-    dropContextGroups: Option<&str>,
-    ifGenerationMatch: Option<&str>,
-    ifGenerationNotMatch: Option<&str>,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
-    ifSourceGenerationMatch: Option<&str>,
-    ifSourceGenerationNotMatch: Option<&str>,
-    ifSourceMetagenerationMatch: Option<&str>,
-    ifSourceMetagenerationNotMatch: Option<&str>,
-    maxBytesRewrittenPerCall: Option<&str>,
-    projection: Option<&str>,
-    rewriteToken: Option<&str>,
-    sourceGeneration: Option<&str>,
-    userProject: Option<&str>,
-    body: &Object,
+    args: &StorageObjectsRewriteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RewriteResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9692,27 +10547,27 @@ pub fn storage_objects_rewrite(
 > {
     let builder = storage_objects_rewrite_builder(
         client,
-        sourceBucket,
-        sourceObject,
-        destinationBucket,
-        destinationObject,
-        destinationKmsKeyName,
-        destinationPredefinedAcl,
-        dropContextGroups,
-        ifGenerationMatch,
-        ifGenerationNotMatch,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
-        ifSourceGenerationMatch,
-        ifSourceGenerationNotMatch,
-        ifSourceMetagenerationMatch,
-        ifSourceMetagenerationNotMatch,
-        maxBytesRewrittenPerCall,
-        projection,
-        rewriteToken,
-        sourceGeneration,
-        userProject,
-        body,
+        &args.sourceBucket,
+        &args.sourceObject,
+        &args.destinationBucket,
+        &args.destinationObject,
+        args.destinationKmsKeyName.as_deref(),
+        args.destinationPredefinedAcl.as_deref(),
+        args.dropContextGroups.as_deref(),
+        args.ifGenerationMatch.as_deref(),
+        args.ifGenerationNotMatch.as_deref(),
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
+        args.ifSourceGenerationMatch.as_deref(),
+        args.ifSourceGenerationNotMatch.as_deref(),
+        args.ifSourceMetagenerationMatch.as_deref(),
+        args.ifSourceMetagenerationNotMatch.as_deref(),
+        args.maxBytesRewrittenPerCall.as_deref(),
+        args.projection.as_deref(),
+        args.rewriteToken.as_deref(),
+        args.sourceGeneration.as_deref(),
+        args.userProject.as_deref(),
+        &args.body,
     )?;
     storage_objects_rewrite_execute(builder)
 }
@@ -9827,6 +10682,21 @@ pub fn storage_objects_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_objects_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsSetIamPolicyArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Query parameter: generation
+    pub generation: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: Policy,
+}
+
 /// GET b/{bucket}/o/{object}/iam
 /// Updates an IAM policy for the specified object.
 ///
@@ -9839,22 +10709,18 @@ pub fn storage_objects_set_iam_policy_execute(
 
 pub fn storage_objects_set_iam_policy(
     client: &SimpleHttpClient,
-    bucket: &str,
-    object: &str,
-    generation: Option<&str>,
-    userProject: Option<&str>,
-    body: &Policy,
+    args: &StorageObjectsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_objects_set_iam_policy_builder(
         client,
-        bucket,
-        object,
-        generation,
-        userProject,
-        body,
+        &args.bucket,
+        &args.object,
+        args.generation.as_deref(),
+        args.userProject.as_deref(),
+        &args.body,
     )?;
     storage_objects_set_iam_policy_execute(builder)
 }
@@ -9971,6 +10837,21 @@ pub fn storage_objects_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_objects_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsTestIamPermissionsArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Path parameter: permissions
+    pub permissions: String,
+    /// Query parameter: generation
+    pub generation: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET b/{bucket}/o/{object}/iam/testPermissions
 /// Tests a set of permissions on the given object to see which, if any, are held by the caller.
 ///
@@ -9983,11 +10864,7 @@ pub fn storage_objects_test_iam_permissions_execute(
 
 pub fn storage_objects_test_iam_permissions(
     client: &SimpleHttpClient,
-    bucket: &str,
-    object: &str,
-    permissions: &str,
-    generation: Option<&str>,
-    userProject: Option<&str>,
+    args: &StorageObjectsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -9998,11 +10875,11 @@ pub fn storage_objects_test_iam_permissions(
 > {
     let builder = storage_objects_test_iam_permissions_builder(
         client,
-        bucket,
-        object,
-        permissions,
-        generation,
-        userProject,
+        &args.bucket,
+        &args.object,
+        &args.permissions,
+        args.generation.as_deref(),
+        args.userProject.as_deref(),
     )?;
     storage_objects_test_iam_permissions_execute(builder)
 }
@@ -10145,6 +11022,35 @@ pub fn storage_objects_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_objects_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsUpdateArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: object
+    pub object: String,
+    /// Query parameter: generation
+    pub generation: Option<String>,
+    /// Query parameter: ifGenerationMatch
+    pub ifGenerationMatch: Option<String>,
+    /// Query parameter: ifGenerationNotMatch
+    pub ifGenerationNotMatch: Option<String>,
+    /// Query parameter: ifMetagenerationMatch
+    pub ifMetagenerationMatch: Option<String>,
+    /// Query parameter: ifMetagenerationNotMatch
+    pub ifMetagenerationNotMatch: Option<String>,
+    /// Query parameter: overrideUnlockedRetention
+    pub overrideUnlockedRetention: Option<bool>,
+    /// Query parameter: predefinedAcl
+    pub predefinedAcl: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: Object,
+}
+
 /// GET b/{bucket}/o/{object}
 /// Updates an object's metadata.
 ///
@@ -10157,36 +11063,25 @@ pub fn storage_objects_update_execute(
 
 pub fn storage_objects_update(
     client: &SimpleHttpClient,
-    bucket: &str,
-    object: &str,
-    generation: Option<&str>,
-    ifGenerationMatch: Option<&str>,
-    ifGenerationNotMatch: Option<&str>,
-    ifMetagenerationMatch: Option<&str>,
-    ifMetagenerationNotMatch: Option<&str>,
-    overrideUnlockedRetention: Option<bool>,
-    predefinedAcl: Option<&str>,
-    projection: Option<&str>,
-    userProject: Option<&str>,
-    body: &Object,
+    args: &StorageObjectsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Object>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_objects_update_builder(
         client,
-        bucket,
-        object,
-        generation,
-        ifGenerationMatch,
-        ifGenerationNotMatch,
-        ifMetagenerationMatch,
-        ifMetagenerationNotMatch,
-        overrideUnlockedRetention,
-        predefinedAcl,
-        projection,
-        userProject,
-        body,
+        &args.bucket,
+        &args.object,
+        args.generation.as_deref(),
+        args.ifGenerationMatch.as_deref(),
+        args.ifGenerationNotMatch.as_deref(),
+        args.ifMetagenerationMatch.as_deref(),
+        args.ifMetagenerationNotMatch.as_deref(),
+        args.overrideUnlockedRetention,
+        args.predefinedAcl.as_deref(),
+        args.projection.as_deref(),
+        args.userProject.as_deref(),
+        &args.body,
     )?;
     storage_objects_update_execute(builder)
 }
@@ -10332,6 +11227,35 @@ pub fn storage_objects_watch_all_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_objects_watch_all`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageObjectsWatchAllArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: delimiter
+    pub delimiter: Option<String>,
+    /// Query parameter: endOffset
+    pub endOffset: Option<String>,
+    /// Query parameter: includeTrailingDelimiter
+    pub includeTrailingDelimiter: Option<bool>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: prefix
+    pub prefix: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: startOffset
+    pub startOffset: Option<String>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Query parameter: versions
+    pub versions: Option<bool>,
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET b/{bucket}/o/watch
 /// Watch for changes on all objects in a bucket.
 ///
@@ -10344,36 +11268,25 @@ pub fn storage_objects_watch_all_execute(
 
 pub fn storage_objects_watch_all(
     client: &SimpleHttpClient,
-    bucket: &str,
-    delimiter: Option<&str>,
-    endOffset: Option<&str>,
-    includeTrailingDelimiter: Option<bool>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    prefix: Option<&str>,
-    projection: Option<&str>,
-    startOffset: Option<&str>,
-    userProject: Option<&str>,
-    versions: Option<bool>,
-    body: &Channel,
+    args: &StorageObjectsWatchAllArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_objects_watch_all_builder(
         client,
-        bucket,
-        delimiter,
-        endOffset,
-        includeTrailingDelimiter,
-        maxResults,
-        pageToken,
-        prefix,
-        projection,
-        startOffset,
-        userProject,
-        versions,
-        body,
+        &args.bucket,
+        args.delimiter.as_deref(),
+        args.endOffset.as_deref(),
+        args.includeTrailingDelimiter,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.prefix.as_deref(),
+        args.projection.as_deref(),
+        args.startOffset.as_deref(),
+        args.userProject.as_deref(),
+        args.versions,
+        &args.body,
     )?;
     storage_objects_watch_all_execute(builder)
 }
@@ -10469,6 +11382,17 @@ pub fn storage_buckets_operations_advance_relocate_bucket_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_operations_advance_relocate_bucket`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsOperationsAdvanceRelocateBucketArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: operationId
+    pub operationId: String,
+    /// Request body.
+    pub body: AdvanceRelocateBucketOperationRequest,
+}
+
 /// GET b/{bucket}/operations/{operationId}/advanceRelocateBucket
 /// Starts asynchronous advancement of the relocate bucket operation in the case of required write downtime, to allow it to lock the bucket at the source location, and proceed with the bucket location swap. The server makes a best effort to advance the relocate bucket operation, but success is not guaranteed.
 ///
@@ -10481,18 +11405,16 @@ pub fn storage_buckets_operations_advance_relocate_bucket_execute(
 
 pub fn storage_buckets_operations_advance_relocate_bucket(
     client: &SimpleHttpClient,
-    bucket: &str,
-    operationId: &str,
-    body: &AdvanceRelocateBucketOperationRequest,
+    args: &StorageBucketsOperationsAdvanceRelocateBucketArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_buckets_operations_advance_relocate_bucket_builder(
         client,
-        bucket,
-        operationId,
-        body,
+        &args.bucket,
+        &args.operationId,
+        &args.body,
     )?;
     storage_buckets_operations_advance_relocate_bucket_execute(builder)
 }
@@ -10585,6 +11507,15 @@ pub fn storage_buckets_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsOperationsCancelArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: operationId
+    pub operationId: String,
+}
+
 /// GET b/{bucket}/operations/{operationId}/cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed.
 ///
@@ -10597,13 +11528,13 @@ pub fn storage_buckets_operations_cancel_execute(
 
 pub fn storage_buckets_operations_cancel(
     client: &SimpleHttpClient,
-    bucket: &str,
-    operationId: &str,
+    args: &StorageBucketsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storage_buckets_operations_cancel_builder(client, bucket, operationId)?;
+    let builder =
+        storage_buckets_operations_cancel_builder(client, &args.bucket, &args.operationId)?;
     storage_buckets_operations_cancel_execute(builder)
 }
 
@@ -10702,6 +11633,15 @@ pub fn storage_buckets_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsOperationsGetArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Path parameter: operationId
+    pub operationId: String,
+}
+
 /// GET b/{bucket}/operations/{operationId}
 /// Gets the latest state of a long-running operation.
 ///
@@ -10714,8 +11654,7 @@ pub fn storage_buckets_operations_get_execute(
 
 pub fn storage_buckets_operations_get(
     client: &SimpleHttpClient,
-    bucket: &str,
-    operationId: &str,
+    args: &StorageBucketsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10724,7 +11663,7 @@ pub fn storage_buckets_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = storage_buckets_operations_get_builder(client, bucket, operationId)?;
+    let builder = storage_buckets_operations_get_builder(client, &args.bucket, &args.operationId)?;
     storage_buckets_operations_get_execute(builder)
 }
 
@@ -10843,6 +11782,19 @@ pub fn storage_buckets_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_buckets_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageBucketsOperationsListArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET b/{bucket}/operations
 /// Lists operations that match the specified filter in the request.
 ///
@@ -10855,10 +11807,7 @@ pub fn storage_buckets_operations_list_execute(
 
 pub fn storage_buckets_operations_list(
     client: &SimpleHttpClient,
-    bucket: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &StorageBucketsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -10867,8 +11816,13 @@ pub fn storage_buckets_operations_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        storage_buckets_operations_list_builder(client, bucket, filter, pageSize, pageToken)?;
+    let builder = storage_buckets_operations_list_builder(
+        client,
+        &args.bucket,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     storage_buckets_operations_list_execute(builder)
 }
 
@@ -10975,6 +11929,17 @@ pub fn storage_projects_hmac_keys_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_projects_hmac_keys_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageProjectsHmacKeysCreateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: serviceAccountEmail
+    pub serviceAccountEmail: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET projects/{projectId}/hmacKeys
 /// Creates a new HMAC key for the specified service account.
 ///
@@ -10987,18 +11952,16 @@ pub fn storage_projects_hmac_keys_create_execute(
 
 pub fn storage_projects_hmac_keys_create(
     client: &SimpleHttpClient,
-    projectId: &str,
-    serviceAccountEmail: &str,
-    userProject: Option<&str>,
+    args: &StorageProjectsHmacKeysCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HmacKey>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = storage_projects_hmac_keys_create_builder(
         client,
-        projectId,
-        serviceAccountEmail,
-        userProject,
+        &args.projectId,
+        &args.serviceAccountEmail,
+        args.userProject.as_deref(),
     )?;
     storage_projects_hmac_keys_create_execute(builder)
 }
@@ -11103,6 +12066,17 @@ pub fn storage_projects_hmac_keys_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_projects_hmac_keys_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageProjectsHmacKeysDeleteArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: accessId
+    pub accessId: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET projects/{projectId}/hmacKeys/{accessId}
 /// Deletes an HMAC key.
 ///
@@ -11115,15 +12089,17 @@ pub fn storage_projects_hmac_keys_delete_execute(
 
 pub fn storage_projects_hmac_keys_delete(
     client: &SimpleHttpClient,
-    projectId: &str,
-    accessId: &str,
-    userProject: Option<&str>,
+    args: &StorageProjectsHmacKeysDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        storage_projects_hmac_keys_delete_builder(client, projectId, accessId, userProject)?;
+    let builder = storage_projects_hmac_keys_delete_builder(
+        client,
+        &args.projectId,
+        &args.accessId,
+        args.userProject.as_deref(),
+    )?;
     storage_projects_hmac_keys_delete_execute(builder)
 }
 
@@ -11232,6 +12208,17 @@ pub fn storage_projects_hmac_keys_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_projects_hmac_keys_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageProjectsHmacKeysGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: accessId
+    pub accessId: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET projects/{projectId}/hmacKeys/{accessId}
 /// Retrieves an HMAC key's metadata
 ///
@@ -11244,16 +12231,19 @@ pub fn storage_projects_hmac_keys_get_execute(
 
 pub fn storage_projects_hmac_keys_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    accessId: &str,
-    userProject: Option<&str>,
+    args: &StorageProjectsHmacKeysGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HmacKeyMetadata>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storage_projects_hmac_keys_get_builder(client, projectId, accessId, userProject)?;
+    let builder = storage_projects_hmac_keys_get_builder(
+        client,
+        &args.projectId,
+        &args.accessId,
+        args.userProject.as_deref(),
+    )?;
     storage_projects_hmac_keys_get_execute(builder)
 }
 
@@ -11377,6 +12367,23 @@ pub fn storage_projects_hmac_keys_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_projects_hmac_keys_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageProjectsHmacKeysListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: serviceAccountEmail
+    pub serviceAccountEmail: Option<String>,
+    /// Query parameter: showDeletedKeys
+    pub showDeletedKeys: Option<bool>,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET projects/{projectId}/hmacKeys
 /// Retrieves a list of HMAC keys matching the criteria.
 ///
@@ -11389,12 +12396,7 @@ pub fn storage_projects_hmac_keys_list_execute(
 
 pub fn storage_projects_hmac_keys_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    serviceAccountEmail: Option<&str>,
-    showDeletedKeys: Option<bool>,
-    userProject: Option<&str>,
+    args: &StorageProjectsHmacKeysListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HmacKeysMetadata>, ApiError>, P = ApiPending>
         + Send
@@ -11403,12 +12405,12 @@ pub fn storage_projects_hmac_keys_list(
 > {
     let builder = storage_projects_hmac_keys_list_builder(
         client,
-        projectId,
-        maxResults,
-        pageToken,
-        serviceAccountEmail,
-        showDeletedKeys,
-        userProject,
+        &args.projectId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.serviceAccountEmail.as_deref(),
+        args.showDeletedKeys,
+        args.userProject.as_deref(),
     )?;
     storage_projects_hmac_keys_list_execute(builder)
 }
@@ -11521,6 +12523,19 @@ pub fn storage_projects_hmac_keys_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_projects_hmac_keys_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageProjectsHmacKeysUpdateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: accessId
+    pub accessId: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+    /// Request body.
+    pub body: HmacKeyMetadata,
+}
+
 /// GET projects/{projectId}/hmacKeys/{accessId}
 /// Updates the state of an HMAC key. See the [HMAC Key resource descriptor](<https://cloud.google.`com/storage/docs/json_api/v1/projects/`hmacKeys`/update`#request-body>) for valid states.
 ///
@@ -11533,18 +12548,20 @@ pub fn storage_projects_hmac_keys_update_execute(
 
 pub fn storage_projects_hmac_keys_update(
     client: &SimpleHttpClient,
-    projectId: &str,
-    accessId: &str,
-    userProject: Option<&str>,
-    body: &HmacKeyMetadata,
+    args: &StorageProjectsHmacKeysUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HmacKeyMetadata>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        storage_projects_hmac_keys_update_builder(client, projectId, accessId, userProject, body)?;
+    let builder = storage_projects_hmac_keys_update_builder(
+        client,
+        &args.projectId,
+        &args.accessId,
+        args.userProject.as_deref(),
+        &args.body,
+    )?;
     storage_projects_hmac_keys_update_execute(builder)
 }
 
@@ -11652,6 +12669,15 @@ pub fn storage_projects_service_account_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storage_projects_service_account_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StorageProjectsServiceAccountGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Query parameter: userProject
+    pub userProject: Option<String>,
+}
+
 /// GET projects/{projectId}/serviceAccount
 /// Get the email address of this project's Google Cloud Storage service account.
 ///
@@ -11664,14 +12690,17 @@ pub fn storage_projects_service_account_get_execute(
 
 pub fn storage_projects_service_account_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    userProject: Option<&str>,
+    args: &StorageProjectsServiceAccountGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ServiceAccount>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storage_projects_service_account_get_builder(client, projectId, userProject)?;
+    let builder = storage_projects_service_account_get_builder(
+        client,
+        &args.projectId,
+        args.userProject.as_deref(),
+    )?;
     storage_projects_service_account_get_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1beta/accountSummaries
 /// Returns summaries of all accounts accessible by the caller.
@@ -126,6 +128,15 @@ pub fn analyticsadmin_account_summaries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_account_summaries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminAccountSummariesListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta/accountSummaries
 /// Returns summaries of all accounts accessible by the caller.
 ///
@@ -138,8 +149,7 @@ pub fn analyticsadmin_account_summaries_list_execute(
 
 pub fn analyticsadmin_account_summaries_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AnalyticsadminAccountSummariesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -151,7 +161,11 @@ pub fn analyticsadmin_account_summaries_list(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_account_summaries_list_builder(client, pageSize, pageToken)?;
+    let builder = analyticsadmin_account_summaries_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     analyticsadmin_account_summaries_list_execute(builder)
 }
 
@@ -247,6 +261,13 @@ pub fn analyticsadmin_accounts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_accounts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminAccountsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/accounts/{accountsId}
 /// Marks target Account as soft-deleted (ie: "trashed") and returns it. This API does not have a method to restore soft-deleted accounts. However, they can be restored using the Trash Can UI. If the accounts are not restored before the expiration time, the account and all child resources (eg: Properties, GoogleAdsLinks, Streams, AccessBindings) will be permanently purged. <https://support.google.`com/analytics/answer/6154772`> Returns an error if the target is not found.
 ///
@@ -259,14 +280,14 @@ pub fn analyticsadmin_accounts_delete_execute(
 
 pub fn analyticsadmin_accounts_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminAccountsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_accounts_delete_builder(client, name)?;
+    let builder = analyticsadmin_accounts_delete_builder(client, &args.name)?;
     analyticsadmin_accounts_delete_execute(builder)
 }
 
@@ -364,6 +385,13 @@ pub fn analyticsadmin_accounts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_accounts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminAccountsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/accounts/{accountsId}
 /// Lookup for a single Account.
 ///
@@ -376,7 +404,7 @@ pub fn analyticsadmin_accounts_get_execute(
 
 pub fn analyticsadmin_accounts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminAccountsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaAccount>, ApiError>,
@@ -385,7 +413,7 @@ pub fn analyticsadmin_accounts_get(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_accounts_get_builder(client, name)?;
+    let builder = analyticsadmin_accounts_get_builder(client, &args.name)?;
     analyticsadmin_accounts_get_execute(builder)
 }
 
@@ -484,6 +512,13 @@ pub fn analyticsadmin_accounts_get_data_sharing_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_accounts_get_data_sharing_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminAccountsGetDataSharingSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/accounts/{accountsId}/dataSharingSettings
 /// Get data sharing settings on an account. Data sharing settings are singletons.
 ///
@@ -496,7 +531,7 @@ pub fn analyticsadmin_accounts_get_data_sharing_settings_execute(
 
 pub fn analyticsadmin_accounts_get_data_sharing_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminAccountsGetDataSharingSettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaDataSharingSettings>, ApiError>,
@@ -505,7 +540,7 @@ pub fn analyticsadmin_accounts_get_data_sharing_settings(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_accounts_get_data_sharing_settings_builder(client, name)?;
+    let builder = analyticsadmin_accounts_get_data_sharing_settings_builder(client, &args.name)?;
     analyticsadmin_accounts_get_data_sharing_settings_execute(builder)
 }
 
@@ -620,6 +655,17 @@ pub fn analyticsadmin_accounts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminAccountsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v1beta/accounts
 /// Returns all accounts accessible by the caller. Note that these accounts might not currently have GA properties. Soft-deleted (ie: "trashed") accounts are excluded by default. Returns an empty list if no relevant accounts are found.
 ///
@@ -632,9 +678,7 @@ pub fn analyticsadmin_accounts_list_execute(
 
 pub fn analyticsadmin_accounts_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &AnalyticsadminAccountsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListAccountsResponse>, ApiError>,
@@ -643,7 +687,12 @@ pub fn analyticsadmin_accounts_list(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_accounts_list_builder(client, pageSize, pageToken, showDeleted)?;
+    let builder = analyticsadmin_accounts_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
+    )?;
     analyticsadmin_accounts_list_execute(builder)
 }
 
@@ -756,6 +805,17 @@ pub fn analyticsadmin_accounts_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_accounts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminAccountsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaAccount,
+}
+
 /// GET v1beta/accounts/{accountsId}
 /// Updates an account.
 ///
@@ -768,9 +828,7 @@ pub fn analyticsadmin_accounts_patch_execute(
 
 pub fn analyticsadmin_accounts_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleAnalyticsAdminV1betaAccount,
+    args: &AnalyticsadminAccountsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaAccount>, ApiError>,
@@ -779,7 +837,12 @@ pub fn analyticsadmin_accounts_patch(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_accounts_patch_builder(client, name, updateMask, body)?;
+    let builder = analyticsadmin_accounts_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     analyticsadmin_accounts_patch_execute(builder)
 }
 
@@ -881,6 +944,13 @@ pub fn analyticsadmin_accounts_provision_account_ticket_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_accounts_provision_account_ticket`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminAccountsProvisionAccountTicketArgs {
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaProvisionAccountTicketRequest,
+}
+
 /// GET v1beta/accounts:provisionAccountTicket
 /// Requests a ticket for creating an account.
 ///
@@ -893,7 +963,7 @@ pub fn analyticsadmin_accounts_provision_account_ticket_execute(
 
 pub fn analyticsadmin_accounts_provision_account_ticket(
     client: &SimpleHttpClient,
-    body: &GoogleAnalyticsAdminV1betaProvisionAccountTicketRequest,
+    args: &AnalyticsadminAccountsProvisionAccountTicketArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -905,7 +975,7 @@ pub fn analyticsadmin_accounts_provision_account_ticket(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_accounts_provision_account_ticket_builder(client, body)?;
+    let builder = analyticsadmin_accounts_provision_account_ticket_builder(client, &args.body)?;
     analyticsadmin_accounts_provision_account_ticket_execute(builder)
 }
 
@@ -1007,6 +1077,15 @@ pub fn analyticsadmin_accounts_run_access_report_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_accounts_run_access_report`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminAccountsRunAccessReportArgs {
+    /// Path parameter: entity
+    pub entity: String,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaRunAccessReportRequest,
+}
+
 /// GET v1beta/accounts/{accountsId}:runAccessReport
 /// Returns a customized report of data access records. The report provides records of each time a user reads Google Analytics reporting data. Access records are retained for up to 2 years. Data Access Reports can be requested for a property. Reports may be requested for any property, but dimensions that aren't related to quota can only be requested on Google Analytics 360 properties. This method is only available to Administrators. These data access records include GA UI Reporting, GA UI Explorations, GA Data API, and other products like Firebase & Admob that can retrieve data from Google Analytics through a linkage. These records don't include property configuration changes like adding a stream or changing a property's time zone. For configuration change history, see [`searchChangeHistoryEvents`](<https://developers.google.`com/analytics/devguides/config/admin/v1/rest/v1alpha/accounts/`searchChangeHistoryEvents``>). To give your feedback on this API, complete the [Google Analytics Access Reports feedback](<https://docs.google.`com/forms/d/e/1FAIpQLSdmEBUrMzAEdiEKk5TV5dEHvDUZDRlgWYdQdAeSdtR4hVjEhw/viewform`>) form.
 ///
@@ -1019,8 +1098,7 @@ pub fn analyticsadmin_accounts_run_access_report_execute(
 
 pub fn analyticsadmin_accounts_run_access_report(
     client: &SimpleHttpClient,
-    entity: &str,
-    body: &GoogleAnalyticsAdminV1betaRunAccessReportRequest,
+    args: &AnalyticsadminAccountsRunAccessReportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaRunAccessReportResponse>, ApiError>,
@@ -1029,7 +1107,8 @@ pub fn analyticsadmin_accounts_run_access_report(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_accounts_run_access_report_builder(client, entity, body)?;
+    let builder =
+        analyticsadmin_accounts_run_access_report_builder(client, &args.entity, &args.body)?;
     analyticsadmin_accounts_run_access_report_execute(builder)
 }
 
@@ -1134,6 +1213,15 @@ pub fn analyticsadmin_accounts_search_change_history_events_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_accounts_search_change_history_events`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminAccountsSearchChangeHistoryEventsArgs {
+    /// Path parameter: account
+    pub account: String,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsRequest,
+}
+
 /// GET v1beta/accounts/{accountsId}:searchChangeHistoryEvents
 /// Searches through all changes to an account or its children given the specified set of filters. Only returns the subset of changes supported by the API. The UI may return additional changes.
 ///
@@ -1146,8 +1234,7 @@ pub fn analyticsadmin_accounts_search_change_history_events_execute(
 
 pub fn analyticsadmin_accounts_search_change_history_events(
     client: &SimpleHttpClient,
-    account: &str,
-    body: &GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsRequest,
+    args: &AnalyticsadminAccountsSearchChangeHistoryEventsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1159,8 +1246,11 @@ pub fn analyticsadmin_accounts_search_change_history_events(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_accounts_search_change_history_events_builder(client, account, body)?;
+    let builder = analyticsadmin_accounts_search_change_history_events_builder(
+        client,
+        &args.account,
+        &args.body,
+    )?;
     analyticsadmin_accounts_search_change_history_events_execute(builder)
 }
 
@@ -1265,6 +1355,15 @@ pub fn analyticsadmin_properties_acknowledge_user_data_collection_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_acknowledge_user_data_collection`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesAcknowledgeUserDataCollectionArgs {
+    /// Path parameter: property
+    pub property: String,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionRequest,
+}
+
 /// GET v1beta/properties/{propertiesId}:acknowledgeUserDataCollection
 /// Acknowledges the terms of user data collection for the specified property. This acknowledgement must be completed (either in the Google Analytics UI or through this API) before MeasurementProtocolSecret resources may be created.
 ///
@@ -1277,8 +1376,7 @@ pub fn analyticsadmin_properties_acknowledge_user_data_collection_execute(
 
 pub fn analyticsadmin_properties_acknowledge_user_data_collection(
     client: &SimpleHttpClient,
-    property: &str,
-    body: &GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionRequest,
+    args: &AnalyticsadminPropertiesAcknowledgeUserDataCollectionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1290,8 +1388,11 @@ pub fn analyticsadmin_properties_acknowledge_user_data_collection(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_acknowledge_user_data_collection_builder(client, property, body)?;
+    let builder = analyticsadmin_properties_acknowledge_user_data_collection_builder(
+        client,
+        &args.property,
+        &args.body,
+    )?;
     analyticsadmin_properties_acknowledge_user_data_collection_execute(builder)
 }
 
@@ -1388,6 +1489,13 @@ pub fn analyticsadmin_properties_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCreateArgs {
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaProperty,
+}
+
 /// GET v1beta/properties
 /// Creates a Google Analytics property with the specified location and attributes.
 ///
@@ -1400,7 +1508,7 @@ pub fn analyticsadmin_properties_create_execute(
 
 pub fn analyticsadmin_properties_create(
     client: &SimpleHttpClient,
-    body: &GoogleAnalyticsAdminV1betaProperty,
+    args: &AnalyticsadminPropertiesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaProperty>, ApiError>,
@@ -1409,7 +1517,7 @@ pub fn analyticsadmin_properties_create(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_create_builder(client, body)?;
+    let builder = analyticsadmin_properties_create_builder(client, &args.body)?;
     analyticsadmin_properties_create_execute(builder)
 }
 
@@ -1507,6 +1615,13 @@ pub fn analyticsadmin_properties_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/properties/{propertiesId}
 /// Marks target Property as soft-deleted (ie: "trashed") and returns it. This API does not have a method to restore soft-deleted properties. However, they can be restored using the Trash Can UI. If the properties are not restored before the expiration time, the Property and all child resources (eg: GoogleAdsLinks, Streams, AccessBindings) will be permanently purged. <https://support.google.`com/analytics/answer/6154772`> Returns an error if the target is not found.
 ///
@@ -1519,7 +1634,7 @@ pub fn analyticsadmin_properties_delete_execute(
 
 pub fn analyticsadmin_properties_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminPropertiesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaProperty>, ApiError>,
@@ -1528,7 +1643,7 @@ pub fn analyticsadmin_properties_delete(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_delete_builder(client, name)?;
+    let builder = analyticsadmin_properties_delete_builder(client, &args.name)?;
     analyticsadmin_properties_delete_execute(builder)
 }
 
@@ -1626,6 +1741,13 @@ pub fn analyticsadmin_properties_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/properties/{propertiesId}
 /// Lookup for a single GA Property.
 ///
@@ -1638,7 +1760,7 @@ pub fn analyticsadmin_properties_get_execute(
 
 pub fn analyticsadmin_properties_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminPropertiesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaProperty>, ApiError>,
@@ -1647,7 +1769,7 @@ pub fn analyticsadmin_properties_get(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_get_builder(client, name)?;
+    let builder = analyticsadmin_properties_get_builder(client, &args.name)?;
     analyticsadmin_properties_get_execute(builder)
 }
 
@@ -1746,6 +1868,13 @@ pub fn analyticsadmin_properties_get_data_retention_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_get_data_retention_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesGetDataRetentionSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/properties/{propertiesId}/dataRetentionSettings
 /// Returns the singleton data retention settings for this property.
 ///
@@ -1758,7 +1887,7 @@ pub fn analyticsadmin_properties_get_data_retention_settings_execute(
 
 pub fn analyticsadmin_properties_get_data_retention_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminPropertiesGetDataRetentionSettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaDataRetentionSettings>, ApiError>,
@@ -1767,7 +1896,8 @@ pub fn analyticsadmin_properties_get_data_retention_settings(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_get_data_retention_settings_builder(client, name)?;
+    let builder =
+        analyticsadmin_properties_get_data_retention_settings_builder(client, &args.name)?;
     analyticsadmin_properties_get_data_retention_settings_execute(builder)
 }
 
@@ -1886,6 +2016,19 @@ pub fn analyticsadmin_properties_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v1beta/properties
 /// Returns child Properties under the specified parent Account. Properties will be excluded if the caller does not have access. Soft-deleted (ie: "trashed") properties are excluded by default. Returns an empty list if no relevant properties are found.
 ///
@@ -1898,10 +2041,7 @@ pub fn analyticsadmin_properties_list_execute(
 
 pub fn analyticsadmin_properties_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &AnalyticsadminPropertiesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListPropertiesResponse>, ApiError>,
@@ -1910,8 +2050,13 @@ pub fn analyticsadmin_properties_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_list_builder(client, filter, pageSize, pageToken, showDeleted)?;
+    let builder = analyticsadmin_properties_list_builder(
+        client,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
+    )?;
     analyticsadmin_properties_list_execute(builder)
 }
 
@@ -2024,6 +2169,17 @@ pub fn analyticsadmin_properties_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaProperty,
+}
+
 /// GET v1beta/properties/{propertiesId}
 /// Updates a property.
 ///
@@ -2036,9 +2192,7 @@ pub fn analyticsadmin_properties_patch_execute(
 
 pub fn analyticsadmin_properties_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleAnalyticsAdminV1betaProperty,
+    args: &AnalyticsadminPropertiesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaProperty>, ApiError>,
@@ -2047,7 +2201,12 @@ pub fn analyticsadmin_properties_patch(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_patch_builder(client, name, updateMask, body)?;
+    let builder = analyticsadmin_properties_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     analyticsadmin_properties_patch_execute(builder)
 }
 
@@ -2149,6 +2308,15 @@ pub fn analyticsadmin_properties_run_access_report_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_run_access_report`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesRunAccessReportArgs {
+    /// Path parameter: entity
+    pub entity: String,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaRunAccessReportRequest,
+}
+
 /// GET v1beta/properties/{propertiesId}:runAccessReport
 /// Returns a customized report of data access records. The report provides records of each time a user reads Google Analytics reporting data. Access records are retained for up to 2 years. Data Access Reports can be requested for a property. Reports may be requested for any property, but dimensions that aren't related to quota can only be requested on Google Analytics 360 properties. This method is only available to Administrators. These data access records include GA UI Reporting, GA UI Explorations, GA Data API, and other products like Firebase & Admob that can retrieve data from Google Analytics through a linkage. These records don't include property configuration changes like adding a stream or changing a property's time zone. For configuration change history, see [`searchChangeHistoryEvents`](<https://developers.google.`com/analytics/devguides/config/admin/v1/rest/v1alpha/accounts/`searchChangeHistoryEvents``>). To give your feedback on this API, complete the [Google Analytics Access Reports feedback](<https://docs.google.`com/forms/d/e/1FAIpQLSdmEBUrMzAEdiEKk5TV5dEHvDUZDRlgWYdQdAeSdtR4hVjEhw/viewform`>) form.
 ///
@@ -2161,8 +2329,7 @@ pub fn analyticsadmin_properties_run_access_report_execute(
 
 pub fn analyticsadmin_properties_run_access_report(
     client: &SimpleHttpClient,
-    entity: &str,
-    body: &GoogleAnalyticsAdminV1betaRunAccessReportRequest,
+    args: &AnalyticsadminPropertiesRunAccessReportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaRunAccessReportResponse>, ApiError>,
@@ -2171,7 +2338,8 @@ pub fn analyticsadmin_properties_run_access_report(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_run_access_report_builder(client, entity, body)?;
+    let builder =
+        analyticsadmin_properties_run_access_report_builder(client, &args.entity, &args.body)?;
     analyticsadmin_properties_run_access_report_execute(builder)
 }
 
@@ -2285,6 +2453,17 @@ pub fn analyticsadmin_properties_update_data_retention_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_update_data_retention_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesUpdateDataRetentionSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaDataRetentionSettings,
+}
+
 /// GET v1beta/properties/{propertiesId}/dataRetentionSettings
 /// Updates the singleton data retention settings for this property.
 ///
@@ -2297,9 +2476,7 @@ pub fn analyticsadmin_properties_update_data_retention_settings_execute(
 
 pub fn analyticsadmin_properties_update_data_retention_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleAnalyticsAdminV1betaDataRetentionSettings,
+    args: &AnalyticsadminPropertiesUpdateDataRetentionSettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaDataRetentionSettings>, ApiError>,
@@ -2309,7 +2486,10 @@ pub fn analyticsadmin_properties_update_data_retention_settings(
     ApiError,
 > {
     let builder = analyticsadmin_properties_update_data_retention_settings_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     analyticsadmin_properties_update_data_retention_settings_execute(builder)
 }
@@ -2411,6 +2591,15 @@ pub fn analyticsadmin_properties_conversion_events_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_conversion_events_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesConversionEventsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaConversionEvent,
+}
+
 /// GET v1beta/properties/{propertiesId}/conversionEvents
 /// Deprecated: Use CreateKeyEvent instead. Creates a conversion event with the specified attributes.
 ///
@@ -2423,8 +2612,7 @@ pub fn analyticsadmin_properties_conversion_events_create_execute(
 
 pub fn analyticsadmin_properties_conversion_events_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleAnalyticsAdminV1betaConversionEvent,
+    args: &AnalyticsadminPropertiesConversionEventsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaConversionEvent>, ApiError>,
@@ -2433,7 +2621,11 @@ pub fn analyticsadmin_properties_conversion_events_create(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_conversion_events_create_builder(client, parent, body)?;
+    let builder = analyticsadmin_properties_conversion_events_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     analyticsadmin_properties_conversion_events_create_execute(builder)
 }
 
@@ -2529,6 +2721,13 @@ pub fn analyticsadmin_properties_conversion_events_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_conversion_events_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesConversionEventsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/properties/{propertiesId}/conversionEvents/{conversionEventsId}
 /// Deprecated: Use DeleteKeyEvent instead. Deletes a conversion event in a property.
 ///
@@ -2541,14 +2740,14 @@ pub fn analyticsadmin_properties_conversion_events_delete_execute(
 
 pub fn analyticsadmin_properties_conversion_events_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminPropertiesConversionEventsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_conversion_events_delete_builder(client, name)?;
+    let builder = analyticsadmin_properties_conversion_events_delete_builder(client, &args.name)?;
     analyticsadmin_properties_conversion_events_delete_execute(builder)
 }
 
@@ -2646,6 +2845,13 @@ pub fn analyticsadmin_properties_conversion_events_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_conversion_events_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesConversionEventsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/properties/{propertiesId}/conversionEvents/{conversionEventsId}
 /// Deprecated: Use GetKeyEvent instead. Retrieve a single conversion event.
 ///
@@ -2658,7 +2864,7 @@ pub fn analyticsadmin_properties_conversion_events_get_execute(
 
 pub fn analyticsadmin_properties_conversion_events_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminPropertiesConversionEventsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaConversionEvent>, ApiError>,
@@ -2667,7 +2873,7 @@ pub fn analyticsadmin_properties_conversion_events_get(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_conversion_events_get_builder(client, name)?;
+    let builder = analyticsadmin_properties_conversion_events_get_builder(client, &args.name)?;
     analyticsadmin_properties_conversion_events_get_execute(builder)
 }
 
@@ -2785,6 +2991,17 @@ pub fn analyticsadmin_properties_conversion_events_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_conversion_events_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesConversionEventsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta/properties/{propertiesId}/conversionEvents
 /// Deprecated: Use ListKeyEvents instead. Returns a list of conversion events in the specified parent property. Returns an empty list if no conversion events are found.
 ///
@@ -2797,9 +3014,7 @@ pub fn analyticsadmin_properties_conversion_events_list_execute(
 
 pub fn analyticsadmin_properties_conversion_events_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AnalyticsadminPropertiesConversionEventsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2812,7 +3027,10 @@ pub fn analyticsadmin_properties_conversion_events_list(
     ApiError,
 > {
     let builder = analyticsadmin_properties_conversion_events_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     analyticsadmin_properties_conversion_events_list_execute(builder)
 }
@@ -2926,6 +3144,17 @@ pub fn analyticsadmin_properties_conversion_events_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_conversion_events_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesConversionEventsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaConversionEvent,
+}
+
 /// GET v1beta/properties/{propertiesId}/conversionEvents/{conversionEventsId}
 /// Deprecated: Use UpdateKeyEvent instead. Updates a conversion event with the specified attributes.
 ///
@@ -2938,9 +3167,7 @@ pub fn analyticsadmin_properties_conversion_events_patch_execute(
 
 pub fn analyticsadmin_properties_conversion_events_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleAnalyticsAdminV1betaConversionEvent,
+    args: &AnalyticsadminPropertiesConversionEventsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaConversionEvent>, ApiError>,
@@ -2949,8 +3176,12 @@ pub fn analyticsadmin_properties_conversion_events_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_conversion_events_patch_builder(client, name, updateMask, body)?;
+    let builder = analyticsadmin_properties_conversion_events_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     analyticsadmin_properties_conversion_events_patch_execute(builder)
 }
 
@@ -3049,6 +3280,15 @@ pub fn analyticsadmin_properties_custom_dimensions_archive_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_custom_dimensions_archive`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomDimensionsArchiveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaArchiveCustomDimensionRequest,
+}
+
 /// GET v1beta/properties/{propertiesId}/customDimensions/{customDimensionsId}:archive
 /// Archives a CustomDimension on a property.
 ///
@@ -3061,15 +3301,16 @@ pub fn analyticsadmin_properties_custom_dimensions_archive_execute(
 
 pub fn analyticsadmin_properties_custom_dimensions_archive(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleAnalyticsAdminV1betaArchiveCustomDimensionRequest,
+    args: &AnalyticsadminPropertiesCustomDimensionsArchiveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_custom_dimensions_archive_builder(client, name, body)?;
+    let builder = analyticsadmin_properties_custom_dimensions_archive_builder(
+        client, &args.name, &args.body,
+    )?;
     analyticsadmin_properties_custom_dimensions_archive_execute(builder)
 }
 
@@ -3170,6 +3411,15 @@ pub fn analyticsadmin_properties_custom_dimensions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_custom_dimensions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomDimensionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaCustomDimension,
+}
+
 /// GET v1beta/properties/{propertiesId}/customDimensions
 /// Creates a CustomDimension.
 ///
@@ -3182,8 +3432,7 @@ pub fn analyticsadmin_properties_custom_dimensions_create_execute(
 
 pub fn analyticsadmin_properties_custom_dimensions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleAnalyticsAdminV1betaCustomDimension,
+    args: &AnalyticsadminPropertiesCustomDimensionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomDimension>, ApiError>,
@@ -3192,7 +3441,11 @@ pub fn analyticsadmin_properties_custom_dimensions_create(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_custom_dimensions_create_builder(client, parent, body)?;
+    let builder = analyticsadmin_properties_custom_dimensions_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     analyticsadmin_properties_custom_dimensions_create_execute(builder)
 }
 
@@ -3290,6 +3543,13 @@ pub fn analyticsadmin_properties_custom_dimensions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_custom_dimensions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomDimensionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/properties/{propertiesId}/customDimensions/{customDimensionsId}
 /// Lookup for a single CustomDimension.
 ///
@@ -3302,7 +3562,7 @@ pub fn analyticsadmin_properties_custom_dimensions_get_execute(
 
 pub fn analyticsadmin_properties_custom_dimensions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminPropertiesCustomDimensionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomDimension>, ApiError>,
@@ -3311,7 +3571,7 @@ pub fn analyticsadmin_properties_custom_dimensions_get(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_custom_dimensions_get_builder(client, name)?;
+    let builder = analyticsadmin_properties_custom_dimensions_get_builder(client, &args.name)?;
     analyticsadmin_properties_custom_dimensions_get_execute(builder)
 }
 
@@ -3429,6 +3689,17 @@ pub fn analyticsadmin_properties_custom_dimensions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_custom_dimensions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomDimensionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta/properties/{propertiesId}/customDimensions
 /// Lists CustomDimensions on a property.
 ///
@@ -3441,9 +3712,7 @@ pub fn analyticsadmin_properties_custom_dimensions_list_execute(
 
 pub fn analyticsadmin_properties_custom_dimensions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AnalyticsadminPropertiesCustomDimensionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3456,7 +3725,10 @@ pub fn analyticsadmin_properties_custom_dimensions_list(
     ApiError,
 > {
     let builder = analyticsadmin_properties_custom_dimensions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     analyticsadmin_properties_custom_dimensions_list_execute(builder)
 }
@@ -3570,6 +3842,17 @@ pub fn analyticsadmin_properties_custom_dimensions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_custom_dimensions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomDimensionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaCustomDimension,
+}
+
 /// GET v1beta/properties/{propertiesId}/customDimensions/{customDimensionsId}
 /// Updates a CustomDimension on a property.
 ///
@@ -3582,9 +3865,7 @@ pub fn analyticsadmin_properties_custom_dimensions_patch_execute(
 
 pub fn analyticsadmin_properties_custom_dimensions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleAnalyticsAdminV1betaCustomDimension,
+    args: &AnalyticsadminPropertiesCustomDimensionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomDimension>, ApiError>,
@@ -3593,8 +3874,12 @@ pub fn analyticsadmin_properties_custom_dimensions_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_custom_dimensions_patch_builder(client, name, updateMask, body)?;
+    let builder = analyticsadmin_properties_custom_dimensions_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     analyticsadmin_properties_custom_dimensions_patch_execute(builder)
 }
 
@@ -3693,6 +3978,15 @@ pub fn analyticsadmin_properties_custom_metrics_archive_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_custom_metrics_archive`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomMetricsArchiveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaArchiveCustomMetricRequest,
+}
+
 /// GET v1beta/properties/{propertiesId}/customMetrics/{customMetricsId}:archive
 /// Archives a CustomMetric on a property.
 ///
@@ -3705,15 +3999,15 @@ pub fn analyticsadmin_properties_custom_metrics_archive_execute(
 
 pub fn analyticsadmin_properties_custom_metrics_archive(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleAnalyticsAdminV1betaArchiveCustomMetricRequest,
+    args: &AnalyticsadminPropertiesCustomMetricsArchiveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_custom_metrics_archive_builder(client, name, body)?;
+    let builder =
+        analyticsadmin_properties_custom_metrics_archive_builder(client, &args.name, &args.body)?;
     analyticsadmin_properties_custom_metrics_archive_execute(builder)
 }
 
@@ -3814,6 +4108,15 @@ pub fn analyticsadmin_properties_custom_metrics_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_custom_metrics_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomMetricsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaCustomMetric,
+}
+
 /// GET v1beta/properties/{propertiesId}/customMetrics
 /// Creates a CustomMetric.
 ///
@@ -3826,8 +4129,7 @@ pub fn analyticsadmin_properties_custom_metrics_create_execute(
 
 pub fn analyticsadmin_properties_custom_metrics_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleAnalyticsAdminV1betaCustomMetric,
+    args: &AnalyticsadminPropertiesCustomMetricsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomMetric>, ApiError>,
@@ -3836,7 +4138,8 @@ pub fn analyticsadmin_properties_custom_metrics_create(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_custom_metrics_create_builder(client, parent, body)?;
+    let builder =
+        analyticsadmin_properties_custom_metrics_create_builder(client, &args.parent, &args.body)?;
     analyticsadmin_properties_custom_metrics_create_execute(builder)
 }
 
@@ -3934,6 +4237,13 @@ pub fn analyticsadmin_properties_custom_metrics_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_custom_metrics_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomMetricsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/properties/{propertiesId}/customMetrics/{customMetricsId}
 /// Lookup for a single CustomMetric.
 ///
@@ -3946,7 +4256,7 @@ pub fn analyticsadmin_properties_custom_metrics_get_execute(
 
 pub fn analyticsadmin_properties_custom_metrics_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminPropertiesCustomMetricsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomMetric>, ApiError>,
@@ -3955,7 +4265,7 @@ pub fn analyticsadmin_properties_custom_metrics_get(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_custom_metrics_get_builder(client, name)?;
+    let builder = analyticsadmin_properties_custom_metrics_get_builder(client, &args.name)?;
     analyticsadmin_properties_custom_metrics_get_execute(builder)
 }
 
@@ -4070,6 +4380,17 @@ pub fn analyticsadmin_properties_custom_metrics_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_custom_metrics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomMetricsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta/properties/{propertiesId}/customMetrics
 /// Lists CustomMetrics on a property.
 ///
@@ -4082,9 +4403,7 @@ pub fn analyticsadmin_properties_custom_metrics_list_execute(
 
 pub fn analyticsadmin_properties_custom_metrics_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AnalyticsadminPropertiesCustomMetricsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListCustomMetricsResponse>, ApiError>,
@@ -4093,8 +4412,12 @@ pub fn analyticsadmin_properties_custom_metrics_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_custom_metrics_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = analyticsadmin_properties_custom_metrics_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     analyticsadmin_properties_custom_metrics_list_execute(builder)
 }
 
@@ -4207,6 +4530,17 @@ pub fn analyticsadmin_properties_custom_metrics_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_custom_metrics_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomMetricsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaCustomMetric,
+}
+
 /// GET v1beta/properties/{propertiesId}/customMetrics/{customMetricsId}
 /// Updates a CustomMetric on a property.
 ///
@@ -4219,9 +4553,7 @@ pub fn analyticsadmin_properties_custom_metrics_patch_execute(
 
 pub fn analyticsadmin_properties_custom_metrics_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleAnalyticsAdminV1betaCustomMetric,
+    args: &AnalyticsadminPropertiesCustomMetricsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomMetric>, ApiError>,
@@ -4230,8 +4562,12 @@ pub fn analyticsadmin_properties_custom_metrics_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_custom_metrics_patch_builder(client, name, updateMask, body)?;
+    let builder = analyticsadmin_properties_custom_metrics_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     analyticsadmin_properties_custom_metrics_patch_execute(builder)
 }
 
@@ -4332,6 +4668,15 @@ pub fn analyticsadmin_properties_data_streams_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_data_streams_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaDataStream,
+}
+
 /// GET v1beta/properties/{propertiesId}/dataStreams
 /// Creates a DataStream.
 ///
@@ -4344,8 +4689,7 @@ pub fn analyticsadmin_properties_data_streams_create_execute(
 
 pub fn analyticsadmin_properties_data_streams_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleAnalyticsAdminV1betaDataStream,
+    args: &AnalyticsadminPropertiesDataStreamsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaDataStream>, ApiError>,
@@ -4354,7 +4698,8 @@ pub fn analyticsadmin_properties_data_streams_create(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_data_streams_create_builder(client, parent, body)?;
+    let builder =
+        analyticsadmin_properties_data_streams_create_builder(client, &args.parent, &args.body)?;
     analyticsadmin_properties_data_streams_create_execute(builder)
 }
 
@@ -4450,6 +4795,13 @@ pub fn analyticsadmin_properties_data_streams_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_data_streams_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}
 /// Deletes a DataStream on a property.
 ///
@@ -4462,14 +4814,14 @@ pub fn analyticsadmin_properties_data_streams_delete_execute(
 
 pub fn analyticsadmin_properties_data_streams_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminPropertiesDataStreamsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_data_streams_delete_builder(client, name)?;
+    let builder = analyticsadmin_properties_data_streams_delete_builder(client, &args.name)?;
     analyticsadmin_properties_data_streams_delete_execute(builder)
 }
 
@@ -4567,6 +4919,13 @@ pub fn analyticsadmin_properties_data_streams_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_data_streams_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}
 /// Lookup for a single DataStream.
 ///
@@ -4579,7 +4938,7 @@ pub fn analyticsadmin_properties_data_streams_get_execute(
 
 pub fn analyticsadmin_properties_data_streams_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminPropertiesDataStreamsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaDataStream>, ApiError>,
@@ -4588,7 +4947,7 @@ pub fn analyticsadmin_properties_data_streams_get(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_data_streams_get_builder(client, name)?;
+    let builder = analyticsadmin_properties_data_streams_get_builder(client, &args.name)?;
     analyticsadmin_properties_data_streams_get_execute(builder)
 }
 
@@ -4703,6 +5062,17 @@ pub fn analyticsadmin_properties_data_streams_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_data_streams_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta/properties/{propertiesId}/dataStreams
 /// Lists DataStreams on a property.
 ///
@@ -4715,9 +5085,7 @@ pub fn analyticsadmin_properties_data_streams_list_execute(
 
 pub fn analyticsadmin_properties_data_streams_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AnalyticsadminPropertiesDataStreamsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListDataStreamsResponse>, ApiError>,
@@ -4726,8 +5094,12 @@ pub fn analyticsadmin_properties_data_streams_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_data_streams_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = analyticsadmin_properties_data_streams_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     analyticsadmin_properties_data_streams_list_execute(builder)
 }
 
@@ -4840,6 +5212,17 @@ pub fn analyticsadmin_properties_data_streams_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_data_streams_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaDataStream,
+}
+
 /// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}
 /// Updates a DataStream on a property.
 ///
@@ -4852,9 +5235,7 @@ pub fn analyticsadmin_properties_data_streams_patch_execute(
 
 pub fn analyticsadmin_properties_data_streams_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleAnalyticsAdminV1betaDataStream,
+    args: &AnalyticsadminPropertiesDataStreamsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaDataStream>, ApiError>,
@@ -4863,8 +5244,12 @@ pub fn analyticsadmin_properties_data_streams_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_data_streams_patch_builder(client, name, updateMask, body)?;
+    let builder = analyticsadmin_properties_data_streams_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     analyticsadmin_properties_data_streams_patch_execute(builder)
 }
 
@@ -4966,6 +5351,15 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_creat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_data_streams_measurement_protocol_secrets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaMeasurementProtocolSecret,
+}
+
 /// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets
 /// Creates a measurement protocol secret.
 ///
@@ -4978,8 +5372,7 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_creat
 
 pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleAnalyticsAdminV1betaMeasurementProtocolSecret,
+    args: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaMeasurementProtocolSecret>, ApiError>,
@@ -4990,7 +5383,9 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_creat
 > {
     let builder =
         analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_execute(builder)
 }
@@ -5087,6 +5482,13 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_delet
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}
 /// Deletes target MeasurementProtocolSecret.
 ///
@@ -5099,7 +5501,7 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_delet
 
 pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -5108,7 +5510,7 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_delet
 > {
     let builder =
         analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_execute(builder)
 }
@@ -5208,6 +5610,13 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_data_streams_measurement_protocol_secrets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}
 /// Lookup for a single MeasurementProtocolSecret.
 ///
@@ -5220,7 +5629,7 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_e
 
 pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaMeasurementProtocolSecret>, ApiError>,
@@ -5230,7 +5639,7 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_get(
     ApiError,
 > {
     let builder = analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_execute(builder)
 }
@@ -5349,6 +5758,17 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_data_streams_measurement_protocol_secrets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets
 /// Returns child MeasurementProtocolSecrets under the specified parent Property.
 ///
@@ -5361,9 +5781,7 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_
 
 pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5376,7 +5794,10 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_list(
     ApiError,
 > {
     let builder = analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_execute(builder)
 }
@@ -5491,6 +5912,17 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaMeasurementProtocolSecret,
+}
+
 /// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}
 /// Updates a measurement protocol secret.
 ///
@@ -5503,9 +5935,7 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch
 
 pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleAnalyticsAdminV1betaMeasurementProtocolSecret,
+    args: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaMeasurementProtocolSecret>, ApiError>,
@@ -5516,7 +5946,10 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch
 > {
     let builder =
         analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_execute(builder)
 }
@@ -5618,6 +6051,15 @@ pub fn analyticsadmin_properties_firebase_links_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_firebase_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesFirebaseLinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaFirebaseLink,
+}
+
 /// GET v1beta/properties/{propertiesId}/firebaseLinks
 /// Creates a FirebaseLink. Properties can have at most one FirebaseLink.
 ///
@@ -5630,8 +6072,7 @@ pub fn analyticsadmin_properties_firebase_links_create_execute(
 
 pub fn analyticsadmin_properties_firebase_links_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleAnalyticsAdminV1betaFirebaseLink,
+    args: &AnalyticsadminPropertiesFirebaseLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaFirebaseLink>, ApiError>,
@@ -5640,7 +6081,8 @@ pub fn analyticsadmin_properties_firebase_links_create(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_firebase_links_create_builder(client, parent, body)?;
+    let builder =
+        analyticsadmin_properties_firebase_links_create_builder(client, &args.parent, &args.body)?;
     analyticsadmin_properties_firebase_links_create_execute(builder)
 }
 
@@ -5736,6 +6178,13 @@ pub fn analyticsadmin_properties_firebase_links_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_firebase_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesFirebaseLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/properties/{propertiesId}/firebaseLinks/{firebaseLinksId}
 /// Deletes a FirebaseLink on a property
 ///
@@ -5748,14 +6197,14 @@ pub fn analyticsadmin_properties_firebase_links_delete_execute(
 
 pub fn analyticsadmin_properties_firebase_links_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminPropertiesFirebaseLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_firebase_links_delete_builder(client, name)?;
+    let builder = analyticsadmin_properties_firebase_links_delete_builder(client, &args.name)?;
     analyticsadmin_properties_firebase_links_delete_execute(builder)
 }
 
@@ -5870,6 +6319,17 @@ pub fn analyticsadmin_properties_firebase_links_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_firebase_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesFirebaseLinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta/properties/{propertiesId}/firebaseLinks
 /// Lists FirebaseLinks on a property. Properties can have at most one FirebaseLink.
 ///
@@ -5882,9 +6342,7 @@ pub fn analyticsadmin_properties_firebase_links_list_execute(
 
 pub fn analyticsadmin_properties_firebase_links_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AnalyticsadminPropertiesFirebaseLinksListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListFirebaseLinksResponse>, ApiError>,
@@ -5893,8 +6351,12 @@ pub fn analyticsadmin_properties_firebase_links_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_firebase_links_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = analyticsadmin_properties_firebase_links_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     analyticsadmin_properties_firebase_links_list_execute(builder)
 }
 
@@ -5996,6 +6458,15 @@ pub fn analyticsadmin_properties_google_ads_links_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_google_ads_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesGoogleAdsLinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaGoogleAdsLink,
+}
+
 /// GET v1beta/properties/{propertiesId}/googleAdsLinks
 /// Creates a GoogleAdsLink.
 ///
@@ -6008,8 +6479,7 @@ pub fn analyticsadmin_properties_google_ads_links_create_execute(
 
 pub fn analyticsadmin_properties_google_ads_links_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleAnalyticsAdminV1betaGoogleAdsLink,
+    args: &AnalyticsadminPropertiesGoogleAdsLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaGoogleAdsLink>, ApiError>,
@@ -6018,7 +6488,11 @@ pub fn analyticsadmin_properties_google_ads_links_create(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_google_ads_links_create_builder(client, parent, body)?;
+    let builder = analyticsadmin_properties_google_ads_links_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     analyticsadmin_properties_google_ads_links_create_execute(builder)
 }
 
@@ -6114,6 +6588,13 @@ pub fn analyticsadmin_properties_google_ads_links_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_google_ads_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesGoogleAdsLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/properties/{propertiesId}/googleAdsLinks/{googleAdsLinksId}
 /// Deletes a GoogleAdsLink on a property
 ///
@@ -6126,14 +6607,14 @@ pub fn analyticsadmin_properties_google_ads_links_delete_execute(
 
 pub fn analyticsadmin_properties_google_ads_links_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminPropertiesGoogleAdsLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_google_ads_links_delete_builder(client, name)?;
+    let builder = analyticsadmin_properties_google_ads_links_delete_builder(client, &args.name)?;
     analyticsadmin_properties_google_ads_links_delete_execute(builder)
 }
 
@@ -6248,6 +6729,17 @@ pub fn analyticsadmin_properties_google_ads_links_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_google_ads_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesGoogleAdsLinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta/properties/{propertiesId}/googleAdsLinks
 /// Lists GoogleAdsLinks on a property.
 ///
@@ -6260,9 +6752,7 @@ pub fn analyticsadmin_properties_google_ads_links_list_execute(
 
 pub fn analyticsadmin_properties_google_ads_links_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AnalyticsadminPropertiesGoogleAdsLinksListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse>, ApiError>,
@@ -6272,7 +6762,10 @@ pub fn analyticsadmin_properties_google_ads_links_list(
     ApiError,
 > {
     let builder = analyticsadmin_properties_google_ads_links_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     analyticsadmin_properties_google_ads_links_list_execute(builder)
 }
@@ -6387,6 +6880,17 @@ pub fn analyticsadmin_properties_google_ads_links_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_google_ads_links_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesGoogleAdsLinksPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaGoogleAdsLink,
+}
+
 /// GET v1beta/properties/{propertiesId}/googleAdsLinks/{googleAdsLinksId}
 /// Updates a GoogleAdsLink on a property
 ///
@@ -6399,9 +6903,7 @@ pub fn analyticsadmin_properties_google_ads_links_patch_execute(
 
 pub fn analyticsadmin_properties_google_ads_links_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleAnalyticsAdminV1betaGoogleAdsLink,
+    args: &AnalyticsadminPropertiesGoogleAdsLinksPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaGoogleAdsLink>, ApiError>,
@@ -6410,8 +6912,12 @@ pub fn analyticsadmin_properties_google_ads_links_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_google_ads_links_patch_builder(client, name, updateMask, body)?;
+    let builder = analyticsadmin_properties_google_ads_links_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     analyticsadmin_properties_google_ads_links_patch_execute(builder)
 }
 
@@ -6512,6 +7018,15 @@ pub fn analyticsadmin_properties_key_events_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_key_events_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesKeyEventsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaKeyEvent,
+}
+
 /// GET v1beta/properties/{propertiesId}/keyEvents
 /// Creates a Key Event.
 ///
@@ -6524,8 +7039,7 @@ pub fn analyticsadmin_properties_key_events_create_execute(
 
 pub fn analyticsadmin_properties_key_events_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleAnalyticsAdminV1betaKeyEvent,
+    args: &AnalyticsadminPropertiesKeyEventsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaKeyEvent>, ApiError>,
@@ -6534,7 +7048,8 @@ pub fn analyticsadmin_properties_key_events_create(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_key_events_create_builder(client, parent, body)?;
+    let builder =
+        analyticsadmin_properties_key_events_create_builder(client, &args.parent, &args.body)?;
     analyticsadmin_properties_key_events_create_execute(builder)
 }
 
@@ -6630,6 +7145,13 @@ pub fn analyticsadmin_properties_key_events_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_key_events_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesKeyEventsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/properties/{propertiesId}/keyEvents/{keyEventsId}
 /// Deletes a Key Event.
 ///
@@ -6642,14 +7164,14 @@ pub fn analyticsadmin_properties_key_events_delete_execute(
 
 pub fn analyticsadmin_properties_key_events_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminPropertiesKeyEventsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_key_events_delete_builder(client, name)?;
+    let builder = analyticsadmin_properties_key_events_delete_builder(client, &args.name)?;
     analyticsadmin_properties_key_events_delete_execute(builder)
 }
 
@@ -6747,6 +7269,13 @@ pub fn analyticsadmin_properties_key_events_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_key_events_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesKeyEventsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/properties/{propertiesId}/keyEvents/{keyEventsId}
 /// Retrieve a single Key Event.
 ///
@@ -6759,7 +7288,7 @@ pub fn analyticsadmin_properties_key_events_get_execute(
 
 pub fn analyticsadmin_properties_key_events_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticsadminPropertiesKeyEventsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaKeyEvent>, ApiError>,
@@ -6768,7 +7297,7 @@ pub fn analyticsadmin_properties_key_events_get(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_key_events_get_builder(client, name)?;
+    let builder = analyticsadmin_properties_key_events_get_builder(client, &args.name)?;
     analyticsadmin_properties_key_events_get_execute(builder)
 }
 
@@ -6883,6 +7412,17 @@ pub fn analyticsadmin_properties_key_events_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_key_events_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesKeyEventsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta/properties/{propertiesId}/keyEvents
 /// Returns a list of Key Events in the specified parent property. Returns an empty list if no Key Events are found.
 ///
@@ -6895,9 +7435,7 @@ pub fn analyticsadmin_properties_key_events_list_execute(
 
 pub fn analyticsadmin_properties_key_events_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AnalyticsadminPropertiesKeyEventsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListKeyEventsResponse>, ApiError>,
@@ -6906,8 +7444,12 @@ pub fn analyticsadmin_properties_key_events_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_key_events_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = analyticsadmin_properties_key_events_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     analyticsadmin_properties_key_events_list_execute(builder)
 }
 
@@ -7020,6 +7562,17 @@ pub fn analyticsadmin_properties_key_events_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticsadmin_properties_key_events_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesKeyEventsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleAnalyticsAdminV1betaKeyEvent,
+}
+
 /// GET v1beta/properties/{propertiesId}/keyEvents/{keyEventsId}
 /// Updates a Key Event.
 ///
@@ -7032,9 +7585,7 @@ pub fn analyticsadmin_properties_key_events_patch_execute(
 
 pub fn analyticsadmin_properties_key_events_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleAnalyticsAdminV1betaKeyEvent,
+    args: &AnalyticsadminPropertiesKeyEventsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaKeyEvent>, ApiError>,
@@ -7043,7 +7594,11 @@ pub fn analyticsadmin_properties_key_events_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_key_events_patch_builder(client, name, updateMask, body)?;
+    let builder = analyticsadmin_properties_key_events_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     analyticsadmin_properties_key_events_patch_execute(builder)
 }

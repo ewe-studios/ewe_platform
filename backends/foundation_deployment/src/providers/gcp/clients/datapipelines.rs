@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines
 /// Creates a pipeline. For a batch pipeline, you can pass scheduler information. Data Pipelines uses the scheduler information to create an internal scheduler that runs jobs periodically. If the internal scheduler is not configured, you can use RunPipeline to run jobs.
@@ -113,6 +115,15 @@ pub fn datapipelines_projects_locations_pipelines_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datapipelines_projects_locations_pipelines_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatapipelinesProjectsLocationsPipelinesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatapipelinesV1Pipeline,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines
 /// Creates a pipeline. For a batch pipeline, you can pass scheduler information. Data Pipelines uses the scheduler information to create an internal scheduler that runs jobs periodically. If the internal scheduler is not configured, you can use RunPipeline to run jobs.
 ///
@@ -125,8 +136,7 @@ pub fn datapipelines_projects_locations_pipelines_create_execute(
 
 pub fn datapipelines_projects_locations_pipelines_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatapipelinesV1Pipeline,
+    args: &DatapipelinesProjectsLocationsPipelinesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatapipelinesV1Pipeline>, ApiError>,
@@ -135,7 +145,11 @@ pub fn datapipelines_projects_locations_pipelines_create(
         + 'static,
     ApiError,
 > {
-    let builder = datapipelines_projects_locations_pipelines_create_builder(client, parent, body)?;
+    let builder = datapipelines_projects_locations_pipelines_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     datapipelines_projects_locations_pipelines_create_execute(builder)
 }
 
@@ -231,6 +245,13 @@ pub fn datapipelines_projects_locations_pipelines_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datapipelines_projects_locations_pipelines_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatapipelinesProjectsLocationsPipelinesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}
 /// Deletes a pipeline. If a scheduler job is attached to the pipeline, it will be deleted.
 ///
@@ -243,14 +264,14 @@ pub fn datapipelines_projects_locations_pipelines_delete_execute(
 
 pub fn datapipelines_projects_locations_pipelines_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatapipelinesProjectsLocationsPipelinesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datapipelines_projects_locations_pipelines_delete_builder(client, name)?;
+    let builder = datapipelines_projects_locations_pipelines_delete_builder(client, &args.name)?;
     datapipelines_projects_locations_pipelines_delete_execute(builder)
 }
 
@@ -348,6 +369,13 @@ pub fn datapipelines_projects_locations_pipelines_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datapipelines_projects_locations_pipelines_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatapipelinesProjectsLocationsPipelinesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}
 /// Looks up a single pipeline. Returns a "NOT_FOUND" error if no such pipeline exists. Returns a "FORBIDDEN" error if the caller doesn't have permission to access it.
 ///
@@ -360,7 +388,7 @@ pub fn datapipelines_projects_locations_pipelines_get_execute(
 
 pub fn datapipelines_projects_locations_pipelines_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatapipelinesProjectsLocationsPipelinesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatapipelinesV1Pipeline>, ApiError>,
@@ -369,7 +397,7 @@ pub fn datapipelines_projects_locations_pipelines_get(
         + 'static,
     ApiError,
 > {
-    let builder = datapipelines_projects_locations_pipelines_get_builder(client, name)?;
+    let builder = datapipelines_projects_locations_pipelines_get_builder(client, &args.name)?;
     datapipelines_projects_locations_pipelines_get_execute(builder)
 }
 
@@ -488,6 +516,19 @@ pub fn datapipelines_projects_locations_pipelines_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datapipelines_projects_locations_pipelines_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatapipelinesProjectsLocationsPipelinesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines
 /// Lists pipelines. Returns a "FORBIDDEN" error if the caller doesn't have permission to access it.
 ///
@@ -500,10 +541,7 @@ pub fn datapipelines_projects_locations_pipelines_list_execute(
 
 pub fn datapipelines_projects_locations_pipelines_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatapipelinesProjectsLocationsPipelinesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatapipelinesV1ListPipelinesResponse>, ApiError>,
@@ -513,7 +551,11 @@ pub fn datapipelines_projects_locations_pipelines_list(
     ApiError,
 > {
     let builder = datapipelines_projects_locations_pipelines_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datapipelines_projects_locations_pipelines_list_execute(builder)
 }
@@ -627,6 +669,17 @@ pub fn datapipelines_projects_locations_pipelines_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datapipelines_projects_locations_pipelines_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatapipelinesProjectsLocationsPipelinesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatapipelinesV1Pipeline,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}
 /// Updates a pipeline. If successful, the updated Pipeline is returned. Returns NOT_FOUND if the pipeline doesn't exist. If UpdatePipeline does not return successfully, you can retry the UpdatePipeline request until you receive a successful response.
 ///
@@ -639,9 +692,7 @@ pub fn datapipelines_projects_locations_pipelines_patch_execute(
 
 pub fn datapipelines_projects_locations_pipelines_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDatapipelinesV1Pipeline,
+    args: &DatapipelinesProjectsLocationsPipelinesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatapipelinesV1Pipeline>, ApiError>,
@@ -650,8 +701,12 @@ pub fn datapipelines_projects_locations_pipelines_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datapipelines_projects_locations_pipelines_patch_builder(client, name, updateMask, body)?;
+    let builder = datapipelines_projects_locations_pipelines_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     datapipelines_projects_locations_pipelines_patch_execute(builder)
 }
 
@@ -753,6 +808,15 @@ pub fn datapipelines_projects_locations_pipelines_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datapipelines_projects_locations_pipelines_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatapipelinesProjectsLocationsPipelinesRunArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatapipelinesV1RunPipelineRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}:run
 /// Creates a job for the specified pipeline directly. You can use this method when the internal scheduler is not configured and you want to trigger the job directly or through an external system. Returns a "NOT_FOUND" error if the pipeline doesn't exist. Returns a "FORBIDDEN" error if the user doesn't have permission to access the pipeline or run jobs for the pipeline.
 ///
@@ -765,8 +829,7 @@ pub fn datapipelines_projects_locations_pipelines_run_execute(
 
 pub fn datapipelines_projects_locations_pipelines_run(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatapipelinesV1RunPipelineRequest,
+    args: &DatapipelinesProjectsLocationsPipelinesRunArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatapipelinesV1RunPipelineResponse>, ApiError>,
@@ -775,7 +838,8 @@ pub fn datapipelines_projects_locations_pipelines_run(
         + 'static,
     ApiError,
 > {
-    let builder = datapipelines_projects_locations_pipelines_run_builder(client, name, body)?;
+    let builder =
+        datapipelines_projects_locations_pipelines_run_builder(client, &args.name, &args.body)?;
     datapipelines_projects_locations_pipelines_run_execute(builder)
 }
 
@@ -876,6 +940,15 @@ pub fn datapipelines_projects_locations_pipelines_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datapipelines_projects_locations_pipelines_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatapipelinesProjectsLocationsPipelinesStopArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatapipelinesV1StopPipelineRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}:stop
 /// Freezes pipeline execution permanently. If there's a corresponding scheduler entry, it's deleted, and the pipeline state is changed to "ARCHIVED". However, pipeline metadata is retained.
 ///
@@ -888,8 +961,7 @@ pub fn datapipelines_projects_locations_pipelines_stop_execute(
 
 pub fn datapipelines_projects_locations_pipelines_stop(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatapipelinesV1StopPipelineRequest,
+    args: &DatapipelinesProjectsLocationsPipelinesStopArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatapipelinesV1Pipeline>, ApiError>,
@@ -898,7 +970,8 @@ pub fn datapipelines_projects_locations_pipelines_stop(
         + 'static,
     ApiError,
 > {
-    let builder = datapipelines_projects_locations_pipelines_stop_builder(client, name, body)?;
+    let builder =
+        datapipelines_projects_locations_pipelines_stop_builder(client, &args.name, &args.body)?;
     datapipelines_projects_locations_pipelines_stop_execute(builder)
 }
 
@@ -1013,6 +1086,17 @@ pub fn datapipelines_projects_locations_pipelines_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datapipelines_projects_locations_pipelines_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatapipelinesProjectsLocationsPipelinesJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}/jobs
 /// Lists jobs for a given pipeline. Throws a "FORBIDDEN" error if the caller doesn't have permission to access it.
 ///
@@ -1025,9 +1109,7 @@ pub fn datapipelines_projects_locations_pipelines_jobs_list_execute(
 
 pub fn datapipelines_projects_locations_pipelines_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatapipelinesProjectsLocationsPipelinesJobsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatapipelinesV1ListJobsResponse>, ApiError>,
@@ -1037,7 +1119,10 @@ pub fn datapipelines_projects_locations_pipelines_jobs_list(
     ApiError,
 > {
     let builder = datapipelines_projects_locations_pipelines_jobs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datapipelines_projects_locations_pipelines_jobs_list_execute(builder)
 }

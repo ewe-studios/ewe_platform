@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/folders/{foldersId}/locations/{locationsId}/activityTypes/{activityTypesId}/activities:query
 /// Queries policy activities on Google Cloud resources.
@@ -131,6 +133,19 @@ pub fn policyanalyzer_folders_locations_activity_types_activities_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policyanalyzer_folders_locations_activity_types_activities_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicyanalyzerFoldersLocationsActivityTypesActivitiesQueryArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/activityTypes/{activityTypesId}/activities:query
 /// Queries policy activities on Google Cloud resources.
 ///
@@ -143,10 +158,7 @@ pub fn policyanalyzer_folders_locations_activity_types_activities_query_execute(
 
 pub fn policyanalyzer_folders_locations_activity_types_activities_query(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PolicyanalyzerFoldersLocationsActivityTypesActivitiesQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudPolicyanalyzerV1QueryActivityResponse>, ApiError>,
@@ -156,7 +168,11 @@ pub fn policyanalyzer_folders_locations_activity_types_activities_query(
     ApiError,
 > {
     let builder = policyanalyzer_folders_locations_activity_types_activities_query_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     policyanalyzer_folders_locations_activity_types_activities_query_execute(builder)
 }
@@ -276,6 +292,19 @@ pub fn policyanalyzer_organizations_locations_activity_types_activities_query_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policyanalyzer_organizations_locations_activity_types_activities_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicyanalyzerOrganizationsLocationsActivityTypesActivitiesQueryArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/activityTypes/{activityTypesId}/activities:query
 /// Queries policy activities on Google Cloud resources.
 ///
@@ -288,10 +317,7 @@ pub fn policyanalyzer_organizations_locations_activity_types_activities_query_ex
 
 pub fn policyanalyzer_organizations_locations_activity_types_activities_query(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PolicyanalyzerOrganizationsLocationsActivityTypesActivitiesQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudPolicyanalyzerV1QueryActivityResponse>, ApiError>,
@@ -301,7 +327,11 @@ pub fn policyanalyzer_organizations_locations_activity_types_activities_query(
     ApiError,
 > {
     let builder = policyanalyzer_organizations_locations_activity_types_activities_query_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     policyanalyzer_organizations_locations_activity_types_activities_query_execute(builder)
 }
@@ -421,6 +451,19 @@ pub fn policyanalyzer_projects_locations_activity_types_activities_query_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policyanalyzer_projects_locations_activity_types_activities_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicyanalyzerProjectsLocationsActivityTypesActivitiesQueryArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/activityTypes/{activityTypesId}/activities:query
 /// Queries policy activities on Google Cloud resources.
 ///
@@ -433,10 +476,7 @@ pub fn policyanalyzer_projects_locations_activity_types_activities_query_execute
 
 pub fn policyanalyzer_projects_locations_activity_types_activities_query(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PolicyanalyzerProjectsLocationsActivityTypesActivitiesQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudPolicyanalyzerV1QueryActivityResponse>, ApiError>,
@@ -446,7 +486,11 @@ pub fn policyanalyzer_projects_locations_activity_types_activities_query(
     ApiError,
 > {
     let builder = policyanalyzer_projects_locations_activity_types_activities_query_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     policyanalyzer_projects_locations_activity_types_activities_query_execute(builder)
 }

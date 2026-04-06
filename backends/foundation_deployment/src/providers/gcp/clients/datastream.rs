@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:fetchStaticIps
 /// The FetchStaticIps API call exposes the static IP addresses used by Datastream.
@@ -124,6 +126,17 @@ pub fn datastream_projects_locations_fetch_static_ips_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_fetch_static_ips`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsFetchStaticIpsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:fetchStaticIps
 /// The FetchStaticIps API call exposes the static IP addresses used by Datastream.
 ///
@@ -136,17 +149,19 @@ pub fn datastream_projects_locations_fetch_static_ips_execute(
 
 pub fn datastream_projects_locations_fetch_static_ips(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatastreamProjectsLocationsFetchStaticIpsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FetchStaticIpsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        datastream_projects_locations_fetch_static_ips_builder(client, name, pageSize, pageToken)?;
+    let builder = datastream_projects_locations_fetch_static_ips_builder(
+        client,
+        &args.name,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     datastream_projects_locations_fetch_static_ips_execute(builder)
 }
 
@@ -240,6 +255,13 @@ pub fn datastream_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -252,12 +274,12 @@ pub fn datastream_projects_locations_get_execute(
 
 pub fn datastream_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatastreamProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datastream_projects_locations_get_builder(client, name)?;
+    let builder = datastream_projects_locations_get_builder(client, &args.name)?;
     datastream_projects_locations_get_execute(builder)
 }
 
@@ -377,6 +399,21 @@ pub fn datastream_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -389,11 +426,7 @@ pub fn datastream_projects_locations_list_execute(
 
 pub fn datastream_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatastreamProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -402,11 +435,11 @@ pub fn datastream_projects_locations_list(
 > {
     let builder = datastream_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datastream_projects_locations_list_execute(builder)
 }
@@ -528,6 +561,23 @@ pub fn datastream_projects_locations_connection_profiles_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_connection_profiles_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsConnectionProfilesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: connectionProfileId
+    pub connectionProfileId: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: ConnectionProfile,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles
 /// Use this method to create a connection profile in a project and location.
 ///
@@ -540,24 +590,19 @@ pub fn datastream_projects_locations_connection_profiles_create_execute(
 
 pub fn datastream_projects_locations_connection_profiles_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    connectionProfileId: Option<&str>,
-    force: Option<bool>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &ConnectionProfile,
+    args: &DatastreamProjectsLocationsConnectionProfilesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datastream_projects_locations_connection_profiles_create_builder(
         client,
-        parent,
-        connectionProfileId,
-        force,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.connectionProfileId.as_deref(),
+        args.force,
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     datastream_projects_locations_connection_profiles_create_execute(builder)
 }
@@ -664,6 +709,15 @@ pub fn datastream_projects_locations_connection_profiles_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_connection_profiles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsConnectionProfilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}
 /// Use this method to delete a connection profile.
 ///
@@ -676,14 +730,16 @@ pub fn datastream_projects_locations_connection_profiles_delete_execute(
 
 pub fn datastream_projects_locations_connection_profiles_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &DatastreamProjectsLocationsConnectionProfilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datastream_projects_locations_connection_profiles_delete_builder(client, name, requestId)?;
+    let builder = datastream_projects_locations_connection_profiles_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     datastream_projects_locations_connection_profiles_delete_execute(builder)
 }
 
@@ -784,6 +840,15 @@ pub fn datastream_projects_locations_connection_profiles_discover_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_connection_profiles_discover`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsConnectionProfilesDiscoverArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: DiscoverConnectionProfileRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles:discover
 /// Use this method to discover a connection profile. The discover API call exposes the data objects and metadata belonging to the profile. Typically, a request returns children data objects of a parent data object that's optionally supplied in the request.
 ///
@@ -796,8 +861,7 @@ pub fn datastream_projects_locations_connection_profiles_discover_execute(
 
 pub fn datastream_projects_locations_connection_profiles_discover(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &DiscoverConnectionProfileRequest,
+    args: &DatastreamProjectsLocationsConnectionProfilesDiscoverArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DiscoverConnectionProfileResponse>, ApiError>,
@@ -806,8 +870,11 @@ pub fn datastream_projects_locations_connection_profiles_discover(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datastream_projects_locations_connection_profiles_discover_builder(client, parent, body)?;
+    let builder = datastream_projects_locations_connection_profiles_discover_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     datastream_projects_locations_connection_profiles_discover_execute(builder)
 }
 
@@ -903,6 +970,13 @@ pub fn datastream_projects_locations_connection_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_connection_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsConnectionProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}
 /// Use this method to get details about a connection profile.
 ///
@@ -915,14 +989,15 @@ pub fn datastream_projects_locations_connection_profiles_get_execute(
 
 pub fn datastream_projects_locations_connection_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatastreamProjectsLocationsConnectionProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConnectionProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datastream_projects_locations_connection_profiles_get_builder(client, name)?;
+    let builder =
+        datastream_projects_locations_connection_profiles_get_builder(client, &args.name)?;
     datastream_projects_locations_connection_profiles_get_execute(builder)
 }
 
@@ -1044,6 +1119,21 @@ pub fn datastream_projects_locations_connection_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_connection_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsConnectionProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles
 /// Use this method to list connection profiles created in a project and location.
 ///
@@ -1056,11 +1146,7 @@ pub fn datastream_projects_locations_connection_profiles_list_execute(
 
 pub fn datastream_projects_locations_connection_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatastreamProjectsLocationsConnectionProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListConnectionProfilesResponse>, ApiError>,
@@ -1070,7 +1156,12 @@ pub fn datastream_projects_locations_connection_profiles_list(
     ApiError,
 > {
     let builder = datastream_projects_locations_connection_profiles_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datastream_projects_locations_connection_profiles_list_execute(builder)
 }
@@ -1192,6 +1283,23 @@ pub fn datastream_projects_locations_connection_profiles_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_connection_profiles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsConnectionProfilesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: ConnectionProfile,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}
 /// Use this method to update the parameters of a connection profile.
 ///
@@ -1204,24 +1312,19 @@ pub fn datastream_projects_locations_connection_profiles_patch_execute(
 
 pub fn datastream_projects_locations_connection_profiles_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &ConnectionProfile,
+    args: &DatastreamProjectsLocationsConnectionProfilesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datastream_projects_locations_connection_profiles_patch_builder(
         client,
-        name,
-        force,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.force,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     datastream_projects_locations_connection_profiles_patch_execute(builder)
 }
@@ -1319,6 +1422,15 @@ pub fn datastream_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1331,13 +1443,13 @@ pub fn datastream_projects_locations_operations_cancel_execute(
 
 pub fn datastream_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &DatastreamProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datastream_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        datastream_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     datastream_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -1431,6 +1543,13 @@ pub fn datastream_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1443,12 +1562,12 @@ pub fn datastream_projects_locations_operations_delete_execute(
 
 pub fn datastream_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatastreamProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datastream_projects_locations_operations_delete_builder(client, name)?;
+    let builder = datastream_projects_locations_operations_delete_builder(client, &args.name)?;
     datastream_projects_locations_operations_delete_execute(builder)
 }
 
@@ -1542,6 +1661,13 @@ pub fn datastream_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1554,12 +1680,12 @@ pub fn datastream_projects_locations_operations_get_execute(
 
 pub fn datastream_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatastreamProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datastream_projects_locations_operations_get_builder(client, name)?;
+    let builder = datastream_projects_locations_operations_get_builder(client, &args.name)?;
     datastream_projects_locations_operations_get_execute(builder)
 }
 
@@ -1679,6 +1805,21 @@ pub fn datastream_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1691,11 +1832,7 @@ pub fn datastream_projects_locations_operations_list_execute(
 
 pub fn datastream_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DatastreamProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1704,11 +1841,11 @@ pub fn datastream_projects_locations_operations_list(
 > {
     let builder = datastream_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     datastream_projects_locations_operations_list_execute(builder)
 }
@@ -1830,6 +1967,23 @@ pub fn datastream_projects_locations_private_connections_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_private_connections_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsPrivateConnectionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: privateConnectionId
+    pub privateConnectionId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: PrivateConnection,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections
 /// Use this method to create a private connectivity configuration.
 ///
@@ -1842,24 +1996,19 @@ pub fn datastream_projects_locations_private_connections_create_execute(
 
 pub fn datastream_projects_locations_private_connections_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    force: Option<bool>,
-    privateConnectionId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &PrivateConnection,
+    args: &DatastreamProjectsLocationsPrivateConnectionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datastream_projects_locations_private_connections_create_builder(
         client,
-        parent,
-        force,
-        privateConnectionId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.force,
+        args.privateConnectionId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     datastream_projects_locations_private_connections_create_execute(builder)
 }
@@ -1970,6 +2119,17 @@ pub fn datastream_projects_locations_private_connections_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_private_connections_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsPrivateConnectionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
 /// Use this method to delete a private connectivity configuration.
 ///
@@ -1982,15 +2142,16 @@ pub fn datastream_projects_locations_private_connections_delete_execute(
 
 pub fn datastream_projects_locations_private_connections_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    requestId: Option<&str>,
+    args: &DatastreamProjectsLocationsPrivateConnectionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datastream_projects_locations_private_connections_delete_builder(
-        client, name, force, requestId,
+        client,
+        &args.name,
+        args.force,
+        args.requestId.as_deref(),
     )?;
     datastream_projects_locations_private_connections_delete_execute(builder)
 }
@@ -2087,6 +2248,13 @@ pub fn datastream_projects_locations_private_connections_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_private_connections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsPrivateConnectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
 /// Use this method to get details about a private connectivity configuration.
 ///
@@ -2099,14 +2267,15 @@ pub fn datastream_projects_locations_private_connections_get_execute(
 
 pub fn datastream_projects_locations_private_connections_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatastreamProjectsLocationsPrivateConnectionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PrivateConnection>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datastream_projects_locations_private_connections_get_builder(client, name)?;
+    let builder =
+        datastream_projects_locations_private_connections_get_builder(client, &args.name)?;
     datastream_projects_locations_private_connections_get_execute(builder)
 }
 
@@ -2228,6 +2397,21 @@ pub fn datastream_projects_locations_private_connections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_private_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsPrivateConnectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections
 /// Use this method to list private connectivity configurations in a project and location.
 ///
@@ -2240,11 +2424,7 @@ pub fn datastream_projects_locations_private_connections_list_execute(
 
 pub fn datastream_projects_locations_private_connections_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatastreamProjectsLocationsPrivateConnectionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPrivateConnectionsResponse>, ApiError>,
@@ -2254,7 +2434,12 @@ pub fn datastream_projects_locations_private_connections_list(
     ApiError,
 > {
     let builder = datastream_projects_locations_private_connections_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datastream_projects_locations_private_connections_list_execute(builder)
 }
@@ -2368,6 +2553,19 @@ pub fn datastream_projects_locations_private_connections_routes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_private_connections_routes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsPrivateConnectionsRoutesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: routeId
+    pub routeId: Option<String>,
+    /// Request body.
+    pub body: Route,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}/routes
 /// Use this method to create a route for a private connectivity configuration in a project and location.
 ///
@@ -2380,16 +2578,17 @@ pub fn datastream_projects_locations_private_connections_routes_create_execute(
 
 pub fn datastream_projects_locations_private_connections_routes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    routeId: Option<&str>,
-    body: &Route,
+    args: &DatastreamProjectsLocationsPrivateConnectionsRoutesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datastream_projects_locations_private_connections_routes_create_builder(
-        client, parent, requestId, routeId, body,
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.routeId.as_deref(),
+        &args.body,
     )?;
     datastream_projects_locations_private_connections_routes_create_execute(builder)
 }
@@ -2496,6 +2695,15 @@ pub fn datastream_projects_locations_private_connections_routes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_private_connections_routes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsPrivateConnectionsRoutesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}/routes/{routesId}
 /// Use this method to delete a route.
 ///
@@ -2508,14 +2716,15 @@ pub fn datastream_projects_locations_private_connections_routes_delete_execute(
 
 pub fn datastream_projects_locations_private_connections_routes_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &DatastreamProjectsLocationsPrivateConnectionsRoutesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datastream_projects_locations_private_connections_routes_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     datastream_projects_locations_private_connections_routes_delete_execute(builder)
 }
@@ -2610,6 +2819,13 @@ pub fn datastream_projects_locations_private_connections_routes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_private_connections_routes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsPrivateConnectionsRoutesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}/routes/{routesId}
 /// Use this method to get details about a route.
 ///
@@ -2622,13 +2838,13 @@ pub fn datastream_projects_locations_private_connections_routes_get_execute(
 
 pub fn datastream_projects_locations_private_connections_routes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatastreamProjectsLocationsPrivateConnectionsRoutesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Route>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        datastream_projects_locations_private_connections_routes_get_builder(client, name)?;
+        datastream_projects_locations_private_connections_routes_get_builder(client, &args.name)?;
     datastream_projects_locations_private_connections_routes_get_execute(builder)
 }
 
@@ -2748,6 +2964,21 @@ pub fn datastream_projects_locations_private_connections_routes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_private_connections_routes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsPrivateConnectionsRoutesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}/routes
 /// Use this method to list routes created for a private connectivity configuration in a project and location.
 ///
@@ -2760,11 +2991,7 @@ pub fn datastream_projects_locations_private_connections_routes_list_execute(
 
 pub fn datastream_projects_locations_private_connections_routes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatastreamProjectsLocationsPrivateConnectionsRoutesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRoutesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2772,7 +2999,12 @@ pub fn datastream_projects_locations_private_connections_routes_list(
     ApiError,
 > {
     let builder = datastream_projects_locations_private_connections_routes_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datastream_projects_locations_private_connections_routes_list_execute(builder)
 }
@@ -2894,6 +3126,23 @@ pub fn datastream_projects_locations_streams_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_streams_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsStreamsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: streamId
+    pub streamId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Stream,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/streams
 /// Use this method to create a stream.
 ///
@@ -2906,24 +3155,19 @@ pub fn datastream_projects_locations_streams_create_execute(
 
 pub fn datastream_projects_locations_streams_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    force: Option<bool>,
-    requestId: Option<&str>,
-    streamId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Stream,
+    args: &DatastreamProjectsLocationsStreamsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datastream_projects_locations_streams_create_builder(
         client,
-        parent,
-        force,
-        requestId,
-        streamId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.force,
+        args.requestId.as_deref(),
+        args.streamId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     datastream_projects_locations_streams_create_execute(builder)
 }
@@ -3030,6 +3274,15 @@ pub fn datastream_projects_locations_streams_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_streams_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsStreamsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/streams/{streamsId}
 /// Use this method to delete a stream.
 ///
@@ -3042,13 +3295,16 @@ pub fn datastream_projects_locations_streams_delete_execute(
 
 pub fn datastream_projects_locations_streams_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &DatastreamProjectsLocationsStreamsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datastream_projects_locations_streams_delete_builder(client, name, requestId)?;
+    let builder = datastream_projects_locations_streams_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     datastream_projects_locations_streams_delete_execute(builder)
 }
 
@@ -3142,6 +3398,13 @@ pub fn datastream_projects_locations_streams_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_streams_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsStreamsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/streams/{streamsId}
 /// Use this method to get details about a stream.
 ///
@@ -3154,12 +3417,12 @@ pub fn datastream_projects_locations_streams_get_execute(
 
 pub fn datastream_projects_locations_streams_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatastreamProjectsLocationsStreamsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Stream>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datastream_projects_locations_streams_get_builder(client, name)?;
+    let builder = datastream_projects_locations_streams_get_builder(client, &args.name)?;
     datastream_projects_locations_streams_get_execute(builder)
 }
 
@@ -3279,6 +3542,21 @@ pub fn datastream_projects_locations_streams_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_streams_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsStreamsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/streams
 /// Use this method to list streams in a project and location.
 ///
@@ -3291,11 +3569,7 @@ pub fn datastream_projects_locations_streams_list_execute(
 
 pub fn datastream_projects_locations_streams_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatastreamProjectsLocationsStreamsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListStreamsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3303,7 +3577,12 @@ pub fn datastream_projects_locations_streams_list(
     ApiError,
 > {
     let builder = datastream_projects_locations_streams_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datastream_projects_locations_streams_list_execute(builder)
 }
@@ -3425,6 +3704,23 @@ pub fn datastream_projects_locations_streams_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_streams_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsStreamsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Stream,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/streams/{streamsId}
 /// Use this method to update the configuration of a stream.
 ///
@@ -3437,24 +3733,19 @@ pub fn datastream_projects_locations_streams_patch_execute(
 
 pub fn datastream_projects_locations_streams_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Stream,
+    args: &DatastreamProjectsLocationsStreamsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datastream_projects_locations_streams_patch_builder(
         client,
-        name,
-        force,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.force,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     datastream_projects_locations_streams_patch_execute(builder)
 }
@@ -3552,6 +3843,15 @@ pub fn datastream_projects_locations_streams_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_streams_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsStreamsRunArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RunStreamRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/streams/{streamsId}:run
 /// Use this method to start, resume or recover a stream with a non default CDC strategy.
 ///
@@ -3564,13 +3864,13 @@ pub fn datastream_projects_locations_streams_run_execute(
 
 pub fn datastream_projects_locations_streams_run(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RunStreamRequest,
+    args: &DatastreamProjectsLocationsStreamsRunArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datastream_projects_locations_streams_run_builder(client, name, body)?;
+    let builder =
+        datastream_projects_locations_streams_run_builder(client, &args.name, &args.body)?;
     datastream_projects_locations_streams_run_execute(builder)
 }
 
@@ -3666,6 +3966,13 @@ pub fn datastream_projects_locations_streams_objects_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_streams_objects_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsStreamsObjectsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/streams/{streamsId}/objects/{objectsId}
 /// Use this method to get details about a stream object.
 ///
@@ -3678,14 +3985,14 @@ pub fn datastream_projects_locations_streams_objects_get_execute(
 
 pub fn datastream_projects_locations_streams_objects_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatastreamProjectsLocationsStreamsObjectsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StreamObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datastream_projects_locations_streams_objects_get_builder(client, name)?;
+    let builder = datastream_projects_locations_streams_objects_get_builder(client, &args.name)?;
     datastream_projects_locations_streams_objects_get_execute(builder)
 }
 
@@ -3797,6 +4104,17 @@ pub fn datastream_projects_locations_streams_objects_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_streams_objects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsStreamsObjectsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/streams/{streamsId}/objects
 /// Use this method to list the objects of a specific stream.
 ///
@@ -3809,9 +4127,7 @@ pub fn datastream_projects_locations_streams_objects_list_execute(
 
 pub fn datastream_projects_locations_streams_objects_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatastreamProjectsLocationsStreamsObjectsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListStreamObjectsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3819,7 +4135,10 @@ pub fn datastream_projects_locations_streams_objects_list(
     ApiError,
 > {
     let builder = datastream_projects_locations_streams_objects_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datastream_projects_locations_streams_objects_list_execute(builder)
 }
@@ -3919,6 +4238,15 @@ pub fn datastream_projects_locations_streams_objects_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_streams_objects_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsStreamsObjectsLookupArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: LookupStreamObjectRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/streams/{streamsId}/objects:lookup
 /// Use this method to look up a stream object by its source object identifier.
 ///
@@ -3931,16 +4259,18 @@ pub fn datastream_projects_locations_streams_objects_lookup_execute(
 
 pub fn datastream_projects_locations_streams_objects_lookup(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &LookupStreamObjectRequest,
+    args: &DatastreamProjectsLocationsStreamsObjectsLookupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StreamObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        datastream_projects_locations_streams_objects_lookup_builder(client, parent, body)?;
+    let builder = datastream_projects_locations_streams_objects_lookup_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     datastream_projects_locations_streams_objects_lookup_execute(builder)
 }
 
@@ -4039,6 +4369,15 @@ pub fn datastream_projects_locations_streams_objects_start_backfill_job_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_streams_objects_start_backfill_job`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsStreamsObjectsStartBackfillJobArgs {
+    /// Path parameter: object
+    pub object: String,
+    /// Request body.
+    pub body: StartBackfillJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/streams/{streamsId}/objects/{objectsId}:startBackfillJob
 /// Use this method to start a backfill job for the specified stream object.
 ///
@@ -4051,8 +4390,7 @@ pub fn datastream_projects_locations_streams_objects_start_backfill_job_execute(
 
 pub fn datastream_projects_locations_streams_objects_start_backfill_job(
     client: &SimpleHttpClient,
-    object: &str,
-    body: &StartBackfillJobRequest,
+    args: &DatastreamProjectsLocationsStreamsObjectsStartBackfillJobArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StartBackfillJobResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4060,7 +4398,9 @@ pub fn datastream_projects_locations_streams_objects_start_backfill_job(
     ApiError,
 > {
     let builder = datastream_projects_locations_streams_objects_start_backfill_job_builder(
-        client, object, body,
+        client,
+        &args.object,
+        &args.body,
     )?;
     datastream_projects_locations_streams_objects_start_backfill_job_execute(builder)
 }
@@ -4160,6 +4500,15 @@ pub fn datastream_projects_locations_streams_objects_stop_backfill_job_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastream_projects_locations_streams_objects_stop_backfill_job`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastreamProjectsLocationsStreamsObjectsStopBackfillJobArgs {
+    /// Path parameter: object
+    pub object: String,
+    /// Request body.
+    pub body: StopBackfillJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/streams/{streamsId}/objects/{objectsId}:stopBackfillJob
 /// Use this method to stop a backfill job for the specified stream object.
 ///
@@ -4172,8 +4521,7 @@ pub fn datastream_projects_locations_streams_objects_stop_backfill_job_execute(
 
 pub fn datastream_projects_locations_streams_objects_stop_backfill_job(
     client: &SimpleHttpClient,
-    object: &str,
-    body: &StopBackfillJobRequest,
+    args: &DatastreamProjectsLocationsStreamsObjectsStopBackfillJobArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StopBackfillJobResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4181,7 +4529,9 @@ pub fn datastream_projects_locations_streams_objects_stop_backfill_job(
     ApiError,
 > {
     let builder = datastream_projects_locations_streams_objects_stop_backfill_job_builder(
-        client, object, body,
+        client,
+        &args.object,
+        &args.body,
     )?;
     datastream_projects_locations_streams_objects_stop_backfill_job_execute(builder)
 }

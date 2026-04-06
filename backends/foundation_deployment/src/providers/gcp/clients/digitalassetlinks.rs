@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/assetlinks:bulkCheck
 /// Send a bundle of statement checks in a single RPC to minimize latency and service load. Statements need not be all for the same source `and/or` target. We recommend using this method when you need to check more than one statement in a short period of time.
@@ -107,6 +109,13 @@ pub fn digitalassetlinks_assetlinks_bulk_check_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`digitalassetlinks_assetlinks_bulk_check`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DigitalassetlinksAssetlinksBulkCheckArgs {
+    /// Request body.
+    pub body: BulkCheckRequest,
+}
+
 /// GET v1/assetlinks:bulkCheck
 /// Send a bundle of statement checks in a single RPC to minimize latency and service load. Statements need not be all for the same source `and/or` target. We recommend using this method when you need to check more than one statement in a short period of time.
 ///
@@ -119,14 +128,14 @@ pub fn digitalassetlinks_assetlinks_bulk_check_execute(
 
 pub fn digitalassetlinks_assetlinks_bulk_check(
     client: &SimpleHttpClient,
-    body: &BulkCheckRequest,
+    args: &DigitalassetlinksAssetlinksBulkCheckArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BulkCheckResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = digitalassetlinks_assetlinks_bulk_check_builder(client, body)?;
+    let builder = digitalassetlinks_assetlinks_bulk_check_builder(client, &args.body)?;
     digitalassetlinks_assetlinks_bulk_check_execute(builder)
 }
 
@@ -264,6 +273,27 @@ pub fn digitalassetlinks_assetlinks_check_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`digitalassetlinks_assetlinks_check`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DigitalassetlinksAssetlinksCheckArgs {
+    /// Query parameter: relation
+    pub relation: Option<String>,
+    /// Query parameter: returnRelationExtensions
+    pub returnRelationExtensions: Option<bool>,
+    /// Query parameter: source_androidApp_certificate_sha256Fingerprint
+    pub source_androidApp_certificate_sha256Fingerprint: Option<String>,
+    /// Query parameter: source_androidApp_packageName
+    pub source_androidApp_packageName: Option<String>,
+    /// Query parameter: source_web_site
+    pub source_web_site: Option<String>,
+    /// Query parameter: target_androidApp_certificate_sha256Fingerprint
+    pub target_androidApp_certificate_sha256Fingerprint: Option<String>,
+    /// Query parameter: target_androidApp_packageName
+    pub target_androidApp_packageName: Option<String>,
+    /// Query parameter: target_web_site
+    pub target_web_site: Option<String>,
+}
+
 /// GET v1/assetlinks:check
 /// Determines whether the specified (directional) relationship exists between the specified source and target assets. The relation describes the intent of the link between the two assets as claimed by the source asset. An example for such relationships is the delegation of privileges or permissions. This command is most often used by infrastructure systems to check preconditions for an action. For example, a client may want to know if it is `OK` to send a web URL to a particular mobile app instead. The client can check for the relevant asset link from the website to the mobile app to decide if the operation should be allowed. A note about security: if you specify a secure asset as the source, such as an HTTPS website or an Android app, the API will ensure that any statements used to generate the response have been made in a secure way by the owner of that asset. Conversely, if the source asset is an insecure HTTP website (that is, the URL starts with http:// instead of https://), the API cannot verify its statements securely, and it is not possible to ensure that the website's statements have not been altered by a third party. For more information, see the [Digital Asset Links technical design specification](<https://github.`com/google/digitalassetlinks/blob/master/well-known/details`.md>).
 ///
@@ -276,14 +306,7 @@ pub fn digitalassetlinks_assetlinks_check_execute(
 
 pub fn digitalassetlinks_assetlinks_check(
     client: &SimpleHttpClient,
-    relation: Option<&str>,
-    returnRelationExtensions: Option<bool>,
-    source_androidApp_certificate_sha256Fingerprint: Option<&str>,
-    source_androidApp_packageName: Option<&str>,
-    source_web_site: Option<&str>,
-    target_androidApp_certificate_sha256Fingerprint: Option<&str>,
-    target_androidApp_packageName: Option<&str>,
-    target_web_site: Option<&str>,
+    args: &DigitalassetlinksAssetlinksCheckArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CheckResponse>, ApiError>, P = ApiPending>
         + Send
@@ -292,14 +315,16 @@ pub fn digitalassetlinks_assetlinks_check(
 > {
     let builder = digitalassetlinks_assetlinks_check_builder(
         client,
-        relation,
-        returnRelationExtensions,
-        source_androidApp_certificate_sha256Fingerprint,
-        source_androidApp_packageName,
-        source_web_site,
-        target_androidApp_certificate_sha256Fingerprint,
-        target_androidApp_packageName,
-        target_web_site,
+        args.relation.as_deref(),
+        args.returnRelationExtensions,
+        args.source_androidApp_certificate_sha256Fingerprint
+            .as_deref(),
+        args.source_androidApp_packageName.as_deref(),
+        args.source_web_site.as_deref(),
+        args.target_androidApp_certificate_sha256Fingerprint
+            .as_deref(),
+        args.target_androidApp_packageName.as_deref(),
+        args.target_web_site.as_deref(),
     )?;
     digitalassetlinks_assetlinks_check_execute(builder)
 }
@@ -423,6 +448,21 @@ pub fn digitalassetlinks_statements_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`digitalassetlinks_statements_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DigitalassetlinksStatementsListArgs {
+    /// Query parameter: relation
+    pub relation: Option<String>,
+    /// Query parameter: returnRelationExtensions
+    pub returnRelationExtensions: Option<bool>,
+    /// Query parameter: source_androidApp_certificate_sha256Fingerprint
+    pub source_androidApp_certificate_sha256Fingerprint: Option<String>,
+    /// Query parameter: source_androidApp_packageName
+    pub source_androidApp_packageName: Option<String>,
+    /// Query parameter: source_web_site
+    pub source_web_site: Option<String>,
+}
+
 /// GET v1/statements:list
 /// Retrieves a list of all statements from a given source that match the specified target and statement string. The API guarantees that all statements with secure source assets, such as HTTPS websites or Android apps, have been made in a secure way by the owner of those assets, as described in the [Digital Asset Links technical design specification](<https://github.`com/google/digitalassetlinks/blob/master/well-known/details`.md>). Specifically, you should consider that for insecure websites (that is, where the URL starts with http:// instead of https://), this guarantee cannot be made. The List command is most useful in cases where the API client wants to know all the ways in which two assets are related, or enumerate all the relationships from a particular source asset. Example: a feature that helps users navigate to related items. When a mobile app is running on a device, the feature would make it easy to navigate to the corresponding web site or Google+ profile.
 ///
@@ -435,11 +475,7 @@ pub fn digitalassetlinks_statements_list_execute(
 
 pub fn digitalassetlinks_statements_list(
     client: &SimpleHttpClient,
-    relation: Option<&str>,
-    returnRelationExtensions: Option<bool>,
-    source_androidApp_certificate_sha256Fingerprint: Option<&str>,
-    source_androidApp_packageName: Option<&str>,
-    source_web_site: Option<&str>,
+    args: &DigitalassetlinksStatementsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -448,11 +484,12 @@ pub fn digitalassetlinks_statements_list(
 > {
     let builder = digitalassetlinks_statements_list_builder(
         client,
-        relation,
-        returnRelationExtensions,
-        source_androidApp_certificate_sha256Fingerprint,
-        source_androidApp_packageName,
-        source_web_site,
+        args.relation.as_deref(),
+        args.returnRelationExtensions,
+        args.source_androidApp_certificate_sha256Fingerprint
+            .as_deref(),
+        args.source_androidApp_packageName.as_deref(),
+        args.source_web_site.as_deref(),
     )?;
     digitalassetlinks_statements_list_execute(builder)
 }

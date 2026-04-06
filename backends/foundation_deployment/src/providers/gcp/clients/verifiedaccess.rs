@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/challenge:generate
 /// Generates a new challenge.
@@ -105,6 +107,13 @@ pub fn verifiedaccess_challenge_generate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`verifiedaccess_challenge_generate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VerifiedaccessChallengeGenerateArgs {
+    /// Request body.
+    pub body: Empty,
+}
+
 /// GET v2/challenge:generate
 /// Generates a new challenge.
 ///
@@ -117,12 +126,12 @@ pub fn verifiedaccess_challenge_generate_execute(
 
 pub fn verifiedaccess_challenge_generate(
     client: &SimpleHttpClient,
-    body: &Empty,
+    args: &VerifiedaccessChallengeGenerateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Challenge>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = verifiedaccess_challenge_generate_builder(client, body)?;
+    let builder = verifiedaccess_challenge_generate_builder(client, &args.body)?;
     verifiedaccess_challenge_generate_execute(builder)
 }
 
@@ -219,6 +228,13 @@ pub fn verifiedaccess_challenge_verify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`verifiedaccess_challenge_verify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VerifiedaccessChallengeVerifyArgs {
+    /// Request body.
+    pub body: VerifyChallengeResponseRequest,
+}
+
 /// GET v2/challenge:verify
 /// Verifies the challenge response.
 ///
@@ -231,7 +247,7 @@ pub fn verifiedaccess_challenge_verify_execute(
 
 pub fn verifiedaccess_challenge_verify(
     client: &SimpleHttpClient,
-    body: &VerifyChallengeResponseRequest,
+    args: &VerifiedaccessChallengeVerifyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<VerifyChallengeResponseResult>, ApiError>,
@@ -240,6 +256,6 @@ pub fn verifiedaccess_challenge_verify(
         + 'static,
     ApiError,
 > {
-    let builder = verifiedaccess_challenge_verify_builder(client, body)?;
+    let builder = verifiedaccess_challenge_verify_builder(client, &args.body)?;
     verifiedaccess_challenge_verify_execute(builder)
 }

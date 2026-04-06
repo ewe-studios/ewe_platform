@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections
 /// Creates a new connection.
@@ -121,6 +123,17 @@ pub fn bigqueryconnection_projects_locations_connections_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryconnection_projects_locations_connections_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryconnectionProjectsLocationsConnectionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: connectionId
+    pub connectionId: Option<String>,
+    /// Request body.
+    pub body: Connection,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections
 /// Creates a new connection.
 ///
@@ -133,18 +146,16 @@ pub fn bigqueryconnection_projects_locations_connections_create_execute(
 
 pub fn bigqueryconnection_projects_locations_connections_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    connectionId: Option<&str>,
-    body: &Connection,
+    args: &BigqueryconnectionProjectsLocationsConnectionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Connection>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigqueryconnection_projects_locations_connections_create_builder(
         client,
-        parent,
-        connectionId,
-        body,
+        &args.parent,
+        args.connectionId.as_deref(),
+        &args.body,
     )?;
     bigqueryconnection_projects_locations_connections_create_execute(builder)
 }
@@ -239,6 +250,13 @@ pub fn bigqueryconnection_projects_locations_connections_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryconnection_projects_locations_connections_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryconnectionProjectsLocationsConnectionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}
 /// Deletes connection and associated credential.
 ///
@@ -251,12 +269,13 @@ pub fn bigqueryconnection_projects_locations_connections_delete_execute(
 
 pub fn bigqueryconnection_projects_locations_connections_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigqueryconnectionProjectsLocationsConnectionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigqueryconnection_projects_locations_connections_delete_builder(client, name)?;
+    let builder =
+        bigqueryconnection_projects_locations_connections_delete_builder(client, &args.name)?;
     bigqueryconnection_projects_locations_connections_delete_execute(builder)
 }
 
@@ -350,6 +369,13 @@ pub fn bigqueryconnection_projects_locations_connections_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryconnection_projects_locations_connections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryconnectionProjectsLocationsConnectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}
 /// Returns specified connection.
 ///
@@ -362,12 +388,13 @@ pub fn bigqueryconnection_projects_locations_connections_get_execute(
 
 pub fn bigqueryconnection_projects_locations_connections_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigqueryconnectionProjectsLocationsConnectionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Connection>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigqueryconnection_projects_locations_connections_get_builder(client, name)?;
+    let builder =
+        bigqueryconnection_projects_locations_connections_get_builder(client, &args.name)?;
     bigqueryconnection_projects_locations_connections_get_execute(builder)
 }
 
@@ -464,6 +491,15 @@ pub fn bigqueryconnection_projects_locations_connections_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryconnection_projects_locations_connections_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryconnectionProjectsLocationsConnectionsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -476,14 +512,15 @@ pub fn bigqueryconnection_projects_locations_connections_get_iam_policy_execute(
 
 pub fn bigqueryconnection_projects_locations_connections_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &BigqueryconnectionProjectsLocationsConnectionsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigqueryconnection_projects_locations_connections_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigqueryconnection_projects_locations_connections_get_iam_policy_execute(builder)
 }
@@ -596,6 +633,17 @@ pub fn bigqueryconnection_projects_locations_connections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryconnection_projects_locations_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryconnectionProjectsLocationsConnectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections
 /// Returns a list of connections in the given project.
 ///
@@ -608,9 +656,7 @@ pub fn bigqueryconnection_projects_locations_connections_list_execute(
 
 pub fn bigqueryconnection_projects_locations_connections_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigqueryconnectionProjectsLocationsConnectionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListConnectionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -618,7 +664,10 @@ pub fn bigqueryconnection_projects_locations_connections_list(
     ApiError,
 > {
     let builder = bigqueryconnection_projects_locations_connections_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigqueryconnection_projects_locations_connections_list_execute(builder)
 }
@@ -728,6 +777,17 @@ pub fn bigqueryconnection_projects_locations_connections_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryconnection_projects_locations_connections_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryconnectionProjectsLocationsConnectionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Connection,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}
 /// Updates the specified connection. For security reasons, also resets credential if connection properties are in the update field mask.
 ///
@@ -740,15 +800,16 @@ pub fn bigqueryconnection_projects_locations_connections_patch_execute(
 
 pub fn bigqueryconnection_projects_locations_connections_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Connection,
+    args: &BigqueryconnectionProjectsLocationsConnectionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Connection>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigqueryconnection_projects_locations_connections_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     bigqueryconnection_projects_locations_connections_patch_execute(builder)
 }
@@ -846,6 +907,15 @@ pub fn bigqueryconnection_projects_locations_connections_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryconnection_projects_locations_connections_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryconnectionProjectsLocationsConnectionsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -858,14 +928,15 @@ pub fn bigqueryconnection_projects_locations_connections_set_iam_policy_execute(
 
 pub fn bigqueryconnection_projects_locations_connections_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BigqueryconnectionProjectsLocationsConnectionsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigqueryconnection_projects_locations_connections_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigqueryconnection_projects_locations_connections_set_iam_policy_execute(builder)
 }
@@ -967,6 +1038,15 @@ pub fn bigqueryconnection_projects_locations_connections_test_iam_permissions_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryconnection_projects_locations_connections_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryconnectionProjectsLocationsConnectionsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -979,8 +1059,7 @@ pub fn bigqueryconnection_projects_locations_connections_test_iam_permissions_ex
 
 pub fn bigqueryconnection_projects_locations_connections_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BigqueryconnectionProjectsLocationsConnectionsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -990,7 +1069,9 @@ pub fn bigqueryconnection_projects_locations_connections_test_iam_permissions(
     ApiError,
 > {
     let builder = bigqueryconnection_projects_locations_connections_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigqueryconnection_projects_locations_connections_test_iam_permissions_execute(builder)
 }

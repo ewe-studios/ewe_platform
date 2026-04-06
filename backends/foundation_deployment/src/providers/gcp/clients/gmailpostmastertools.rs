@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/domainStats:batchQuery
 /// Executes a batch of QueryDomainStats requests for multiple domains. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for any of the requested domains.
@@ -109,6 +111,13 @@ pub fn gmailpostmastertools_domain_stats_batch_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmailpostmastertools_domain_stats_batch_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailpostmastertoolsDomainStatsBatchQueryArgs {
+    /// Request body.
+    pub body: BatchQueryDomainStatsRequest,
+}
+
 /// GET v2/domainStats:batchQuery
 /// Executes a batch of QueryDomainStats requests for multiple domains. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for any of the requested domains.
 ///
@@ -121,7 +130,7 @@ pub fn gmailpostmastertools_domain_stats_batch_query_execute(
 
 pub fn gmailpostmastertools_domain_stats_batch_query(
     client: &SimpleHttpClient,
-    body: &BatchQueryDomainStatsRequest,
+    args: &GmailpostmastertoolsDomainStatsBatchQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchQueryDomainStatsResponse>, ApiError>,
@@ -130,7 +139,7 @@ pub fn gmailpostmastertools_domain_stats_batch_query(
         + 'static,
     ApiError,
 > {
-    let builder = gmailpostmastertools_domain_stats_batch_query_builder(client, body)?;
+    let builder = gmailpostmastertools_domain_stats_batch_query_builder(client, &args.body)?;
     gmailpostmastertools_domain_stats_batch_query_execute(builder)
 }
 
@@ -224,6 +233,13 @@ pub fn gmailpostmastertools_domains_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmailpostmastertools_domains_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailpostmastertoolsDomainsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/domains/{domainsId}
 /// Retrieves detailed information about a domain registered by you. Returns NOT_FOUND if the domain is not registered by you. Domain represents the metadata of a domain that has been registered within the system and linked to a user.
 ///
@@ -236,12 +252,12 @@ pub fn gmailpostmastertools_domains_get_execute(
 
 pub fn gmailpostmastertools_domains_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GmailpostmastertoolsDomainsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Domain>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmailpostmastertools_domains_get_builder(client, name)?;
+    let builder = gmailpostmastertools_domains_get_builder(client, &args.name)?;
     gmailpostmastertools_domains_get_execute(builder)
 }
 
@@ -337,6 +353,13 @@ pub fn gmailpostmastertools_domains_get_compliance_status_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmailpostmastertools_domains_get_compliance_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailpostmastertoolsDomainsGetComplianceStatusArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/domains/{domainsId}/complianceStatus
 /// Retrieves the compliance status for a given domain. Returns PERMISSION_DENIED if you don't have permission to access compliance status for the domain.
 ///
@@ -349,14 +372,14 @@ pub fn gmailpostmastertools_domains_get_compliance_status_execute(
 
 pub fn gmailpostmastertools_domains_get_compliance_status(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GmailpostmastertoolsDomainsGetComplianceStatusArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DomainComplianceStatus>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmailpostmastertools_domains_get_compliance_status_builder(client, name)?;
+    let builder = gmailpostmastertools_domains_get_compliance_status_builder(client, &args.name)?;
     gmailpostmastertools_domains_get_compliance_status_execute(builder)
 }
 
@@ -464,6 +487,15 @@ pub fn gmailpostmastertools_domains_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmailpostmastertools_domains_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailpostmastertoolsDomainsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/domains
 /// Retrieves a list of all domains registered by you, along with their corresponding metadata. The order of domains in the response is unspecified and non-deterministic. Newly registered domains will not necessarily be added to the end of this list.
 ///
@@ -476,15 +508,18 @@ pub fn gmailpostmastertools_domains_list_execute(
 
 pub fn gmailpostmastertools_domains_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GmailpostmastertoolsDomainsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDomainsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmailpostmastertools_domains_list_builder(client, pageSize, pageToken)?;
+    let builder = gmailpostmastertools_domains_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     gmailpostmastertools_domains_list_execute(builder)
 }
 
@@ -583,6 +618,15 @@ pub fn gmailpostmastertools_domains_domain_stats_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmailpostmastertools_domains_domain_stats_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailpostmastertoolsDomainsDomainStatsQueryArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: QueryDomainStatsRequest,
+}
+
 /// GET v2/domains/{domainsId}/domainStats:query
 /// Retrieves a list of domain statistics for a given domain and time period. Returns statistics only for dates where data is available. Returns PERMISSION_DENIED if you don't have permission to access DomainStats for the domain.
 ///
@@ -595,14 +639,14 @@ pub fn gmailpostmastertools_domains_domain_stats_query_execute(
 
 pub fn gmailpostmastertools_domains_domain_stats_query(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &QueryDomainStatsRequest,
+    args: &GmailpostmastertoolsDomainsDomainStatsQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryDomainStatsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmailpostmastertools_domains_domain_stats_query_builder(client, parent, body)?;
+    let builder =
+        gmailpostmastertools_domains_domain_stats_query_builder(client, &args.parent, &args.body)?;
     gmailpostmastertools_domains_domain_stats_query_execute(builder)
 }

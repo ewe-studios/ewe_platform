@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:signSshPublicKey
 /// Signs an SSH public key for a user to authenticate to a virtual machine on Google Compute Engine.
@@ -111,6 +113,15 @@ pub fn oslogin_projects_locations_sign_ssh_public_key_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oslogin_projects_locations_sign_ssh_public_key`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsloginProjectsLocationsSignSshPublicKeyArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SignSshPublicKeyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:signSshPublicKey
 /// Signs an SSH public key for a user to authenticate to a virtual machine on Google Compute Engine.
 ///
@@ -123,15 +134,15 @@ pub fn oslogin_projects_locations_sign_ssh_public_key_execute(
 
 pub fn oslogin_projects_locations_sign_ssh_public_key(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SignSshPublicKeyRequest,
+    args: &OsloginProjectsLocationsSignSshPublicKeyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SignSshPublicKeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = oslogin_projects_locations_sign_ssh_public_key_builder(client, parent, body)?;
+    let builder =
+        oslogin_projects_locations_sign_ssh_public_key_builder(client, &args.parent, &args.body)?;
     oslogin_projects_locations_sign_ssh_public_key_execute(builder)
 }
 
@@ -243,6 +254,17 @@ pub fn oslogin_users_get_login_profile_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oslogin_users_get_login_profile`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsloginUsersGetLoginProfileArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: projectId
+    pub projectId: Option<String>,
+    /// Query parameter: systemId
+    pub systemId: Option<String>,
+}
+
 /// GET v1/users/{usersId}/loginProfile
 /// Retrieves the profile information used for logging in to a virtual machine on Google Compute Engine.
 ///
@@ -255,16 +277,19 @@ pub fn oslogin_users_get_login_profile_execute(
 
 pub fn oslogin_users_get_login_profile(
     client: &SimpleHttpClient,
-    name: &str,
-    projectId: Option<&str>,
-    systemId: Option<&str>,
+    args: &OsloginUsersGetLoginProfileArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LoginProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = oslogin_users_get_login_profile_builder(client, name, projectId, systemId)?;
+    let builder = oslogin_users_get_login_profile_builder(
+        client,
+        &args.name,
+        args.projectId.as_deref(),
+        args.systemId.as_deref(),
+    )?;
     oslogin_users_get_login_profile_execute(builder)
 }
 
@@ -381,6 +406,19 @@ pub fn oslogin_users_import_ssh_public_key_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oslogin_users_import_ssh_public_key`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsloginUsersImportSshPublicKeyArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: projectId
+    pub projectId: Option<String>,
+    /// Query parameter: regions
+    pub regions: Option<String>,
+    /// Request body.
+    pub body: SshPublicKey,
+}
+
 /// GET v1/users/{usersId}:importSshPublicKey
 /// Adds an SSH public key and returns the profile information. Default POSIX account information is set when no username and UID exist as part of the login profile.
 ///
@@ -393,10 +431,7 @@ pub fn oslogin_users_import_ssh_public_key_execute(
 
 pub fn oslogin_users_import_ssh_public_key(
     client: &SimpleHttpClient,
-    parent: &str,
-    projectId: Option<&str>,
-    regions: Option<&str>,
-    body: &SshPublicKey,
+    args: &OsloginUsersImportSshPublicKeyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ImportSshPublicKeyResponse>, ApiError>,
@@ -405,8 +440,13 @@ pub fn oslogin_users_import_ssh_public_key(
         + 'static,
     ApiError,
 > {
-    let builder =
-        oslogin_users_import_ssh_public_key_builder(client, parent, projectId, regions, body)?;
+    let builder = oslogin_users_import_ssh_public_key_builder(
+        client,
+        &args.parent,
+        args.projectId.as_deref(),
+        args.regions.as_deref(),
+        &args.body,
+    )?;
     oslogin_users_import_ssh_public_key_execute(builder)
 }
 
@@ -500,6 +540,13 @@ pub fn oslogin_users_projects_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oslogin_users_projects_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsloginUsersProjectsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/users/{usersId}/projects/{projectsId}
 /// Deletes a POSIX account.
 ///
@@ -512,12 +559,12 @@ pub fn oslogin_users_projects_delete_execute(
 
 pub fn oslogin_users_projects_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OsloginUsersProjectsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = oslogin_users_projects_delete_builder(client, name)?;
+    let builder = oslogin_users_projects_delete_builder(client, &args.name)?;
     oslogin_users_projects_delete_execute(builder)
 }
 
@@ -616,6 +663,15 @@ pub fn oslogin_users_projects_provision_posix_account_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oslogin_users_projects_provision_posix_account`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsloginUsersProjectsProvisionPosixAccountArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ProvisionPosixAccountRequest,
+}
+
 /// GET v1/users/{usersId}/projects/{projectsId}
 /// Adds a POSIX account and returns the profile information. Default POSIX account information is set when no username and UID exist as part of the login profile.
 ///
@@ -628,15 +684,15 @@ pub fn oslogin_users_projects_provision_posix_account_execute(
 
 pub fn oslogin_users_projects_provision_posix_account(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ProvisionPosixAccountRequest,
+    args: &OsloginUsersProjectsProvisionPosixAccountArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PosixAccount>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = oslogin_users_projects_provision_posix_account_builder(client, name, body)?;
+    let builder =
+        oslogin_users_projects_provision_posix_account_builder(client, &args.name, &args.body)?;
     oslogin_users_projects_provision_posix_account_execute(builder)
 }
 
@@ -735,6 +791,15 @@ pub fn oslogin_users_ssh_public_keys_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oslogin_users_ssh_public_keys_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsloginUsersSshPublicKeysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SshPublicKey,
+}
+
 /// GET v1/users/{usersId}/sshPublicKeys
 /// Create an SSH public key
 ///
@@ -747,15 +812,14 @@ pub fn oslogin_users_ssh_public_keys_create_execute(
 
 pub fn oslogin_users_ssh_public_keys_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SshPublicKey,
+    args: &OsloginUsersSshPublicKeysCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SshPublicKey>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = oslogin_users_ssh_public_keys_create_builder(client, parent, body)?;
+    let builder = oslogin_users_ssh_public_keys_create_builder(client, &args.parent, &args.body)?;
     oslogin_users_ssh_public_keys_create_execute(builder)
 }
 
@@ -849,6 +913,13 @@ pub fn oslogin_users_ssh_public_keys_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oslogin_users_ssh_public_keys_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsloginUsersSshPublicKeysDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/users/{usersId}/sshPublicKeys/{sshPublicKeysId}
 /// Deletes an SSH public key.
 ///
@@ -861,12 +932,12 @@ pub fn oslogin_users_ssh_public_keys_delete_execute(
 
 pub fn oslogin_users_ssh_public_keys_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OsloginUsersSshPublicKeysDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = oslogin_users_ssh_public_keys_delete_builder(client, name)?;
+    let builder = oslogin_users_ssh_public_keys_delete_builder(client, &args.name)?;
     oslogin_users_ssh_public_keys_delete_execute(builder)
 }
 
@@ -962,6 +1033,13 @@ pub fn oslogin_users_ssh_public_keys_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oslogin_users_ssh_public_keys_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsloginUsersSshPublicKeysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/users/{usersId}/sshPublicKeys/{sshPublicKeysId}
 /// Retrieves an SSH public key.
 ///
@@ -974,14 +1052,14 @@ pub fn oslogin_users_ssh_public_keys_get_execute(
 
 pub fn oslogin_users_ssh_public_keys_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OsloginUsersSshPublicKeysGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SshPublicKey>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = oslogin_users_ssh_public_keys_get_builder(client, name)?;
+    let builder = oslogin_users_ssh_public_keys_get_builder(client, &args.name)?;
     oslogin_users_ssh_public_keys_get_execute(builder)
 }
 
@@ -1092,6 +1170,17 @@ pub fn oslogin_users_ssh_public_keys_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oslogin_users_ssh_public_keys_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsloginUsersSshPublicKeysPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SshPublicKey,
+}
+
 /// GET v1/users/{usersId}/sshPublicKeys/{sshPublicKeysId}
 /// Updates an SSH public key and returns the profile information. This method supports patch semantics.
 ///
@@ -1104,15 +1193,18 @@ pub fn oslogin_users_ssh_public_keys_patch_execute(
 
 pub fn oslogin_users_ssh_public_keys_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SshPublicKey,
+    args: &OsloginUsersSshPublicKeysPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SshPublicKey>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = oslogin_users_ssh_public_keys_patch_builder(client, name, updateMask, body)?;
+    let builder = oslogin_users_ssh_public_keys_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     oslogin_users_ssh_public_keys_patch_execute(builder)
 }

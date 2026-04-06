@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v3/projects/{projectsId}:detectLanguage
 /// Detects the language of text within a request.
@@ -111,6 +113,15 @@ pub fn translate_projects_detect_language_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_detect_language`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsDetectLanguageArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: DetectLanguageRequest,
+}
+
 /// GET v3/projects/{projectsId}:detectLanguage
 /// Detects the language of text within a request.
 ///
@@ -123,15 +134,14 @@ pub fn translate_projects_detect_language_execute(
 
 pub fn translate_projects_detect_language(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &DetectLanguageRequest,
+    args: &TranslateProjectsDetectLanguageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DetectLanguageResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = translate_projects_detect_language_builder(client, parent, body)?;
+    let builder = translate_projects_detect_language_builder(client, &args.parent, &args.body)?;
     translate_projects_detect_language_execute(builder)
 }
 
@@ -243,6 +253,17 @@ pub fn translate_projects_get_supported_languages_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_get_supported_languages`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsGetSupportedLanguagesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: displayLanguageCode
+    pub displayLanguageCode: Option<String>,
+    /// Query parameter: model
+    pub model: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/supportedLanguages
 /// Returns a list of supported languages for translation.
 ///
@@ -255,9 +276,7 @@ pub fn translate_projects_get_supported_languages_execute(
 
 pub fn translate_projects_get_supported_languages(
     client: &SimpleHttpClient,
-    parent: &str,
-    displayLanguageCode: Option<&str>,
-    model: Option<&str>,
+    args: &TranslateProjectsGetSupportedLanguagesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SupportedLanguages>, ApiError>, P = ApiPending>
         + Send
@@ -266,9 +285,9 @@ pub fn translate_projects_get_supported_languages(
 > {
     let builder = translate_projects_get_supported_languages_builder(
         client,
-        parent,
-        displayLanguageCode,
-        model,
+        &args.parent,
+        args.displayLanguageCode.as_deref(),
+        args.model.as_deref(),
     )?;
     translate_projects_get_supported_languages_execute(builder)
 }
@@ -368,6 +387,15 @@ pub fn translate_projects_romanize_text_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_romanize_text`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsRomanizeTextArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: RomanizeTextRequest,
+}
+
 /// GET v3/projects/{projectsId}:romanizeText
 /// Romanize input text written in non-Latin scripts to Latin text.
 ///
@@ -380,15 +408,14 @@ pub fn translate_projects_romanize_text_execute(
 
 pub fn translate_projects_romanize_text(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &RomanizeTextRequest,
+    args: &TranslateProjectsRomanizeTextArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RomanizeTextResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = translate_projects_romanize_text_builder(client, parent, body)?;
+    let builder = translate_projects_romanize_text_builder(client, &args.parent, &args.body)?;
     translate_projects_romanize_text_execute(builder)
 }
 
@@ -487,6 +514,15 @@ pub fn translate_projects_translate_text_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_translate_text`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsTranslateTextArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: TranslateTextRequest,
+}
+
 /// GET v3/projects/{projectsId}:translateText
 /// Translates input text and returns translated text.
 ///
@@ -499,15 +535,14 @@ pub fn translate_projects_translate_text_execute(
 
 pub fn translate_projects_translate_text(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &TranslateTextRequest,
+    args: &TranslateProjectsTranslateTextArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TranslateTextResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = translate_projects_translate_text_builder(client, parent, body)?;
+    let builder = translate_projects_translate_text_builder(client, &args.parent, &args.body)?;
     translate_projects_translate_text_execute(builder)
 }
 
@@ -608,6 +643,15 @@ pub fn translate_projects_locations_adaptive_mt_translate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_adaptive_mt_translate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtTranslateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AdaptiveMtTranslateRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}:adaptiveMtTranslate
 /// Translate text using Adaptive MT.
 ///
@@ -620,8 +664,7 @@ pub fn translate_projects_locations_adaptive_mt_translate_execute(
 
 pub fn translate_projects_locations_adaptive_mt_translate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AdaptiveMtTranslateRequest,
+    args: &TranslateProjectsLocationsAdaptiveMtTranslateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AdaptiveMtTranslateResponse>, ApiError>,
@@ -630,7 +673,11 @@ pub fn translate_projects_locations_adaptive_mt_translate(
         + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_adaptive_mt_translate_builder(client, parent, body)?;
+    let builder = translate_projects_locations_adaptive_mt_translate_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     translate_projects_locations_adaptive_mt_translate_execute(builder)
 }
 
@@ -727,6 +774,15 @@ pub fn translate_projects_locations_batch_translate_document_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_batch_translate_document`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsBatchTranslateDocumentArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchTranslateDocumentRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}:batchTranslateDocument
 /// Translates a large volume of document in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
 ///
@@ -739,14 +795,16 @@ pub fn translate_projects_locations_batch_translate_document_execute(
 
 pub fn translate_projects_locations_batch_translate_document(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchTranslateDocumentRequest,
+    args: &TranslateProjectsLocationsBatchTranslateDocumentArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        translate_projects_locations_batch_translate_document_builder(client, parent, body)?;
+    let builder = translate_projects_locations_batch_translate_document_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     translate_projects_locations_batch_translate_document_execute(builder)
 }
 
@@ -843,6 +901,15 @@ pub fn translate_projects_locations_batch_translate_text_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_batch_translate_text`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsBatchTranslateTextArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchTranslateTextRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}:batchTranslateText
 /// Translates a large volume of text in asynchronous batch mode. This function provides real-time output as the inputs are being processed. If caller cancels a request, the partial results (for an input file, it's all or nothing) may still be available on the specified output location. This call returns immediately and you can use google.longrunning.Operation.name to poll the status of the call.
 ///
@@ -855,13 +922,16 @@ pub fn translate_projects_locations_batch_translate_text_execute(
 
 pub fn translate_projects_locations_batch_translate_text(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchTranslateTextRequest,
+    args: &TranslateProjectsLocationsBatchTranslateTextArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_batch_translate_text_builder(client, parent, body)?;
+    let builder = translate_projects_locations_batch_translate_text_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     translate_projects_locations_batch_translate_text_execute(builder)
 }
 
@@ -960,6 +1030,15 @@ pub fn translate_projects_locations_detect_language_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_detect_language`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsDetectLanguageArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: DetectLanguageRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}:detectLanguage
 /// Detects the language of text within a request.
 ///
@@ -972,15 +1051,15 @@ pub fn translate_projects_locations_detect_language_execute(
 
 pub fn translate_projects_locations_detect_language(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &DetectLanguageRequest,
+    args: &TranslateProjectsLocationsDetectLanguageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DetectLanguageResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_detect_language_builder(client, parent, body)?;
+    let builder =
+        translate_projects_locations_detect_language_builder(client, &args.parent, &args.body)?;
     translate_projects_locations_detect_language_execute(builder)
 }
 
@@ -1074,6 +1153,13 @@ pub fn translate_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -1086,12 +1172,12 @@ pub fn translate_projects_locations_get_execute(
 
 pub fn translate_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranslateProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_get_builder(client, name)?;
+    let builder = translate_projects_locations_get_builder(client, &args.name)?;
     translate_projects_locations_get_execute(builder)
 }
 
@@ -1203,6 +1289,17 @@ pub fn translate_projects_locations_get_supported_languages_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_get_supported_languages`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGetSupportedLanguagesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: displayLanguageCode
+    pub displayLanguageCode: Option<String>,
+    /// Query parameter: model
+    pub model: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/supportedLanguages
 /// Returns a list of supported languages for translation.
 ///
@@ -1215,9 +1312,7 @@ pub fn translate_projects_locations_get_supported_languages_execute(
 
 pub fn translate_projects_locations_get_supported_languages(
     client: &SimpleHttpClient,
-    parent: &str,
-    displayLanguageCode: Option<&str>,
-    model: Option<&str>,
+    args: &TranslateProjectsLocationsGetSupportedLanguagesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SupportedLanguages>, ApiError>, P = ApiPending>
         + Send
@@ -1226,9 +1321,9 @@ pub fn translate_projects_locations_get_supported_languages(
 > {
     let builder = translate_projects_locations_get_supported_languages_builder(
         client,
-        parent,
-        displayLanguageCode,
-        model,
+        &args.parent,
+        args.displayLanguageCode.as_deref(),
+        args.model.as_deref(),
     )?;
     translate_projects_locations_get_supported_languages_execute(builder)
 }
@@ -1349,6 +1444,21 @@ pub fn translate_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
 ///
@@ -1361,11 +1471,7 @@ pub fn translate_projects_locations_list_execute(
 
 pub fn translate_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TranslateProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1374,11 +1480,11 @@ pub fn translate_projects_locations_list(
 > {
     let builder = translate_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     translate_projects_locations_list_execute(builder)
 }
@@ -1478,6 +1584,15 @@ pub fn translate_projects_locations_refine_text_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_refine_text`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsRefineTextArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: RefineTextRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}:refineText
 /// Refines the input translated text to improve the quality.
 ///
@@ -1490,15 +1605,15 @@ pub fn translate_projects_locations_refine_text_execute(
 
 pub fn translate_projects_locations_refine_text(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &RefineTextRequest,
+    args: &TranslateProjectsLocationsRefineTextArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RefineTextResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_refine_text_builder(client, parent, body)?;
+    let builder =
+        translate_projects_locations_refine_text_builder(client, &args.parent, &args.body)?;
     translate_projects_locations_refine_text_execute(builder)
 }
 
@@ -1597,6 +1712,15 @@ pub fn translate_projects_locations_romanize_text_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_romanize_text`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsRomanizeTextArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: RomanizeTextRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}:romanizeText
 /// Romanize input text written in non-Latin scripts to Latin text.
 ///
@@ -1609,15 +1733,15 @@ pub fn translate_projects_locations_romanize_text_execute(
 
 pub fn translate_projects_locations_romanize_text(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &RomanizeTextRequest,
+    args: &TranslateProjectsLocationsRomanizeTextArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RomanizeTextResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_romanize_text_builder(client, parent, body)?;
+    let builder =
+        translate_projects_locations_romanize_text_builder(client, &args.parent, &args.body)?;
     translate_projects_locations_romanize_text_execute(builder)
 }
 
@@ -1716,6 +1840,15 @@ pub fn translate_projects_locations_translate_document_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_translate_document`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsTranslateDocumentArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: TranslateDocumentRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}:translateDocument
 /// Translates documents in synchronous mode.
 ///
@@ -1728,15 +1861,15 @@ pub fn translate_projects_locations_translate_document_execute(
 
 pub fn translate_projects_locations_translate_document(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &TranslateDocumentRequest,
+    args: &TranslateProjectsLocationsTranslateDocumentArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TranslateDocumentResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_translate_document_builder(client, parent, body)?;
+    let builder =
+        translate_projects_locations_translate_document_builder(client, &args.parent, &args.body)?;
     translate_projects_locations_translate_document_execute(builder)
 }
 
@@ -1835,6 +1968,15 @@ pub fn translate_projects_locations_translate_text_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_translate_text`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsTranslateTextArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: TranslateTextRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}:translateText
 /// Translates input text and returns translated text.
 ///
@@ -1847,15 +1989,15 @@ pub fn translate_projects_locations_translate_text_execute(
 
 pub fn translate_projects_locations_translate_text(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &TranslateTextRequest,
+    args: &TranslateProjectsLocationsTranslateTextArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TranslateTextResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_translate_text_builder(client, parent, body)?;
+    let builder =
+        translate_projects_locations_translate_text_builder(client, &args.parent, &args.body)?;
     translate_projects_locations_translate_text_execute(builder)
 }
 
@@ -1954,6 +2096,15 @@ pub fn translate_projects_locations_adaptive_mt_datasets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AdaptiveMtDataset,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets
 /// Creates an Adaptive MT dataset.
 ///
@@ -1966,16 +2117,18 @@ pub fn translate_projects_locations_adaptive_mt_datasets_create_execute(
 
 pub fn translate_projects_locations_adaptive_mt_datasets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AdaptiveMtDataset,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdaptiveMtDataset>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        translate_projects_locations_adaptive_mt_datasets_create_builder(client, parent, body)?;
+    let builder = translate_projects_locations_adaptive_mt_datasets_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     translate_projects_locations_adaptive_mt_datasets_create_execute(builder)
 }
 
@@ -2069,6 +2222,13 @@ pub fn translate_projects_locations_adaptive_mt_datasets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}
 /// Deletes an Adaptive MT dataset, including all its entries and associated metadata.
 ///
@@ -2081,12 +2241,13 @@ pub fn translate_projects_locations_adaptive_mt_datasets_delete_execute(
 
 pub fn translate_projects_locations_adaptive_mt_datasets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_adaptive_mt_datasets_delete_builder(client, name)?;
+    let builder =
+        translate_projects_locations_adaptive_mt_datasets_delete_builder(client, &args.name)?;
     translate_projects_locations_adaptive_mt_datasets_delete_execute(builder)
 }
 
@@ -2182,6 +2343,13 @@ pub fn translate_projects_locations_adaptive_mt_datasets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}
 /// Gets the Adaptive MT dataset.
 ///
@@ -2194,14 +2362,15 @@ pub fn translate_projects_locations_adaptive_mt_datasets_get_execute(
 
 pub fn translate_projects_locations_adaptive_mt_datasets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdaptiveMtDataset>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_adaptive_mt_datasets_get_builder(client, name)?;
+    let builder =
+        translate_projects_locations_adaptive_mt_datasets_get_builder(client, &args.name)?;
     translate_projects_locations_adaptive_mt_datasets_get_execute(builder)
 }
 
@@ -2302,6 +2471,15 @@ pub fn translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsImportAdaptiveMtFileArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ImportAdaptiveMtFileRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}:importAdaptiveMtFile
 /// Imports an AdaptiveMtFile and adds all of its sentences into the AdaptiveMtDataset.
 ///
@@ -2314,8 +2492,7 @@ pub fn translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file
 
 pub fn translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ImportAdaptiveMtFileRequest,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsImportAdaptiveMtFileArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ImportAdaptiveMtFileResponse>, ApiError>,
@@ -2326,7 +2503,9 @@ pub fn translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file
 > {
     let builder =
         translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file_execute(builder)
 }
@@ -2445,6 +2624,19 @@ pub fn translate_projects_locations_adaptive_mt_datasets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets
 /// Lists all Adaptive MT datasets for which the caller has read permission.
 ///
@@ -2457,10 +2649,7 @@ pub fn translate_projects_locations_adaptive_mt_datasets_list_execute(
 
 pub fn translate_projects_locations_adaptive_mt_datasets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAdaptiveMtDatasetsResponse>, ApiError>,
@@ -2470,7 +2659,11 @@ pub fn translate_projects_locations_adaptive_mt_datasets_list(
     ApiError,
 > {
     let builder = translate_projects_locations_adaptive_mt_datasets_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     translate_projects_locations_adaptive_mt_datasets_list_execute(builder)
 }
@@ -2565,6 +2758,13 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delet
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}
 /// Deletes an AdaptiveMtFile along with its sentences.
 ///
@@ -2577,14 +2777,14 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delet
 
 pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_delete_execute(builder)
 }
@@ -2681,6 +2881,13 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}
 /// Gets and AdaptiveMtFile
 ///
@@ -2693,7 +2900,7 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_e
 
 pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdaptiveMtFile>, ApiError>, P = ApiPending>
         + Send
@@ -2701,7 +2908,7 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get(
     ApiError,
 > {
     let builder = translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get_execute(builder)
 }
@@ -2816,6 +3023,17 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles
 /// Lists all AdaptiveMtFiles associated to an AdaptiveMtDataset.
 ///
@@ -2828,9 +3046,7 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_
 
 pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAdaptiveMtFilesResponse>, ApiError>,
@@ -2840,7 +3056,10 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list(
     ApiError,
 > {
     let builder = translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_execute(builder)
 }
@@ -2955,6 +3174,17 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adapt
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesAdaptiveMtSentencesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}/adaptiveMtSentences
 /// Lists all AdaptiveMtSentences under a given `file/dataset`.
 ///
@@ -2967,9 +3197,7 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adapt
 
 pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesAdaptiveMtSentencesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAdaptiveMtSentencesResponse>, ApiError>,
@@ -2978,7 +3206,7 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adapt
         + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adaptive_mt_sentences_list_execute(builder)
 }
 
@@ -3092,6 +3320,17 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_l
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtSentencesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtSentences
 /// Lists all AdaptiveMtSentences under a given `file/dataset`.
 ///
@@ -3104,9 +3343,7 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_l
 
 pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtSentencesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAdaptiveMtSentencesResponse>, ApiError>,
@@ -3117,7 +3354,10 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_l
 > {
     let builder =
         translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_execute(builder)
 }
@@ -3215,6 +3455,15 @@ pub fn translate_projects_locations_datasets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_datasets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsDatasetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Dataset,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/datasets
 /// Creates a Dataset.
 ///
@@ -3227,13 +3476,13 @@ pub fn translate_projects_locations_datasets_create_execute(
 
 pub fn translate_projects_locations_datasets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Dataset,
+    args: &TranslateProjectsLocationsDatasetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_datasets_create_builder(client, parent, body)?;
+    let builder =
+        translate_projects_locations_datasets_create_builder(client, &args.parent, &args.body)?;
     translate_projects_locations_datasets_create_execute(builder)
 }
 
@@ -3327,6 +3576,13 @@ pub fn translate_projects_locations_datasets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_datasets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsDatasetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
 /// Deletes a dataset and all of its contents.
 ///
@@ -3339,12 +3595,12 @@ pub fn translate_projects_locations_datasets_delete_execute(
 
 pub fn translate_projects_locations_datasets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranslateProjectsLocationsDatasetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_datasets_delete_builder(client, name)?;
+    let builder = translate_projects_locations_datasets_delete_builder(client, &args.name)?;
     translate_projects_locations_datasets_delete_execute(builder)
 }
 
@@ -3441,6 +3697,15 @@ pub fn translate_projects_locations_datasets_export_data_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_datasets_export_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsDatasetsExportDataArgs {
+    /// Path parameter: dataset
+    pub dataset: String,
+    /// Request body.
+    pub body: ExportDataRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:exportData
 /// Exports dataset's data to the provided output location.
 ///
@@ -3453,13 +3718,16 @@ pub fn translate_projects_locations_datasets_export_data_execute(
 
 pub fn translate_projects_locations_datasets_export_data(
     client: &SimpleHttpClient,
-    dataset: &str,
-    body: &ExportDataRequest,
+    args: &TranslateProjectsLocationsDatasetsExportDataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_datasets_export_data_builder(client, dataset, body)?;
+    let builder = translate_projects_locations_datasets_export_data_builder(
+        client,
+        &args.dataset,
+        &args.body,
+    )?;
     translate_projects_locations_datasets_export_data_execute(builder)
 }
 
@@ -3553,6 +3821,13 @@ pub fn translate_projects_locations_datasets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_datasets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsDatasetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
 /// Gets a Dataset.
 ///
@@ -3565,12 +3840,12 @@ pub fn translate_projects_locations_datasets_get_execute(
 
 pub fn translate_projects_locations_datasets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranslateProjectsLocationsDatasetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_datasets_get_builder(client, name)?;
+    let builder = translate_projects_locations_datasets_get_builder(client, &args.name)?;
     translate_projects_locations_datasets_get_execute(builder)
 }
 
@@ -3667,6 +3942,15 @@ pub fn translate_projects_locations_datasets_import_data_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_datasets_import_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsDatasetsImportDataArgs {
+    /// Path parameter: dataset
+    pub dataset: String,
+    /// Request body.
+    pub body: ImportDataRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:importData
 /// Import sentence pairs into translation Dataset.
 ///
@@ -3679,13 +3963,16 @@ pub fn translate_projects_locations_datasets_import_data_execute(
 
 pub fn translate_projects_locations_datasets_import_data(
     client: &SimpleHttpClient,
-    dataset: &str,
-    body: &ImportDataRequest,
+    args: &TranslateProjectsLocationsDatasetsImportDataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_datasets_import_data_builder(client, dataset, body)?;
+    let builder = translate_projects_locations_datasets_import_data_builder(
+        client,
+        &args.dataset,
+        &args.body,
+    )?;
     translate_projects_locations_datasets_import_data_execute(builder)
 }
 
@@ -3797,6 +4084,17 @@ pub fn translate_projects_locations_datasets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_datasets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsDatasetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/datasets
 /// Lists datasets.
 ///
@@ -3809,17 +4107,19 @@ pub fn translate_projects_locations_datasets_list_execute(
 
 pub fn translate_projects_locations_datasets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TranslateProjectsLocationsDatasetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDatasetsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        translate_projects_locations_datasets_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = translate_projects_locations_datasets_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     translate_projects_locations_datasets_list_execute(builder)
 }
 
@@ -3935,6 +4235,19 @@ pub fn translate_projects_locations_datasets_examples_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_datasets_examples_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsDatasetsExamplesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/examples
 /// Lists sentence pairs in the dataset.
 ///
@@ -3947,10 +4260,7 @@ pub fn translate_projects_locations_datasets_examples_list_execute(
 
 pub fn translate_projects_locations_datasets_examples_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TranslateProjectsLocationsDatasetsExamplesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListExamplesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3958,7 +4268,11 @@ pub fn translate_projects_locations_datasets_examples_list(
     ApiError,
 > {
     let builder = translate_projects_locations_datasets_examples_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     translate_projects_locations_datasets_examples_list_execute(builder)
 }
@@ -4056,6 +4370,15 @@ pub fn translate_projects_locations_glossaries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_glossaries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Glossary,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries
 /// Creates a glossary and returns the long-running operation. Returns NOT_FOUND, if the project doesn't exist.
 ///
@@ -4068,13 +4391,13 @@ pub fn translate_projects_locations_glossaries_create_execute(
 
 pub fn translate_projects_locations_glossaries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Glossary,
+    args: &TranslateProjectsLocationsGlossariesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_glossaries_create_builder(client, parent, body)?;
+    let builder =
+        translate_projects_locations_glossaries_create_builder(client, &args.parent, &args.body)?;
     translate_projects_locations_glossaries_create_execute(builder)
 }
 
@@ -4168,6 +4491,13 @@ pub fn translate_projects_locations_glossaries_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_glossaries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
 /// Deletes a glossary, or cancels glossary construction if the glossary isn't created yet. Returns NOT_FOUND, if the glossary doesn't exist.
 ///
@@ -4180,12 +4510,12 @@ pub fn translate_projects_locations_glossaries_delete_execute(
 
 pub fn translate_projects_locations_glossaries_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranslateProjectsLocationsGlossariesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_glossaries_delete_builder(client, name)?;
+    let builder = translate_projects_locations_glossaries_delete_builder(client, &args.name)?;
     translate_projects_locations_glossaries_delete_execute(builder)
 }
 
@@ -4279,6 +4609,13 @@ pub fn translate_projects_locations_glossaries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_glossaries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
 /// Gets a glossary. Returns NOT_FOUND, if the glossary doesn't exist.
 ///
@@ -4291,12 +4628,12 @@ pub fn translate_projects_locations_glossaries_get_execute(
 
 pub fn translate_projects_locations_glossaries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranslateProjectsLocationsGlossariesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Glossary>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_glossaries_get_builder(client, name)?;
+    let builder = translate_projects_locations_glossaries_get_builder(client, &args.name)?;
     translate_projects_locations_glossaries_get_execute(builder)
 }
 
@@ -4412,6 +4749,19 @@ pub fn translate_projects_locations_glossaries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_glossaries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries
 /// Lists glossaries in a project. Returns NOT_FOUND, if the project doesn't exist.
 ///
@@ -4424,10 +4774,7 @@ pub fn translate_projects_locations_glossaries_list_execute(
 
 pub fn translate_projects_locations_glossaries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TranslateProjectsLocationsGlossariesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGlossariesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4435,7 +4782,11 @@ pub fn translate_projects_locations_glossaries_list(
     ApiError,
 > {
     let builder = translate_projects_locations_glossaries_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     translate_projects_locations_glossaries_list_execute(builder)
 }
@@ -4545,6 +4896,17 @@ pub fn translate_projects_locations_glossaries_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_glossaries_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Glossary,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
 /// Updates a glossary. A LRO is used since the update can be async if the glossary's entry file is updated.
 ///
@@ -4557,15 +4919,17 @@ pub fn translate_projects_locations_glossaries_patch_execute(
 
 pub fn translate_projects_locations_glossaries_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Glossary,
+    args: &TranslateProjectsLocationsGlossariesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        translate_projects_locations_glossaries_patch_builder(client, name, updateMask, body)?;
+    let builder = translate_projects_locations_glossaries_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     translate_projects_locations_glossaries_patch_execute(builder)
 }
 
@@ -4664,6 +5028,15 @@ pub fn translate_projects_locations_glossaries_glossary_entries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_glossaries_glossary_entries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesGlossaryEntriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GlossaryEntry,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries
 /// Creates a glossary entry.
 ///
@@ -4676,8 +5049,7 @@ pub fn translate_projects_locations_glossaries_glossary_entries_create_execute(
 
 pub fn translate_projects_locations_glossaries_glossary_entries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GlossaryEntry,
+    args: &TranslateProjectsLocationsGlossariesGlossaryEntriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GlossaryEntry>, ApiError>, P = ApiPending>
         + Send
@@ -4685,7 +5057,9 @@ pub fn translate_projects_locations_glossaries_glossary_entries_create(
     ApiError,
 > {
     let builder = translate_projects_locations_glossaries_glossary_entries_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     translate_projects_locations_glossaries_glossary_entries_create_execute(builder)
 }
@@ -4780,6 +5154,13 @@ pub fn translate_projects_locations_glossaries_glossary_entries_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_glossaries_glossary_entries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesGlossaryEntriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}
 /// Deletes a single entry from the glossary
 ///
@@ -4792,13 +5173,14 @@ pub fn translate_projects_locations_glossaries_glossary_entries_delete_execute(
 
 pub fn translate_projects_locations_glossaries_glossary_entries_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranslateProjectsLocationsGlossariesGlossaryEntriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        translate_projects_locations_glossaries_glossary_entries_delete_builder(client, name)?;
+    let builder = translate_projects_locations_glossaries_glossary_entries_delete_builder(
+        client, &args.name,
+    )?;
     translate_projects_locations_glossaries_glossary_entries_delete_execute(builder)
 }
 
@@ -4894,6 +5276,13 @@ pub fn translate_projects_locations_glossaries_glossary_entries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_glossaries_glossary_entries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesGlossaryEntriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}
 /// Gets a single glossary entry by the given id.
 ///
@@ -4906,7 +5295,7 @@ pub fn translate_projects_locations_glossaries_glossary_entries_get_execute(
 
 pub fn translate_projects_locations_glossaries_glossary_entries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranslateProjectsLocationsGlossariesGlossaryEntriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GlossaryEntry>, ApiError>, P = ApiPending>
         + Send
@@ -4914,7 +5303,7 @@ pub fn translate_projects_locations_glossaries_glossary_entries_get(
     ApiError,
 > {
     let builder =
-        translate_projects_locations_glossaries_glossary_entries_get_builder(client, name)?;
+        translate_projects_locations_glossaries_glossary_entries_get_builder(client, &args.name)?;
     translate_projects_locations_glossaries_glossary_entries_get_execute(builder)
 }
 
@@ -5028,6 +5417,17 @@ pub fn translate_projects_locations_glossaries_glossary_entries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_glossaries_glossary_entries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesGlossaryEntriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries
 /// List the entries for the glossary.
 ///
@@ -5040,9 +5440,7 @@ pub fn translate_projects_locations_glossaries_glossary_entries_list_execute(
 
 pub fn translate_projects_locations_glossaries_glossary_entries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TranslateProjectsLocationsGlossariesGlossaryEntriesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListGlossaryEntriesResponse>, ApiError>,
@@ -5052,7 +5450,10 @@ pub fn translate_projects_locations_glossaries_glossary_entries_list(
     ApiError,
 > {
     let builder = translate_projects_locations_glossaries_glossary_entries_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     translate_projects_locations_glossaries_glossary_entries_list_execute(builder)
 }
@@ -5152,6 +5553,15 @@ pub fn translate_projects_locations_glossaries_glossary_entries_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_glossaries_glossary_entries_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsGlossariesGlossaryEntriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GlossaryEntry,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries/{glossaryEntriesId}
 /// Updates a glossary entry.
 ///
@@ -5164,16 +5574,16 @@ pub fn translate_projects_locations_glossaries_glossary_entries_patch_execute(
 
 pub fn translate_projects_locations_glossaries_glossary_entries_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GlossaryEntry,
+    args: &TranslateProjectsLocationsGlossariesGlossaryEntriesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GlossaryEntry>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        translate_projects_locations_glossaries_glossary_entries_patch_builder(client, name, body)?;
+    let builder = translate_projects_locations_glossaries_glossary_entries_patch_builder(
+        client, &args.name, &args.body,
+    )?;
     translate_projects_locations_glossaries_glossary_entries_patch_execute(builder)
 }
 
@@ -5270,6 +5680,15 @@ pub fn translate_projects_locations_models_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_models_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsModelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Model,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/models
 /// Creates a Model.
 ///
@@ -5282,13 +5701,13 @@ pub fn translate_projects_locations_models_create_execute(
 
 pub fn translate_projects_locations_models_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Model,
+    args: &TranslateProjectsLocationsModelsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_models_create_builder(client, parent, body)?;
+    let builder =
+        translate_projects_locations_models_create_builder(client, &args.parent, &args.body)?;
     translate_projects_locations_models_create_execute(builder)
 }
 
@@ -5382,6 +5801,13 @@ pub fn translate_projects_locations_models_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_models_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsModelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/models/{modelsId}
 /// Deletes a model.
 ///
@@ -5394,12 +5820,12 @@ pub fn translate_projects_locations_models_delete_execute(
 
 pub fn translate_projects_locations_models_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranslateProjectsLocationsModelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_models_delete_builder(client, name)?;
+    let builder = translate_projects_locations_models_delete_builder(client, &args.name)?;
     translate_projects_locations_models_delete_execute(builder)
 }
 
@@ -5493,6 +5919,13 @@ pub fn translate_projects_locations_models_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_models_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsModelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/models/{modelsId}
 /// Gets a model.
 ///
@@ -5505,12 +5938,12 @@ pub fn translate_projects_locations_models_get_execute(
 
 pub fn translate_projects_locations_models_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranslateProjectsLocationsModelsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Model>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_models_get_builder(client, name)?;
+    let builder = translate_projects_locations_models_get_builder(client, &args.name)?;
     translate_projects_locations_models_get_execute(builder)
 }
 
@@ -5626,6 +6059,19 @@ pub fn translate_projects_locations_models_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_models_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsModelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/models
 /// Lists models.
 ///
@@ -5638,10 +6084,7 @@ pub fn translate_projects_locations_models_list_execute(
 
 pub fn translate_projects_locations_models_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TranslateProjectsLocationsModelsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListModelsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5649,7 +6092,11 @@ pub fn translate_projects_locations_models_list(
     ApiError,
 > {
     let builder = translate_projects_locations_models_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     translate_projects_locations_models_list_execute(builder)
 }
@@ -5747,6 +6194,15 @@ pub fn translate_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -5759,13 +6215,13 @@ pub fn translate_projects_locations_operations_cancel_execute(
 
 pub fn translate_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &TranslateProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        translate_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     translate_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -5859,6 +6315,13 @@ pub fn translate_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -5871,12 +6334,12 @@ pub fn translate_projects_locations_operations_delete_execute(
 
 pub fn translate_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranslateProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_operations_delete_builder(client, name)?;
+    let builder = translate_projects_locations_operations_delete_builder(client, &args.name)?;
     translate_projects_locations_operations_delete_execute(builder)
 }
 
@@ -5970,6 +6433,13 @@ pub fn translate_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -5982,12 +6452,12 @@ pub fn translate_projects_locations_operations_get_execute(
 
 pub fn translate_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranslateProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_operations_get_builder(client, name)?;
+    let builder = translate_projects_locations_operations_get_builder(client, &args.name)?;
     translate_projects_locations_operations_get_execute(builder)
 }
 
@@ -6107,6 +6577,21 @@ pub fn translate_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -6119,11 +6604,7 @@ pub fn translate_projects_locations_operations_list_execute(
 
 pub fn translate_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &TranslateProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6132,11 +6613,11 @@ pub fn translate_projects_locations_operations_list(
 > {
     let builder = translate_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     translate_projects_locations_operations_list_execute(builder)
 }
@@ -6234,6 +6715,15 @@ pub fn translate_projects_locations_operations_wait_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`translate_projects_locations_operations_wait`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranslateProjectsLocationsOperationsWaitArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: WaitOperationRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:wait
 /// Waits until the specified long-running operation is done or reaches at most a specified timeout, returning the latest state. If the operation is already done, the latest state is immediately returned. If the timeout specified is greater than the default HTTP/RPC timeout, the HTTP/RPC timeout is used. If the server does not support this method, it returns google.rpc.Code.UNIMPLEMENTED. Note that this method is on a best-effort basis. It may return the latest state before the specified timeout (including immediately), meaning even an immediate response is no guarantee that the operation is done.
 ///
@@ -6246,12 +6736,12 @@ pub fn translate_projects_locations_operations_wait_execute(
 
 pub fn translate_projects_locations_operations_wait(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &WaitOperationRequest,
+    args: &TranslateProjectsLocationsOperationsWaitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = translate_projects_locations_operations_wait_builder(client, name, body)?;
+    let builder =
+        translate_projects_locations_operations_wait_builder(client, &args.name, &args.body)?;
     translate_projects_locations_operations_wait_execute(builder)
 }

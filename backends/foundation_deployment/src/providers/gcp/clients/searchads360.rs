@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v0/customers:listAccessibleCustomers
 /// Returns resource names of customers directly accessible by the user authenticating the call. List of thrown errors: [AuthenticationError]() [AuthorizationError]() [HeaderError]() [InternalError]() [QuotaError]() [RequestError]()
@@ -232,6 +234,13 @@ pub fn searchads360_customers_custom_columns_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`searchads360_customers_custom_columns_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Searchads360CustomersCustomColumnsGetArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+}
+
 /// GET v0/customers/{customersId}/customColumns/{customColumnsId}
 /// Returns the requested custom column in full detail.
 ///
@@ -244,7 +253,7 @@ pub fn searchads360_customers_custom_columns_get_execute(
 
 pub fn searchads360_customers_custom_columns_get(
     client: &SimpleHttpClient,
-    resourceName: &str,
+    args: &Searchads360CustomersCustomColumnsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAdsSearchads360V0Resources__CustomColumn>, ApiError>,
@@ -253,7 +262,7 @@ pub fn searchads360_customers_custom_columns_get(
         + 'static,
     ApiError,
 > {
-    let builder = searchads360_customers_custom_columns_get_builder(client, resourceName)?;
+    let builder = searchads360_customers_custom_columns_get_builder(client, &args.resourceName)?;
     searchads360_customers_custom_columns_get_execute(builder)
 }
 
@@ -355,6 +364,13 @@ pub fn searchads360_customers_custom_columns_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`searchads360_customers_custom_columns_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Searchads360CustomersCustomColumnsListArgs {
+    /// Path parameter: customerId
+    pub customerId: String,
+}
+
 /// GET v0/customers/{customersId}/customColumns
 /// Returns all the custom columns associated with the customer in full detail.
 ///
@@ -367,7 +383,7 @@ pub fn searchads360_customers_custom_columns_list_execute(
 
 pub fn searchads360_customers_custom_columns_list(
     client: &SimpleHttpClient,
-    customerId: &str,
+    args: &Searchads360CustomersCustomColumnsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -379,7 +395,7 @@ pub fn searchads360_customers_custom_columns_list(
         + 'static,
     ApiError,
 > {
-    let builder = searchads360_customers_custom_columns_list_builder(client, customerId)?;
+    let builder = searchads360_customers_custom_columns_list_builder(client, &args.customerId)?;
     searchads360_customers_custom_columns_list_execute(builder)
 }
 
@@ -484,6 +500,15 @@ pub fn searchads360_customers_search_ads360_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`searchads360_customers_search_ads360_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Searchads360CustomersSearchAds360SearchArgs {
+    /// Path parameter: customerId
+    pub customerId: String,
+    /// Request body.
+    pub body: GoogleAdsSearchads360V0Services__SearchSearchAds360Request,
+}
+
 /// GET v0/customers/{customersId}/searchAds360:search
 /// Returns all rows that match the search query. List of thrown errors: [AuthenticationError]() [AuthorizationError]() [HeaderError]() [InternalError]() [QueryError]() [QuotaError]() [RequestError]()
 ///
@@ -496,8 +521,7 @@ pub fn searchads360_customers_search_ads360_search_execute(
 
 pub fn searchads360_customers_search_ads360_search(
     client: &SimpleHttpClient,
-    customerId: &str,
-    body: &GoogleAdsSearchads360V0Services__SearchSearchAds360Request,
+    args: &Searchads360CustomersSearchAds360SearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -509,7 +533,8 @@ pub fn searchads360_customers_search_ads360_search(
         + 'static,
     ApiError,
 > {
-    let builder = searchads360_customers_search_ads360_search_builder(client, customerId, body)?;
+    let builder =
+        searchads360_customers_search_ads360_search_builder(client, &args.customerId, &args.body)?;
     searchads360_customers_search_ads360_search_execute(builder)
 }
 
@@ -608,6 +633,13 @@ pub fn searchads360_search_ads360_fields_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`searchads360_search_ads360_fields_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Searchads360SearchAds360FieldsGetArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+}
+
 /// GET v0/searchAds360Fields/{searchAds360FieldsId}
 /// Returns just the requested field. List of thrown errors: [AuthenticationError]() [AuthorizationError]() [HeaderError]() [InternalError]() [QuotaError]() [RequestError]()
 ///
@@ -620,7 +652,7 @@ pub fn searchads360_search_ads360_fields_get_execute(
 
 pub fn searchads360_search_ads360_fields_get(
     client: &SimpleHttpClient,
-    resourceName: &str,
+    args: &Searchads360SearchAds360FieldsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAdsSearchads360V0Resources__SearchAds360Field>, ApiError>,
@@ -629,7 +661,7 @@ pub fn searchads360_search_ads360_fields_get(
         + 'static,
     ApiError,
 > {
-    let builder = searchads360_search_ads360_fields_get_builder(client, resourceName)?;
+    let builder = searchads360_search_ads360_fields_get_builder(client, &args.resourceName)?;
     searchads360_search_ads360_fields_get_execute(builder)
 }
 
@@ -730,6 +762,13 @@ pub fn searchads360_search_ads360_fields_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`searchads360_search_ads360_fields_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Searchads360SearchAds360FieldsSearchArgs {
+    /// Request body.
+    pub body: GoogleAdsSearchads360V0Services__SearchSearchAds360FieldsRequest,
+}
+
 /// GET v0/searchAds360Fields:search
 /// Returns all fields that match the search [query](/search-`ads/reporting/concepts/field-service`#use_a_query_to_get_field_details). List of thrown errors: [AuthenticationError]() [AuthorizationError]() [HeaderError]() [InternalError]() [QueryError]() [QuotaError]() [RequestError]()
 ///
@@ -742,7 +781,7 @@ pub fn searchads360_search_ads360_fields_search_execute(
 
 pub fn searchads360_search_ads360_fields_search(
     client: &SimpleHttpClient,
-    body: &GoogleAdsSearchads360V0Services__SearchSearchAds360FieldsRequest,
+    args: &Searchads360SearchAds360FieldsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -754,6 +793,6 @@ pub fn searchads360_search_ads360_fields_search(
         + 'static,
     ApiError,
 > {
-    let builder = searchads360_search_ads360_fields_search_builder(client, body)?;
+    let builder = searchads360_search_ads360_fields_search_builder(client, &args.body)?;
     searchads360_search_ads360_fields_search_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v3/effectiveTags
 /// Return a list of effective tags for the given Google Cloud resource, as specified in parent.
@@ -124,6 +126,17 @@ pub fn cloudresourcemanager_effective_tags_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_effective_tags_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerEffectiveTagsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v3/effectiveTags
 /// Return a list of effective tags for the given Google Cloud resource, as specified in parent.
 ///
@@ -136,17 +149,19 @@ pub fn cloudresourcemanager_effective_tags_list_execute(
 
 pub fn cloudresourcemanager_effective_tags_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
+    args: &CloudresourcemanagerEffectiveTagsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListEffectiveTagsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_effective_tags_list_builder(client, pageSize, pageToken, parent)?;
+    let builder = cloudresourcemanager_effective_tags_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
+    )?;
     cloudresourcemanager_effective_tags_list_execute(builder)
 }
 
@@ -239,6 +254,13 @@ pub fn cloudresourcemanager_folders_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_folders_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersCreateArgs {
+    /// Request body.
+    pub body: Folder,
+}
+
 /// GET v3/folders
 /// Creates a folder in the resource hierarchy. Returns an Operation which can be used to track the progress of the folder creation workflow. Upon success, the Operation.response field will be populated with the created Folder. In order to succeed, the addition of this new folder must not violate the folder naming, height, or fanout constraints. + The folder's display_name must be distinct from all other folders that share its parent. + The addition of the folder must not cause the active folder hierarchy to exceed a height of 10. Note, the full active + deleted folder hierarchy is allowed to reach a height of 20; this provides additional headroom when moving folders that contain deleted folders. + The addition of the folder must not cause the total number of folders under its parent to exceed 300. If the operation fails due to a folder constraint violation, some errors may be returned by the CreateFolder request, with status code FAILED_PRECONDITION and an error description. Other folder constraint violations will be communicated in the Operation, with the specific PreconditionFailure returned in the details list in the Operation.error field. The caller must have resourcemanager.folders.create permission on the identified parent.
 ///
@@ -251,12 +273,12 @@ pub fn cloudresourcemanager_folders_create_execute(
 
 pub fn cloudresourcemanager_folders_create(
     client: &SimpleHttpClient,
-    body: &Folder,
+    args: &CloudresourcemanagerFoldersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_create_builder(client, body)?;
+    let builder = cloudresourcemanager_folders_create_builder(client, &args.body)?;
     cloudresourcemanager_folders_create_execute(builder)
 }
 
@@ -350,6 +372,13 @@ pub fn cloudresourcemanager_folders_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_folders_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/folders/{foldersId}
 /// Requests deletion of a folder. The folder is moved into the DELETE_REQUESTED state immediately, and is deleted approximately 30 days later. This method may only be called on an empty folder, where a folder is empty if it doesn't contain any folders or projects in the `ACTIVE` state. If called on a folder in DELETE_REQUESTED state the operation will result in a no-op success. The caller must have resourcemanager.folders.delete permission on the identified folder.
 ///
@@ -362,12 +391,12 @@ pub fn cloudresourcemanager_folders_delete_execute(
 
 pub fn cloudresourcemanager_folders_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudresourcemanagerFoldersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_delete_builder(client, name)?;
+    let builder = cloudresourcemanager_folders_delete_builder(client, &args.name)?;
     cloudresourcemanager_folders_delete_execute(builder)
 }
 
@@ -461,6 +490,13 @@ pub fn cloudresourcemanager_folders_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_folders_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/folders/{foldersId}
 /// Retrieves a folder identified by the supplied resource name. Valid folder resource names have the format `folders/{folder_id}` (for example, `folders/1234`). The caller must have resourcemanager.folders.get permission on the identified folder.
 ///
@@ -473,12 +509,12 @@ pub fn cloudresourcemanager_folders_get_execute(
 
 pub fn cloudresourcemanager_folders_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudresourcemanagerFoldersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_get_builder(client, name)?;
+    let builder = cloudresourcemanager_folders_get_builder(client, &args.name)?;
     cloudresourcemanager_folders_get_execute(builder)
 }
 
@@ -575,6 +611,15 @@ pub fn cloudresourcemanager_folders_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_folders_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v3/folders/{foldersId}:getIamPolicy
 /// Gets the access control policy for a folder. The returned policy may be empty if no such policy or resource exists. The resource field should be the folder's resource name, for example: "`folders/1234`". The caller must have resourcemanager.folders.`getIamPolicy` permission on the identified folder.
 ///
@@ -587,13 +632,13 @@ pub fn cloudresourcemanager_folders_get_iam_policy_execute(
 
 pub fn cloudresourcemanager_folders_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &CloudresourcemanagerFoldersGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_get_iam_policy_builder(client, resource, body)?;
+    let builder =
+        cloudresourcemanager_folders_get_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudresourcemanager_folders_get_iam_policy_execute(builder)
 }
 
@@ -709,6 +754,19 @@ pub fn cloudresourcemanager_folders_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_folders_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v3/folders
 /// Lists the folders that are direct descendants of supplied parent resource. list() provides a strongly consistent view of the folders underneath the specified parent resource. list() returns folders sorted based upon the (ascending) lexical ordering of their display_name. The caller must have resourcemanager.folders.list permission on the identified parent.
 ///
@@ -721,10 +779,7 @@ pub fn cloudresourcemanager_folders_list_execute(
 
 pub fn cloudresourcemanager_folders_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &CloudresourcemanagerFoldersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFoldersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -733,10 +788,10 @@ pub fn cloudresourcemanager_folders_list(
 > {
     let builder = cloudresourcemanager_folders_list_builder(
         client,
-        pageSize,
-        pageToken,
-        parent,
-        showDeleted,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
+        args.showDeleted,
     )?;
     cloudresourcemanager_folders_list_execute(builder)
 }
@@ -834,6 +889,15 @@ pub fn cloudresourcemanager_folders_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_folders_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MoveFolderRequest,
+}
+
 /// GET v3/folders/{foldersId}:move
 /// Moves a folder under a new resource parent. Returns an Operation which can be used to track the progress of the folder move workflow. Upon success, the Operation.response field will be populated with the moved folder. Upon failure, a FolderOperationError categorizing the failure cause will be returned - if the failure occurs synchronously then the FolderOperationError will be returned in the Status.details field. If it occurs asynchronously, then the FolderOperation will be returned in the Operation.error field. In addition, the Operation.metadata field will be populated with a FolderOperation message as an aid to stateless clients. Folder moves will be rejected if they violate either the naming, height, or fanout constraints described in the CreateFolder documentation. The caller must have resourcemanager.folders.move permission on the folder's current and proposed new parent.
 ///
@@ -846,13 +910,12 @@ pub fn cloudresourcemanager_folders_move_execute(
 
 pub fn cloudresourcemanager_folders_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MoveFolderRequest,
+    args: &CloudresourcemanagerFoldersMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_move_builder(client, name, body)?;
+    let builder = cloudresourcemanager_folders_move_builder(client, &args.name, &args.body)?;
     cloudresourcemanager_folders_move_execute(builder)
 }
 
@@ -961,6 +1024,17 @@ pub fn cloudresourcemanager_folders_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_folders_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Folder,
+}
+
 /// GET v3/folders/{foldersId}
 /// Updates a folder, changing its display_name. Changes to the folder display_name will be rejected if they violate either the display_name formatting rules or the naming constraints described in the CreateFolder documentation. The folder's display_name must start and end with a letter or digit, may contain letters, digits, spaces, hyphens and underscores and can be between 3 and 30 characters. This is captured by the regular expression: \p{L}\p{N}{1,28}[\p{L}\p{N}]. The caller must have resourcemanager.folders.update permission on the identified folder. If the update fails due to the unique name constraint then a PreconditionFailure explaining this violation will be returned in the Status.details field.
 ///
@@ -973,14 +1047,17 @@ pub fn cloudresourcemanager_folders_patch_execute(
 
 pub fn cloudresourcemanager_folders_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Folder,
+    args: &CloudresourcemanagerFoldersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_patch_builder(client, name, updateMask, body)?;
+    let builder = cloudresourcemanager_folders_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudresourcemanager_folders_patch_execute(builder)
 }
 
@@ -1092,6 +1169,17 @@ pub fn cloudresourcemanager_folders_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_folders_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersSearchArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v3/folders:search
 /// Search for folders that match specific filter criteria. search() provides an eventually consistent view of the folders a user has access to which meet the specified filter criteria. This will only return folders on which the caller has the permission resourcemanager.folders.get.
 ///
@@ -1104,16 +1192,19 @@ pub fn cloudresourcemanager_folders_search_execute(
 
 pub fn cloudresourcemanager_folders_search(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    args: &CloudresourcemanagerFoldersSearchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchFoldersResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_search_builder(client, pageSize, pageToken, query)?;
+    let builder = cloudresourcemanager_folders_search_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
+    )?;
     cloudresourcemanager_folders_search_execute(builder)
 }
 
@@ -1210,6 +1301,15 @@ pub fn cloudresourcemanager_folders_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_folders_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v3/folders/{foldersId}:setIamPolicy
 /// Sets the access control policy on a folder, replacing any existing policy. The resource field should be the folder's resource name, for example: "`folders/1234`". The caller must have resourcemanager.folders.`setIamPolicy` permission on the identified folder.
 ///
@@ -1222,13 +1322,13 @@ pub fn cloudresourcemanager_folders_set_iam_policy_execute(
 
 pub fn cloudresourcemanager_folders_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &CloudresourcemanagerFoldersSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        cloudresourcemanager_folders_set_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudresourcemanager_folders_set_iam_policy_execute(builder)
 }
 
@@ -1329,6 +1429,15 @@ pub fn cloudresourcemanager_folders_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_folders_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v3/folders/{foldersId}:testIamPermissions
 /// Returns permissions that a caller has on the specified folder. The resource field should be the folder's resource name, for example: "`folders/1234`". There are no permissions required for making this API call.
 ///
@@ -1341,8 +1450,7 @@ pub fn cloudresourcemanager_folders_test_iam_permissions_execute(
 
 pub fn cloudresourcemanager_folders_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &CloudresourcemanagerFoldersTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1351,8 +1459,11 @@ pub fn cloudresourcemanager_folders_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_folders_test_iam_permissions_builder(client, resource, body)?;
+    let builder = cloudresourcemanager_folders_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudresourcemanager_folders_test_iam_permissions_execute(builder)
 }
 
@@ -1449,6 +1560,15 @@ pub fn cloudresourcemanager_folders_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_folders_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersUndeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UndeleteFolderRequest,
+}
+
 /// GET v3/folders/{foldersId}:undelete
 /// Cancels the deletion request for a folder. This method may be called on a folder in any state. If the folder is in the `ACTIVE` state the result will be a no-op success. In order to succeed, the folder's parent must be in the `ACTIVE` state. In addition, reintroducing the folder into the tree must not violate folder naming, height, and fanout constraints described in the CreateFolder documentation. The caller must have resourcemanager.folders.undelete permission on the identified folder.
 ///
@@ -1461,13 +1581,12 @@ pub fn cloudresourcemanager_folders_undelete_execute(
 
 pub fn cloudresourcemanager_folders_undelete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UndeleteFolderRequest,
+    args: &CloudresourcemanagerFoldersUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_undelete_builder(client, name, body)?;
+    let builder = cloudresourcemanager_folders_undelete_builder(client, &args.name, &args.body)?;
     cloudresourcemanager_folders_undelete_execute(builder)
 }
 
@@ -1561,6 +1680,13 @@ pub fn cloudresourcemanager_folders_capabilities_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_folders_capabilities_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersCapabilitiesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/folders/{foldersId}/capabilities/{capabilitiesId}
 /// Retrieves the Capability identified by the supplied resource name.
 ///
@@ -1573,12 +1699,12 @@ pub fn cloudresourcemanager_folders_capabilities_get_execute(
 
 pub fn cloudresourcemanager_folders_capabilities_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudresourcemanagerFoldersCapabilitiesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Capability>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_capabilities_get_builder(client, name)?;
+    let builder = cloudresourcemanager_folders_capabilities_get_builder(client, &args.name)?;
     cloudresourcemanager_folders_capabilities_get_execute(builder)
 }
 
@@ -1687,6 +1813,17 @@ pub fn cloudresourcemanager_folders_capabilities_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_folders_capabilities_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersCapabilitiesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Capability,
+}
+
 /// GET v3/folders/{foldersId}/capabilities/{capabilitiesId}
 /// Updates the Capability.
 ///
@@ -1699,15 +1836,17 @@ pub fn cloudresourcemanager_folders_capabilities_patch_execute(
 
 pub fn cloudresourcemanager_folders_capabilities_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Capability,
+    args: &CloudresourcemanagerFoldersCapabilitiesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_folders_capabilities_patch_builder(client, name, updateMask, body)?;
+    let builder = cloudresourcemanager_folders_capabilities_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudresourcemanager_folders_capabilities_patch_execute(builder)
 }
 
@@ -1800,6 +1939,13 @@ pub fn cloudresourcemanager_liens_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_liens_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerLiensCreateArgs {
+    /// Request body.
+    pub body: Lien,
+}
+
 /// GET v3/liens
 /// Create a Lien which applies to the resource denoted by the parent field. Callers of this method will require permission on the parent resource. For example, applying to `projects/1234` requires permission resourcemanager.projects.`updateLiens`. NOTE: Some resources may limit the number of Liens which may be applied.
 ///
@@ -1812,12 +1958,12 @@ pub fn cloudresourcemanager_liens_create_execute(
 
 pub fn cloudresourcemanager_liens_create(
     client: &SimpleHttpClient,
-    body: &Lien,
+    args: &CloudresourcemanagerLiensCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Lien>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_liens_create_builder(client, body)?;
+    let builder = cloudresourcemanager_liens_create_builder(client, &args.body)?;
     cloudresourcemanager_liens_create_execute(builder)
 }
 
@@ -1911,6 +2057,13 @@ pub fn cloudresourcemanager_liens_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_liens_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerLiensDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/liens/{liensId}
 /// Delete a Lien by name. Callers of this method will require permission on the parent resource. For example, a Lien with a parent of `projects/1234` requires permission resourcemanager.projects.`updateLiens`.
 ///
@@ -1923,12 +2076,12 @@ pub fn cloudresourcemanager_liens_delete_execute(
 
 pub fn cloudresourcemanager_liens_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudresourcemanagerLiensDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_liens_delete_builder(client, name)?;
+    let builder = cloudresourcemanager_liens_delete_builder(client, &args.name)?;
     cloudresourcemanager_liens_delete_execute(builder)
 }
 
@@ -2022,6 +2175,13 @@ pub fn cloudresourcemanager_liens_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_liens_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerLiensGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/liens/{liensId}
 /// Retrieve a Lien by name. Callers of this method will require permission on the parent resource. For example, a Lien with a parent of `projects/1234` requires permission resourcemanager.projects.get
 ///
@@ -2034,12 +2194,12 @@ pub fn cloudresourcemanager_liens_get_execute(
 
 pub fn cloudresourcemanager_liens_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudresourcemanagerLiensGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Lien>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_liens_get_builder(client, name)?;
+    let builder = cloudresourcemanager_liens_get_builder(client, &args.name)?;
     cloudresourcemanager_liens_get_execute(builder)
 }
 
@@ -2151,6 +2311,17 @@ pub fn cloudresourcemanager_liens_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_liens_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerLiensListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v3/liens
 /// List all Liens applied to the parent resource. Callers of this method will require permission on the parent resource. For example, a Lien with a parent of `projects/1234` requires permission resourcemanager.projects.get.
 ///
@@ -2163,16 +2334,19 @@ pub fn cloudresourcemanager_liens_list_execute(
 
 pub fn cloudresourcemanager_liens_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
+    args: &CloudresourcemanagerLiensListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLiensResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_liens_list_builder(client, pageSize, pageToken, parent)?;
+    let builder = cloudresourcemanager_liens_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
+    )?;
     cloudresourcemanager_liens_list_execute(builder)
 }
 
@@ -2270,6 +2444,13 @@ pub fn cloudresourcemanager_locations_effective_tag_binding_collections_get_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_locations_effective_tag_binding_collections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerLocationsEffectiveTagBindingCollectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/locations/{locationsId}/effectiveTagBindingCollections/{effectiveTagBindingCollectionsId}
 /// Returns effective tag bindings on a GCP resource.
 ///
@@ -2282,7 +2463,7 @@ pub fn cloudresourcemanager_locations_effective_tag_binding_collections_get_exec
 
 pub fn cloudresourcemanager_locations_effective_tag_binding_collections_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudresourcemanagerLocationsEffectiveTagBindingCollectionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EffectiveTagBindingCollection>, ApiError>,
@@ -2291,8 +2472,9 @@ pub fn cloudresourcemanager_locations_effective_tag_binding_collections_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_locations_effective_tag_binding_collections_get_builder(client, name)?;
+    let builder = cloudresourcemanager_locations_effective_tag_binding_collections_get_builder(
+        client, &args.name,
+    )?;
     cloudresourcemanager_locations_effective_tag_binding_collections_get_execute(builder)
 }
 
@@ -2388,6 +2570,13 @@ pub fn cloudresourcemanager_locations_tag_binding_collections_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_locations_tag_binding_collections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerLocationsTagBindingCollectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/locations/{locationsId}/tagBindingCollections/{tagBindingCollectionsId}
 /// Returns tag bindings directly attached to a GCP resource.
 ///
@@ -2400,14 +2589,15 @@ pub fn cloudresourcemanager_locations_tag_binding_collections_get_execute(
 
 pub fn cloudresourcemanager_locations_tag_binding_collections_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudresourcemanagerLocationsTagBindingCollectionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TagBindingCollection>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_locations_tag_binding_collections_get_builder(client, name)?;
+    let builder =
+        cloudresourcemanager_locations_tag_binding_collections_get_builder(client, &args.name)?;
     cloudresourcemanager_locations_tag_binding_collections_get_execute(builder)
 }
 
@@ -2516,6 +2706,17 @@ pub fn cloudresourcemanager_locations_tag_binding_collections_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_locations_tag_binding_collections_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerLocationsTagBindingCollectionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: TagBindingCollection,
+}
+
 /// GET v3/locations/{locationsId}/tagBindingCollections/{tagBindingCollectionsId}
 /// Updates tag bindings directly attached to a GCP resource. Update_mask can be kept empty or "*".
 ///
@@ -2528,15 +2729,16 @@ pub fn cloudresourcemanager_locations_tag_binding_collections_patch_execute(
 
 pub fn cloudresourcemanager_locations_tag_binding_collections_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &TagBindingCollection,
+    args: &CloudresourcemanagerLocationsTagBindingCollectionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudresourcemanager_locations_tag_binding_collections_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     cloudresourcemanager_locations_tag_binding_collections_patch_execute(builder)
 }
@@ -2631,6 +2833,13 @@ pub fn cloudresourcemanager_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2643,12 +2852,12 @@ pub fn cloudresourcemanager_operations_get_execute(
 
 pub fn cloudresourcemanager_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudresourcemanagerOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_operations_get_builder(client, name)?;
+    let builder = cloudresourcemanager_operations_get_builder(client, &args.name)?;
     cloudresourcemanager_operations_get_execute(builder)
 }
 
@@ -2744,6 +2953,13 @@ pub fn cloudresourcemanager_organizations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_organizations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerOrganizationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/organizations/{organizationsId}
 /// Fetches an organization resource identified by the specified resource name.
 ///
@@ -2756,14 +2972,14 @@ pub fn cloudresourcemanager_organizations_get_execute(
 
 pub fn cloudresourcemanager_organizations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudresourcemanagerOrganizationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Organization>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_organizations_get_builder(client, name)?;
+    let builder = cloudresourcemanager_organizations_get_builder(client, &args.name)?;
     cloudresourcemanager_organizations_get_execute(builder)
 }
 
@@ -2860,6 +3076,15 @@ pub fn cloudresourcemanager_organizations_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_organizations_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerOrganizationsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v3/organizations/{organizationsId}:getIamPolicy
 /// Gets the access control policy for an organization resource. The policy may be empty if no such policy or resource exists. The resource field should be the organization's resource name, for example: "`organizations/123`". Authorization requires the IAM permission resourcemanager.organizations.`getIamPolicy` on the specified organization.
 ///
@@ -2872,14 +3097,16 @@ pub fn cloudresourcemanager_organizations_get_iam_policy_execute(
 
 pub fn cloudresourcemanager_organizations_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &CloudresourcemanagerOrganizationsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_organizations_get_iam_policy_builder(client, resource, body)?;
+    let builder = cloudresourcemanager_organizations_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudresourcemanager_organizations_get_iam_policy_execute(builder)
 }
 
@@ -2993,6 +3220,17 @@ pub fn cloudresourcemanager_organizations_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_organizations_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerOrganizationsSearchArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v3/organizations:search
 /// Searches organization resources that are visible to the user and satisfy the specified filter. This method returns organizations in an unspecified order. New organizations do not necessarily appear at the end of the results, and may take a small amount of time to appear. Search will only return organizations on which the user has the permission resourcemanager.organizations.get or has super admin privileges.
 ///
@@ -3005,9 +3243,7 @@ pub fn cloudresourcemanager_organizations_search_execute(
 
 pub fn cloudresourcemanager_organizations_search(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    args: &CloudresourcemanagerOrganizationsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchOrganizationsResponse>, ApiError>,
@@ -3016,8 +3252,12 @@ pub fn cloudresourcemanager_organizations_search(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_organizations_search_builder(client, pageSize, pageToken, query)?;
+    let builder = cloudresourcemanager_organizations_search_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
+    )?;
     cloudresourcemanager_organizations_search_execute(builder)
 }
 
@@ -3114,6 +3354,15 @@ pub fn cloudresourcemanager_organizations_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_organizations_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerOrganizationsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v3/organizations/{organizationsId}:setIamPolicy
 /// Sets the access control policy on an organization resource. Replaces any existing policy. The resource field should be the organization's resource name, for example: "`organizations/123`". Authorization requires the IAM permission resourcemanager.organizations.`setIamPolicy` on the specified organization.
 ///
@@ -3126,14 +3375,16 @@ pub fn cloudresourcemanager_organizations_set_iam_policy_execute(
 
 pub fn cloudresourcemanager_organizations_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &CloudresourcemanagerOrganizationsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_organizations_set_iam_policy_builder(client, resource, body)?;
+    let builder = cloudresourcemanager_organizations_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudresourcemanager_organizations_set_iam_policy_execute(builder)
 }
 
@@ -3234,6 +3485,15 @@ pub fn cloudresourcemanager_organizations_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_organizations_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerOrganizationsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v3/organizations/{organizationsId}:testIamPermissions
 /// Returns the permissions that a caller has on the specified organization. The resource field should be the organization's resource name, for example: "`organizations/123`". There are no permissions required for making this API call.
 ///
@@ -3246,8 +3506,7 @@ pub fn cloudresourcemanager_organizations_test_iam_permissions_execute(
 
 pub fn cloudresourcemanager_organizations_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &CloudresourcemanagerOrganizationsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3256,8 +3515,11 @@ pub fn cloudresourcemanager_organizations_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_organizations_test_iam_permissions_builder(client, resource, body)?;
+    let builder = cloudresourcemanager_organizations_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudresourcemanager_organizations_test_iam_permissions_execute(builder)
 }
 
@@ -3350,6 +3612,13 @@ pub fn cloudresourcemanager_projects_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_projects_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerProjectsCreateArgs {
+    /// Request body.
+    pub body: Project,
+}
+
 /// GET v3/projects
 /// Request that a new project be created. The result is an Operation which can be used to track the creation process. This process usually takes a few seconds, but can sometimes take much longer. The tracking Operation is automatically deleted after a few hours, so there is no need to call DeleteOperation.
 ///
@@ -3362,12 +3631,12 @@ pub fn cloudresourcemanager_projects_create_execute(
 
 pub fn cloudresourcemanager_projects_create(
     client: &SimpleHttpClient,
-    body: &Project,
+    args: &CloudresourcemanagerProjectsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_projects_create_builder(client, body)?;
+    let builder = cloudresourcemanager_projects_create_builder(client, &args.body)?;
     cloudresourcemanager_projects_create_execute(builder)
 }
 
@@ -3461,6 +3730,13 @@ pub fn cloudresourcemanager_projects_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_projects_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerProjectsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}
 /// Marks the project identified by the specified name (for example, `projects/415104041262`) for deletion. This method will only affect the project if it has a lifecycle state of `ACTIVE`. This method changes the Project's lifecycle state from `ACTIVE` to DELETE_REQUESTED. The deletion starts at an unspecified time, at which point the Project is no longer accessible. Until the deletion completes, you can check the lifecycle state checked by retrieving the project with GetProject, and the project remains visible to ListProjects. However, you cannot update the project. After the deletion completes, the project is not retrievable by the GetProject, ListProjects, and SearchProjects methods. The caller must have resourcemanager.projects.delete permissions for this project.
 ///
@@ -3473,12 +3749,12 @@ pub fn cloudresourcemanager_projects_delete_execute(
 
 pub fn cloudresourcemanager_projects_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudresourcemanagerProjectsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_projects_delete_builder(client, name)?;
+    let builder = cloudresourcemanager_projects_delete_builder(client, &args.name)?;
     cloudresourcemanager_projects_delete_execute(builder)
 }
 
@@ -3572,6 +3848,13 @@ pub fn cloudresourcemanager_projects_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_projects_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerProjectsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}
 /// Retrieves the project identified by the specified name (for example, `projects/415104041262`). The caller must have resourcemanager.projects.get permission for this project.
 ///
@@ -3584,12 +3867,12 @@ pub fn cloudresourcemanager_projects_get_execute(
 
 pub fn cloudresourcemanager_projects_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudresourcemanagerProjectsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Project>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_projects_get_builder(client, name)?;
+    let builder = cloudresourcemanager_projects_get_builder(client, &args.name)?;
     cloudresourcemanager_projects_get_execute(builder)
 }
 
@@ -3686,6 +3969,15 @@ pub fn cloudresourcemanager_projects_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_projects_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerProjectsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v3/projects/{projectsId}:getIamPolicy
 /// Returns the IAM access control policy for the specified project, in the format `projects/{ProjectIdOrNumber}` e.g. `projects/123`. Permission is denied if the policy or the resource do not exist.
 ///
@@ -3698,13 +3990,13 @@ pub fn cloudresourcemanager_projects_get_iam_policy_execute(
 
 pub fn cloudresourcemanager_projects_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &CloudresourcemanagerProjectsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_projects_get_iam_policy_builder(client, resource, body)?;
+    let builder =
+        cloudresourcemanager_projects_get_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudresourcemanager_projects_get_iam_policy_execute(builder)
 }
 
@@ -3820,6 +4112,19 @@ pub fn cloudresourcemanager_projects_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_projects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerProjectsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v3/projects
 /// Lists projects that are direct children of the specified folder or organization resource. list() provides a strongly consistent view of the projects underneath the specified parent resource. list() returns projects sorted based upon the (ascending) lexical ordering of their display_name. The caller must have resourcemanager.projects.list permission on the identified parent.
 ///
@@ -3832,10 +4137,7 @@ pub fn cloudresourcemanager_projects_list_execute(
 
 pub fn cloudresourcemanager_projects_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &CloudresourcemanagerProjectsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListProjectsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3844,10 +4146,10 @@ pub fn cloudresourcemanager_projects_list(
 > {
     let builder = cloudresourcemanager_projects_list_builder(
         client,
-        pageSize,
-        pageToken,
-        parent,
-        showDeleted,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
+        args.showDeleted,
     )?;
     cloudresourcemanager_projects_list_execute(builder)
 }
@@ -3945,6 +4247,15 @@ pub fn cloudresourcemanager_projects_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_projects_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerProjectsMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MoveProjectRequest,
+}
+
 /// GET v3/projects/{projectsId}:move
 /// Move a project to another place in your resource hierarchy, under a new resource parent. Returns an operation which can be used to track the process of the project move workflow. Upon success, the Operation.response field will be populated with the moved project. The caller must have resourcemanager.projects.move permission on the project, on the project's current and proposed new parent. If project has no current parent, or it currently does not have an associated organization resource, you will also need the resourcemanager.projects.`setIamPolicy` permission in the project.
 ///
@@ -3957,13 +4268,12 @@ pub fn cloudresourcemanager_projects_move_execute(
 
 pub fn cloudresourcemanager_projects_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MoveProjectRequest,
+    args: &CloudresourcemanagerProjectsMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_projects_move_builder(client, name, body)?;
+    let builder = cloudresourcemanager_projects_move_builder(client, &args.name, &args.body)?;
     cloudresourcemanager_projects_move_execute(builder)
 }
 
@@ -4072,6 +4382,17 @@ pub fn cloudresourcemanager_projects_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_projects_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerProjectsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Project,
+}
+
 /// GET v3/projects/{projectsId}
 /// Updates the display_name and labels of the project identified by the specified name (for example, `projects/415104041262`). Deleting all labels requires an update mask for labels field. The caller must have resourcemanager.projects.update permission for this project.
 ///
@@ -4084,14 +4405,17 @@ pub fn cloudresourcemanager_projects_patch_execute(
 
 pub fn cloudresourcemanager_projects_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Project,
+    args: &CloudresourcemanagerProjectsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_projects_patch_builder(client, name, updateMask, body)?;
+    let builder = cloudresourcemanager_projects_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudresourcemanager_projects_patch_execute(builder)
 }
 
@@ -4203,6 +4527,17 @@ pub fn cloudresourcemanager_projects_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_projects_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerProjectsSearchArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v3/projects:search
 /// Search for projects that the caller has the resourcemanager.projects.get permission on, and also satisfy the specified query. This method returns projects in an unspecified order. This method is eventually consistent with project mutations; this means that a newly created project may not appear in the results or recent updates to an existing project may not be reflected in the results. To retrieve the latest state of a project, use the GetProject method.
 ///
@@ -4215,16 +4550,19 @@ pub fn cloudresourcemanager_projects_search_execute(
 
 pub fn cloudresourcemanager_projects_search(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    args: &CloudresourcemanagerProjectsSearchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchProjectsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_projects_search_builder(client, pageSize, pageToken, query)?;
+    let builder = cloudresourcemanager_projects_search_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
+    )?;
     cloudresourcemanager_projects_search_execute(builder)
 }
 
@@ -4321,6 +4659,15 @@ pub fn cloudresourcemanager_projects_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_projects_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerProjectsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v3/projects/{projectsId}:setIamPolicy
 /// Sets the IAM access control policy for the specified project, in the format `projects/{ProjectIdOrNumber}` e.g. `projects/123`. CAUTION: This method will replace the existing policy, and cannot be used to append additional IAM settings. Note: Removing service accounts from policies or changing their roles can render services completely inoperable. It is important to understand how the service account is being used before removing or updating its roles. The following constraints apply when using `setIamPolicy`(): + Project does not support `allUsers` and `allAuthenticatedUsers` as members in a Binding of a Policy. + The owner role can be granted to a user, `serviceAccount`, or a group that is part of an organization. For example, group@myownpersonaldomain.com could be added as an owner to a project in the myownpersonaldomain.com organization, but not the examplepetstore.com organization. + Service accounts can be made owners of a project directly without any restrictions. However, to be added as an owner, a user must be invited using the Cloud Platform console and must accept the invitation. + A user cannot be granted the owner role using `setIamPolicy`(). The user must be granted the owner role using the Cloud Platform Console and must explicitly accept the invitation. + Invitations to grant the owner role cannot be sent using `setIamPolicy`(); they must be sent only using the Cloud Platform Console. + If the project is not part of an organization, there must be at least one owner who has accepted the Terms of Service (ToS) agreement in the policy. Calling `setIamPolicy`() to remove the last ToS-accepted owner from the policy will fail. This restriction also applies to legacy projects that no longer have owners who have accepted the ToS. Edits to IAM policies will be rejected until the lack of a ToS-accepting owner is rectified. If the project is part of an organization, you can remove all owners, potentially making the organization inaccessible.
 ///
@@ -4333,13 +4680,13 @@ pub fn cloudresourcemanager_projects_set_iam_policy_execute(
 
 pub fn cloudresourcemanager_projects_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &CloudresourcemanagerProjectsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_projects_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        cloudresourcemanager_projects_set_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudresourcemanager_projects_set_iam_policy_execute(builder)
 }
 
@@ -4440,6 +4787,15 @@ pub fn cloudresourcemanager_projects_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_projects_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerProjectsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v3/projects/{projectsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified project, in the format `projects/{ProjectIdOrNumber}` e.g. `projects/123`..
 ///
@@ -4452,8 +4808,7 @@ pub fn cloudresourcemanager_projects_test_iam_permissions_execute(
 
 pub fn cloudresourcemanager_projects_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &CloudresourcemanagerProjectsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -4462,8 +4817,11 @@ pub fn cloudresourcemanager_projects_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_projects_test_iam_permissions_builder(client, resource, body)?;
+    let builder = cloudresourcemanager_projects_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudresourcemanager_projects_test_iam_permissions_execute(builder)
 }
 
@@ -4560,6 +4918,15 @@ pub fn cloudresourcemanager_projects_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_projects_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerProjectsUndeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UndeleteProjectRequest,
+}
+
 /// GET v3/projects/{projectsId}:undelete
 /// Restores the project identified by the specified name (for example, `projects/415104041262`). You can only use this method for a project that has a lifecycle state of DELETE_REQUESTED. After deletion starts, the project cannot be restored. The caller must have resourcemanager.projects.undelete permission for this project.
 ///
@@ -4572,13 +4939,12 @@ pub fn cloudresourcemanager_projects_undelete_execute(
 
 pub fn cloudresourcemanager_projects_undelete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UndeleteProjectRequest,
+    args: &CloudresourcemanagerProjectsUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_projects_undelete_builder(client, name, body)?;
+    let builder = cloudresourcemanager_projects_undelete_builder(client, &args.name, &args.body)?;
     cloudresourcemanager_projects_undelete_execute(builder)
 }
 
@@ -4683,6 +5049,15 @@ pub fn cloudresourcemanager_tag_bindings_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_bindings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagBindingsCreateArgs {
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: TagBinding,
+}
+
 /// GET v3/tagBindings
 /// Creates a TagBinding between a TagValue and a Google Cloud resource.
 ///
@@ -4695,13 +5070,13 @@ pub fn cloudresourcemanager_tag_bindings_create_execute(
 
 pub fn cloudresourcemanager_tag_bindings_create(
     client: &SimpleHttpClient,
-    validateOnly: Option<bool>,
-    body: &TagBinding,
+    args: &CloudresourcemanagerTagBindingsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_bindings_create_builder(client, validateOnly, body)?;
+    let builder =
+        cloudresourcemanager_tag_bindings_create_builder(client, args.validateOnly, &args.body)?;
     cloudresourcemanager_tag_bindings_create_execute(builder)
 }
 
@@ -4795,6 +5170,13 @@ pub fn cloudresourcemanager_tag_bindings_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_bindings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagBindingsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/tagBindings/{tagBindingsId}
 /// Deletes a TagBinding.
 ///
@@ -4807,12 +5189,12 @@ pub fn cloudresourcemanager_tag_bindings_delete_execute(
 
 pub fn cloudresourcemanager_tag_bindings_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudresourcemanagerTagBindingsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_bindings_delete_builder(client, name)?;
+    let builder = cloudresourcemanager_tag_bindings_delete_builder(client, &args.name)?;
     cloudresourcemanager_tag_bindings_delete_execute(builder)
 }
 
@@ -4924,6 +5306,17 @@ pub fn cloudresourcemanager_tag_bindings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_bindings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagBindingsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v3/tagBindings
 /// Lists the TagBindings for the given Google Cloud resource, as specified with parent. NOTE: The parent field is expected to be a full resource name: <https://cloud.google.`com/apis/design/resource_names`#full_resource_name>
 ///
@@ -4936,17 +5329,19 @@ pub fn cloudresourcemanager_tag_bindings_list_execute(
 
 pub fn cloudresourcemanager_tag_bindings_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
+    args: &CloudresourcemanagerTagBindingsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTagBindingsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_tag_bindings_list_builder(client, pageSize, pageToken, parent)?;
+    let builder = cloudresourcemanager_tag_bindings_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
+    )?;
     cloudresourcemanager_tag_bindings_list_execute(builder)
 }
 
@@ -5051,6 +5446,15 @@ pub fn cloudresourcemanager_tag_keys_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_keys_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagKeysCreateArgs {
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: TagKey,
+}
+
 /// GET v3/tagKeys
 /// Creates a new TagKey. If another request with the same parameters is sent while the original request is in process, the second request will receive an error. A maximum of 1000 TagKeys can exist under a parent at any given time.
 ///
@@ -5063,13 +5467,13 @@ pub fn cloudresourcemanager_tag_keys_create_execute(
 
 pub fn cloudresourcemanager_tag_keys_create(
     client: &SimpleHttpClient,
-    validateOnly: Option<bool>,
-    body: &TagKey,
+    args: &CloudresourcemanagerTagKeysCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_keys_create_builder(client, validateOnly, body)?;
+    let builder =
+        cloudresourcemanager_tag_keys_create_builder(client, args.validateOnly, &args.body)?;
     cloudresourcemanager_tag_keys_create_execute(builder)
 }
 
@@ -5179,6 +5583,17 @@ pub fn cloudresourcemanager_tag_keys_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_keys_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagKeysDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v3/tagKeys/{tagKeysId}
 /// Deletes a TagKey. The TagKey cannot be deleted if it has any child TagValues.
 ///
@@ -5191,14 +5606,17 @@ pub fn cloudresourcemanager_tag_keys_delete_execute(
 
 pub fn cloudresourcemanager_tag_keys_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &CloudresourcemanagerTagKeysDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_keys_delete_builder(client, name, etag, validateOnly)?;
+    let builder = cloudresourcemanager_tag_keys_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.validateOnly,
+    )?;
     cloudresourcemanager_tag_keys_delete_execute(builder)
 }
 
@@ -5292,6 +5710,13 @@ pub fn cloudresourcemanager_tag_keys_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_keys_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagKeysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/tagKeys/{tagKeysId}
 /// Retrieves a TagKey. This method will return PERMISSION_DENIED if the key does not exist or the user does not have permission to view it.
 ///
@@ -5304,12 +5729,12 @@ pub fn cloudresourcemanager_tag_keys_get_execute(
 
 pub fn cloudresourcemanager_tag_keys_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudresourcemanagerTagKeysGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TagKey>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_keys_get_builder(client, name)?;
+    let builder = cloudresourcemanager_tag_keys_get_builder(client, &args.name)?;
     cloudresourcemanager_tag_keys_get_execute(builder)
 }
 
@@ -5406,6 +5831,15 @@ pub fn cloudresourcemanager_tag_keys_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_keys_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagKeysGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v3/tagKeys/{tagKeysId}:getIamPolicy
 /// Gets the access control policy for a TagKey. The returned policy may be empty if no such policy or resource exists. The resource field should be the TagKey's resource name. For example, "tagK`eys/1234`". The caller must have cloudresourcemanager.googleapis.`com/`tagKeys``.`getIamPolicy` permission on the specified TagKey.
 ///
@@ -5418,13 +5852,13 @@ pub fn cloudresourcemanager_tag_keys_get_iam_policy_execute(
 
 pub fn cloudresourcemanager_tag_keys_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &CloudresourcemanagerTagKeysGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_keys_get_iam_policy_builder(client, resource, body)?;
+    let builder =
+        cloudresourcemanager_tag_keys_get_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudresourcemanager_tag_keys_get_iam_policy_execute(builder)
 }
 
@@ -5526,6 +5960,13 @@ pub fn cloudresourcemanager_tag_keys_get_namespaced_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_keys_get_namespaced`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagKeysGetNamespacedArgs {
+    /// Query parameter: name
+    pub name: Option<String>,
+}
+
 /// GET v3/tagKeys/namespaced
 /// Retrieves a TagKey by its namespaced name. This method will return PERMISSION_DENIED if the key does not exist or the user does not have permission to view it.
 ///
@@ -5538,12 +5979,13 @@ pub fn cloudresourcemanager_tag_keys_get_namespaced_execute(
 
 pub fn cloudresourcemanager_tag_keys_get_namespaced(
     client: &SimpleHttpClient,
-    name: Option<&str>,
+    args: &CloudresourcemanagerTagKeysGetNamespacedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TagKey>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_keys_get_namespaced_builder(client, name)?;
+    let builder =
+        cloudresourcemanager_tag_keys_get_namespaced_builder(client, args.name.as_deref())?;
     cloudresourcemanager_tag_keys_get_namespaced_execute(builder)
 }
 
@@ -5655,6 +6097,17 @@ pub fn cloudresourcemanager_tag_keys_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_keys_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagKeysListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v3/tagKeys
 /// Lists all TagKeys for a parent resource.
 ///
@@ -5667,16 +6120,19 @@ pub fn cloudresourcemanager_tag_keys_list_execute(
 
 pub fn cloudresourcemanager_tag_keys_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
+    args: &CloudresourcemanagerTagKeysListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTagKeysResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_keys_list_builder(client, pageSize, pageToken, parent)?;
+    let builder = cloudresourcemanager_tag_keys_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
+    )?;
     cloudresourcemanager_tag_keys_list_execute(builder)
 }
 
@@ -5789,6 +6245,19 @@ pub fn cloudresourcemanager_tag_keys_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_keys_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagKeysPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: TagKey,
+}
+
 /// GET v3/tagKeys/{tagKeysId}
 /// Updates the attributes of the TagKey resource.
 ///
@@ -5801,16 +6270,18 @@ pub fn cloudresourcemanager_tag_keys_patch_execute(
 
 pub fn cloudresourcemanager_tag_keys_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &TagKey,
+    args: &CloudresourcemanagerTagKeysPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_tag_keys_patch_builder(client, name, updateMask, validateOnly, body)?;
+    let builder = cloudresourcemanager_tag_keys_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
+    )?;
     cloudresourcemanager_tag_keys_patch_execute(builder)
 }
 
@@ -5907,6 +6378,15 @@ pub fn cloudresourcemanager_tag_keys_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_keys_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagKeysSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v3/tagKeys/{tagKeysId}:setIamPolicy
 /// Sets the access control policy on a TagKey, replacing any existing policy. The resource field should be the TagKey's resource name. For example, "tagK`eys/1234`". The caller must have resourcemanager.`tagKeys`.`setIamPolicy` permission on the identified `tagValue`.
 ///
@@ -5919,13 +6399,13 @@ pub fn cloudresourcemanager_tag_keys_set_iam_policy_execute(
 
 pub fn cloudresourcemanager_tag_keys_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &CloudresourcemanagerTagKeysSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_keys_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        cloudresourcemanager_tag_keys_set_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudresourcemanager_tag_keys_set_iam_policy_execute(builder)
 }
 
@@ -6026,6 +6506,15 @@ pub fn cloudresourcemanager_tag_keys_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_keys_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagKeysTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v3/tagKeys/{tagKeysId}:testIamPermissions
 /// Returns permissions that a caller has on the specified TagKey. The resource field should be the TagKey's resource name. For example, "tagK`eys/1234`". There are no permissions required for making this API call.
 ///
@@ -6038,8 +6527,7 @@ pub fn cloudresourcemanager_tag_keys_test_iam_permissions_execute(
 
 pub fn cloudresourcemanager_tag_keys_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &CloudresourcemanagerTagKeysTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -6048,8 +6536,11 @@ pub fn cloudresourcemanager_tag_keys_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_tag_keys_test_iam_permissions_builder(client, resource, body)?;
+    let builder = cloudresourcemanager_tag_keys_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudresourcemanager_tag_keys_test_iam_permissions_execute(builder)
 }
 
@@ -6154,6 +6645,15 @@ pub fn cloudresourcemanager_tag_values_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_values_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesCreateArgs {
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: TagValue,
+}
+
 /// GET v3/tagValues
 /// Creates a TagValue as a child of the specified TagKey. If a another request with the same parameters is sent while the original request is in process the second request will receive an error. A maximum of 1000 TagValues can exist under a TagKey at any given time.
 ///
@@ -6166,13 +6666,13 @@ pub fn cloudresourcemanager_tag_values_create_execute(
 
 pub fn cloudresourcemanager_tag_values_create(
     client: &SimpleHttpClient,
-    validateOnly: Option<bool>,
-    body: &TagValue,
+    args: &CloudresourcemanagerTagValuesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_values_create_builder(client, validateOnly, body)?;
+    let builder =
+        cloudresourcemanager_tag_values_create_builder(client, args.validateOnly, &args.body)?;
     cloudresourcemanager_tag_values_create_execute(builder)
 }
 
@@ -6282,6 +6782,17 @@ pub fn cloudresourcemanager_tag_values_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_values_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v3/tagValues/{tagValuesId}
 /// Deletes a TagValue. The TagValue cannot have any bindings when it is deleted.
 ///
@@ -6294,14 +6805,17 @@ pub fn cloudresourcemanager_tag_values_delete_execute(
 
 pub fn cloudresourcemanager_tag_values_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &CloudresourcemanagerTagValuesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_values_delete_builder(client, name, etag, validateOnly)?;
+    let builder = cloudresourcemanager_tag_values_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.validateOnly,
+    )?;
     cloudresourcemanager_tag_values_delete_execute(builder)
 }
 
@@ -6395,6 +6909,13 @@ pub fn cloudresourcemanager_tag_values_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_values_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/tagValues/{tagValuesId}
 /// Retrieves a TagValue. This method will return PERMISSION_DENIED if the value does not exist or the user does not have permission to view it.
 ///
@@ -6407,12 +6928,12 @@ pub fn cloudresourcemanager_tag_values_get_execute(
 
 pub fn cloudresourcemanager_tag_values_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudresourcemanagerTagValuesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TagValue>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_values_get_builder(client, name)?;
+    let builder = cloudresourcemanager_tag_values_get_builder(client, &args.name)?;
     cloudresourcemanager_tag_values_get_execute(builder)
 }
 
@@ -6509,6 +7030,15 @@ pub fn cloudresourcemanager_tag_values_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_values_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v3/tagValues/{tagValuesId}:getIamPolicy
 /// Gets the access control policy for a TagValue. The returned policy may be empty if no such policy or resource exists. The resource field should be the TagValue's resource name. For example: tagV`alues/1234`. The caller must have the cloudresourcemanager.googleapis.`com/`tagValues``.`getIamPolicy` permission on the identified TagValue to get the access control policy.
 ///
@@ -6521,13 +7051,13 @@ pub fn cloudresourcemanager_tag_values_get_iam_policy_execute(
 
 pub fn cloudresourcemanager_tag_values_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &CloudresourcemanagerTagValuesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_values_get_iam_policy_builder(client, resource, body)?;
+    let builder =
+        cloudresourcemanager_tag_values_get_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudresourcemanager_tag_values_get_iam_policy_execute(builder)
 }
 
@@ -6629,6 +7159,13 @@ pub fn cloudresourcemanager_tag_values_get_namespaced_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_values_get_namespaced`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesGetNamespacedArgs {
+    /// Query parameter: name
+    pub name: Option<String>,
+}
+
 /// GET v3/tagValues/namespaced
 /// Retrieves a TagValue by its namespaced name. This method will return PERMISSION_DENIED if the value does not exist or the user does not have permission to view it.
 ///
@@ -6641,12 +7178,13 @@ pub fn cloudresourcemanager_tag_values_get_namespaced_execute(
 
 pub fn cloudresourcemanager_tag_values_get_namespaced(
     client: &SimpleHttpClient,
-    name: Option<&str>,
+    args: &CloudresourcemanagerTagValuesGetNamespacedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TagValue>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_values_get_namespaced_builder(client, name)?;
+    let builder =
+        cloudresourcemanager_tag_values_get_namespaced_builder(client, args.name.as_deref())?;
     cloudresourcemanager_tag_values_get_namespaced_execute(builder)
 }
 
@@ -6758,6 +7296,17 @@ pub fn cloudresourcemanager_tag_values_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_values_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v3/tagValues
 /// Lists all TagValues for a specific TagKey.
 ///
@@ -6770,17 +7319,19 @@ pub fn cloudresourcemanager_tag_values_list_execute(
 
 pub fn cloudresourcemanager_tag_values_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
+    args: &CloudresourcemanagerTagValuesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTagValuesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_tag_values_list_builder(client, pageSize, pageToken, parent)?;
+    let builder = cloudresourcemanager_tag_values_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
+    )?;
     cloudresourcemanager_tag_values_list_execute(builder)
 }
 
@@ -6893,6 +7444,19 @@ pub fn cloudresourcemanager_tag_values_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_values_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: TagValue,
+}
+
 /// GET v3/tagValues/{tagValuesId}
 /// Updates the attributes of the TagValue resource.
 ///
@@ -6905,20 +7469,17 @@ pub fn cloudresourcemanager_tag_values_patch_execute(
 
 pub fn cloudresourcemanager_tag_values_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &TagValue,
+    args: &CloudresourcemanagerTagValuesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudresourcemanager_tag_values_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     cloudresourcemanager_tag_values_patch_execute(builder)
 }
@@ -7016,6 +7577,15 @@ pub fn cloudresourcemanager_tag_values_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_values_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v3/tagValues/{tagValuesId}:setIamPolicy
 /// Sets the access control policy on a TagValue, replacing any existing policy. The resource field should be the TagValue's resource name. For example: tagV`alues/1234`. The caller must have resourcemanager.`tagValues`.`setIamPolicy` permission on the identified `tagValue`.
 ///
@@ -7028,13 +7598,13 @@ pub fn cloudresourcemanager_tag_values_set_iam_policy_execute(
 
 pub fn cloudresourcemanager_tag_values_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &CloudresourcemanagerTagValuesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_values_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        cloudresourcemanager_tag_values_set_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudresourcemanager_tag_values_set_iam_policy_execute(builder)
 }
 
@@ -7135,6 +7705,15 @@ pub fn cloudresourcemanager_tag_values_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_values_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v3/tagValues/{tagValuesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified TagValue. The resource field should be the TagValue's resource name. For example: tagV`alues/1234`. There are no permissions required for making this API call.
 ///
@@ -7147,8 +7726,7 @@ pub fn cloudresourcemanager_tag_values_test_iam_permissions_execute(
 
 pub fn cloudresourcemanager_tag_values_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &CloudresourcemanagerTagValuesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -7157,8 +7735,11 @@ pub fn cloudresourcemanager_tag_values_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_tag_values_test_iam_permissions_builder(client, resource, body)?;
+    let builder = cloudresourcemanager_tag_values_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudresourcemanager_tag_values_test_iam_permissions_execute(builder)
 }
 
@@ -7267,6 +7848,17 @@ pub fn cloudresourcemanager_tag_values_tag_holds_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_values_tag_holds_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesTagHoldsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: TagHold,
+}
+
 /// GET v3/tagValues/{tagValuesId}/tagHolds
 /// Creates a TagHold. Returns ALREADY_EXISTS if a TagHold with the same resource and origin exists under the same TagValue.
 ///
@@ -7279,18 +7871,16 @@ pub fn cloudresourcemanager_tag_values_tag_holds_create_execute(
 
 pub fn cloudresourcemanager_tag_values_tag_holds_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    validateOnly: Option<bool>,
-    body: &TagHold,
+    args: &CloudresourcemanagerTagValuesTagHoldsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudresourcemanager_tag_values_tag_holds_create_builder(
         client,
-        parent,
-        validateOnly,
-        body,
+        &args.parent,
+        args.validateOnly,
+        &args.body,
     )?;
     cloudresourcemanager_tag_values_tag_holds_create_execute(builder)
 }
@@ -7397,6 +7987,15 @@ pub fn cloudresourcemanager_tag_values_tag_holds_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_values_tag_holds_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesTagHoldsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v3/tagValues/{tagValuesId}/tagHolds/{tagHoldsId}
 /// Deletes a TagHold.
 ///
@@ -7409,14 +8008,16 @@ pub fn cloudresourcemanager_tag_values_tag_holds_delete_execute(
 
 pub fn cloudresourcemanager_tag_values_tag_holds_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    validateOnly: Option<bool>,
+    args: &CloudresourcemanagerTagValuesTagHoldsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_tag_values_tag_holds_delete_builder(client, name, validateOnly)?;
+    let builder = cloudresourcemanager_tag_values_tag_holds_delete_builder(
+        client,
+        &args.name,
+        args.validateOnly,
+    )?;
     cloudresourcemanager_tag_values_tag_holds_delete_execute(builder)
 }
 
@@ -7532,6 +8133,19 @@ pub fn cloudresourcemanager_tag_values_tag_holds_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudresourcemanager_tag_values_tag_holds_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesTagHoldsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/tagValues/{tagValuesId}/tagHolds
 /// Lists TagHolds under a TagValue.
 ///
@@ -7544,10 +8158,7 @@ pub fn cloudresourcemanager_tag_values_tag_holds_list_execute(
 
 pub fn cloudresourcemanager_tag_values_tag_holds_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudresourcemanagerTagValuesTagHoldsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTagHoldsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7555,7 +8166,11 @@ pub fn cloudresourcemanager_tag_values_tag_holds_list(
     ApiError,
 > {
     let builder = cloudresourcemanager_tag_values_tag_holds_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudresourcemanager_tag_values_tag_holds_list_execute(builder)
 }

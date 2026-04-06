@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v5/hashList/{name}
 /// Gets the latest contents of a hash list. A hash list may either by a threat list or a non-threat list such as the Global Cache. This is a standard Get method as defined by <https://google.aip.`dev/131`> and the HTTP method is also GET.
@@ -127,6 +129,19 @@ pub fn safebrowsing_hash_list_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`safebrowsing_hash_list_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SafebrowsingHashListGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: sizeConstraints_maxDatabaseEntries
+    pub sizeConstraints_maxDatabaseEntries: Option<i32>,
+    /// Query parameter: sizeConstraints_maxUpdateEntries
+    pub sizeConstraints_maxUpdateEntries: Option<i32>,
+    /// Query parameter: version
+    pub version: Option<String>,
+}
+
 /// GET v5/hashList/{name}
 /// Gets the latest contents of a hash list. A hash list may either by a threat list or a non-threat list such as the Global Cache. This is a standard Get method as defined by <https://google.aip.`dev/131`> and the HTTP method is also GET.
 ///
@@ -139,10 +154,7 @@ pub fn safebrowsing_hash_list_get_execute(
 
 pub fn safebrowsing_hash_list_get(
     client: &SimpleHttpClient,
-    name: &str,
-    sizeConstraints_maxDatabaseEntries: Option<i32>,
-    sizeConstraints_maxUpdateEntries: Option<i32>,
-    version: Option<&str>,
+    args: &SafebrowsingHashListGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleSecuritySafebrowsingV5HashList>, ApiError>,
@@ -153,10 +165,10 @@ pub fn safebrowsing_hash_list_get(
 > {
     let builder = safebrowsing_hash_list_get_builder(
         client,
-        name,
-        sizeConstraints_maxDatabaseEntries,
-        sizeConstraints_maxUpdateEntries,
-        version,
+        &args.name,
+        args.sizeConstraints_maxDatabaseEntries,
+        args.sizeConstraints_maxUpdateEntries,
+        args.version.as_deref(),
     )?;
     safebrowsing_hash_list_get_execute(builder)
 }
@@ -279,6 +291,19 @@ pub fn safebrowsing_hash_lists_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`safebrowsing_hash_lists_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SafebrowsingHashListsBatchGetArgs {
+    /// Query parameter: names
+    pub names: Option<String>,
+    /// Query parameter: sizeConstraints_maxDatabaseEntries
+    pub sizeConstraints_maxDatabaseEntries: Option<i32>,
+    /// Query parameter: sizeConstraints_maxUpdateEntries
+    pub sizeConstraints_maxUpdateEntries: Option<i32>,
+    /// Query parameter: version
+    pub version: Option<String>,
+}
+
 /// GET v5/hashLists:batchGet
 /// Gets multiple hash lists at once. It is very common for a client to need to get multiple hash lists. Using this method is preferred over using the regular Get method multiple times. This is a standard batch Get method as defined by <https://google.aip.`dev/231`> and the HTTP method is also GET.
 ///
@@ -291,10 +316,7 @@ pub fn safebrowsing_hash_lists_batch_get_execute(
 
 pub fn safebrowsing_hash_lists_batch_get(
     client: &SimpleHttpClient,
-    names: Option<&str>,
-    sizeConstraints_maxDatabaseEntries: Option<i32>,
-    sizeConstraints_maxUpdateEntries: Option<i32>,
-    version: Option<&str>,
+    args: &SafebrowsingHashListsBatchGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -308,10 +330,10 @@ pub fn safebrowsing_hash_lists_batch_get(
 > {
     let builder = safebrowsing_hash_lists_batch_get_builder(
         client,
-        names,
-        sizeConstraints_maxDatabaseEntries,
-        sizeConstraints_maxUpdateEntries,
-        version,
+        args.names.as_deref(),
+        args.sizeConstraints_maxDatabaseEntries,
+        args.sizeConstraints_maxUpdateEntries,
+        args.version.as_deref(),
     )?;
     safebrowsing_hash_lists_batch_get_execute(builder)
 }
@@ -423,6 +445,15 @@ pub fn safebrowsing_hash_lists_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`safebrowsing_hash_lists_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SafebrowsingHashListsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v5/hashLists
 /// Lists hash lists. In the V5 API, Google will never remove a hash list that has ever been returned by this method. This enables clients to skip using this method and simply hard-code all hash lists they need. This is a standard List method as defined by <https://google.aip.`dev/132`> and the HTTP method is GET.
 ///
@@ -435,8 +466,7 @@ pub fn safebrowsing_hash_lists_list_execute(
 
 pub fn safebrowsing_hash_lists_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SafebrowsingHashListsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleSecuritySafebrowsingV5ListHashListsResponse>, ApiError>,
@@ -445,7 +475,8 @@ pub fn safebrowsing_hash_lists_list(
         + 'static,
     ApiError,
 > {
-    let builder = safebrowsing_hash_lists_list_builder(client, pageSize, pageToken)?;
+    let builder =
+        safebrowsing_hash_lists_list_builder(client, args.pageSize, args.pageToken.as_deref())?;
     safebrowsing_hash_lists_list_execute(builder)
 }
 
@@ -552,6 +583,13 @@ pub fn safebrowsing_hashes_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`safebrowsing_hashes_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SafebrowsingHashesSearchArgs {
+    /// Query parameter: hashPrefixes
+    pub hashPrefixes: Option<String>,
+}
+
 /// GET v5/hashes:search
 /// Searches for full hashes matching the specified prefixes. This is a custom method as defined by <https://google.aip.`dev/136`> (the custom method refers to this method having a custom name within Google's general API development nomenclature; it does not refer to using a custom HTTP method).
 ///
@@ -564,7 +602,7 @@ pub fn safebrowsing_hashes_search_execute(
 
 pub fn safebrowsing_hashes_search(
     client: &SimpleHttpClient,
-    hashPrefixes: Option<&str>,
+    args: &SafebrowsingHashesSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleSecuritySafebrowsingV5SearchHashesResponse>, ApiError>,
@@ -573,7 +611,7 @@ pub fn safebrowsing_hashes_search(
         + 'static,
     ApiError,
 > {
-    let builder = safebrowsing_hashes_search_builder(client, hashPrefixes)?;
+    let builder = safebrowsing_hashes_search_builder(client, args.hashPrefixes.as_deref())?;
     safebrowsing_hashes_search_execute(builder)
 }
 
@@ -680,6 +718,13 @@ pub fn safebrowsing_urls_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`safebrowsing_urls_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SafebrowsingUrlsSearchArgs {
+    /// Query parameter: urls
+    pub urls: Option<String>,
+}
+
 /// GET v5/urls:search
 /// Searches for URLs matching known threats. Each URL and it's host-suffix and path-prefix expressions (up to a limited depth) are checked. This means that the response may contain URLs that were not included in the request, but are expressions of the requested URLs.
 ///
@@ -692,7 +737,7 @@ pub fn safebrowsing_urls_search_execute(
 
 pub fn safebrowsing_urls_search(
     client: &SimpleHttpClient,
-    urls: Option<&str>,
+    args: &SafebrowsingUrlsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleSecuritySafebrowsingV5SearchUrlsResponse>, ApiError>,
@@ -701,6 +746,6 @@ pub fn safebrowsing_urls_search(
         + 'static,
     ApiError,
 > {
-    let builder = safebrowsing_urls_search_builder(client, urls)?;
+    let builder = safebrowsing_urls_search_builder(client, args.urls.as_deref())?;
     safebrowsing_urls_search_execute(builder)
 }

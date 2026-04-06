@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn securesourcemanager_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn securesourcemanager_projects_locations_get_execute(
 
 pub fn securesourcemanager_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuresourcemanagerProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securesourcemanager_projects_locations_get_builder(client, name)?;
+    let builder = securesourcemanager_projects_locations_get_builder(client, &args.name)?;
     securesourcemanager_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn securesourcemanager_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn securesourcemanager_projects_locations_list_execute(
 
 pub fn securesourcemanager_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuresourcemanagerProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn securesourcemanager_projects_locations_list(
 > {
     let builder = securesourcemanager_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securesourcemanager_projects_locations_list_execute(builder)
 }
@@ -386,6 +406,19 @@ pub fn securesourcemanager_projects_locations_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: instanceId
+    pub instanceId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
 /// Creates a new instance in a given project and location.
 ///
@@ -398,16 +431,17 @@ pub fn securesourcemanager_projects_locations_instances_create_execute(
 
 pub fn securesourcemanager_projects_locations_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    instanceId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Instance,
+    args: &SecuresourcemanagerProjectsLocationsInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_instances_create_builder(
-        client, parent, instanceId, requestId, body,
+        client,
+        &args.parent,
+        args.instanceId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     securesourcemanager_projects_locations_instances_create_execute(builder)
 }
@@ -518,6 +552,17 @@ pub fn securesourcemanager_projects_locations_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Deletes a single instance.
 ///
@@ -530,15 +575,16 @@ pub fn securesourcemanager_projects_locations_instances_delete_execute(
 
 pub fn securesourcemanager_projects_locations_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    requestId: Option<&str>,
+    args: &SecuresourcemanagerProjectsLocationsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_instances_delete_builder(
-        client, name, force, requestId,
+        client,
+        &args.name,
+        args.force,
+        args.requestId.as_deref(),
     )?;
     securesourcemanager_projects_locations_instances_delete_execute(builder)
 }
@@ -633,6 +679,13 @@ pub fn securesourcemanager_projects_locations_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Gets details of a single instance.
 ///
@@ -645,12 +698,12 @@ pub fn securesourcemanager_projects_locations_instances_get_execute(
 
 pub fn securesourcemanager_projects_locations_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuresourcemanagerProjectsLocationsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securesourcemanager_projects_locations_instances_get_builder(client, name)?;
+    let builder = securesourcemanager_projects_locations_instances_get_builder(client, &args.name)?;
     securesourcemanager_projects_locations_instances_get_execute(builder)
 }
 
@@ -756,6 +809,15 @@ pub fn securesourcemanager_projects_locations_instances_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_instances_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsInstancesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -768,16 +830,15 @@ pub fn securesourcemanager_projects_locations_instances_get_iam_policy_execute(
 
 pub fn securesourcemanager_projects_locations_instances_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &SecuresourcemanagerProjectsLocationsInstancesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_instances_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     securesourcemanager_projects_locations_instances_get_iam_policy_execute(builder)
 }
@@ -898,6 +959,21 @@ pub fn securesourcemanager_projects_locations_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
 /// Lists Instances in a given project and location.
 ///
@@ -910,11 +986,7 @@ pub fn securesourcemanager_projects_locations_instances_list_execute(
 
 pub fn securesourcemanager_projects_locations_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuresourcemanagerProjectsLocationsInstancesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -922,7 +994,12 @@ pub fn securesourcemanager_projects_locations_instances_list(
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_instances_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securesourcemanager_projects_locations_instances_list_execute(builder)
 }
@@ -1020,6 +1097,15 @@ pub fn securesourcemanager_projects_locations_instances_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_instances_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsInstancesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1032,14 +1118,15 @@ pub fn securesourcemanager_projects_locations_instances_set_iam_policy_execute(
 
 pub fn securesourcemanager_projects_locations_instances_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &SecuresourcemanagerProjectsLocationsInstancesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_instances_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     securesourcemanager_projects_locations_instances_set_iam_policy_execute(builder)
 }
@@ -1141,6 +1228,15 @@ pub fn securesourcemanager_projects_locations_instances_test_iam_permissions_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_instances_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsInstancesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1153,8 +1249,7 @@ pub fn securesourcemanager_projects_locations_instances_test_iam_permissions_exe
 
 pub fn securesourcemanager_projects_locations_instances_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &SecuresourcemanagerProjectsLocationsInstancesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1164,7 +1259,9 @@ pub fn securesourcemanager_projects_locations_instances_test_iam_permissions(
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_instances_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     securesourcemanager_projects_locations_instances_test_iam_permissions_execute(builder)
 }
@@ -1262,6 +1359,15 @@ pub fn securesourcemanager_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1274,14 +1380,14 @@ pub fn securesourcemanager_projects_locations_operations_cancel_execute(
 
 pub fn securesourcemanager_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &SecuresourcemanagerProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        securesourcemanager_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = securesourcemanager_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     securesourcemanager_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -1375,6 +1481,13 @@ pub fn securesourcemanager_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1387,12 +1500,13 @@ pub fn securesourcemanager_projects_locations_operations_delete_execute(
 
 pub fn securesourcemanager_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuresourcemanagerProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securesourcemanager_projects_locations_operations_delete_builder(client, name)?;
+    let builder =
+        securesourcemanager_projects_locations_operations_delete_builder(client, &args.name)?;
     securesourcemanager_projects_locations_operations_delete_execute(builder)
 }
 
@@ -1486,6 +1600,13 @@ pub fn securesourcemanager_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1498,12 +1619,13 @@ pub fn securesourcemanager_projects_locations_operations_get_execute(
 
 pub fn securesourcemanager_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuresourcemanagerProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securesourcemanager_projects_locations_operations_get_builder(client, name)?;
+    let builder =
+        securesourcemanager_projects_locations_operations_get_builder(client, &args.name)?;
     securesourcemanager_projects_locations_operations_get_execute(builder)
 }
 
@@ -1623,6 +1745,21 @@ pub fn securesourcemanager_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1635,11 +1772,7 @@ pub fn securesourcemanager_projects_locations_operations_list_execute(
 
 pub fn securesourcemanager_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &SecuresourcemanagerProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1648,11 +1781,11 @@ pub fn securesourcemanager_projects_locations_operations_list(
 > {
     let builder = securesourcemanager_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     securesourcemanager_projects_locations_operations_list_execute(builder)
 }
@@ -1762,6 +1895,17 @@ pub fn securesourcemanager_projects_locations_repositories_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: repositoryId
+    pub repositoryId: Option<String>,
+    /// Request body.
+    pub body: Repository,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories
 /// Creates a new repository in a given project and location. The Repository.Instance field is required in the request body for requests using the securesourcemanager.googleapis.com endpoint.
 ///
@@ -1774,18 +1918,16 @@ pub fn securesourcemanager_projects_locations_repositories_create_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    repositoryId: Option<&str>,
-    body: &Repository,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_create_builder(
         client,
-        parent,
-        repositoryId,
-        body,
+        &args.parent,
+        args.repositoryId.as_deref(),
+        &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_create_execute(builder)
 }
@@ -1892,6 +2034,15 @@ pub fn securesourcemanager_projects_locations_repositories_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
 /// Deletes a Repository.
 ///
@@ -1904,16 +2055,15 @@ pub fn securesourcemanager_projects_locations_repositories_delete_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_delete_builder(
         client,
-        name,
-        allowMissing,
+        &args.name,
+        args.allowMissing,
     )?;
     securesourcemanager_projects_locations_repositories_delete_execute(builder)
 }
@@ -2022,6 +2172,15 @@ pub fn securesourcemanager_projects_locations_repositories_fetch_blob_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_fetch_blob`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesFetchBlobArgs {
+    /// Path parameter: repository
+    pub repository: String,
+    /// Query parameter: sha
+    pub sha: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:fetchBlob
 /// Fetches a blob from a repository.
 ///
@@ -2034,8 +2193,7 @@ pub fn securesourcemanager_projects_locations_repositories_fetch_blob_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_fetch_blob(
     client: &SimpleHttpClient,
-    repository: &str,
-    sha: Option<&str>,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesFetchBlobArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FetchBlobResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2043,7 +2201,9 @@ pub fn securesourcemanager_projects_locations_repositories_fetch_blob(
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_fetch_blob_builder(
-        client, repository, sha,
+        client,
+        &args.repository,
+        args.sha.as_deref(),
     )?;
     securesourcemanager_projects_locations_repositories_fetch_blob_execute(builder)
 }
@@ -2164,6 +2324,21 @@ pub fn securesourcemanager_projects_locations_repositories_fetch_tree_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_fetch_tree`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesFetchTreeArgs {
+    /// Path parameter: repository
+    pub repository: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: recursive
+    pub recursive: Option<bool>,
+    /// Query parameter: ref
+    pub ref_rs: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:fetchTree
 /// Fetches a tree from a repository.
 ///
@@ -2176,11 +2351,7 @@ pub fn securesourcemanager_projects_locations_repositories_fetch_tree_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_fetch_tree(
     client: &SimpleHttpClient,
-    repository: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    recursive: Option<bool>,
-    ref_rs: Option<&str>,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesFetchTreeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FetchTreeResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2188,7 +2359,12 @@ pub fn securesourcemanager_projects_locations_repositories_fetch_tree(
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_fetch_tree_builder(
-        client, repository, pageSize, pageToken, recursive, ref_rs,
+        client,
+        &args.repository,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.recursive,
+        args.ref_rs.as_deref(),
     )?;
     securesourcemanager_projects_locations_repositories_fetch_tree_execute(builder)
 }
@@ -2283,6 +2459,13 @@ pub fn securesourcemanager_projects_locations_repositories_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
 /// Gets metadata of a repository.
 ///
@@ -2295,12 +2478,13 @@ pub fn securesourcemanager_projects_locations_repositories_get_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Repository>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securesourcemanager_projects_locations_repositories_get_builder(client, name)?;
+    let builder =
+        securesourcemanager_projects_locations_repositories_get_builder(client, &args.name)?;
     securesourcemanager_projects_locations_repositories_get_execute(builder)
 }
 
@@ -2406,6 +2590,15 @@ pub fn securesourcemanager_projects_locations_repositories_get_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:getIamPolicy
 /// Get IAM policy for a repository.
 ///
@@ -2418,16 +2611,15 @@ pub fn securesourcemanager_projects_locations_repositories_get_iam_policy_execut
 
 pub fn securesourcemanager_projects_locations_repositories_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     securesourcemanager_projects_locations_repositories_get_iam_policy_execute(builder)
 }
@@ -2548,6 +2740,21 @@ pub fn securesourcemanager_projects_locations_repositories_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: instance
+    pub instance: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories
 /// Lists Repositories in a given project and location. The instance field is required in the query parameter for requests using the securesourcemanager.googleapis.com endpoint.
 ///
@@ -2560,11 +2767,7 @@ pub fn securesourcemanager_projects_locations_repositories_list_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    instance: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRepositoriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2572,7 +2775,12 @@ pub fn securesourcemanager_projects_locations_repositories_list(
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_list_builder(
-        client, parent, filter, instance, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.instance.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securesourcemanager_projects_locations_repositories_list_execute(builder)
 }
@@ -2686,6 +2894,19 @@ pub fn securesourcemanager_projects_locations_repositories_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Repository,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
 /// Updates the metadata of a repository.
 ///
@@ -2698,20 +2919,17 @@ pub fn securesourcemanager_projects_locations_repositories_patch_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Repository,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_patch_execute(builder)
 }
@@ -2809,6 +3027,15 @@ pub fn securesourcemanager_projects_locations_repositories_set_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:setIamPolicy
 /// Set IAM policy on a repository.
 ///
@@ -2821,14 +3048,15 @@ pub fn securesourcemanager_projects_locations_repositories_set_iam_policy_execut
 
 pub fn securesourcemanager_projects_locations_repositories_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_set_iam_policy_execute(builder)
 }
@@ -2930,6 +3158,15 @@ pub fn securesourcemanager_projects_locations_repositories_test_iam_permissions_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:testIamPermissions
 /// Test IAM permissions on a repository. IAM permission checks are not required on this method.
 ///
@@ -2942,8 +3179,7 @@ pub fn securesourcemanager_projects_locations_repositories_test_iam_permissions_
 
 pub fn securesourcemanager_projects_locations_repositories_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2953,7 +3189,9 @@ pub fn securesourcemanager_projects_locations_repositories_test_iam_permissions(
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_test_iam_permissions_execute(builder)
 }
@@ -3063,6 +3301,17 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_create_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_branch_rules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesBranchRulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: branchRuleId
+    pub branchRuleId: Option<String>,
+    /// Request body.
+    pub body: BranchRule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/branchRules
 /// CreateBranchRule creates a branch rule in a given repository.
 ///
@@ -3075,18 +3324,16 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_create_e
 
 pub fn securesourcemanager_projects_locations_repositories_branch_rules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    branchRuleId: Option<&str>,
-    body: &BranchRule,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesBranchRulesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_branch_rules_create_builder(
         client,
-        parent,
-        branchRuleId,
-        body,
+        &args.parent,
+        args.branchRuleId.as_deref(),
+        &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_branch_rules_create_execute(builder)
 }
@@ -3193,6 +3440,15 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_delete_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_branch_rules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesBranchRulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/branchRules/{branchRulesId}
 /// DeleteBranchRule deletes a branch rule.
 ///
@@ -3205,16 +3461,15 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_delete_e
 
 pub fn securesourcemanager_projects_locations_repositories_branch_rules_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesBranchRulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_branch_rules_delete_builder(
         client,
-        name,
-        allowMissing,
+        &args.name,
+        args.allowMissing,
     )?;
     securesourcemanager_projects_locations_repositories_branch_rules_delete_execute(builder)
 }
@@ -3309,6 +3564,13 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_get_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_branch_rules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesBranchRulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/branchRules/{branchRulesId}
 /// GetBranchRule gets a branch rule.
 ///
@@ -3321,13 +3583,14 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_get_exec
 
 pub fn securesourcemanager_projects_locations_repositories_branch_rules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesBranchRulesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BranchRule>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        securesourcemanager_projects_locations_repositories_branch_rules_get_builder(client, name)?;
+    let builder = securesourcemanager_projects_locations_repositories_branch_rules_get_builder(
+        client, &args.name,
+    )?;
     securesourcemanager_projects_locations_repositories_branch_rules_get_execute(builder)
 }
 
@@ -3439,6 +3702,17 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_list_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_branch_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesBranchRulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/branchRules
 /// ListBranchRules lists branch rules in a given repository.
 ///
@@ -3451,9 +3725,7 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_list_exe
 
 pub fn securesourcemanager_projects_locations_repositories_branch_rules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesBranchRulesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBranchRulesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3461,7 +3733,10 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_list(
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_branch_rules_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securesourcemanager_projects_locations_repositories_branch_rules_list_execute(builder)
 }
@@ -3575,6 +3850,19 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_patch_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_branch_rules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesBranchRulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: BranchRule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/branchRules/{branchRulesId}
 /// UpdateBranchRule updates a branch rule.
 ///
@@ -3587,20 +3875,17 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_patch_ex
 
 pub fn securesourcemanager_projects_locations_repositories_branch_rules_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &BranchRule,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesBranchRulesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_branch_rules_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_branch_rules_patch_execute(builder)
 }
@@ -3710,6 +3995,17 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_hooks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesHooksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: hookId
+    pub hookId: Option<String>,
+    /// Request body.
+    pub body: Hook,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/hooks
 /// Creates a new hook in a given repository.
 ///
@@ -3722,15 +4018,16 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_create_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_hooks_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    hookId: Option<&str>,
-    body: &Hook,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesHooksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_hooks_create_builder(
-        client, parent, hookId, body,
+        client,
+        &args.parent,
+        args.hookId.as_deref(),
+        &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_hooks_create_execute(builder)
 }
@@ -3825,6 +4122,13 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_hooks_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesHooksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/hooks/{hooksId}
 /// Deletes a Hook.
 ///
@@ -3837,13 +4141,14 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_delete_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_hooks_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesHooksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        securesourcemanager_projects_locations_repositories_hooks_delete_builder(client, name)?;
+    let builder = securesourcemanager_projects_locations_repositories_hooks_delete_builder(
+        client, &args.name,
+    )?;
     securesourcemanager_projects_locations_repositories_hooks_delete_execute(builder)
 }
 
@@ -3937,6 +4242,13 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_hooks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesHooksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/hooks/{hooksId}
 /// Gets metadata of a hook.
 ///
@@ -3949,13 +4261,13 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_get_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_hooks_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesHooksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Hook>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        securesourcemanager_projects_locations_repositories_hooks_get_builder(client, name)?;
+        securesourcemanager_projects_locations_repositories_hooks_get_builder(client, &args.name)?;
     securesourcemanager_projects_locations_repositories_hooks_get_execute(builder)
 }
 
@@ -4067,6 +4379,17 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_hooks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesHooksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/hooks
 /// Lists hooks in a given repository.
 ///
@@ -4079,9 +4402,7 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_list_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_hooks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesHooksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListHooksResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4089,7 +4410,10 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_list(
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_hooks_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securesourcemanager_projects_locations_repositories_hooks_list_execute(builder)
 }
@@ -4199,6 +4523,17 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_hooks_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesHooksPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Hook,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/hooks/{hooksId}
 /// Updates the metadata of a hook.
 ///
@@ -4211,15 +4546,16 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_patch_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_hooks_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Hook,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesHooksPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_hooks_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_hooks_patch_execute(builder)
 }
@@ -4317,6 +4653,15 @@ pub fn securesourcemanager_projects_locations_repositories_issues_close_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_issues_close`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesCloseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CloseIssueRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}:close
 /// Closes an issue.
 ///
@@ -4329,14 +4674,13 @@ pub fn securesourcemanager_projects_locations_repositories_issues_close_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_issues_close(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CloseIssueRequest,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesIssuesCloseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_issues_close_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_issues_close_execute(builder)
 }
@@ -4434,6 +4778,15 @@ pub fn securesourcemanager_projects_locations_repositories_issues_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_issues_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Issue,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues
 /// Creates an issue.
 ///
@@ -4446,14 +4799,15 @@ pub fn securesourcemanager_projects_locations_repositories_issues_create_execute
 
 pub fn securesourcemanager_projects_locations_repositories_issues_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Issue,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesIssuesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_issues_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_issues_create_execute(builder)
 }
@@ -4560,6 +4914,15 @@ pub fn securesourcemanager_projects_locations_repositories_issues_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_issues_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}
 /// Deletes an issue.
 ///
@@ -4572,14 +4935,15 @@ pub fn securesourcemanager_projects_locations_repositories_issues_delete_execute
 
 pub fn securesourcemanager_projects_locations_repositories_issues_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesIssuesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_issues_delete_builder(
-        client, name, etag,
+        client,
+        &args.name,
+        args.etag.as_deref(),
     )?;
     securesourcemanager_projects_locations_repositories_issues_delete_execute(builder)
 }
@@ -4674,6 +5038,13 @@ pub fn securesourcemanager_projects_locations_repositories_issues_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_issues_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}
 /// Gets an issue.
 ///
@@ -4686,13 +5057,13 @@ pub fn securesourcemanager_projects_locations_repositories_issues_get_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_issues_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesIssuesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Issue>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        securesourcemanager_projects_locations_repositories_issues_get_builder(client, name)?;
+        securesourcemanager_projects_locations_repositories_issues_get_builder(client, &args.name)?;
     securesourcemanager_projects_locations_repositories_issues_get_execute(builder)
 }
 
@@ -4808,6 +5179,19 @@ pub fn securesourcemanager_projects_locations_repositories_issues_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_issues_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues
 /// Lists issues in a repository.
 ///
@@ -4820,10 +5204,7 @@ pub fn securesourcemanager_projects_locations_repositories_issues_list_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_issues_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesIssuesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListIssuesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4831,7 +5212,11 @@ pub fn securesourcemanager_projects_locations_repositories_issues_list(
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_issues_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securesourcemanager_projects_locations_repositories_issues_list_execute(builder)
 }
@@ -4929,6 +5314,15 @@ pub fn securesourcemanager_projects_locations_repositories_issues_open_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_issues_open`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesOpenArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: OpenIssueRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}:open
 /// Opens an issue.
 ///
@@ -4941,14 +5335,13 @@ pub fn securesourcemanager_projects_locations_repositories_issues_open_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_issues_open(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &OpenIssueRequest,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesIssuesOpenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_issues_open_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_issues_open_execute(builder)
 }
@@ -5058,6 +5451,17 @@ pub fn securesourcemanager_projects_locations_repositories_issues_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_issues_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Issue,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}
 /// Updates a issue.
 ///
@@ -5070,15 +5474,16 @@ pub fn securesourcemanager_projects_locations_repositories_issues_patch_execute(
 
 pub fn securesourcemanager_projects_locations_repositories_issues_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Issue,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesIssuesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_issues_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_issues_patch_execute(builder)
 }
@@ -5176,6 +5581,15 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_issues_issue_comments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesIssueCommentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: IssueComment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}/issueComments
 /// Creates an issue comment.
 ///
@@ -5188,15 +5602,16 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
 
 pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &IssueComment,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesIssuesIssueCommentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         securesourcemanager_projects_locations_repositories_issues_issue_comments_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     securesourcemanager_projects_locations_repositories_issues_issue_comments_create_execute(
         builder,
@@ -5293,6 +5708,13 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_issues_issue_comments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesIssueCommentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}/issueComments/{issueCommentsId}
 /// Deletes an issue comment.
 ///
@@ -5305,14 +5727,14 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
 
 pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesIssuesIssueCommentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         securesourcemanager_projects_locations_repositories_issues_issue_comments_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     securesourcemanager_projects_locations_repositories_issues_issue_comments_delete_execute(
         builder,
@@ -5411,6 +5833,13 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_issues_issue_comments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesIssueCommentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}/issueComments/{issueCommentsId}
 /// Gets an issue comment.
 ///
@@ -5423,7 +5852,7 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
 
 pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesIssuesIssueCommentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IssueComment>, ApiError>, P = ApiPending>
         + Send
@@ -5432,7 +5861,7 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
 > {
     let builder =
         securesourcemanager_projects_locations_repositories_issues_issue_comments_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     securesourcemanager_projects_locations_repositories_issues_issue_comments_get_execute(builder)
 }
@@ -5545,6 +5974,17 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_issues_issue_comments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesIssueCommentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}/issueComments
 /// Lists comments in an issue.
 ///
@@ -5557,9 +5997,7 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
 
 pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesIssuesIssueCommentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListIssueCommentsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5568,7 +6006,10 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
 > {
     let builder =
         securesourcemanager_projects_locations_repositories_issues_issue_comments_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     securesourcemanager_projects_locations_repositories_issues_issue_comments_list_execute(builder)
 }
@@ -5678,6 +6119,17 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_issues_issue_comments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesIssueCommentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: IssueComment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}/issueComments/{issueCommentsId}
 /// Updates an issue comment.
 ///
@@ -5690,16 +6142,17 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
 
 pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &IssueComment,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesIssuesIssueCommentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         securesourcemanager_projects_locations_repositories_issues_issue_comments_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     securesourcemanager_projects_locations_repositories_issues_issue_comments_patch_execute(builder)
 }
@@ -5797,6 +6250,15 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_close_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_pull_requests_close`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsCloseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ClosePullRequestRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}:close
 /// Closes a pull request without merging.
 ///
@@ -5809,14 +6271,13 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_close_e
 
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_close(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ClosePullRequestRequest,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsCloseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_pull_requests_close_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_pull_requests_close_execute(builder)
 }
@@ -5914,6 +6375,15 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_create_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_pull_requests_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: PullRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests
 /// Creates a pull request.
 ///
@@ -5926,14 +6396,15 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_create_
 
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &PullRequest,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_pull_requests_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_pull_requests_create_execute(builder)
 }
@@ -6028,6 +6499,13 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_pull_requests_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}
 /// Gets a pull request.
 ///
@@ -6040,13 +6518,13 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_get_exe
 
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PullRequest>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_pull_requests_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     securesourcemanager_projects_locations_repositories_pull_requests_get_execute(builder)
 }
@@ -6159,6 +6637,17 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_pull_requests_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests
 /// Lists pull requests in a repository.
 ///
@@ -6171,9 +6660,7 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_list_ex
 
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPullRequestsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6181,7 +6668,10 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_list(
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_pull_requests_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securesourcemanager_projects_locations_repositories_pull_requests_list_execute(builder)
 }
@@ -6296,6 +6786,17 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_list_fi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_pull_requests_list_file_diffs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsListFileDiffsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}:listFileDiffs
 /// Lists a pull request's file diffs.
 ///
@@ -6308,9 +6809,7 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_list_fi
 
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_list_file_diffs(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsListFileDiffsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPullRequestFileDiffsResponse>, ApiError>,
@@ -6321,7 +6820,10 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_list_fi
 > {
     let builder =
         securesourcemanager_projects_locations_repositories_pull_requests_list_file_diffs_builder(
-            client, name, pageSize, pageToken,
+            client,
+            &args.name,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     securesourcemanager_projects_locations_repositories_pull_requests_list_file_diffs_execute(
         builder,
@@ -6421,6 +6923,15 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_merge_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_pull_requests_merge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsMergeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MergePullRequestRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}:merge
 /// Merges a pull request.
 ///
@@ -6433,14 +6944,13 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_merge_e
 
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_merge(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MergePullRequestRequest,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsMergeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_pull_requests_merge_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_pull_requests_merge_execute(builder)
 }
@@ -6538,6 +7048,15 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_open_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_pull_requests_open`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsOpenArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: OpenPullRequestRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}:open
 /// Opens a pull request.
 ///
@@ -6550,14 +7069,13 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_open_ex
 
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_open(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &OpenPullRequestRequest,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsOpenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_pull_requests_open_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_pull_requests_open_execute(builder)
 }
@@ -6667,6 +7185,17 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_patch_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_pull_requests_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: PullRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}
 /// Updates a pull request.
 ///
@@ -6679,15 +7208,16 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_patch_e
 
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &PullRequest,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securesourcemanager_projects_locations_repositories_pull_requests_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securesourcemanager_projects_locations_repositories_pull_requests_patch_execute(builder)
 }
@@ -6785,6 +7315,16 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullRequestCommentsBatchCreateArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchCreatePullRequestCommentsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments:batchCreate
 /// Batch creates pull request comments. This function is used to create multiple PullRequestComments for code review. There needs to be exactly one PullRequestComment of type Review, and at most 100 PullRequestComments of type Code per request. The Position of the code comments must be unique within the request.
 ///
@@ -6797,13 +7337,12 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_batch_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchCreatePullRequestCommentsRequest,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullRequestCommentsBatchCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_batch_create_builder(client, parent, body)?;
+    let builder = securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_batch_create_builder(client, &args.parent, &args.body)?;
     securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_batch_create_execute(builder)
 }
 
@@ -6900,6 +7439,16 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullRequestCommentsCreateArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: PullRequestComment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments
 /// Creates a pull request comment. This function is used to create a single PullRequestComment of type Comment, or a single PullRequestComment of type Code that's replying to another PullRequestComment of type Code. Use BatchCreatePullRequestComments to create multiple PullRequestComments for code reviews.
 ///
@@ -6912,13 +7461,12 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &PullRequestComment,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullRequestCommentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_create_builder(client, parent, body)?;
+    let builder = securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_create_builder(client, &args.parent, &args.body)?;
     securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_create_execute(builder)
 }
 
@@ -7012,6 +7560,14 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullRequestCommentsDeleteArgs
+{
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments/{pullRequestCommentsId}
 /// Deletes a pull request comment.
 ///
@@ -7024,12 +7580,12 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullRequestCommentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_delete_builder(client, name)?;
+    let builder = securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_delete_builder(client, &args.name)?;
     securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_delete_execute(builder)
 }
 
@@ -7125,6 +7681,13 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullRequestCommentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments/{pullRequestCommentsId}
 /// Gets a pull request comment.
 ///
@@ -7137,14 +7700,14 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullRequestCommentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PullRequestComment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_get_builder(client, name)?;
+    let builder = securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_get_builder(client, &args.name)?;
     securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_get_execute(builder)
 }
 
@@ -7258,6 +7821,17 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullRequestCommentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments
 /// Lists pull request comments.
 ///
@@ -7270,9 +7844,7 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullRequestCommentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPullRequestCommentsResponse>, ApiError>,
@@ -7281,7 +7853,7 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
         + 'static,
     ApiError,
 > {
-    let builder = securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_list_execute(builder)
 }
 
@@ -7390,6 +7962,18 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullRequestCommentsPatchArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: PullRequestComment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments/{pullRequestCommentsId}
 /// Updates a pull request comment.
 ///
@@ -7402,14 +7986,12 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &PullRequestComment,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullRequestCommentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_patch_builder(client, name, updateMask, body)?;
+    let builder = securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_patch_builder(client, &args.name, args.updateMask.as_deref(), &args.body)?;
     securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_patch_execute(builder)
 }
 
@@ -7506,6 +8088,16 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_resolve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullRequestCommentsResolveArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ResolvePullRequestCommentsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments:resolve
 /// Resolves pull request comments. A list of PullRequestComment names must be provided. The PullRequestComment names must be in the same conversation thread. If auto_fill is set, all comments in the conversation thread will be resolved.
 ///
@@ -7518,13 +8110,12 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_resolve(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ResolvePullRequestCommentsRequest,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullRequestCommentsResolveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_resolve_builder(client, parent, body)?;
+    let builder = securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_resolve_builder(client, &args.parent, &args.body)?;
     securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_resolve_execute(builder)
 }
 
@@ -7621,6 +8212,16 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_unresolve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullRequestCommentsUnresolveArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UnresolvePullRequestCommentsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments:unresolve
 /// Unresolves pull request comments. A list of PullRequestComment names must be provided. The PullRequestComment names must be in the same conversation thread. If auto_fill is set, all comments in the conversation thread will be unresolved.
 ///
@@ -7633,12 +8234,11 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_unresolve(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UnresolvePullRequestCommentsRequest,
+    args: &SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullRequestCommentsUnresolveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_unresolve_builder(client, parent, body)?;
+    let builder = securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_unresolve_builder(client, &args.parent, &args.body)?;
     securesourcemanager_projects_locations_repositories_pull_requests_pull_request_comments_unresolve_execute(builder)
 }

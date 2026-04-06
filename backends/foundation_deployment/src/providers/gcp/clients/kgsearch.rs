@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/entities:search
 /// Searches Knowledge Graph for entities that match the constraints. A list of matched entities will be returned in response, which will be in JSON-LD format and compatible with <http://schema.org>
@@ -140,6 +142,25 @@ pub fn kgsearch_entities_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`kgsearch_entities_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct KgsearchEntitiesSearchArgs {
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: indent
+    pub indent: Option<bool>,
+    /// Query parameter: languages
+    pub languages: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<i32>,
+    /// Query parameter: prefix
+    pub prefix: Option<bool>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: types
+    pub types: Option<String>,
+}
+
 /// GET v1/entities:search
 /// Searches Knowledge Graph for entities that match the constraints. A list of matched entities will be returned in response, which will be in JSON-LD format and compatible with <http://schema.org>
 ///
@@ -152,13 +173,7 @@ pub fn kgsearch_entities_search_execute(
 
 pub fn kgsearch_entities_search(
     client: &SimpleHttpClient,
-    ids: Option<&str>,
-    indent: Option<bool>,
-    languages: Option<&str>,
-    limit: Option<i32>,
-    prefix: Option<bool>,
-    query: Option<&str>,
-    types: Option<&str>,
+    args: &KgsearchEntitiesSearchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchResponse>, ApiError>, P = ApiPending>
         + Send
@@ -166,7 +181,14 @@ pub fn kgsearch_entities_search(
     ApiError,
 > {
     let builder = kgsearch_entities_search_builder(
-        client, ids, indent, languages, limit, prefix, query, types,
+        client,
+        args.ids.as_deref(),
+        args.indent,
+        args.languages.as_deref(),
+        args.limit,
+        args.prefix,
+        args.query.as_deref(),
+        args.types.as_deref(),
     )?;
     kgsearch_entities_search_execute(builder)
 }

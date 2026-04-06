@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}:triggerPubsubExecution
 /// Triggers a new execution using the latest revision of the given workflow by a P`ub/Sub` push notification.
@@ -109,6 +111,15 @@ pub fn workflowexecutions_projects_locations_workflows_trigger_pubsub_execution_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflowexecutions_projects_locations_workflows_trigger_pubsub_execution`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowexecutionsProjectsLocationsWorkflowsTriggerPubsubExecutionArgs {
+    /// Path parameter: workflow
+    pub workflow: String,
+    /// Request body.
+    pub body: TriggerPubsubExecutionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}:triggerPubsubExecution
 /// Triggers a new execution using the latest revision of the given workflow by a P`ub/Sub` push notification.
 ///
@@ -121,14 +132,15 @@ pub fn workflowexecutions_projects_locations_workflows_trigger_pubsub_execution_
 
 pub fn workflowexecutions_projects_locations_workflows_trigger_pubsub_execution(
     client: &SimpleHttpClient,
-    workflow: &str,
-    body: &TriggerPubsubExecutionRequest,
+    args: &WorkflowexecutionsProjectsLocationsWorkflowsTriggerPubsubExecutionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = workflowexecutions_projects_locations_workflows_trigger_pubsub_execution_builder(
-        client, workflow, body,
+        client,
+        &args.workflow,
+        &args.body,
     )?;
     workflowexecutions_projects_locations_workflows_trigger_pubsub_execution_execute(builder)
 }
@@ -226,6 +238,15 @@ pub fn workflowexecutions_projects_locations_workflows_executions_cancel_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflowexecutions_projects_locations_workflows_executions_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowexecutionsProjectsLocationsWorkflowsExecutionsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelExecutionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}/executions/{executionsId}:cancel
 /// Cancels an execution of the given name.
 ///
@@ -238,14 +259,13 @@ pub fn workflowexecutions_projects_locations_workflows_executions_cancel_execute
 
 pub fn workflowexecutions_projects_locations_workflows_executions_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelExecutionRequest,
+    args: &WorkflowexecutionsProjectsLocationsWorkflowsExecutionsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = workflowexecutions_projects_locations_workflows_executions_cancel_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     workflowexecutions_projects_locations_workflows_executions_cancel_execute(builder)
 }
@@ -343,6 +363,15 @@ pub fn workflowexecutions_projects_locations_workflows_executions_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflowexecutions_projects_locations_workflows_executions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowexecutionsProjectsLocationsWorkflowsExecutionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Execution,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}/executions
 /// Creates a new execution using the latest revision of the given workflow. For more information, see Execute a workflow.
 ///
@@ -355,14 +384,15 @@ pub fn workflowexecutions_projects_locations_workflows_executions_create_execute
 
 pub fn workflowexecutions_projects_locations_workflows_executions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Execution,
+    args: &WorkflowexecutionsProjectsLocationsWorkflowsExecutionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = workflowexecutions_projects_locations_workflows_executions_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     workflowexecutions_projects_locations_workflows_executions_create_execute(builder)
 }
@@ -460,6 +490,15 @@ pub fn workflowexecutions_projects_locations_workflows_executions_delete_executi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflowexecutions_projects_locations_workflows_executions_delete_execution_history`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowexecutionsProjectsLocationsWorkflowsExecutionsDeleteExecutionHistoryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DeleteExecutionHistoryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}/executions/{executionsId}:deleteExecutionHistory
 /// Deletes all step entries for an execution.
 ///
@@ -472,13 +511,12 @@ pub fn workflowexecutions_projects_locations_workflows_executions_delete_executi
 
 pub fn workflowexecutions_projects_locations_workflows_executions_delete_execution_history(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DeleteExecutionHistoryRequest,
+    args: &WorkflowexecutionsProjectsLocationsWorkflowsExecutionsDeleteExecutionHistoryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workflowexecutions_projects_locations_workflows_executions_delete_execution_history_builder(client, name, body)?;
+    let builder = workflowexecutions_projects_locations_workflows_executions_delete_execution_history_builder(client, &args.name, &args.body)?;
     workflowexecutions_projects_locations_workflows_executions_delete_execution_history_execute(
         builder,
     )
@@ -576,6 +614,13 @@ pub fn workflowexecutions_projects_locations_workflows_executions_export_data_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflowexecutions_projects_locations_workflows_executions_export_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowexecutionsProjectsLocationsWorkflowsExecutionsExportDataArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}/executions/{executionsId}:exportData
 /// Returns all metadata stored about an execution, excluding most data that is already accessible using other API methods.
 ///
@@ -588,7 +633,7 @@ pub fn workflowexecutions_projects_locations_workflows_executions_export_data_ex
 
 pub fn workflowexecutions_projects_locations_workflows_executions_export_data(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkflowexecutionsProjectsLocationsWorkflowsExecutionsExportDataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExportDataResponse>, ApiError>, P = ApiPending>
         + Send
@@ -596,7 +641,7 @@ pub fn workflowexecutions_projects_locations_workflows_executions_export_data(
     ApiError,
 > {
     let builder = workflowexecutions_projects_locations_workflows_executions_export_data_builder(
-        client, name,
+        client, &args.name,
     )?;
     workflowexecutions_projects_locations_workflows_executions_export_data_execute(builder)
 }
@@ -703,6 +748,15 @@ pub fn workflowexecutions_projects_locations_workflows_executions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflowexecutions_projects_locations_workflows_executions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowexecutionsProjectsLocationsWorkflowsExecutionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}/executions/{executionsId}
 /// Returns an execution of the given name.
 ///
@@ -715,14 +769,16 @@ pub fn workflowexecutions_projects_locations_workflows_executions_get_execute(
 
 pub fn workflowexecutions_projects_locations_workflows_executions_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &WorkflowexecutionsProjectsLocationsWorkflowsExecutionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        workflowexecutions_projects_locations_workflows_executions_get_builder(client, name, view)?;
+    let builder = workflowexecutions_projects_locations_workflows_executions_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     workflowexecutions_projects_locations_workflows_executions_get_execute(builder)
 }
 
@@ -846,6 +902,23 @@ pub fn workflowexecutions_projects_locations_workflows_executions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflowexecutions_projects_locations_workflows_executions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowexecutionsProjectsLocationsWorkflowsExecutionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}/executions
 /// Returns a list of executions which belong to the workflow with the given name. The method returns executions of all workflow revisions. Returned executions are ordered by their start time (newest first).
 ///
@@ -858,12 +931,7 @@ pub fn workflowexecutions_projects_locations_workflows_executions_list_execute(
 
 pub fn workflowexecutions_projects_locations_workflows_executions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &WorkflowexecutionsProjectsLocationsWorkflowsExecutionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListExecutionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -871,7 +939,13 @@ pub fn workflowexecutions_projects_locations_workflows_executions_list(
     ApiError,
 > {
     let builder = workflowexecutions_projects_locations_workflows_executions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     workflowexecutions_projects_locations_workflows_executions_list_execute(builder)
 }
@@ -984,6 +1058,17 @@ pub fn workflowexecutions_projects_locations_workflows_executions_callbacks_list
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflowexecutions_projects_locations_workflows_executions_callbacks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowexecutionsProjectsLocationsWorkflowsExecutionsCallbacksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}/executions/{executionsId}/callbacks
 /// Returns a list of active callbacks that belong to the execution with the given name. The returned callbacks are ordered by callback ID.
 ///
@@ -996,9 +1081,7 @@ pub fn workflowexecutions_projects_locations_workflows_executions_callbacks_list
 
 pub fn workflowexecutions_projects_locations_workflows_executions_callbacks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkflowexecutionsProjectsLocationsWorkflowsExecutionsCallbacksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCallbacksResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1007,7 +1090,10 @@ pub fn workflowexecutions_projects_locations_workflows_executions_callbacks_list
 > {
     let builder =
         workflowexecutions_projects_locations_workflows_executions_callbacks_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     workflowexecutions_projects_locations_workflows_executions_callbacks_list_execute(builder)
 }
@@ -1114,6 +1200,15 @@ pub fn workflowexecutions_projects_locations_workflows_executions_step_entries_g
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflowexecutions_projects_locations_workflows_executions_step_entries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowexecutionsProjectsLocationsWorkflowsExecutionsStepEntriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}/executions/{executionsId}/stepEntries/{stepEntriesId}
 /// Gets a step entry.
 ///
@@ -1126,15 +1221,16 @@ pub fn workflowexecutions_projects_locations_workflows_executions_step_entries_g
 
 pub fn workflowexecutions_projects_locations_workflows_executions_step_entries_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &WorkflowexecutionsProjectsLocationsWorkflowsExecutionsStepEntriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StepEntry>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         workflowexecutions_projects_locations_workflows_executions_step_entries_get_builder(
-            client, name, view,
+            client,
+            &args.name,
+            args.view.as_deref(),
         )?;
     workflowexecutions_projects_locations_workflows_executions_step_entries_get_execute(builder)
 }
@@ -1263,6 +1359,25 @@ pub fn workflowexecutions_projects_locations_workflows_executions_step_entries_l
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflowexecutions_projects_locations_workflows_executions_step_entries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowexecutionsProjectsLocationsWorkflowsExecutionsStepEntriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: skip
+    pub skip: Option<i32>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}/executions/{executionsId}/stepEntries
 /// Lists step entries for the corresponding workflow execution. Returned entries are ordered by their create_time.
 ///
@@ -1275,13 +1390,7 @@ pub fn workflowexecutions_projects_locations_workflows_executions_step_entries_l
 
 pub fn workflowexecutions_projects_locations_workflows_executions_step_entries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    skip: Option<i32>,
-    view: Option<&str>,
+    args: &WorkflowexecutionsProjectsLocationsWorkflowsExecutionsStepEntriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListStepEntriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1290,7 +1399,14 @@ pub fn workflowexecutions_projects_locations_workflows_executions_step_entries_l
 > {
     let builder =
         workflowexecutions_projects_locations_workflows_executions_step_entries_list_builder(
-            client, parent, filter, orderBy, pageSize, pageToken, skip, view,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.skip,
+            args.view.as_deref(),
         )?;
     workflowexecutions_projects_locations_workflows_executions_step_entries_list_execute(builder)
 }

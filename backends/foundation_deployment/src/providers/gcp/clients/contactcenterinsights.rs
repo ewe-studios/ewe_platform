@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:bulkDeleteFeedbackLabels
 /// Delete feedback labels in bulk using a filter.
@@ -113,6 +115,15 @@ pub fn contactcenterinsights_projects_locations_bulk_delete_feedback_labels_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_bulk_delete_feedback_labels`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsBulkDeleteFeedbackLabelsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:bulkDeleteFeedbackLabels
 /// Delete feedback labels in bulk using a filter.
 ///
@@ -125,8 +136,7 @@ pub fn contactcenterinsights_projects_locations_bulk_delete_feedback_labels_exec
 
 pub fn contactcenterinsights_projects_locations_bulk_delete_feedback_labels(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsRequest,
+    args: &ContactcenterinsightsProjectsLocationsBulkDeleteFeedbackLabelsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -136,7 +146,9 @@ pub fn contactcenterinsights_projects_locations_bulk_delete_feedback_labels(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_bulk_delete_feedback_labels_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_bulk_delete_feedback_labels_execute(builder)
 }
@@ -238,6 +250,15 @@ pub fn contactcenterinsights_projects_locations_bulk_download_feedback_labels_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_bulk_download_feedback_labels`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsBulkDownloadFeedbackLabelsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:bulkDownloadFeedbackLabels
 /// Download feedback labels in bulk from an external source. Currently supports exporting Quality AI example conversations with transcripts and question bodies.
 ///
@@ -250,8 +271,7 @@ pub fn contactcenterinsights_projects_locations_bulk_download_feedback_labels_ex
 
 pub fn contactcenterinsights_projects_locations_bulk_download_feedback_labels(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequest,
+    args: &ContactcenterinsightsProjectsLocationsBulkDownloadFeedbackLabelsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -261,7 +281,9 @@ pub fn contactcenterinsights_projects_locations_bulk_download_feedback_labels(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_bulk_download_feedback_labels_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_bulk_download_feedback_labels_execute(builder)
 }
@@ -363,6 +385,15 @@ pub fn contactcenterinsights_projects_locations_bulk_upload_feedback_labels_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_bulk_upload_feedback_labels`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsBulkUploadFeedbackLabelsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:bulkUploadFeedbackLabels
 /// Upload feedback labels from an external source in bulk. Currently supports labeling Quality AI example conversations.
 ///
@@ -375,8 +406,7 @@ pub fn contactcenterinsights_projects_locations_bulk_upload_feedback_labels_exec
 
 pub fn contactcenterinsights_projects_locations_bulk_upload_feedback_labels(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequest,
+    args: &ContactcenterinsightsProjectsLocationsBulkUploadFeedbackLabelsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -386,7 +416,9 @@ pub fn contactcenterinsights_projects_locations_bulk_upload_feedback_labels(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_bulk_upload_feedback_labels_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_bulk_upload_feedback_labels_execute(builder)
 }
@@ -488,6 +520,15 @@ pub fn contactcenterinsights_projects_locations_generative_insights_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_generative_insights`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsGenerativeInsightsArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1GenerativeInsightsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:generativeInsights
 /// Natural language based Insights which powers the next generation of dashboards in Insights. Next generation of QueryMetrics.
 ///
@@ -500,8 +541,7 @@ pub fn contactcenterinsights_projects_locations_generative_insights_execute(
 
 pub fn contactcenterinsights_projects_locations_generative_insights(
     client: &SimpleHttpClient,
-    location: &str,
-    body: &GoogleCloudContactcenterinsightsV1GenerativeInsightsRequest,
+    args: &ContactcenterinsightsProjectsLocationsGenerativeInsightsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -511,7 +551,9 @@ pub fn contactcenterinsights_projects_locations_generative_insights(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_generative_insights_builder(
-        client, location, body,
+        client,
+        &args.location,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_generative_insights_execute(builder)
 }
@@ -611,6 +653,13 @@ pub fn contactcenterinsights_projects_locations_get_correlation_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_get_correlation_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsGetCorrelationConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/correlationConfig
 /// Gets correlation config.
 ///
@@ -623,7 +672,7 @@ pub fn contactcenterinsights_projects_locations_get_correlation_config_execute(
 
 pub fn contactcenterinsights_projects_locations_get_correlation_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsGetCorrelationConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1CorrelationConfig>, ApiError>,
@@ -632,8 +681,9 @@ pub fn contactcenterinsights_projects_locations_get_correlation_config(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_get_correlation_config_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_get_correlation_config_builder(
+        client, &args.name,
+    )?;
     contactcenterinsights_projects_locations_get_correlation_config_execute(builder)
 }
 
@@ -732,6 +782,13 @@ pub fn contactcenterinsights_projects_locations_get_encryption_spec_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_get_encryption_spec`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsGetEncryptionSpecArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/encryptionSpec
 /// Gets location-level encryption key specification.
 ///
@@ -744,7 +801,7 @@ pub fn contactcenterinsights_projects_locations_get_encryption_spec_execute(
 
 pub fn contactcenterinsights_projects_locations_get_encryption_spec(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsGetEncryptionSpecArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1EncryptionSpec>, ApiError>,
@@ -754,7 +811,7 @@ pub fn contactcenterinsights_projects_locations_get_encryption_spec(
     ApiError,
 > {
     let builder =
-        contactcenterinsights_projects_locations_get_encryption_spec_builder(client, name)?;
+        contactcenterinsights_projects_locations_get_encryption_spec_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_get_encryption_spec_execute(builder)
 }
 
@@ -853,6 +910,13 @@ pub fn contactcenterinsights_projects_locations_get_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_get_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsGetSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/settings
 /// Gets project-level settings.
 ///
@@ -865,7 +929,7 @@ pub fn contactcenterinsights_projects_locations_get_settings_execute(
 
 pub fn contactcenterinsights_projects_locations_get_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsGetSettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Settings>, ApiError>,
@@ -874,7 +938,8 @@ pub fn contactcenterinsights_projects_locations_get_settings(
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_get_settings_builder(client, name)?;
+    let builder =
+        contactcenterinsights_projects_locations_get_settings_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_get_settings_execute(builder)
 }
 
@@ -996,6 +1061,19 @@ pub fn contactcenterinsights_projects_locations_list_all_feedback_labels_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_list_all_feedback_labels`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsListAllFeedbackLabelsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:listAllFeedbackLabels
 /// List all feedback labels by project number.
 ///
@@ -1008,10 +1086,7 @@ pub fn contactcenterinsights_projects_locations_list_all_feedback_labels_execute
 
 pub fn contactcenterinsights_projects_locations_list_all_feedback_labels(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsListAllFeedbackLabelsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1024,7 +1099,11 @@ pub fn contactcenterinsights_projects_locations_list_all_feedback_labels(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_list_all_feedback_labels_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     contactcenterinsights_projects_locations_list_all_feedback_labels_execute(builder)
 }
@@ -1126,6 +1205,15 @@ pub fn contactcenterinsights_projects_locations_query_metrics_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_query_metrics`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQueryMetricsArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1QueryMetricsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:queryMetrics
 /// Query metrics.
 ///
@@ -1138,8 +1226,7 @@ pub fn contactcenterinsights_projects_locations_query_metrics_execute(
 
 pub fn contactcenterinsights_projects_locations_query_metrics(
     client: &SimpleHttpClient,
-    location: &str,
-    body: &GoogleCloudContactcenterinsightsV1QueryMetricsRequest,
+    args: &ContactcenterinsightsProjectsLocationsQueryMetricsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1148,8 +1235,11 @@ pub fn contactcenterinsights_projects_locations_query_metrics(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_query_metrics_builder(client, location, body)?;
+    let builder = contactcenterinsights_projects_locations_query_metrics_builder(
+        client,
+        &args.location,
+        &args.body,
+    )?;
     contactcenterinsights_projects_locations_query_metrics_execute(builder)
 }
 
@@ -1250,6 +1340,15 @@ pub fn contactcenterinsights_projects_locations_query_performance_overview_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_query_performance_overview`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQueryPerformanceOverviewArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:queryPerformanceOverview
 /// Generates a summary of predefined performance metrics for a set of conversations. Conversations can be specified by specifying a time window and an agent id, for now. The summary includes a comparison of metrics computed for conversations in the previous time period, and also a comparison with peers in the same time period.
 ///
@@ -1262,8 +1361,7 @@ pub fn contactcenterinsights_projects_locations_query_performance_overview_execu
 
 pub fn contactcenterinsights_projects_locations_query_performance_overview(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequest,
+    args: &ContactcenterinsightsProjectsLocationsQueryPerformanceOverviewArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1273,7 +1371,9 @@ pub fn contactcenterinsights_projects_locations_query_performance_overview(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_query_performance_overview_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_query_performance_overview_execute(builder)
 }
@@ -1375,6 +1475,15 @@ pub fn contactcenterinsights_projects_locations_test_correlation_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_test_correlation_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsTestCorrelationConfigArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1TestCorrelationConfigRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:testCorrelationConfig
 /// Tests correlation config on a conversation.
 ///
@@ -1387,8 +1496,7 @@ pub fn contactcenterinsights_projects_locations_test_correlation_config_execute(
 
 pub fn contactcenterinsights_projects_locations_test_correlation_config(
     client: &SimpleHttpClient,
-    location: &str,
-    body: &GoogleCloudContactcenterinsightsV1TestCorrelationConfigRequest,
+    args: &ContactcenterinsightsProjectsLocationsTestCorrelationConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1398,7 +1506,9 @@ pub fn contactcenterinsights_projects_locations_test_correlation_config(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_test_correlation_config_builder(
-        client, location, body,
+        client,
+        &args.location,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_test_correlation_config_execute(builder)
 }
@@ -1513,6 +1623,17 @@ pub fn contactcenterinsights_projects_locations_update_correlation_config_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_update_correlation_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsUpdateCorrelationConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1CorrelationConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/correlationConfig
 /// Updates correlation config.
 ///
@@ -1525,9 +1646,7 @@ pub fn contactcenterinsights_projects_locations_update_correlation_config_execut
 
 pub fn contactcenterinsights_projects_locations_update_correlation_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1CorrelationConfig,
+    args: &ContactcenterinsightsProjectsLocationsUpdateCorrelationConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1CorrelationConfig>, ApiError>,
@@ -1537,7 +1656,10 @@ pub fn contactcenterinsights_projects_locations_update_correlation_config(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_update_correlation_config_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_update_correlation_config_execute(builder)
 }
@@ -1652,6 +1774,17 @@ pub fn contactcenterinsights_projects_locations_update_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_update_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsUpdateSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Settings,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/settings
 /// Updates project-level settings.
 ///
@@ -1664,9 +1797,7 @@ pub fn contactcenterinsights_projects_locations_update_settings_execute(
 
 pub fn contactcenterinsights_projects_locations_update_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1Settings,
+    args: &ContactcenterinsightsProjectsLocationsUpdateSettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Settings>, ApiError>,
@@ -1676,7 +1807,10 @@ pub fn contactcenterinsights_projects_locations_update_settings(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_update_settings_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_update_settings_execute(builder)
 }
@@ -1779,6 +1913,15 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_analysis_rules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAnalysisRulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1AnalysisRule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/analysisRules
 /// Creates a analysis rule.
 ///
@@ -1791,8 +1934,7 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_create_execute(
 
 pub fn contactcenterinsights_projects_locations_analysis_rules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1AnalysisRule,
+    args: &ContactcenterinsightsProjectsLocationsAnalysisRulesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1AnalysisRule>, ApiError>,
@@ -1802,7 +1944,9 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_create(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_analysis_rules_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_analysis_rules_create_execute(builder)
 }
@@ -1899,6 +2043,13 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_analysis_rules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAnalysisRulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/analysisRules/{analysisRulesId}
 /// Deletes a analysis rule.
 ///
@@ -1911,7 +2062,7 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_delete_execute(
 
 pub fn contactcenterinsights_projects_locations_analysis_rules_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsAnalysisRulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -1919,7 +2070,7 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_delete(
     ApiError,
 > {
     let builder =
-        contactcenterinsights_projects_locations_analysis_rules_delete_builder(client, name)?;
+        contactcenterinsights_projects_locations_analysis_rules_delete_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_analysis_rules_delete_execute(builder)
 }
 
@@ -2018,6 +2169,13 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_analysis_rules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAnalysisRulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/analysisRules/{analysisRulesId}
 /// Get a analysis rule.
 ///
@@ -2030,7 +2188,7 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_get_execute(
 
 pub fn contactcenterinsights_projects_locations_analysis_rules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsAnalysisRulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1AnalysisRule>, ApiError>,
@@ -2040,7 +2198,7 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_get(
     ApiError,
 > {
     let builder =
-        contactcenterinsights_projects_locations_analysis_rules_get_builder(client, name)?;
+        contactcenterinsights_projects_locations_analysis_rules_get_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_analysis_rules_get_execute(builder)
 }
 
@@ -2158,6 +2316,17 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_analysis_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAnalysisRulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/analysisRules
 /// Lists analysis rules.
 ///
@@ -2170,9 +2339,7 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_list_execute(
 
 pub fn contactcenterinsights_projects_locations_analysis_rules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsAnalysisRulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2185,7 +2352,10 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_list(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_analysis_rules_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     contactcenterinsights_projects_locations_analysis_rules_list_execute(builder)
 }
@@ -2300,6 +2470,17 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_analysis_rules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAnalysisRulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1AnalysisRule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/analysisRules/{analysisRulesId}
 /// Updates a analysis rule.
 ///
@@ -2312,9 +2493,7 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_patch_execute(
 
 pub fn contactcenterinsights_projects_locations_analysis_rules_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1AnalysisRule,
+    args: &ContactcenterinsightsProjectsLocationsAnalysisRulesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1AnalysisRule>, ApiError>,
@@ -2324,7 +2503,10 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_patch(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_analysis_rules_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_analysis_rules_patch_execute(builder)
 }
@@ -2439,6 +2621,17 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_assessment_rules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAssessmentRulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: assessmentRuleId
+    pub assessmentRuleId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1AssessmentRule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assessmentRules
 /// Creates an assessment rule.
 ///
@@ -2451,9 +2644,7 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_create_execute(
 
 pub fn contactcenterinsights_projects_locations_assessment_rules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    assessmentRuleId: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1AssessmentRule,
+    args: &ContactcenterinsightsProjectsLocationsAssessmentRulesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1AssessmentRule>, ApiError>,
@@ -2464,9 +2655,9 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_create(
 > {
     let builder = contactcenterinsights_projects_locations_assessment_rules_create_builder(
         client,
-        parent,
-        assessmentRuleId,
-        body,
+        &args.parent,
+        args.assessmentRuleId.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_assessment_rules_create_execute(builder)
 }
@@ -2563,6 +2754,13 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_assessment_rules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAssessmentRulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assessmentRules/{assessmentRulesId}
 /// Deletes an assessment rule.
 ///
@@ -2575,15 +2773,16 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_delete_execute(
 
 pub fn contactcenterinsights_projects_locations_assessment_rules_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsAssessmentRulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_assessment_rules_delete_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_assessment_rules_delete_builder(
+        client, &args.name,
+    )?;
     contactcenterinsights_projects_locations_assessment_rules_delete_execute(builder)
 }
 
@@ -2682,6 +2881,13 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_assessment_rules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAssessmentRulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assessmentRules/{assessmentRulesId}
 /// Get an assessment rule.
 ///
@@ -2694,7 +2900,7 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_get_execute(
 
 pub fn contactcenterinsights_projects_locations_assessment_rules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsAssessmentRulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1AssessmentRule>, ApiError>,
@@ -2704,7 +2910,7 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_get(
     ApiError,
 > {
     let builder =
-        contactcenterinsights_projects_locations_assessment_rules_get_builder(client, name)?;
+        contactcenterinsights_projects_locations_assessment_rules_get_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_assessment_rules_get_execute(builder)
 }
 
@@ -2822,6 +3028,17 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_assessment_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAssessmentRulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assessmentRules
 /// Lists assessment rules.
 ///
@@ -2834,9 +3051,7 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_list_execute(
 
 pub fn contactcenterinsights_projects_locations_assessment_rules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsAssessmentRulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2849,7 +3064,10 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_list(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_assessment_rules_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     contactcenterinsights_projects_locations_assessment_rules_list_execute(builder)
 }
@@ -2964,6 +3182,17 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_assessment_rules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAssessmentRulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1AssessmentRule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assessmentRules/{assessmentRulesId}
 /// Updates an assessment rule.
 ///
@@ -2976,9 +3205,7 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_patch_execute(
 
 pub fn contactcenterinsights_projects_locations_assessment_rules_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1AssessmentRule,
+    args: &ContactcenterinsightsProjectsLocationsAssessmentRulesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1AssessmentRule>, ApiError>,
@@ -2988,7 +3215,10 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_patch(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_assessment_rules_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_assessment_rules_patch_execute(builder)
 }
@@ -3103,6 +3333,17 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_create_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: authorizedViewSetId
+    pub authorizedViewSetId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1AuthorizedViewSet,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets
 /// Create AuthorizedViewSet
 ///
@@ -3115,9 +3356,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_create_exec
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    authorizedViewSetId: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1AuthorizedViewSet,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1AuthorizedViewSet>, ApiError>,
@@ -3128,9 +3367,9 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_create(
 > {
     let builder = contactcenterinsights_projects_locations_authorized_view_sets_create_builder(
         client,
-        parent,
-        authorizedViewSetId,
-        body,
+        &args.parent,
+        args.authorizedViewSetId.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_authorized_view_sets_create_execute(builder)
 }
@@ -3239,6 +3478,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_delete_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}
 /// Deletes an AuthorizedViewSet.
 ///
@@ -3251,8 +3499,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_delete_exec
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -3260,7 +3507,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_delete(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_authorized_view_sets_delete_builder(
-        client, name, force,
+        client, &args.name, args.force,
     )?;
     contactcenterinsights_projects_locations_authorized_view_sets_delete_execute(builder)
 }
@@ -3360,6 +3607,13 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}
 /// Get AuthorizedViewSet
 ///
@@ -3372,7 +3626,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_get_execute
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1AuthorizedViewSet>, ApiError>,
@@ -3381,8 +3635,9 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_authorized_view_sets_get_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_get_builder(
+        client, &args.name,
+    )?;
     contactcenterinsights_projects_locations_authorized_view_sets_get_execute(builder)
 }
 
@@ -3508,6 +3763,21 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets
 /// List AuthorizedViewSets
 ///
@@ -3520,11 +3790,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_list_execut
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3537,7 +3803,12 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_list(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_authorized_view_sets_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     contactcenterinsights_projects_locations_authorized_view_sets_list_execute(builder)
 }
@@ -3652,6 +3923,17 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_patch_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1AuthorizedViewSet,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}
 /// Updates an AuthorizedViewSet.
 ///
@@ -3664,9 +3946,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_patch_execu
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1AuthorizedViewSet,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1AuthorizedViewSet>, ApiError>,
@@ -3676,7 +3956,10 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_patch(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_authorized_view_sets_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_authorized_view_sets_patch_execute(builder)
 }
@@ -3791,6 +4074,17 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: authorizedViewId
+    pub authorizedViewId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1AuthorizedView,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews
 /// Create AuthorizedView
 ///
@@ -3803,9 +4097,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    authorizedViewId: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1AuthorizedView,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1AuthorizedView>, ApiError>,
@@ -3814,7 +4106,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_create_builder(client, parent, authorizedViewId, body)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_create_builder(client, &args.parent, args.authorizedViewId.as_deref(), &args.body)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_create_execute(
         builder,
     )
@@ -3912,6 +4204,13 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}
 /// Deletes an AuthorizedView.
 ///
@@ -3924,14 +4223,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_delete_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_delete_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_delete_execute(
         builder,
     )
@@ -4034,6 +4333,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_generative_insights`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsGenerativeInsightsArgs
+{
+    /// Path parameter: location
+    pub location: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1GenerativeInsightsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}:generativeInsights
 /// Natural language based Insights which powers the next generation of dashboards in Insights. Next generation of QueryMetrics.
 ///
@@ -4046,8 +4355,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_generative_insights(
     client: &SimpleHttpClient,
-    location: &str,
-    body: &GoogleCloudContactcenterinsightsV1GenerativeInsightsRequest,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsGenerativeInsightsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4056,7 +4364,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_generative_insights_builder(client, location, body)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_generative_insights_builder(client, &args.location, &args.body)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_generative_insights_execute(builder)
 }
 
@@ -4155,6 +4463,13 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}
 /// Get AuthorizedView
 ///
@@ -4167,7 +4482,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1AuthorizedView>, ApiError>,
@@ -4178,7 +4493,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 > {
     let builder =
         contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get_execute(
         builder,
@@ -4289,6 +4604,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -4301,15 +4625,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get_iam_policy_builder(client, resource, options_requestedPolicyVersion)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get_iam_policy_builder(client, &args.resource, args.options_requestedPolicyVersion)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_get_iam_policy_execute(builder)
 }
 
@@ -4435,6 +4758,21 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews
 /// List AuthorizedViewSets
 ///
@@ -4447,11 +4785,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4463,7 +4797,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_list_builder(client, parent, filter, orderBy, pageSize, pageToken)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_list_builder(client, &args.parent, args.filter.as_deref(), args.orderBy.as_deref(), args.pageSize, args.pageToken.as_deref())?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_list_execute(
         builder,
     )
@@ -4579,6 +4913,17 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1AuthorizedView,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}
 /// Updates an AuthorizedView.
 ///
@@ -4591,9 +4936,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1AuthorizedView,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1AuthorizedView>, ApiError>,
@@ -4602,7 +4945,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_patch_builder(client, name, updateMask, body)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_patch_builder(client, &args.name, args.updateMask.as_deref(), &args.body)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_patch_execute(
         builder,
     )
@@ -4705,6 +5048,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_metrics`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsQueryMetricsArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1QueryMetricsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}:queryMetrics
 /// Query metrics.
 ///
@@ -4717,8 +5069,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_metrics(
     client: &SimpleHttpClient,
-    location: &str,
-    body: &GoogleCloudContactcenterinsightsV1QueryMetricsRequest,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsQueryMetricsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4727,7 +5078,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_metrics_builder(client, location, body)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_metrics_builder(client, &args.location, &args.body)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_metrics_execute(builder)
 }
 
@@ -4828,6 +5179,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_performance_overview`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsQueryPerformanceOverviewArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}:queryPerformanceOverview
 /// Generates a summary of predefined performance metrics for a set of conversations. Conversations can be specified by specifying a time window and an agent id, for now. The summary includes a comparison of metrics computed for conversations in the previous time period, and also a comparison with peers in the same time period.
 ///
@@ -4840,8 +5201,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_performance_overview(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequest,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsQueryPerformanceOverviewArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4850,7 +5210,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_performance_overview_builder(client, parent, body)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_performance_overview_builder(client, &args.parent, &args.body)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_query_performance_overview_execute(builder)
 }
 
@@ -4976,6 +5336,21 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews:search
 /// SearchAuthorizedViewSets
 ///
@@ -4988,11 +5363,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5004,7 +5375,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_search_builder(client, parent, orderBy, pageSize, pageToken, query)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_search_builder(client, &args.parent, args.orderBy.as_deref(), args.pageSize, args.pageToken.as_deref(), args.query.as_deref())?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_search_execute(
         builder,
     )
@@ -5105,6 +5476,15 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -5117,15 +5497,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_set_iam_policy_builder(client, resource, body)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_set_iam_policy_builder(client, &args.resource, &args.body)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_set_iam_policy_execute(builder)
 }
 
@@ -5226,6 +5605,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsTestIamPermissionsArgs
+{
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -5238,8 +5627,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -5248,7 +5636,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_test_iam_permissions_builder(client, resource, body)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_test_iam_permissions_execute(builder)
 }
 
@@ -5362,6 +5750,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_calculate_stats`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsCalculateStatsArgs
+{
+    /// Path parameter: location
+    pub location: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations:calculateStats
 /// Gets conversation statistics.
 ///
@@ -5374,8 +5772,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_calculate_stats(
     client: &SimpleHttpClient,
-    location: &str,
-    filter: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsCalculateStatsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5387,7 +5784,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_calculate_stats_builder(client, location, filter)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_calculate_stats_builder(client, &args.location, args.filter.as_deref())?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_calculate_stats_execute(builder)
 }
 
@@ -5495,6 +5892,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsDeleteArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}
 /// Deletes a conversation.
 ///
@@ -5507,15 +5914,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_delete_builder(client, name, force)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_delete_builder(client, &args.name, args.force)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_delete_execute(builder)
 }
 
@@ -5613,6 +6019,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_generate_signed_audio`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsGenerateSignedAudioArgs
+{
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}:generateSignedAudio
 /// Gets the signed URI for the audio for the given conversation.
 ///
@@ -5625,7 +6039,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_generate_signed_audio(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsGenerateSignedAudioArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5639,7 +6053,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_generate_signed_audio_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_generate_signed_audio_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_generate_signed_audio_execute(builder)
 }
 
@@ -5750,6 +6164,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsGetArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}
 /// Gets a conversation.
 ///
@@ -5762,8 +6186,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Conversation>, ApiError>,
@@ -5772,7 +6195,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_get_builder(client, name, view)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_get_builder(client, &args.name, args.view.as_deref())?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_get_execute(builder)
 }
 
@@ -5902,6 +6325,24 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsListArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations
 /// Lists conversations.
 ///
@@ -5914,12 +6355,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5931,7 +6367,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_list_builder(client, parent, filter, orderBy, pageSize, pageToken, view)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_list_builder(client, &args.parent, args.filter.as_deref(), args.orderBy.as_deref(), args.pageSize, args.pageToken.as_deref(), args.view.as_deref())?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_list_execute(builder)
 }
 
@@ -6033,6 +6469,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_appeal`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsAppealArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1AppealAssessmentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}:appeal
 /// Appeal an Assessment.
 ///
@@ -6045,8 +6491,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_appeal(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContactcenterinsightsV1AppealAssessmentRequest,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsAppealArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Assessment>, ApiError>,
@@ -6055,7 +6500,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_appeal_builder(client, name, body)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_appeal_builder(client, &args.name, &args.body)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_appeal_execute(builder)
 }
 
@@ -6157,6 +6602,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsCreateArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Assessment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments
 /// Create Assessment.
 ///
@@ -6169,8 +6624,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1Assessment,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Assessment>, ApiError>,
@@ -6179,7 +6633,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_create_builder(client, parent, body)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_create_builder(client, &args.parent, &args.body)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_create_execute(builder)
 }
 
@@ -6287,6 +6741,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsDeleteArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}
 /// Delete an Assessment.
 ///
@@ -6299,15 +6763,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_delete_builder(client, name, force)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_delete_builder(client, &args.name, args.force)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_delete_execute(builder)
 }
 
@@ -6409,6 +6872,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_finalize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsFinalizeArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1FinalizeAssessmentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}:finalize
 /// Finalize an Assessment.
 ///
@@ -6421,8 +6894,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_finalize(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContactcenterinsightsV1FinalizeAssessmentRequest,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsFinalizeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Assessment>, ApiError>,
@@ -6431,7 +6903,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_finalize_builder(client, name, body)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_finalize_builder(client, &args.name, &args.body)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_finalize_execute(builder)
 }
 
@@ -6530,6 +7002,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsGetArgs
+{
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}
 /// Get Assessment.
 ///
@@ -6542,7 +7022,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Assessment>, ApiError>,
@@ -6551,7 +7031,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_get_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_get_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_get_execute(builder)
 }
 
@@ -6673,6 +7153,20 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsListArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments
 /// List Assessments.
 ///
@@ -6685,10 +7179,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -6700,7 +7191,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_list_builder(client, &args.parent, args.filter.as_deref(), args.pageSize, args.pageToken.as_deref())?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_list_execute(builder)
 }
 
@@ -6802,6 +7293,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_publish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsPublishArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1PublishAssessmentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}:publish
 /// Publish an Assessment.
 ///
@@ -6814,8 +7315,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_publish(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContactcenterinsightsV1PublishAssessmentRequest,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsPublishArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Assessment>, ApiError>,
@@ -6824,7 +7324,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_publish_builder(client, name, body)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_publish_builder(client, &args.name, &args.body)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_publish_execute(builder)
 }
 
@@ -6925,6 +7425,16 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsNotesCreateArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Note,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes
 /// Create Note.
 ///
@@ -6937,8 +7447,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1Note,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsNotesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Note>, ApiError>,
@@ -6947,7 +7456,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_create_builder(client, parent, body)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_create_builder(client, &args.parent, &args.body)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_create_execute(builder)
 }
 
@@ -7043,6 +7552,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsNotesDeleteArgs
+{
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes/{notesId}
 /// Deletes a Note.
 ///
@@ -7055,14 +7572,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsNotesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_delete_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_delete_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_delete_execute(builder)
 }
 
@@ -7177,6 +7694,18 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsNotesListArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes
 /// List Notes.
 ///
@@ -7189,9 +7718,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsNotesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1ListNotesResponse>, ApiError>,
@@ -7200,7 +7727,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_list_execute(builder)
 }
 
@@ -7313,6 +7840,18 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsNotesPatchArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Note,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes/{notesId}
 /// Update Note.
 ///
@@ -7325,9 +7864,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1Note,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsNotesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Note>, ApiError>,
@@ -7336,7 +7873,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_patch_builder(client, name, updateMask, body)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_patch_builder(client, &args.name, args.updateMask.as_deref(), &args.body)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_assessments_notes_patch_execute(builder)
 }
 
@@ -7450,6 +7987,18 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsFeedbackLabelsCreateArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: feedbackLabelId
+    pub feedbackLabelId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1FeedbackLabel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/feedbackLabels
 /// Create feedback label.
 ///
@@ -7462,9 +8011,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    feedbackLabelId: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1FeedbackLabel,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsFeedbackLabelsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1FeedbackLabel>, ApiError>,
@@ -7473,7 +8020,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_create_builder(client, parent, feedbackLabelId, body)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_create_builder(client, &args.parent, args.feedbackLabelId.as_deref(), &args.body)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_create_execute(builder)
 }
 
@@ -7569,6 +8116,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsFeedbackLabelsDeleteArgs
+{
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}
 /// Delete feedback label.
 ///
@@ -7581,14 +8136,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsFeedbackLabelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_delete_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_delete_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_delete_execute(builder)
 }
 
@@ -7687,6 +8242,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsFeedbackLabelsGetArgs
+{
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}
 /// Get feedback label.
 ///
@@ -7699,7 +8262,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsFeedbackLabelsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1FeedbackLabel>, ApiError>,
@@ -7708,7 +8271,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_get_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_get_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_get_execute(builder)
 }
 
@@ -7830,6 +8393,20 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsFeedbackLabelsListArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/feedbackLabels
 /// List feedback labels.
 ///
@@ -7842,10 +8419,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsFeedbackLabelsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -7857,7 +8431,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_list_builder(client, &args.parent, args.filter.as_deref(), args.pageSize, args.pageToken.as_deref())?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_list_execute(builder)
 }
 
@@ -7971,6 +8545,18 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsFeedbackLabelsPatchArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1FeedbackLabel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}
 /// Update feedback label.
 ///
@@ -7983,9 +8569,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1FeedbackLabel,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsFeedbackLabelsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1FeedbackLabel>, ApiError>,
@@ -7994,7 +8578,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_patch_builder(client, name, updateMask, body)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_patch_builder(client, &args.name, args.updateMask.as_deref(), &args.body)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_conversations_feedback_labels_patch_execute(builder)
 }
 
@@ -8090,6 +8674,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsOperationsCancelArgs
+{
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -8102,14 +8694,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_cancel_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_cancel_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_cancel_execute(builder)
 }
 
@@ -8207,6 +8799,14 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsOperationsGetArgs
+{
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -8219,7 +8819,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -8228,7 +8828,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_get_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_get_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_get_execute(builder)
 }
 
@@ -8351,6 +8951,22 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsOperationsListArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -8363,11 +8979,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -8376,7 +8988,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_list_builder(client, name, filter, pageSize, pageToken, returnPartialSuccess)?;
+    let builder = contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_list_builder(client, &args.name, args.filter.as_deref(), args.pageSize, args.pageToken.as_deref(), args.returnPartialSuccess)?;
     contactcenterinsights_projects_locations_authorized_view_sets_authorized_views_operations_list_execute(builder)
 }
 
@@ -8490,6 +9102,17 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_auto_labeling_rules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAutoLabelingRulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: autoLabelingRuleId
+    pub autoLabelingRuleId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1AutoLabelingRule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoLabelingRules
 /// Creates an auto labeling rule.
 ///
@@ -8502,9 +9125,7 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_create_execu
 
 pub fn contactcenterinsights_projects_locations_auto_labeling_rules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    autoLabelingRuleId: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1AutoLabelingRule,
+    args: &ContactcenterinsightsProjectsLocationsAutoLabelingRulesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1AutoLabelingRule>, ApiError>,
@@ -8515,9 +9136,9 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_create(
 > {
     let builder = contactcenterinsights_projects_locations_auto_labeling_rules_create_builder(
         client,
-        parent,
-        autoLabelingRuleId,
-        body,
+        &args.parent,
+        args.autoLabelingRuleId.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_auto_labeling_rules_create_execute(builder)
 }
@@ -8614,6 +9235,13 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_auto_labeling_rules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAutoLabelingRulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoLabelingRules/{autoLabelingRulesId}
 /// Deletes an auto labeling rule.
 ///
@@ -8626,15 +9254,16 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_delete_execu
 
 pub fn contactcenterinsights_projects_locations_auto_labeling_rules_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsAutoLabelingRulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_auto_labeling_rules_delete_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_auto_labeling_rules_delete_builder(
+        client, &args.name,
+    )?;
     contactcenterinsights_projects_locations_auto_labeling_rules_delete_execute(builder)
 }
 
@@ -8733,6 +9362,13 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_auto_labeling_rules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAutoLabelingRulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoLabelingRules/{autoLabelingRulesId}
 /// Gets an auto labeling rule.
 ///
@@ -8745,7 +9381,7 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_get_execute(
 
 pub fn contactcenterinsights_projects_locations_auto_labeling_rules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsAutoLabelingRulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1AutoLabelingRule>, ApiError>,
@@ -8754,8 +9390,9 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_auto_labeling_rules_get_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_auto_labeling_rules_get_builder(
+        client, &args.name,
+    )?;
     contactcenterinsights_projects_locations_auto_labeling_rules_get_execute(builder)
 }
 
@@ -8873,6 +9510,17 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_auto_labeling_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAutoLabelingRulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoLabelingRules
 /// Lists auto labeling rules.
 ///
@@ -8885,9 +9533,7 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_list_execute
 
 pub fn contactcenterinsights_projects_locations_auto_labeling_rules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsAutoLabelingRulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -8900,7 +9546,10 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_list(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_auto_labeling_rules_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     contactcenterinsights_projects_locations_auto_labeling_rules_list_execute(builder)
 }
@@ -9015,6 +9664,17 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_patch_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_auto_labeling_rules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAutoLabelingRulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1AutoLabelingRule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoLabelingRules/{autoLabelingRulesId}
 /// Updates an auto labeling rule.
 ///
@@ -9027,9 +9687,7 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_patch_execut
 
 pub fn contactcenterinsights_projects_locations_auto_labeling_rules_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1AutoLabelingRule,
+    args: &ContactcenterinsightsProjectsLocationsAutoLabelingRulesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1AutoLabelingRule>, ApiError>,
@@ -9039,7 +9697,10 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_patch(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_auto_labeling_rules_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_auto_labeling_rules_patch_execute(builder)
 }
@@ -9145,6 +9806,15 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_test_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_auto_labeling_rules_test`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsAutoLabelingRulesTestArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1TestAutoLabelingRuleRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoLabelingRules:test
 /// Tests auto labeling rules against a conversation.
 ///
@@ -9157,8 +9827,7 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_test_execute
 
 pub fn contactcenterinsights_projects_locations_auto_labeling_rules_test(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1TestAutoLabelingRuleRequest,
+    args: &ContactcenterinsightsProjectsLocationsAutoLabelingRulesTestArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -9171,7 +9840,9 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_test(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_auto_labeling_rules_test_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_auto_labeling_rules_test_execute(builder)
 }
@@ -9273,6 +9944,15 @@ pub fn contactcenterinsights_projects_locations_conversations_bulk_analyze_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_bulk_analyze`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsBulkAnalyzeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations:bulkAnalyze
 /// Analyzes multiple conversations in a single request.
 ///
@@ -9285,8 +9965,7 @@ pub fn contactcenterinsights_projects_locations_conversations_bulk_analyze_execu
 
 pub fn contactcenterinsights_projects_locations_conversations_bulk_analyze(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsRequest,
+    args: &ContactcenterinsightsProjectsLocationsConversationsBulkAnalyzeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -9296,7 +9975,9 @@ pub fn contactcenterinsights_projects_locations_conversations_bulk_analyze(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_conversations_bulk_analyze_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_conversations_bulk_analyze_execute(builder)
 }
@@ -9398,6 +10079,15 @@ pub fn contactcenterinsights_projects_locations_conversations_bulk_delete_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_bulk_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsBulkDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1BulkDeleteConversationsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations:bulkDelete
 /// Deletes multiple conversations in a single request.
 ///
@@ -9410,8 +10100,7 @@ pub fn contactcenterinsights_projects_locations_conversations_bulk_delete_execut
 
 pub fn contactcenterinsights_projects_locations_conversations_bulk_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1BulkDeleteConversationsRequest,
+    args: &ContactcenterinsightsProjectsLocationsConversationsBulkDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -9421,7 +10110,9 @@ pub fn contactcenterinsights_projects_locations_conversations_bulk_delete(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_conversations_bulk_delete_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_conversations_bulk_delete_execute(builder)
 }
@@ -9536,6 +10227,15 @@ pub fn contactcenterinsights_projects_locations_conversations_calculate_stats_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_calculate_stats`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsCalculateStatsArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations:calculateStats
 /// Gets conversation statistics.
 ///
@@ -9548,8 +10248,7 @@ pub fn contactcenterinsights_projects_locations_conversations_calculate_stats_ex
 
 pub fn contactcenterinsights_projects_locations_conversations_calculate_stats(
     client: &SimpleHttpClient,
-    location: &str,
-    filter: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsConversationsCalculateStatsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -9562,7 +10261,9 @@ pub fn contactcenterinsights_projects_locations_conversations_calculate_stats(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_conversations_calculate_stats_builder(
-        client, location, filter,
+        client,
+        &args.location,
+        args.filter.as_deref(),
     )?;
     contactcenterinsights_projects_locations_conversations_calculate_stats_execute(builder)
 }
@@ -9677,6 +10378,17 @@ pub fn contactcenterinsights_projects_locations_conversations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: conversationId
+    pub conversationId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Conversation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations
 /// Creates a conversation. Note that this method does not support audio transcription or redaction. Use conversations.upload instead.
 ///
@@ -9689,9 +10401,7 @@ pub fn contactcenterinsights_projects_locations_conversations_create_execute(
 
 pub fn contactcenterinsights_projects_locations_conversations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    conversationId: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1Conversation,
+    args: &ContactcenterinsightsProjectsLocationsConversationsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Conversation>, ApiError>,
@@ -9702,9 +10412,9 @@ pub fn contactcenterinsights_projects_locations_conversations_create(
 > {
     let builder = contactcenterinsights_projects_locations_conversations_create_builder(
         client,
-        parent,
-        conversationId,
-        body,
+        &args.parent,
+        args.conversationId.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_conversations_create_execute(builder)
 }
@@ -9813,6 +10523,15 @@ pub fn contactcenterinsights_projects_locations_conversations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}
 /// Deletes a conversation.
 ///
@@ -9825,16 +10544,16 @@ pub fn contactcenterinsights_projects_locations_conversations_delete_execute(
 
 pub fn contactcenterinsights_projects_locations_conversations_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &ContactcenterinsightsProjectsLocationsConversationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_conversations_delete_builder(client, name, force)?;
+    let builder = contactcenterinsights_projects_locations_conversations_delete_builder(
+        client, &args.name, args.force,
+    )?;
     contactcenterinsights_projects_locations_conversations_delete_execute(builder)
 }
 
@@ -9932,6 +10651,13 @@ pub fn contactcenterinsights_projects_locations_conversations_generate_signed_au
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_generate_signed_audio`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsGenerateSignedAudioArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}:generateSignedAudio
 /// Gets the signed URI for the audio for the given conversation.
 ///
@@ -9944,7 +10670,7 @@ pub fn contactcenterinsights_projects_locations_conversations_generate_signed_au
 
 pub fn contactcenterinsights_projects_locations_conversations_generate_signed_audio(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsConversationsGenerateSignedAudioArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -9960,7 +10686,7 @@ pub fn contactcenterinsights_projects_locations_conversations_generate_signed_au
 > {
     let builder =
         contactcenterinsights_projects_locations_conversations_generate_signed_audio_builder(
-            client, name,
+            client, &args.name,
         )?;
     contactcenterinsights_projects_locations_conversations_generate_signed_audio_execute(builder)
 }
@@ -10072,6 +10798,15 @@ pub fn contactcenterinsights_projects_locations_conversations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}
 /// Gets a conversation.
 ///
@@ -10084,8 +10819,7 @@ pub fn contactcenterinsights_projects_locations_conversations_get_execute(
 
 pub fn contactcenterinsights_projects_locations_conversations_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsConversationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Conversation>, ApiError>,
@@ -10094,8 +10828,11 @@ pub fn contactcenterinsights_projects_locations_conversations_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_conversations_get_builder(client, name, view)?;
+    let builder = contactcenterinsights_projects_locations_conversations_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     contactcenterinsights_projects_locations_conversations_get_execute(builder)
 }
 
@@ -10196,6 +10933,15 @@ pub fn contactcenterinsights_projects_locations_conversations_ingest_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_ingest`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsIngestArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1IngestConversationsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations:ingest
 /// Imports conversations and processes them according to the user's configuration.
 ///
@@ -10208,8 +10954,7 @@ pub fn contactcenterinsights_projects_locations_conversations_ingest_execute(
 
 pub fn contactcenterinsights_projects_locations_conversations_ingest(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1IngestConversationsRequest,
+    args: &ContactcenterinsightsProjectsLocationsConversationsIngestArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10219,7 +10964,9 @@ pub fn contactcenterinsights_projects_locations_conversations_ingest(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_conversations_ingest_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_conversations_ingest_execute(builder)
 }
@@ -10350,6 +11097,23 @@ pub fn contactcenterinsights_projects_locations_conversations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations
 /// Lists conversations.
 ///
@@ -10362,12 +11126,7 @@ pub fn contactcenterinsights_projects_locations_conversations_list_execute(
 
 pub fn contactcenterinsights_projects_locations_conversations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsConversationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -10380,7 +11139,13 @@ pub fn contactcenterinsights_projects_locations_conversations_list(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_conversations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     contactcenterinsights_projects_locations_conversations_list_execute(builder)
 }
@@ -10506,6 +11271,21 @@ pub fn contactcenterinsights_projects_locations_conversations_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: conversationAutoLabelingUpdateConfig_allowAutoLabelingUpdate
+    pub conversationAutoLabelingUpdateConfig_allowAutoLabelingUpdate: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Conversation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}
 /// Updates a conversation.
 ///
@@ -10518,11 +11298,7 @@ pub fn contactcenterinsights_projects_locations_conversations_patch_execute(
 
 pub fn contactcenterinsights_projects_locations_conversations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    conversationAutoLabelingUpdateConfig_allowAutoLabelingUpdate: Option<bool>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1Conversation,
+    args: &ContactcenterinsightsProjectsLocationsConversationsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Conversation>, ApiError>,
@@ -10533,11 +11309,11 @@ pub fn contactcenterinsights_projects_locations_conversations_patch(
 > {
     let builder = contactcenterinsights_projects_locations_conversations_patch_builder(
         client,
-        name,
-        allowMissing,
-        conversationAutoLabelingUpdateConfig_allowAutoLabelingUpdate,
-        updateMask,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.conversationAutoLabelingUpdateConfig_allowAutoLabelingUpdate,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_conversations_patch_execute(builder)
 }
@@ -10639,6 +11415,15 @@ pub fn contactcenterinsights_projects_locations_conversations_sample_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_sample`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsSampleArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1SampleConversationsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations:sample
 /// Samples conversations based on user configuration and handles the sampled conversations for different use cases.
 ///
@@ -10651,8 +11436,7 @@ pub fn contactcenterinsights_projects_locations_conversations_sample_execute(
 
 pub fn contactcenterinsights_projects_locations_conversations_sample(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1SampleConversationsRequest,
+    args: &ContactcenterinsightsProjectsLocationsConversationsSampleArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10662,7 +11446,9 @@ pub fn contactcenterinsights_projects_locations_conversations_sample(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_conversations_sample_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_conversations_sample_execute(builder)
 }
@@ -10764,6 +11550,15 @@ pub fn contactcenterinsights_projects_locations_conversations_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1UploadConversationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations:upload
 /// Create a long-running conversation upload operation. This method differs from CreateConversation by allowing audio transcription and optional DLP redaction.
 ///
@@ -10776,8 +11571,7 @@ pub fn contactcenterinsights_projects_locations_conversations_upload_execute(
 
 pub fn contactcenterinsights_projects_locations_conversations_upload(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1UploadConversationRequest,
+    args: &ContactcenterinsightsProjectsLocationsConversationsUploadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10787,7 +11581,9 @@ pub fn contactcenterinsights_projects_locations_conversations_upload(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_conversations_upload_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_conversations_upload_execute(builder)
 }
@@ -10889,6 +11685,15 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_create_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_analyses_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsAnalysesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Analysis,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/analyses
 /// Creates an analysis. The long running operation is done when the analysis has completed.
 ///
@@ -10901,8 +11706,7 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_create_ex
 
 pub fn contactcenterinsights_projects_locations_conversations_analyses_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1Analysis,
+    args: &ContactcenterinsightsProjectsLocationsConversationsAnalysesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10912,7 +11716,9 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_create(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_conversations_analyses_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_conversations_analyses_create_execute(builder)
 }
@@ -11009,6 +11815,13 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_delete_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_analyses_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsAnalysesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/analyses/{analysesId}
 /// Deletes an analysis.
 ///
@@ -11021,7 +11834,7 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_delete_ex
 
 pub fn contactcenterinsights_projects_locations_conversations_analyses_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsConversationsAnalysesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -11029,7 +11842,7 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_delete(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_conversations_analyses_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     contactcenterinsights_projects_locations_conversations_analyses_delete_execute(builder)
 }
@@ -11129,6 +11942,13 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_get_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_analyses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsAnalysesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/analyses/{analysesId}
 /// Gets an analysis.
 ///
@@ -11141,7 +11961,7 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_get_execu
 
 pub fn contactcenterinsights_projects_locations_conversations_analyses_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsConversationsAnalysesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Analysis>, ApiError>,
@@ -11150,8 +11970,9 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_conversations_analyses_get_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_conversations_analyses_get_builder(
+        client, &args.name,
+    )?;
     contactcenterinsights_projects_locations_conversations_analyses_get_execute(builder)
 }
 
@@ -11273,6 +12094,19 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_analyses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsAnalysesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/analyses
 /// Lists analyses.
 ///
@@ -11285,10 +12119,7 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_list_exec
 
 pub fn contactcenterinsights_projects_locations_conversations_analyses_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsConversationsAnalysesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -11301,7 +12132,11 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_list(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_conversations_analyses_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     contactcenterinsights_projects_locations_conversations_analyses_list_execute(builder)
 }
@@ -11404,6 +12239,15 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_appeal
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_assessments_appeal`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsAssessmentsAppealArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1AppealAssessmentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}:appeal
 /// Appeal an Assessment.
 ///
@@ -11416,8 +12260,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_appeal
 
 pub fn contactcenterinsights_projects_locations_conversations_assessments_appeal(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContactcenterinsightsV1AppealAssessmentRequest,
+    args: &ContactcenterinsightsProjectsLocationsConversationsAssessmentsAppealArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Assessment>, ApiError>,
@@ -11428,7 +12271,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_appeal
 > {
     let builder =
         contactcenterinsights_projects_locations_conversations_assessments_appeal_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     contactcenterinsights_projects_locations_conversations_assessments_appeal_execute(builder)
 }
@@ -11531,6 +12374,15 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_create
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_assessments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsAssessmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Assessment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/assessments
 /// Create Assessment.
 ///
@@ -11543,8 +12395,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_create
 
 pub fn contactcenterinsights_projects_locations_conversations_assessments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1Assessment,
+    args: &ContactcenterinsightsProjectsLocationsConversationsAssessmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Assessment>, ApiError>,
@@ -11555,7 +12406,9 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_create
 > {
     let builder =
         contactcenterinsights_projects_locations_conversations_assessments_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     contactcenterinsights_projects_locations_conversations_assessments_create_execute(builder)
 }
@@ -11664,6 +12517,15 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_delete
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_assessments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsAssessmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}
 /// Delete an Assessment.
 ///
@@ -11676,8 +12538,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_delete
 
 pub fn contactcenterinsights_projects_locations_conversations_assessments_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &ContactcenterinsightsProjectsLocationsConversationsAssessmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -11686,7 +12547,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_delete
 > {
     let builder =
         contactcenterinsights_projects_locations_conversations_assessments_delete_builder(
-            client, name, force,
+            client, &args.name, args.force,
         )?;
     contactcenterinsights_projects_locations_conversations_assessments_delete_execute(builder)
 }
@@ -11789,6 +12650,15 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_finali
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_assessments_finalize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsAssessmentsFinalizeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1FinalizeAssessmentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}:finalize
 /// Finalize an Assessment.
 ///
@@ -11801,8 +12671,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_finali
 
 pub fn contactcenterinsights_projects_locations_conversations_assessments_finalize(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContactcenterinsightsV1FinalizeAssessmentRequest,
+    args: &ContactcenterinsightsProjectsLocationsConversationsAssessmentsFinalizeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Assessment>, ApiError>,
@@ -11813,7 +12682,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_finali
 > {
     let builder =
         contactcenterinsights_projects_locations_conversations_assessments_finalize_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     contactcenterinsights_projects_locations_conversations_assessments_finalize_execute(builder)
 }
@@ -11913,6 +12782,13 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_get_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_assessments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsAssessmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}
 /// Get Assessment.
 ///
@@ -11925,7 +12801,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_get_ex
 
 pub fn contactcenterinsights_projects_locations_conversations_assessments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsConversationsAssessmentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Assessment>, ApiError>,
@@ -11935,7 +12811,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_get(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_conversations_assessments_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     contactcenterinsights_projects_locations_conversations_assessments_get_execute(builder)
 }
@@ -12058,6 +12934,19 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_list_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_assessments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsAssessmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/assessments
 /// List Assessments.
 ///
@@ -12070,10 +12959,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_list_e
 
 pub fn contactcenterinsights_projects_locations_conversations_assessments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsConversationsAssessmentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -12086,7 +12972,11 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_list(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_conversations_assessments_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     contactcenterinsights_projects_locations_conversations_assessments_list_execute(builder)
 }
@@ -12189,6 +13079,15 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_publis
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_assessments_publish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsAssessmentsPublishArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1PublishAssessmentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}:publish
 /// Publish an Assessment.
 ///
@@ -12201,8 +13100,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_publis
 
 pub fn contactcenterinsights_projects_locations_conversations_assessments_publish(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContactcenterinsightsV1PublishAssessmentRequest,
+    args: &ContactcenterinsightsProjectsLocationsConversationsAssessmentsPublishArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Assessment>, ApiError>,
@@ -12213,7 +13111,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_publis
 > {
     let builder =
         contactcenterinsights_projects_locations_conversations_assessments_publish_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     contactcenterinsights_projects_locations_conversations_assessments_publish_execute(builder)
 }
@@ -12315,6 +13213,15 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_assessments_notes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsAssessmentsNotesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Note,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes
 /// Create Note.
 ///
@@ -12327,8 +13234,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
 
 pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1Note,
+    args: &ContactcenterinsightsProjectsLocationsConversationsAssessmentsNotesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Note>, ApiError>,
@@ -12339,7 +13245,9 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
 > {
     let builder =
         contactcenterinsights_projects_locations_conversations_assessments_notes_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     contactcenterinsights_projects_locations_conversations_assessments_notes_create_execute(builder)
 }
@@ -12436,6 +13344,13 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_assessments_notes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsAssessmentsNotesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes/{notesId}
 /// Deletes a Note.
 ///
@@ -12448,7 +13363,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
 
 pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsConversationsAssessmentsNotesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -12457,7 +13372,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
 > {
     let builder =
         contactcenterinsights_projects_locations_conversations_assessments_notes_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     contactcenterinsights_projects_locations_conversations_assessments_notes_delete_execute(builder)
 }
@@ -12573,6 +13488,17 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_assessments_notes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsAssessmentsNotesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes
 /// List Notes.
 ///
@@ -12585,9 +13511,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
 
 pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsConversationsAssessmentsNotesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1ListNotesResponse>, ApiError>,
@@ -12598,7 +13522,10 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
 > {
     let builder =
         contactcenterinsights_projects_locations_conversations_assessments_notes_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     contactcenterinsights_projects_locations_conversations_assessments_notes_list_execute(builder)
 }
@@ -12712,6 +13639,17 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_assessments_notes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsAssessmentsNotesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Note,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes/{notesId}
 /// Update Note.
 ///
@@ -12724,9 +13662,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
 
 pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1Note,
+    args: &ContactcenterinsightsProjectsLocationsConversationsAssessmentsNotesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Note>, ApiError>,
@@ -12737,7 +13673,10 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
 > {
     let builder =
         contactcenterinsights_projects_locations_conversations_assessments_notes_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     contactcenterinsights_projects_locations_conversations_assessments_notes_patch_execute(builder)
 }
@@ -12852,6 +13791,17 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_cr
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_feedback_labels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsFeedbackLabelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: feedbackLabelId
+    pub feedbackLabelId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1FeedbackLabel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/feedbackLabels
 /// Create feedback label.
 ///
@@ -12864,9 +13814,7 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_cr
 
 pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    feedbackLabelId: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1FeedbackLabel,
+    args: &ContactcenterinsightsProjectsLocationsConversationsFeedbackLabelsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1FeedbackLabel>, ApiError>,
@@ -12878,9 +13826,9 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_cr
     let builder =
         contactcenterinsights_projects_locations_conversations_feedback_labels_create_builder(
             client,
-            parent,
-            feedbackLabelId,
-            body,
+            &args.parent,
+            args.feedbackLabelId.as_deref(),
+            &args.body,
         )?;
     contactcenterinsights_projects_locations_conversations_feedback_labels_create_execute(builder)
 }
@@ -12977,6 +13925,13 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_de
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_feedback_labels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsFeedbackLabelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}
 /// Delete feedback label.
 ///
@@ -12989,7 +13944,7 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_de
 
 pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsConversationsFeedbackLabelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -12998,7 +13953,7 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_de
 > {
     let builder =
         contactcenterinsights_projects_locations_conversations_feedback_labels_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     contactcenterinsights_projects_locations_conversations_feedback_labels_delete_execute(builder)
 }
@@ -13098,6 +14053,13 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_ge
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_feedback_labels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsFeedbackLabelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}
 /// Get feedback label.
 ///
@@ -13110,7 +14072,7 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_ge
 
 pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsConversationsFeedbackLabelsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1FeedbackLabel>, ApiError>,
@@ -13121,7 +14083,7 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_ge
 > {
     let builder =
         contactcenterinsights_projects_locations_conversations_feedback_labels_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     contactcenterinsights_projects_locations_conversations_feedback_labels_get_execute(builder)
 }
@@ -13244,6 +14206,19 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_li
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_feedback_labels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsFeedbackLabelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/feedbackLabels
 /// List feedback labels.
 ///
@@ -13256,10 +14231,7 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_li
 
 pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsConversationsFeedbackLabelsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -13273,7 +14245,11 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_li
 > {
     let builder =
         contactcenterinsights_projects_locations_conversations_feedback_labels_list_builder(
-            client, parent, filter, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     contactcenterinsights_projects_locations_conversations_feedback_labels_list_execute(builder)
 }
@@ -13388,6 +14364,17 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_pa
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_feedback_labels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsFeedbackLabelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1FeedbackLabel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}
 /// Update feedback label.
 ///
@@ -13400,9 +14387,7 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_pa
 
 pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1FeedbackLabel,
+    args: &ContactcenterinsightsProjectsLocationsConversationsFeedbackLabelsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1FeedbackLabel>, ApiError>,
@@ -13413,7 +14398,10 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_pa
 > {
     let builder =
         contactcenterinsights_projects_locations_conversations_feedback_labels_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     contactcenterinsights_projects_locations_conversations_feedback_labels_patch_execute(builder)
 }
@@ -13515,6 +14503,15 @@ pub fn contactcenterinsights_projects_locations_conversations_segments_bulk_anal
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_conversations_segments_bulk_analyze`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsConversationsSegmentsBulkAnalyzeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/segments:bulkAnalyze
 /// Analyzes multiple conversations in a single request.
 ///
@@ -13527,8 +14524,7 @@ pub fn contactcenterinsights_projects_locations_conversations_segments_bulk_anal
 
 pub fn contactcenterinsights_projects_locations_conversations_segments_bulk_analyze(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsRequest,
+    args: &ContactcenterinsightsProjectsLocationsConversationsSegmentsBulkAnalyzeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -13539,7 +14535,9 @@ pub fn contactcenterinsights_projects_locations_conversations_segments_bulk_anal
 > {
     let builder =
         contactcenterinsights_projects_locations_conversations_segments_bulk_analyze_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     contactcenterinsights_projects_locations_conversations_segments_bulk_analyze_execute(builder)
 }
@@ -13654,6 +14652,17 @@ pub fn contactcenterinsights_projects_locations_dashboards_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_dashboards_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDashboardsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dashboardId
+    pub dashboardId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Dashboard,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dashboards
 /// Creates a Dashboard.
 ///
@@ -13666,9 +14675,7 @@ pub fn contactcenterinsights_projects_locations_dashboards_create_execute(
 
 pub fn contactcenterinsights_projects_locations_dashboards_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dashboardId: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1Dashboard,
+    args: &ContactcenterinsightsProjectsLocationsDashboardsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Dashboard>, ApiError>,
@@ -13679,9 +14686,9 @@ pub fn contactcenterinsights_projects_locations_dashboards_create(
 > {
     let builder = contactcenterinsights_projects_locations_dashboards_create_builder(
         client,
-        parent,
-        dashboardId,
-        body,
+        &args.parent,
+        args.dashboardId.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_dashboards_create_execute(builder)
 }
@@ -13778,6 +14785,13 @@ pub fn contactcenterinsights_projects_locations_dashboards_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_dashboards_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDashboardsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dashboards/{dashboardsId}
 /// Deletes a Dashboard.
 ///
@@ -13790,14 +14804,15 @@ pub fn contactcenterinsights_projects_locations_dashboards_delete_execute(
 
 pub fn contactcenterinsights_projects_locations_dashboards_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsDashboardsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_dashboards_delete_builder(client, name)?;
+    let builder =
+        contactcenterinsights_projects_locations_dashboards_delete_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_dashboards_delete_execute(builder)
 }
 
@@ -13896,6 +14911,13 @@ pub fn contactcenterinsights_projects_locations_dashboards_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_dashboards_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDashboardsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dashboards/{dashboardsId}
 /// Gets a Dashboard.
 ///
@@ -13908,7 +14930,7 @@ pub fn contactcenterinsights_projects_locations_dashboards_get_execute(
 
 pub fn contactcenterinsights_projects_locations_dashboards_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsDashboardsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Dashboard>, ApiError>,
@@ -13917,7 +14939,8 @@ pub fn contactcenterinsights_projects_locations_dashboards_get(
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_dashboards_get_builder(client, name)?;
+    let builder =
+        contactcenterinsights_projects_locations_dashboards_get_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_dashboards_get_execute(builder)
 }
 
@@ -14043,6 +15066,21 @@ pub fn contactcenterinsights_projects_locations_dashboards_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_dashboards_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDashboardsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dashboards
 /// Lists Dashboards.
 ///
@@ -14055,11 +15093,7 @@ pub fn contactcenterinsights_projects_locations_dashboards_list_execute(
 
 pub fn contactcenterinsights_projects_locations_dashboards_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsDashboardsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -14072,7 +15106,12 @@ pub fn contactcenterinsights_projects_locations_dashboards_list(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_dashboards_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     contactcenterinsights_projects_locations_dashboards_list_execute(builder)
 }
@@ -14187,6 +15226,17 @@ pub fn contactcenterinsights_projects_locations_dashboards_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_dashboards_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDashboardsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Dashboard,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dashboards/{dashboardsId}
 /// Updates a Dashboard.
 ///
@@ -14199,9 +15249,7 @@ pub fn contactcenterinsights_projects_locations_dashboards_patch_execute(
 
 pub fn contactcenterinsights_projects_locations_dashboards_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1Dashboard,
+    args: &ContactcenterinsightsProjectsLocationsDashboardsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Dashboard>, ApiError>,
@@ -14211,7 +15259,10 @@ pub fn contactcenterinsights_projects_locations_dashboards_patch(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_dashboards_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_dashboards_patch_execute(builder)
 }
@@ -14326,6 +15377,17 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_dashboards_charts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDashboardsChartsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: chartId
+    pub chartId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Chart,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dashboards/{dashboardsId}/charts
 /// Creates a Chart.
 ///
@@ -14338,9 +15400,7 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_create_execute
 
 pub fn contactcenterinsights_projects_locations_dashboards_charts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    chartId: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1Chart,
+    args: &ContactcenterinsightsProjectsLocationsDashboardsChartsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Chart>, ApiError>,
@@ -14350,7 +15410,10 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_create(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_dashboards_charts_create_builder(
-        client, parent, chartId, body,
+        client,
+        &args.parent,
+        args.chartId.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_dashboards_charts_create_execute(builder)
 }
@@ -14447,6 +15510,13 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_dashboards_charts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDashboardsChartsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dashboards/{dashboardsId}/charts/{chartsId}
 /// Deletes a Chart.
 ///
@@ -14459,15 +15529,16 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_delete_execute
 
 pub fn contactcenterinsights_projects_locations_dashboards_charts_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsDashboardsChartsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_dashboards_charts_delete_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_dashboards_charts_delete_builder(
+        client, &args.name,
+    )?;
     contactcenterinsights_projects_locations_dashboards_charts_delete_execute(builder)
 }
 
@@ -14566,6 +15637,13 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_dashboards_charts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDashboardsChartsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dashboards/{dashboardsId}/charts/{chartsId}
 /// Gets a Chart.
 ///
@@ -14578,7 +15656,7 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_get_execute(
 
 pub fn contactcenterinsights_projects_locations_dashboards_charts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsDashboardsChartsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Chart>, ApiError>,
@@ -14588,7 +15666,7 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_get(
     ApiError,
 > {
     let builder =
-        contactcenterinsights_projects_locations_dashboards_charts_get_builder(client, name)?;
+        contactcenterinsights_projects_locations_dashboards_charts_get_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_dashboards_charts_get_execute(builder)
 }
 
@@ -14687,6 +15765,13 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_dashboards_charts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDashboardsChartsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dashboards/{dashboardsId}/charts
 /// Lists Charts.
 ///
@@ -14699,7 +15784,7 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_list_execute(
 
 pub fn contactcenterinsights_projects_locations_dashboards_charts_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ContactcenterinsightsProjectsLocationsDashboardsChartsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1ListChartsResponse>, ApiError>,
@@ -14708,8 +15793,10 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_dashboards_charts_list_builder(client, parent)?;
+    let builder = contactcenterinsights_projects_locations_dashboards_charts_list_builder(
+        client,
+        &args.parent,
+    )?;
     contactcenterinsights_projects_locations_dashboards_charts_list_execute(builder)
 }
 
@@ -14823,6 +15910,17 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_dashboards_charts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDashboardsChartsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Chart,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dashboards/{dashboardsId}/charts/{chartsId}
 /// Updates a Chart.
 ///
@@ -14835,9 +15933,7 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_patch_execute(
 
 pub fn contactcenterinsights_projects_locations_dashboards_charts_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1Chart,
+    args: &ContactcenterinsightsProjectsLocationsDashboardsChartsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Chart>, ApiError>,
@@ -14847,7 +15943,10 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_patch(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_dashboards_charts_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_dashboards_charts_patch_execute(builder)
 }
@@ -14949,6 +16048,15 @@ pub fn contactcenterinsights_projects_locations_datasets_bulk_delete_feedback_la
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_bulk_delete_feedback_labels`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsBulkDeleteFeedbackLabelsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:bulkDeleteFeedbackLabels
 /// Delete feedback labels in bulk using a filter.
 ///
@@ -14961,8 +16069,7 @@ pub fn contactcenterinsights_projects_locations_datasets_bulk_delete_feedback_la
 
 pub fn contactcenterinsights_projects_locations_datasets_bulk_delete_feedback_labels(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsRequest,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsBulkDeleteFeedbackLabelsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -14973,7 +16080,9 @@ pub fn contactcenterinsights_projects_locations_datasets_bulk_delete_feedback_la
 > {
     let builder =
         contactcenterinsights_projects_locations_datasets_bulk_delete_feedback_labels_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     contactcenterinsights_projects_locations_datasets_bulk_delete_feedback_labels_execute(builder)
 }
@@ -15075,6 +16184,15 @@ pub fn contactcenterinsights_projects_locations_datasets_bulk_download_feedback_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_bulk_download_feedback_labels`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsBulkDownloadFeedbackLabelsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:bulkDownloadFeedbackLabels
 /// Download feedback labels in bulk from an external source. Currently supports exporting Quality AI example conversations with transcripts and question bodies.
 ///
@@ -15087,8 +16205,7 @@ pub fn contactcenterinsights_projects_locations_datasets_bulk_download_feedback_
 
 pub fn contactcenterinsights_projects_locations_datasets_bulk_download_feedback_labels(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequest,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsBulkDownloadFeedbackLabelsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -15099,7 +16216,9 @@ pub fn contactcenterinsights_projects_locations_datasets_bulk_download_feedback_
 > {
     let builder =
         contactcenterinsights_projects_locations_datasets_bulk_download_feedback_labels_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     contactcenterinsights_projects_locations_datasets_bulk_download_feedback_labels_execute(builder)
 }
@@ -15201,6 +16320,15 @@ pub fn contactcenterinsights_projects_locations_datasets_bulk_upload_feedback_la
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_bulk_upload_feedback_labels`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsBulkUploadFeedbackLabelsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:bulkUploadFeedbackLabels
 /// Upload feedback labels from an external source in bulk. Currently supports labeling Quality AI example conversations.
 ///
@@ -15213,8 +16341,7 @@ pub fn contactcenterinsights_projects_locations_datasets_bulk_upload_feedback_la
 
 pub fn contactcenterinsights_projects_locations_datasets_bulk_upload_feedback_labels(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequest,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsBulkUploadFeedbackLabelsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -15225,7 +16352,9 @@ pub fn contactcenterinsights_projects_locations_datasets_bulk_upload_feedback_la
 > {
     let builder =
         contactcenterinsights_projects_locations_datasets_bulk_upload_feedback_labels_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     contactcenterinsights_projects_locations_datasets_bulk_upload_feedback_labels_execute(builder)
 }
@@ -15339,6 +16468,17 @@ pub fn contactcenterinsights_projects_locations_datasets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: datasetId
+    pub datasetId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Dataset,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets
 /// Creates a dataset.
 ///
@@ -15351,9 +16491,7 @@ pub fn contactcenterinsights_projects_locations_datasets_create_execute(
 
 pub fn contactcenterinsights_projects_locations_datasets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    datasetId: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1Dataset,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Dataset>, ApiError>,
@@ -15363,7 +16501,10 @@ pub fn contactcenterinsights_projects_locations_datasets_create(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_datasets_create_builder(
-        client, parent, datasetId, body,
+        client,
+        &args.parent,
+        args.datasetId.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_datasets_create_execute(builder)
 }
@@ -15462,6 +16603,13 @@ pub fn contactcenterinsights_projects_locations_datasets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
 /// Delete a dataset.
 ///
@@ -15474,7 +16622,7 @@ pub fn contactcenterinsights_projects_locations_datasets_delete_execute(
 
 pub fn contactcenterinsights_projects_locations_datasets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -15483,7 +16631,8 @@ pub fn contactcenterinsights_projects_locations_datasets_delete(
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_datasets_delete_builder(client, name)?;
+    let builder =
+        contactcenterinsights_projects_locations_datasets_delete_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_datasets_delete_execute(builder)
 }
 
@@ -15581,6 +16730,13 @@ pub fn contactcenterinsights_projects_locations_datasets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
 /// Gets a dataset.
 ///
@@ -15593,7 +16749,7 @@ pub fn contactcenterinsights_projects_locations_datasets_get_execute(
 
 pub fn contactcenterinsights_projects_locations_datasets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Dataset>, ApiError>,
@@ -15602,7 +16758,8 @@ pub fn contactcenterinsights_projects_locations_datasets_get(
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_datasets_get_builder(client, name)?;
+    let builder =
+        contactcenterinsights_projects_locations_datasets_get_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_datasets_get_execute(builder)
 }
 
@@ -15724,6 +16881,19 @@ pub fn contactcenterinsights_projects_locations_datasets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets
 /// List datasets matching the input.
 ///
@@ -15736,10 +16906,7 @@ pub fn contactcenterinsights_projects_locations_datasets_list_execute(
 
 pub fn contactcenterinsights_projects_locations_datasets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -15752,7 +16919,11 @@ pub fn contactcenterinsights_projects_locations_datasets_list(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_datasets_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     contactcenterinsights_projects_locations_datasets_list_execute(builder)
 }
@@ -15875,6 +17046,19 @@ pub fn contactcenterinsights_projects_locations_datasets_list_all_feedback_label
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_list_all_feedback_labels`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsListAllFeedbackLabelsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:listAllFeedbackLabels
 /// List all feedback labels by project number.
 ///
@@ -15887,10 +17071,7 @@ pub fn contactcenterinsights_projects_locations_datasets_list_all_feedback_label
 
 pub fn contactcenterinsights_projects_locations_datasets_list_all_feedback_labels(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsListAllFeedbackLabelsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -15904,7 +17085,11 @@ pub fn contactcenterinsights_projects_locations_datasets_list_all_feedback_label
 > {
     let builder =
         contactcenterinsights_projects_locations_datasets_list_all_feedback_labels_builder(
-            client, parent, filter, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     contactcenterinsights_projects_locations_datasets_list_all_feedback_labels_execute(builder)
 }
@@ -16018,6 +17203,17 @@ pub fn contactcenterinsights_projects_locations_datasets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Dataset,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
 /// Updates a dataset.
 ///
@@ -16030,9 +17226,7 @@ pub fn contactcenterinsights_projects_locations_datasets_patch_execute(
 
 pub fn contactcenterinsights_projects_locations_datasets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1Dataset,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Dataset>, ApiError>,
@@ -16042,7 +17236,10 @@ pub fn contactcenterinsights_projects_locations_datasets_patch(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_datasets_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_datasets_patch_execute(builder)
 }
@@ -16144,6 +17341,15 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_bulk_dele
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_conversations_bulk_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsBulkDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1BulkDeleteConversationsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations:bulkDelete
 /// Deletes multiple conversations in a single request.
 ///
@@ -16156,8 +17362,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_bulk_dele
 
 pub fn contactcenterinsights_projects_locations_datasets_conversations_bulk_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1BulkDeleteConversationsRequest,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsConversationsBulkDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -16168,7 +17373,9 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_bulk_dele
 > {
     let builder =
         contactcenterinsights_projects_locations_datasets_conversations_bulk_delete_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     contactcenterinsights_projects_locations_datasets_conversations_bulk_delete_execute(builder)
 }
@@ -16274,6 +17481,15 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_calculate
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_conversations_calculate_stats`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsCalculateStatsArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1CalculateStatsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations:calculateStats
 /// Gets conversation statistics.
 ///
@@ -16286,8 +17502,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_calculate
 
 pub fn contactcenterinsights_projects_locations_datasets_conversations_calculate_stats(
     client: &SimpleHttpClient,
-    location: &str,
-    body: &GoogleCloudContactcenterinsightsV1CalculateStatsRequest,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsConversationsCalculateStatsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -16301,7 +17516,9 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_calculate
 > {
     let builder =
         contactcenterinsights_projects_locations_datasets_conversations_calculate_stats_builder(
-            client, location, body,
+            client,
+            &args.location,
+            &args.body,
         )?;
     contactcenterinsights_projects_locations_datasets_conversations_calculate_stats_execute(builder)
 }
@@ -16410,6 +17627,15 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_delete_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_conversations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}
 /// Deletes a conversation.
 ///
@@ -16422,8 +17648,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_delete_ex
 
 pub fn contactcenterinsights_projects_locations_datasets_conversations_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsConversationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -16431,7 +17656,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_delete(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_datasets_conversations_delete_builder(
-        client, name, force,
+        client, &args.name, args.force,
     )?;
     contactcenterinsights_projects_locations_datasets_conversations_delete_execute(builder)
 }
@@ -16530,6 +17755,13 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_generate_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_conversations_generate_signed_audio`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsGenerateSignedAudioArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}:generateSignedAudio
 /// Gets the signed URI for the audio for the given conversation.
 ///
@@ -16542,7 +17774,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_generate_
 
 pub fn contactcenterinsights_projects_locations_datasets_conversations_generate_signed_audio(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsConversationsGenerateSignedAudioArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -16556,7 +17788,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_generate_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_datasets_conversations_generate_signed_audio_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_datasets_conversations_generate_signed_audio_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_datasets_conversations_generate_signed_audio_execute(
         builder,
     )
@@ -16669,6 +17901,15 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_get_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_conversations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}
 /// Gets a conversation.
 ///
@@ -16681,8 +17922,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_get_execu
 
 pub fn contactcenterinsights_projects_locations_datasets_conversations_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsConversationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Conversation>, ApiError>,
@@ -16692,7 +17932,9 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_get(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_datasets_conversations_get_builder(
-        client, name, view,
+        client,
+        &args.name,
+        args.view.as_deref(),
     )?;
     contactcenterinsights_projects_locations_datasets_conversations_get_execute(builder)
 }
@@ -16794,6 +18036,15 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_ingest_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_conversations_ingest`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsIngestArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1IngestConversationsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations:ingest
 /// Imports conversations and processes them according to the user's configuration.
 ///
@@ -16806,8 +18057,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_ingest_ex
 
 pub fn contactcenterinsights_projects_locations_datasets_conversations_ingest(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1IngestConversationsRequest,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsConversationsIngestArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -16817,7 +18067,9 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_ingest(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_datasets_conversations_ingest_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_datasets_conversations_ingest_execute(builder)
 }
@@ -16948,6 +18200,23 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_conversations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations
 /// Lists conversations.
 ///
@@ -16960,12 +18229,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_list_exec
 
 pub fn contactcenterinsights_projects_locations_datasets_conversations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsConversationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -16978,7 +18242,13 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_list(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_datasets_conversations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     contactcenterinsights_projects_locations_datasets_conversations_list_execute(builder)
 }
@@ -17080,6 +18350,15 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_sample_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_conversations_sample`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsSampleArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1SampleConversationsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations:sample
 /// Samples conversations based on user configuration and handles the sampled conversations for different use cases.
 ///
@@ -17092,8 +18371,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_sample_ex
 
 pub fn contactcenterinsights_projects_locations_datasets_conversations_sample(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1SampleConversationsRequest,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsConversationsSampleArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -17103,7 +18381,9 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_sample(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_datasets_conversations_sample_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_datasets_conversations_sample_execute(builder)
 }
@@ -17218,6 +18498,17 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsFeedbackLabelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: feedbackLabelId
+    pub feedbackLabelId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1FeedbackLabel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}/feedbackLabels
 /// Create feedback label.
 ///
@@ -17230,9 +18521,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
 
 pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    feedbackLabelId: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1FeedbackLabel,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsConversationsFeedbackLabelsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1FeedbackLabel>, ApiError>,
@@ -17241,7 +18530,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_create_builder(client, parent, feedbackLabelId, body)?;
+    let builder = contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_create_builder(client, &args.parent, args.feedbackLabelId.as_deref(), &args.body)?;
     contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_create_execute(
         builder,
     )
@@ -17339,6 +18628,13 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsFeedbackLabelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}
 /// Delete feedback label.
 ///
@@ -17351,14 +18647,14 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
 
 pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsConversationsFeedbackLabelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_delete_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_delete_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_delete_execute(
         builder,
     )
@@ -17459,6 +18755,13 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsFeedbackLabelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}
 /// Get feedback label.
 ///
@@ -17471,7 +18774,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
 
 pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsConversationsFeedbackLabelsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1FeedbackLabel>, ApiError>,
@@ -17480,7 +18783,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_get_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_get_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_get_execute(
         builder,
     )
@@ -17604,6 +18907,19 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsFeedbackLabelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}/feedbackLabels
 /// List feedback labels.
 ///
@@ -17616,10 +18932,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
 
 pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsConversationsFeedbackLabelsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -17631,7 +18944,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_list_builder(client, &args.parent, args.filter.as_deref(), args.pageSize, args.pageToken.as_deref())?;
     contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_list_execute(
         builder,
     )
@@ -17747,6 +19060,17 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsFeedbackLabelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1FeedbackLabel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}
 /// Update feedback label.
 ///
@@ -17759,9 +19083,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
 
 pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1FeedbackLabel,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsConversationsFeedbackLabelsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1FeedbackLabel>, ApiError>,
@@ -17770,7 +19092,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_patch_builder(client, name, updateMask, body)?;
+    let builder = contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_patch_builder(client, &args.name, args.updateMask.as_deref(), &args.body)?;
     contactcenterinsights_projects_locations_datasets_conversations_feedback_labels_patch_execute(
         builder,
     )
@@ -17873,6 +19195,15 @@ pub fn contactcenterinsights_projects_locations_datasets_insightsdata_export_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_datasets_insightsdata_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsDatasetsInsightsdataExportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1ExportInsightsDataRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/insightsdata:export
 /// Export insights data to a destination defined in the request body.
 ///
@@ -17885,8 +19216,7 @@ pub fn contactcenterinsights_projects_locations_datasets_insightsdata_export_exe
 
 pub fn contactcenterinsights_projects_locations_datasets_insightsdata_export(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1ExportInsightsDataRequest,
+    args: &ContactcenterinsightsProjectsLocationsDatasetsInsightsdataExportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -17896,7 +19226,9 @@ pub fn contactcenterinsights_projects_locations_datasets_insightsdata_export(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_datasets_insightsdata_export_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_datasets_insightsdata_export_execute(builder)
 }
@@ -17998,6 +19330,15 @@ pub fn contactcenterinsights_projects_locations_encryption_spec_initialize_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_encryption_spec_initialize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsEncryptionSpecInitializeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/encryptionSpec:initialize
 /// Initializes a location-level encryption key specification. An error will result if the location has resources already created before the initialization. After the encryption specification is initialized at a location, it is immutable and all newly created resources under the location will be encrypted with the existing specification.
 ///
@@ -18010,8 +19351,7 @@ pub fn contactcenterinsights_projects_locations_encryption_spec_initialize_execu
 
 pub fn contactcenterinsights_projects_locations_encryption_spec_initialize(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecRequest,
+    args: &ContactcenterinsightsProjectsLocationsEncryptionSpecInitializeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -18021,7 +19361,7 @@ pub fn contactcenterinsights_projects_locations_encryption_spec_initialize(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_encryption_spec_initialize_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     contactcenterinsights_projects_locations_encryption_spec_initialize_execute(builder)
 }
@@ -18123,6 +19463,15 @@ pub fn contactcenterinsights_projects_locations_insightsdata_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_insightsdata_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsInsightsdataExportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1ExportInsightsDataRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insightsdata:export
 /// Export insights data to a destination defined in the request body.
 ///
@@ -18135,8 +19484,7 @@ pub fn contactcenterinsights_projects_locations_insightsdata_export_execute(
 
 pub fn contactcenterinsights_projects_locations_insightsdata_export(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1ExportInsightsDataRequest,
+    args: &ContactcenterinsightsProjectsLocationsInsightsdataExportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -18145,8 +19493,11 @@ pub fn contactcenterinsights_projects_locations_insightsdata_export(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_insightsdata_export_builder(client, parent, body)?;
+    let builder = contactcenterinsights_projects_locations_insightsdata_export_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     contactcenterinsights_projects_locations_insightsdata_export_execute(builder)
 }
 
@@ -18248,6 +19599,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_calculate_issue_mod
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_issue_models_calculate_issue_model_stats`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsIssueModelsCalculateIssueModelStatsArgs {
+    /// Path parameter: issueModel
+    pub issueModel: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}:calculateIssueModelStats
 /// Gets an issue model's statistics.
 ///
@@ -18260,7 +19618,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_calculate_issue_mod
 
 pub fn contactcenterinsights_projects_locations_issue_models_calculate_issue_model_stats(
     client: &SimpleHttpClient,
-    issueModel: &str,
+    args: &ContactcenterinsightsProjectsLocationsIssueModelsCalculateIssueModelStatsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -18274,7 +19632,8 @@ pub fn contactcenterinsights_projects_locations_issue_models_calculate_issue_mod
 > {
     let builder =
         contactcenterinsights_projects_locations_issue_models_calculate_issue_model_stats_builder(
-            client, issueModel,
+            client,
+            &args.issueModel,
         )?;
     contactcenterinsights_projects_locations_issue_models_calculate_issue_model_stats_execute(
         builder,
@@ -18378,6 +19737,15 @@ pub fn contactcenterinsights_projects_locations_issue_models_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_issue_models_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsIssueModelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1IssueModel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels
 /// Creates an issue model.
 ///
@@ -18390,8 +19758,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_create_execute(
 
 pub fn contactcenterinsights_projects_locations_issue_models_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1IssueModel,
+    args: &ContactcenterinsightsProjectsLocationsIssueModelsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -18400,8 +19767,11 @@ pub fn contactcenterinsights_projects_locations_issue_models_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_issue_models_create_builder(client, parent, body)?;
+    let builder = contactcenterinsights_projects_locations_issue_models_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     contactcenterinsights_projects_locations_issue_models_create_execute(builder)
 }
 
@@ -18499,6 +19869,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_issue_models_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsIssueModelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}
 /// Deletes an issue model.
 ///
@@ -18511,7 +19888,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_delete_execute(
 
 pub fn contactcenterinsights_projects_locations_issue_models_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsIssueModelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -18521,7 +19898,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_delete(
     ApiError,
 > {
     let builder =
-        contactcenterinsights_projects_locations_issue_models_delete_builder(client, name)?;
+        contactcenterinsights_projects_locations_issue_models_delete_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_issue_models_delete_execute(builder)
 }
 
@@ -18622,6 +19999,15 @@ pub fn contactcenterinsights_projects_locations_issue_models_deploy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_issue_models_deploy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsIssueModelsDeployArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1DeployIssueModelRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}:deploy
 /// Deploys an issue model. Returns an error if a model is already deployed. An issue model can only be used in analysis after it has been deployed.
 ///
@@ -18634,8 +20020,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_deploy_execute(
 
 pub fn contactcenterinsights_projects_locations_issue_models_deploy(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContactcenterinsightsV1DeployIssueModelRequest,
+    args: &ContactcenterinsightsProjectsLocationsIssueModelsDeployArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -18644,8 +20029,9 @@ pub fn contactcenterinsights_projects_locations_issue_models_deploy(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_issue_models_deploy_builder(client, name, body)?;
+    let builder = contactcenterinsights_projects_locations_issue_models_deploy_builder(
+        client, &args.name, &args.body,
+    )?;
     contactcenterinsights_projects_locations_issue_models_deploy_execute(builder)
 }
 
@@ -18746,6 +20132,15 @@ pub fn contactcenterinsights_projects_locations_issue_models_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_issue_models_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsIssueModelsExportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1ExportIssueModelRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}:export
 /// Exports an issue model to the provided destination.
 ///
@@ -18758,8 +20153,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_export_execute(
 
 pub fn contactcenterinsights_projects_locations_issue_models_export(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContactcenterinsightsV1ExportIssueModelRequest,
+    args: &ContactcenterinsightsProjectsLocationsIssueModelsExportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -18768,8 +20162,9 @@ pub fn contactcenterinsights_projects_locations_issue_models_export(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_issue_models_export_builder(client, name, body)?;
+    let builder = contactcenterinsights_projects_locations_issue_models_export_builder(
+        client, &args.name, &args.body,
+    )?;
     contactcenterinsights_projects_locations_issue_models_export_execute(builder)
 }
 
@@ -18868,6 +20263,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_issue_models_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsIssueModelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}
 /// Gets an issue model.
 ///
@@ -18880,7 +20282,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_get_execute(
 
 pub fn contactcenterinsights_projects_locations_issue_models_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsIssueModelsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1IssueModel>, ApiError>,
@@ -18889,7 +20291,8 @@ pub fn contactcenterinsights_projects_locations_issue_models_get(
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_issue_models_get_builder(client, name)?;
+    let builder =
+        contactcenterinsights_projects_locations_issue_models_get_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_issue_models_get_execute(builder)
 }
 
@@ -18990,6 +20393,15 @@ pub fn contactcenterinsights_projects_locations_issue_models_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_issue_models_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsIssueModelsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1ImportIssueModelRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels:import
 /// Imports an issue model from a Cloud Storage bucket.
 ///
@@ -19002,8 +20414,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_import_execute(
 
 pub fn contactcenterinsights_projects_locations_issue_models_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1ImportIssueModelRequest,
+    args: &ContactcenterinsightsProjectsLocationsIssueModelsImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -19012,8 +20423,11 @@ pub fn contactcenterinsights_projects_locations_issue_models_import(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_issue_models_import_builder(client, parent, body)?;
+    let builder = contactcenterinsights_projects_locations_issue_models_import_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     contactcenterinsights_projects_locations_issue_models_import_execute(builder)
 }
 
@@ -19115,6 +20529,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_issue_models_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsIssueModelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels
 /// Lists issue models.
 ///
@@ -19127,7 +20548,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_list_execute(
 
 pub fn contactcenterinsights_projects_locations_issue_models_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ContactcenterinsightsProjectsLocationsIssueModelsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -19140,7 +20561,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_list(
     ApiError,
 > {
     let builder =
-        contactcenterinsights_projects_locations_issue_models_list_builder(client, parent)?;
+        contactcenterinsights_projects_locations_issue_models_list_builder(client, &args.parent)?;
     contactcenterinsights_projects_locations_issue_models_list_execute(builder)
 }
 
@@ -19254,6 +20675,17 @@ pub fn contactcenterinsights_projects_locations_issue_models_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_issue_models_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsIssueModelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1IssueModel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}
 /// Updates an issue model.
 ///
@@ -19266,9 +20698,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_patch_execute(
 
 pub fn contactcenterinsights_projects_locations_issue_models_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1IssueModel,
+    args: &ContactcenterinsightsProjectsLocationsIssueModelsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1IssueModel>, ApiError>,
@@ -19278,7 +20708,10 @@ pub fn contactcenterinsights_projects_locations_issue_models_patch(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_issue_models_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_issue_models_patch_execute(builder)
 }
@@ -19380,6 +20813,15 @@ pub fn contactcenterinsights_projects_locations_issue_models_undeploy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_issue_models_undeploy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsIssueModelsUndeployArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1UndeployIssueModelRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}:undeploy
 /// Undeploys an issue model. An issue model can not be used in analysis after it has been undeployed.
 ///
@@ -19392,8 +20834,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_undeploy_execute(
 
 pub fn contactcenterinsights_projects_locations_issue_models_undeploy(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContactcenterinsightsV1UndeployIssueModelRequest,
+    args: &ContactcenterinsightsProjectsLocationsIssueModelsUndeployArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -19402,8 +20843,9 @@ pub fn contactcenterinsights_projects_locations_issue_models_undeploy(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_issue_models_undeploy_builder(client, name, body)?;
+    let builder = contactcenterinsights_projects_locations_issue_models_undeploy_builder(
+        client, &args.name, &args.body,
+    )?;
     contactcenterinsights_projects_locations_issue_models_undeploy_execute(builder)
 }
 
@@ -19504,6 +20946,15 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_issue_models_issues_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsIssueModelsIssuesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Issue,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}/issues
 /// Creates an issue.
 ///
@@ -19516,8 +20967,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_create_execu
 
 pub fn contactcenterinsights_projects_locations_issue_models_issues_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1Issue,
+    args: &ContactcenterinsightsProjectsLocationsIssueModelsIssuesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -19527,7 +20977,9 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_create(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_issue_models_issues_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_issue_models_issues_create_execute(builder)
 }
@@ -19624,6 +21076,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_issue_models_issues_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsIssueModelsIssuesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}/issues/{issuesId}
 /// Deletes an issue.
 ///
@@ -19636,15 +21095,16 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_delete_execu
 
 pub fn contactcenterinsights_projects_locations_issue_models_issues_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsIssueModelsIssuesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_issue_models_issues_delete_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_issue_models_issues_delete_builder(
+        client, &args.name,
+    )?;
     contactcenterinsights_projects_locations_issue_models_issues_delete_execute(builder)
 }
 
@@ -19743,6 +21203,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_issue_models_issues_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsIssueModelsIssuesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}/issues/{issuesId}
 /// Gets an issue.
 ///
@@ -19755,7 +21222,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_get_execute(
 
 pub fn contactcenterinsights_projects_locations_issue_models_issues_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsIssueModelsIssuesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Issue>, ApiError>,
@@ -19764,8 +21231,9 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_issue_models_issues_get_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_issue_models_issues_get_builder(
+        client, &args.name,
+    )?;
     contactcenterinsights_projects_locations_issue_models_issues_get_execute(builder)
 }
 
@@ -19864,6 +21332,13 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_issue_models_issues_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsIssueModelsIssuesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}/issues
 /// Lists issues.
 ///
@@ -19876,7 +21351,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_list_execute
 
 pub fn contactcenterinsights_projects_locations_issue_models_issues_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ContactcenterinsightsProjectsLocationsIssueModelsIssuesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1ListIssuesResponse>, ApiError>,
@@ -19885,8 +21360,10 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_issue_models_issues_list_builder(client, parent)?;
+    let builder = contactcenterinsights_projects_locations_issue_models_issues_list_builder(
+        client,
+        &args.parent,
+    )?;
     contactcenterinsights_projects_locations_issue_models_issues_list_execute(builder)
 }
 
@@ -20000,6 +21477,17 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_patch_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_issue_models_issues_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsIssueModelsIssuesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1Issue,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}/issues/{issuesId}
 /// Updates an issue.
 ///
@@ -20012,9 +21500,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_patch_execut
 
 pub fn contactcenterinsights_projects_locations_issue_models_issues_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1Issue,
+    args: &ContactcenterinsightsProjectsLocationsIssueModelsIssuesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1Issue>, ApiError>,
@@ -20024,7 +21510,10 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_patch(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_issue_models_issues_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_issue_models_issues_patch_execute(builder)
 }
@@ -20121,6 +21610,13 @@ pub fn contactcenterinsights_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -20133,14 +21629,15 @@ pub fn contactcenterinsights_projects_locations_operations_cancel_execute(
 
 pub fn contactcenterinsights_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_operations_cancel_builder(client, name)?;
+    let builder =
+        contactcenterinsights_projects_locations_operations_cancel_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -20238,6 +21735,13 @@ pub fn contactcenterinsights_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -20250,7 +21754,7 @@ pub fn contactcenterinsights_projects_locations_operations_get_execute(
 
 pub fn contactcenterinsights_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -20259,7 +21763,8 @@ pub fn contactcenterinsights_projects_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_operations_get_builder(client, name)?;
+    let builder =
+        contactcenterinsights_projects_locations_operations_get_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_operations_get_execute(builder)
 }
 
@@ -20382,6 +21887,21 @@ pub fn contactcenterinsights_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -20394,11 +21914,7 @@ pub fn contactcenterinsights_projects_locations_operations_list_execute(
 
 pub fn contactcenterinsights_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ContactcenterinsightsProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -20409,11 +21925,11 @@ pub fn contactcenterinsights_projects_locations_operations_list(
 > {
     let builder = contactcenterinsights_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     contactcenterinsights_projects_locations_operations_list_execute(builder)
 }
@@ -20516,6 +22032,15 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_phrase_matchers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsPhraseMatchersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1PhraseMatcher,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/phraseMatchers
 /// Creates a phrase matcher.
 ///
@@ -20528,8 +22053,7 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_create_execute(
 
 pub fn contactcenterinsights_projects_locations_phrase_matchers_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1PhraseMatcher,
+    args: &ContactcenterinsightsProjectsLocationsPhraseMatchersCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1PhraseMatcher>, ApiError>,
@@ -20539,7 +22063,9 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_create(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_phrase_matchers_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_phrase_matchers_create_execute(builder)
 }
@@ -20636,6 +22162,13 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_phrase_matchers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsPhraseMatchersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/phraseMatchers/{phraseMatchersId}
 /// Deletes a phrase matcher.
 ///
@@ -20648,15 +22181,16 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_delete_execute(
 
 pub fn contactcenterinsights_projects_locations_phrase_matchers_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsPhraseMatchersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_phrase_matchers_delete_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_phrase_matchers_delete_builder(
+        client, &args.name,
+    )?;
     contactcenterinsights_projects_locations_phrase_matchers_delete_execute(builder)
 }
 
@@ -20755,6 +22289,13 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_phrase_matchers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsPhraseMatchersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/phraseMatchers/{phraseMatchersId}
 /// Gets a phrase matcher.
 ///
@@ -20767,7 +22308,7 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_get_execute(
 
 pub fn contactcenterinsights_projects_locations_phrase_matchers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsPhraseMatchersGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1PhraseMatcher>, ApiError>,
@@ -20777,7 +22318,7 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_get(
     ApiError,
 > {
     let builder =
-        contactcenterinsights_projects_locations_phrase_matchers_get_builder(client, name)?;
+        contactcenterinsights_projects_locations_phrase_matchers_get_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_phrase_matchers_get_execute(builder)
 }
 
@@ -20899,6 +22440,19 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_phrase_matchers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsPhraseMatchersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/phraseMatchers
 /// Lists phrase matchers.
 ///
@@ -20911,10 +22465,7 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_list_execute(
 
 pub fn contactcenterinsights_projects_locations_phrase_matchers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsPhraseMatchersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -20927,7 +22478,11 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_list(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_phrase_matchers_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     contactcenterinsights_projects_locations_phrase_matchers_list_execute(builder)
 }
@@ -21042,6 +22597,17 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_phrase_matchers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsPhraseMatchersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1PhraseMatcher,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/phraseMatchers/{phraseMatchersId}
 /// Updates a phrase matcher.
 ///
@@ -21054,9 +22620,7 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_patch_execute(
 
 pub fn contactcenterinsights_projects_locations_phrase_matchers_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1PhraseMatcher,
+    args: &ContactcenterinsightsProjectsLocationsPhraseMatchersPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1PhraseMatcher>, ApiError>,
@@ -21066,7 +22630,10 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_patch(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_phrase_matchers_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_phrase_matchers_patch_execute(builder)
 }
@@ -21181,6 +22748,17 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_question_tags_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaQuestionTagsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: qaQuestionTagId
+    pub qaQuestionTagId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1QaQuestionTag,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaQuestionTags
 /// Creates a QaQuestionTag.
 ///
@@ -21193,9 +22771,7 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_create_execute(
 
 pub fn contactcenterinsights_projects_locations_qa_question_tags_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    qaQuestionTagId: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1QaQuestionTag,
+    args: &ContactcenterinsightsProjectsLocationsQaQuestionTagsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1QaQuestionTag>, ApiError>,
@@ -21206,9 +22782,9 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_create(
 > {
     let builder = contactcenterinsights_projects_locations_qa_question_tags_create_builder(
         client,
-        parent,
-        qaQuestionTagId,
-        body,
+        &args.parent,
+        args.qaQuestionTagId.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_qa_question_tags_create_execute(builder)
 }
@@ -21307,6 +22883,13 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_question_tags_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaQuestionTagsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaQuestionTags/{qaQuestionTagsId}
 /// Deletes a QaQuestionTag.
 ///
@@ -21319,7 +22902,7 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_delete_execute(
 
 pub fn contactcenterinsights_projects_locations_qa_question_tags_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsQaQuestionTagsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -21328,8 +22911,9 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_qa_question_tags_delete_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_qa_question_tags_delete_builder(
+        client, &args.name,
+    )?;
     contactcenterinsights_projects_locations_qa_question_tags_delete_execute(builder)
 }
 
@@ -21428,6 +23012,13 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_question_tags_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaQuestionTagsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaQuestionTags/{qaQuestionTagsId}
 /// Gets a QaQuestionTag.
 ///
@@ -21440,7 +23031,7 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_get_execute(
 
 pub fn contactcenterinsights_projects_locations_qa_question_tags_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsQaQuestionTagsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1QaQuestionTag>, ApiError>,
@@ -21450,7 +23041,7 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_get(
     ApiError,
 > {
     let builder =
-        contactcenterinsights_projects_locations_qa_question_tags_get_builder(client, name)?;
+        contactcenterinsights_projects_locations_qa_question_tags_get_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_qa_question_tags_get_execute(builder)
 }
 
@@ -21564,6 +23155,15 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_question_tags_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaQuestionTagsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaQuestionTags
 /// Lists the question tags.
 ///
@@ -21576,8 +23176,7 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_list_execute(
 
 pub fn contactcenterinsights_projects_locations_qa_question_tags_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsQaQuestionTagsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -21590,7 +23189,9 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_list(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_qa_question_tags_list_builder(
-        client, parent, filter,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
     )?;
     contactcenterinsights_projects_locations_qa_question_tags_list_execute(builder)
 }
@@ -21704,6 +23305,17 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_question_tags_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaQuestionTagsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1QaQuestionTag,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaQuestionTags/{qaQuestionTagsId}
 /// Updates a QaQuestionTag.
 ///
@@ -21716,9 +23328,7 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_patch_execute(
 
 pub fn contactcenterinsights_projects_locations_qa_question_tags_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1QaQuestionTag,
+    args: &ContactcenterinsightsProjectsLocationsQaQuestionTagsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -21728,7 +23338,10 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_patch(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_qa_question_tags_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_qa_question_tags_patch_execute(builder)
 }
@@ -21843,6 +23456,17 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: qaScorecardId
+    pub qaScorecardId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1QaScorecard,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards
 /// Create a QaScorecard.
 ///
@@ -21855,9 +23479,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_create_execute(
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    qaScorecardId: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1QaScorecard,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1QaScorecard>, ApiError>,
@@ -21868,9 +23490,9 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_create(
 > {
     let builder = contactcenterinsights_projects_locations_qa_scorecards_create_builder(
         client,
-        parent,
-        qaScorecardId,
-        body,
+        &args.parent,
+        args.qaScorecardId.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_qa_scorecards_create_execute(builder)
 }
@@ -21979,6 +23601,15 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}
 /// Deletes a QaScorecard.
 ///
@@ -21991,16 +23622,16 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_delete_execute(
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_qa_scorecards_delete_builder(client, name, force)?;
+    let builder = contactcenterinsights_projects_locations_qa_scorecards_delete_builder(
+        client, &args.name, args.force,
+    )?;
     contactcenterinsights_projects_locations_qa_scorecards_delete_execute(builder)
 }
 
@@ -22099,6 +23730,13 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}
 /// Gets a QaScorecard.
 ///
@@ -22111,7 +23749,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_get_execute(
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1QaScorecard>, ApiError>,
@@ -22120,7 +23758,8 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_get(
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_qa_scorecards_get_builder(client, name)?;
+    let builder =
+        contactcenterinsights_projects_locations_qa_scorecards_get_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_qa_scorecards_get_execute(builder)
 }
 
@@ -22242,6 +23881,19 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: qaScorecardSources
+    pub qaScorecardSources: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards
 /// Lists QaScorecards.
 ///
@@ -22254,10 +23906,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_list_execute(
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    qaScorecardSources: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -22271,10 +23920,10 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_list(
 > {
     let builder = contactcenterinsights_projects_locations_qa_scorecards_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        qaScorecardSources,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.qaScorecardSources.as_deref(),
     )?;
     contactcenterinsights_projects_locations_qa_scorecards_list_execute(builder)
 }
@@ -22389,6 +24038,17 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1QaScorecard,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}
 /// Updates a QaScorecard.
 ///
@@ -22401,9 +24061,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_patch_execute(
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1QaScorecard,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1QaScorecard>, ApiError>,
@@ -22413,7 +24071,10 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_patch(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_qa_scorecards_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_qa_scorecards_patch_execute(builder)
 }
@@ -22531,6 +24192,17 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_create_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_revisions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: qaScorecardRevisionId
+    pub qaScorecardRevisionId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1QaScorecardRevision,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions
 /// Creates a QaScorecardRevision.
 ///
@@ -22543,9 +24215,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_create_e
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    qaScorecardRevisionId: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1QaScorecardRevision,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -22559,9 +24229,9 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_create(
 > {
     let builder = contactcenterinsights_projects_locations_qa_scorecards_revisions_create_builder(
         client,
-        parent,
-        qaScorecardRevisionId,
-        body,
+        &args.parent,
+        args.qaScorecardRevisionId.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_qa_scorecards_revisions_create_execute(builder)
 }
@@ -22670,6 +24340,15 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_delete_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_revisions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}
 /// Deletes a QaScorecardRevision.
 ///
@@ -22682,8 +24361,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_delete_e
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -22691,7 +24369,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_delete(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_qa_scorecards_revisions_delete_builder(
-        client, name, force,
+        client, &args.name, args.force,
     )?;
     contactcenterinsights_projects_locations_qa_scorecards_revisions_delete_execute(builder)
 }
@@ -22797,6 +24475,15 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_deploy_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_revisions_deploy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsDeployArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1DeployQaScorecardRevisionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}:deploy
 /// Deploy a QaScorecardRevision.
 ///
@@ -22809,8 +24496,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_deploy_e
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_deploy(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContactcenterinsightsV1DeployQaScorecardRevisionRequest,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsDeployArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -22823,7 +24509,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_deploy(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_qa_scorecards_revisions_deploy_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     contactcenterinsights_projects_locations_qa_scorecards_revisions_deploy_execute(builder)
 }
@@ -22926,6 +24612,13 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_get_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_revisions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}
 /// Gets a QaScorecardRevision.
 ///
@@ -22938,7 +24631,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_get_exec
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -22950,8 +24643,9 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_qa_scorecards_revisions_get_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_qa_scorecards_revisions_get_builder(
+        client, &args.name,
+    )?;
     contactcenterinsights_projects_locations_qa_scorecards_revisions_get_execute(builder)
 }
 
@@ -23077,6 +24771,21 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_list_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_revisions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: qaScorecardSources
+    pub qaScorecardSources: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions
 /// Lists all revisions under the parent QaScorecard.
 ///
@@ -23089,11 +24798,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_list_exe
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    qaScorecardSources: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -23107,11 +24812,11 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_list(
 > {
     let builder = contactcenterinsights_projects_locations_qa_scorecards_revisions_list_builder(
         client,
-        parent,
-        filter,
-        pageSize,
-        pageToken,
-        qaScorecardSources,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.qaScorecardSources.as_deref(),
     )?;
     contactcenterinsights_projects_locations_qa_scorecards_revisions_list_execute(builder)
 }
@@ -23213,6 +24918,15 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_tune_qa_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_revisions_tune_qa_scorecard_revision`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsTuneQaScorecardRevisionArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1TuneQaScorecardRevisionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}:tuneQaScorecardRevision
 /// Fine tune one or more QaModels.
 ///
@@ -23225,8 +24939,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_tune_qa_
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_tune_qa_scorecard_revision(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1TuneQaScorecardRevisionRequest,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsTuneQaScorecardRevisionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -23235,7 +24948,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_tune_qa_
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_qa_scorecards_revisions_tune_qa_scorecard_revision_builder(client, parent, body)?;
+    let builder = contactcenterinsights_projects_locations_qa_scorecards_revisions_tune_qa_scorecard_revision_builder(client, &args.parent, &args.body)?;
     contactcenterinsights_projects_locations_qa_scorecards_revisions_tune_qa_scorecard_revision_execute(builder)
 }
 
@@ -23340,6 +25053,15 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_undeploy
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_revisions_undeploy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsUndeployArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1UndeployQaScorecardRevisionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}:undeploy
 /// Undeploy a QaScorecardRevision.
 ///
@@ -23352,8 +25074,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_undeploy
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_undeploy(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContactcenterinsightsV1UndeployQaScorecardRevisionRequest,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsUndeployArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -23367,7 +25088,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_undeploy
 > {
     let builder =
         contactcenterinsights_projects_locations_qa_scorecards_revisions_undeploy_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     contactcenterinsights_projects_locations_qa_scorecards_revisions_undeploy_execute(builder)
 }
@@ -23482,6 +25203,17 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: qaQuestionId
+    pub qaQuestionId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1QaQuestion,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}/qaQuestions
 /// Create a QaQuestion.
 ///
@@ -23494,9 +25226,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    qaQuestionId: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1QaQuestion,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1QaQuestion>, ApiError>,
@@ -23505,7 +25235,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_create_builder(client, parent, qaQuestionId, body)?;
+    let builder = contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_create_builder(client, &args.parent, args.qaQuestionId.as_deref(), &args.body)?;
     contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_create_execute(
         builder,
     )
@@ -23603,6 +25333,13 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}/qaQuestions/{qaQuestionsId}
 /// Deletes a QaQuestion.
 ///
@@ -23615,14 +25352,14 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_delete_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_delete_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_delete_execute(
         builder,
     )
@@ -23723,6 +25460,13 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}/qaQuestions/{qaQuestionsId}
 /// Gets a QaQuestion.
 ///
@@ -23735,7 +25479,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1QaQuestion>, ApiError>,
@@ -23746,7 +25490,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
 > {
     let builder =
         contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_get_execute(
         builder,
@@ -23867,6 +25611,17 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}/qaQuestions
 /// Lists QaQuestions.
 ///
@@ -23879,9 +25634,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -23895,7 +25648,10 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
 > {
     let builder =
         contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_list_execute(
         builder,
@@ -24012,6 +25768,17 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1QaQuestion,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}/qaQuestions/{qaQuestionsId}
 /// Updates a QaQuestion.
 ///
@@ -24024,9 +25791,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
 
 pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1QaQuestion,
+    args: &ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1QaQuestion>, ApiError>,
@@ -24035,7 +25800,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_patch_builder(client, name, updateMask, body)?;
+    let builder = contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_patch_builder(client, &args.name, args.updateMask.as_deref(), &args.body)?;
     contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_questions_patch_execute(
         builder,
     )
@@ -24138,6 +25903,15 @@ pub fn contactcenterinsights_projects_locations_views_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_views_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsViewsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1View,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/views
 /// Creates a view.
 ///
@@ -24150,8 +25924,7 @@ pub fn contactcenterinsights_projects_locations_views_create_execute(
 
 pub fn contactcenterinsights_projects_locations_views_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContactcenterinsightsV1View,
+    args: &ContactcenterinsightsProjectsLocationsViewsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1View>, ApiError>,
@@ -24160,8 +25933,11 @@ pub fn contactcenterinsights_projects_locations_views_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenterinsights_projects_locations_views_create_builder(client, parent, body)?;
+    let builder = contactcenterinsights_projects_locations_views_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     contactcenterinsights_projects_locations_views_create_execute(builder)
 }
 
@@ -24257,6 +26033,13 @@ pub fn contactcenterinsights_projects_locations_views_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_views_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsViewsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/views/{viewsId}
 /// Deletes a view.
 ///
@@ -24269,14 +26052,15 @@ pub fn contactcenterinsights_projects_locations_views_delete_execute(
 
 pub fn contactcenterinsights_projects_locations_views_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsViewsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_views_delete_builder(client, name)?;
+    let builder =
+        contactcenterinsights_projects_locations_views_delete_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_views_delete_execute(builder)
 }
 
@@ -24374,6 +26158,13 @@ pub fn contactcenterinsights_projects_locations_views_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/views/{viewsId}
 /// Gets a view.
 ///
@@ -24386,7 +26177,7 @@ pub fn contactcenterinsights_projects_locations_views_get_execute(
 
 pub fn contactcenterinsights_projects_locations_views_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenterinsightsProjectsLocationsViewsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1View>, ApiError>,
@@ -24395,7 +26186,7 @@ pub fn contactcenterinsights_projects_locations_views_get(
         + 'static,
     ApiError,
 > {
-    let builder = contactcenterinsights_projects_locations_views_get_builder(client, name)?;
+    let builder = contactcenterinsights_projects_locations_views_get_builder(client, &args.name)?;
     contactcenterinsights_projects_locations_views_get_execute(builder)
 }
 
@@ -24510,6 +26301,17 @@ pub fn contactcenterinsights_projects_locations_views_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/views
 /// Lists views.
 ///
@@ -24522,9 +26324,7 @@ pub fn contactcenterinsights_projects_locations_views_list_execute(
 
 pub fn contactcenterinsights_projects_locations_views_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenterinsightsProjectsLocationsViewsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1ListViewsResponse>, ApiError>,
@@ -24534,7 +26334,10 @@ pub fn contactcenterinsights_projects_locations_views_list(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_views_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     contactcenterinsights_projects_locations_views_list_execute(builder)
 }
@@ -24648,6 +26451,17 @@ pub fn contactcenterinsights_projects_locations_views_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenterinsights_projects_locations_views_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenterinsightsProjectsLocationsViewsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudContactcenterinsightsV1View,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/views/{viewsId}
 /// Updates a view.
 ///
@@ -24660,9 +26474,7 @@ pub fn contactcenterinsights_projects_locations_views_patch_execute(
 
 pub fn contactcenterinsights_projects_locations_views_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudContactcenterinsightsV1View,
+    args: &ContactcenterinsightsProjectsLocationsViewsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContactcenterinsightsV1View>, ApiError>,
@@ -24672,7 +26484,10 @@ pub fn contactcenterinsights_projects_locations_views_patch(
     ApiError,
 > {
     let builder = contactcenterinsights_projects_locations_views_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenterinsights_projects_locations_views_patch_execute(builder)
 }

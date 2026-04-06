@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v4/spreadsheets/{spreadsheetId}:batchUpdate
 /// Applies one or more updates to the spreadsheet. Each request is validated before being applied. If any request is not valid then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. The replies will mirror the requests. For example, if you applied 4 updates and the 3rd one had a reply, then the response will have 2 empty replies, the actual reply, and another empty reply, in that order. Due to the collaborative nature of spreadsheets, it is not guaranteed that the spreadsheet will reflect exactly your changes after this completes, however it is guaranteed that the updates in the request will be applied together atomically. Your changes may be altered with respect to collaborator changes. If there are no collaborators, the spreadsheet should reflect your changes.
@@ -113,6 +115,15 @@ pub fn sheets_spreadsheets_batch_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsBatchUpdateArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Request body.
+    pub body: BatchUpdateSpreadsheetRequest,
+}
+
 /// GET v4/spreadsheets/{spreadsheetId}:batchUpdate
 /// Applies one or more updates to the spreadsheet. Each request is validated before being applied. If any request is not valid then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. The replies will mirror the requests. For example, if you applied 4 updates and the 3rd one had a reply, then the response will have 2 empty replies, the actual reply, and another empty reply, in that order. Due to the collaborative nature of spreadsheets, it is not guaranteed that the spreadsheet will reflect exactly your changes after this completes, however it is guaranteed that the updates in the request will be applied together atomically. Your changes may be altered with respect to collaborator changes. If there are no collaborators, the spreadsheet should reflect your changes.
 ///
@@ -125,8 +136,7 @@ pub fn sheets_spreadsheets_batch_update_execute(
 
 pub fn sheets_spreadsheets_batch_update(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    body: &BatchUpdateSpreadsheetRequest,
+    args: &SheetsSpreadsheetsBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUpdateSpreadsheetResponse>, ApiError>,
@@ -135,7 +145,8 @@ pub fn sheets_spreadsheets_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder = sheets_spreadsheets_batch_update_builder(client, spreadsheetId, body)?;
+    let builder =
+        sheets_spreadsheets_batch_update_builder(client, &args.spreadsheetId, &args.body)?;
     sheets_spreadsheets_batch_update_execute(builder)
 }
 
@@ -228,6 +239,13 @@ pub fn sheets_spreadsheets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsCreateArgs {
+    /// Request body.
+    pub body: Spreadsheet,
+}
+
 /// GET v4/spreadsheets
 /// Creates a spreadsheet, returning the newly created spreadsheet.
 ///
@@ -240,12 +258,12 @@ pub fn sheets_spreadsheets_create_execute(
 
 pub fn sheets_spreadsheets_create(
     client: &SimpleHttpClient,
-    body: &Spreadsheet,
+    args: &SheetsSpreadsheetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Spreadsheet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sheets_spreadsheets_create_builder(client, body)?;
+    let builder = sheets_spreadsheets_create_builder(client, &args.body)?;
     sheets_spreadsheets_create_execute(builder)
 }
 
@@ -359,6 +377,19 @@ pub fn sheets_spreadsheets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsGetArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Query parameter: excludeTablesInBandedRanges
+    pub excludeTablesInBandedRanges: Option<bool>,
+    /// Query parameter: includeGridData
+    pub includeGridData: Option<bool>,
+    /// Query parameter: ranges
+    pub ranges: Option<String>,
+}
+
 /// GET v4/spreadsheets/{spreadsheetId}
 /// Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID. By default, data within grids is not returned. You can include grid data in one of 2 ways: * Specify a [field mask](<https://developers.google.`com/workspace/sheets/api/guides/field-masks`>) listing your desired fields using the fields URL parameter in HTTP * Set the `includeGridData` URL parameter to `true`. If a field mask is set, the `includeGridData` parameter is ignored For large spreadsheets, as a best practice, retrieve only the specific spreadsheet fields that you want. To retrieve only subsets of spreadsheet data, use the ranges URL parameter. Ranges are specified using [A1 notation](<https://developers.google.`com/workspace/sheets/api/guides/concepts`#cell>). You can define a single cell (for example, A1) or multiple cells (for example, A1:D5). You can also get cells from other sheets within the same spreadsheet (for example, Sheet2!A1:C4) or retrieve multiple ranges at once (for example, ?ranges=A1:D5&ranges=Sheet2!A1:C4). Limiting the range returns only the portions of the spreadsheet that intersect the requested ranges.
 ///
@@ -371,20 +402,17 @@ pub fn sheets_spreadsheets_get_execute(
 
 pub fn sheets_spreadsheets_get(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    excludeTablesInBandedRanges: Option<bool>,
-    includeGridData: Option<bool>,
-    ranges: Option<&str>,
+    args: &SheetsSpreadsheetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Spreadsheet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = sheets_spreadsheets_get_builder(
         client,
-        spreadsheetId,
-        excludeTablesInBandedRanges,
-        includeGridData,
-        ranges,
+        &args.spreadsheetId,
+        args.excludeTablesInBandedRanges,
+        args.includeGridData,
+        args.ranges.as_deref(),
     )?;
     sheets_spreadsheets_get_execute(builder)
 }
@@ -482,6 +510,15 @@ pub fn sheets_spreadsheets_get_by_data_filter_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_get_by_data_filter`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsGetByDataFilterArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Request body.
+    pub body: GetSpreadsheetByDataFilterRequest,
+}
+
 /// GET v4/spreadsheets/{spreadsheetId}:getByDataFilter
 /// Returns the spreadsheet at the given ID. The caller must specify the spreadsheet ID. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). This method differs from GetSpreadsheet in that it allows selecting which subsets of spreadsheet data to return by specifying a `dataFilters` parameter. Multiple DataFilters can be specified. Specifying one or more data filters returns the portions of the spreadsheet that intersect ranges matched by any of the filters. By default, data within grids is not returned. You can include grid data in one of two ways: * Specify a [field mask](<https://developers.google.`com/workspace/sheets/api/guides/field-masks`>) listing your desired fields using the fields URL parameter in HTTP. * Set the `includeGridData` parameter to `true`. If a field mask is set, the `includeGridData` parameter is ignored. For large spreadsheets, as a best practice, retrieve only the specific spreadsheet fields that you want.
 ///
@@ -494,13 +531,13 @@ pub fn sheets_spreadsheets_get_by_data_filter_execute(
 
 pub fn sheets_spreadsheets_get_by_data_filter(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    body: &GetSpreadsheetByDataFilterRequest,
+    args: &SheetsSpreadsheetsGetByDataFilterArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Spreadsheet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sheets_spreadsheets_get_by_data_filter_builder(client, spreadsheetId, body)?;
+    let builder =
+        sheets_spreadsheets_get_by_data_filter_builder(client, &args.spreadsheetId, &args.body)?;
     sheets_spreadsheets_get_by_data_filter_execute(builder)
 }
 
@@ -597,6 +634,15 @@ pub fn sheets_spreadsheets_developer_metadata_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_developer_metadata_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsDeveloperMetadataGetArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Path parameter: metadataId
+    pub metadataId: String,
+}
+
 /// GET v4/spreadsheets/{spreadsheetId}/developerMetadata/{metadataId}
 /// Returns the developer metadata with the specified ID. The caller must specify the spreadsheet ID and the developer metadata's unique `metadataId`. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>).
 ///
@@ -609,16 +655,18 @@ pub fn sheets_spreadsheets_developer_metadata_get_execute(
 
 pub fn sheets_spreadsheets_developer_metadata_get(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    metadataId: &str,
+    args: &SheetsSpreadsheetsDeveloperMetadataGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeveloperMetadata>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        sheets_spreadsheets_developer_metadata_get_builder(client, spreadsheetId, metadataId)?;
+    let builder = sheets_spreadsheets_developer_metadata_get_builder(
+        client,
+        &args.spreadsheetId,
+        &args.metadataId,
+    )?;
     sheets_spreadsheets_developer_metadata_get_execute(builder)
 }
 
@@ -719,6 +767,15 @@ pub fn sheets_spreadsheets_developer_metadata_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_developer_metadata_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsDeveloperMetadataSearchArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Request body.
+    pub body: SearchDeveloperMetadataRequest,
+}
+
 /// GET v4/spreadsheets/{spreadsheetId}/developerMetadata:search
 /// Returns all developer metadata matching the specified DataFilter. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). If the provided DataFilter represents a DeveloperMetadataLookup object, this will return all DeveloperMetadata entries selected by it. If the DataFilter represents a location in a spreadsheet, this will return all developer metadata associated with locations intersecting that region.
 ///
@@ -731,8 +788,7 @@ pub fn sheets_spreadsheets_developer_metadata_search_execute(
 
 pub fn sheets_spreadsheets_developer_metadata_search(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    body: &SearchDeveloperMetadataRequest,
+    args: &SheetsSpreadsheetsDeveloperMetadataSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchDeveloperMetadataResponse>, ApiError>,
@@ -741,8 +797,11 @@ pub fn sheets_spreadsheets_developer_metadata_search(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sheets_spreadsheets_developer_metadata_search_builder(client, spreadsheetId, body)?;
+    let builder = sheets_spreadsheets_developer_metadata_search_builder(
+        client,
+        &args.spreadsheetId,
+        &args.body,
+    )?;
     sheets_spreadsheets_developer_metadata_search_execute(builder)
 }
 
@@ -842,6 +901,17 @@ pub fn sheets_spreadsheets_sheets_copy_to_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_sheets_copy_to`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsSheetsCopyToArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Path parameter: sheetId
+    pub sheetId: String,
+    /// Request body.
+    pub body: CopySheetToAnotherSpreadsheetRequest,
+}
+
 /// GET v4/spreadsheets/{spreadsheetId}/sheets/{sheetId}:copyTo
 /// Copies a single sheet from a spreadsheet to another spreadsheet. Returns the properties of the newly created sheet.
 ///
@@ -854,16 +924,19 @@ pub fn sheets_spreadsheets_sheets_copy_to_execute(
 
 pub fn sheets_spreadsheets_sheets_copy_to(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    sheetId: &str,
-    body: &CopySheetToAnotherSpreadsheetRequest,
+    args: &SheetsSpreadsheetsSheetsCopyToArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SheetProperties>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sheets_spreadsheets_sheets_copy_to_builder(client, spreadsheetId, sheetId, body)?;
+    let builder = sheets_spreadsheets_sheets_copy_to_builder(
+        client,
+        &args.spreadsheetId,
+        &args.sheetId,
+        &args.body,
+    )?;
     sheets_spreadsheets_sheets_copy_to_execute(builder)
 }
 
@@ -991,6 +1064,27 @@ pub fn sheets_spreadsheets_values_append_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_values_append`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesAppendArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Path parameter: range
+    pub range: String,
+    /// Query parameter: includeValuesInResponse
+    pub includeValuesInResponse: Option<bool>,
+    /// Query parameter: insertDataOption
+    pub insertDataOption: Option<String>,
+    /// Query parameter: responseDateTimeRenderOption
+    pub responseDateTimeRenderOption: Option<String>,
+    /// Query parameter: responseValueRenderOption
+    pub responseValueRenderOption: Option<String>,
+    /// Query parameter: valueInputOption
+    pub valueInputOption: Option<String>,
+    /// Request body.
+    pub body: ValueRange,
+}
+
 /// GET v4/spreadsheets/{spreadsheetId}/values/{range}:append
 /// Appends values to a spreadsheet. The input range is used to search for existing data and find a "table" within that range. Values will be appended to the next row of the table, starting with the first column of the table. See the [guide](<https://developers.google.`com/workspace/sheets/api/guides/values`#appending_values>) and [sample code](<https://developers.google.`com/workspace/sheets/api/samples/writing`#append_values>) for specific details of how tables are detected and data is appended. The caller must specify the spreadsheet ID, range, and a `valueInputOption`. The `valueInputOption` only controls how the input data will be added to the sheet (column-wise or row-wise), it does not influence what cell the data starts being written to.
 ///
@@ -1003,14 +1097,7 @@ pub fn sheets_spreadsheets_values_append_execute(
 
 pub fn sheets_spreadsheets_values_append(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    range: &str,
-    includeValuesInResponse: Option<bool>,
-    insertDataOption: Option<&str>,
-    responseDateTimeRenderOption: Option<&str>,
-    responseValueRenderOption: Option<&str>,
-    valueInputOption: Option<&str>,
-    body: &ValueRange,
+    args: &SheetsSpreadsheetsValuesAppendArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppendValuesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1019,14 +1106,14 @@ pub fn sheets_spreadsheets_values_append(
 > {
     let builder = sheets_spreadsheets_values_append_builder(
         client,
-        spreadsheetId,
-        range,
-        includeValuesInResponse,
-        insertDataOption,
-        responseDateTimeRenderOption,
-        responseValueRenderOption,
-        valueInputOption,
-        body,
+        &args.spreadsheetId,
+        &args.range,
+        args.includeValuesInResponse,
+        args.insertDataOption.as_deref(),
+        args.responseDateTimeRenderOption.as_deref(),
+        args.responseValueRenderOption.as_deref(),
+        args.valueInputOption.as_deref(),
+        &args.body,
     )?;
     sheets_spreadsheets_values_append_execute(builder)
 }
@@ -1126,6 +1213,15 @@ pub fn sheets_spreadsheets_values_batch_clear_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_values_batch_clear`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesBatchClearArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Request body.
+    pub body: BatchClearValuesRequest,
+}
+
 /// GET v4/spreadsheets/{spreadsheetId}/values:batchClear
 /// Clears one or more ranges of values from a spreadsheet. The caller must specify the spreadsheet ID and one or more ranges. Only values are cleared -- all other properties of the cell (such as formatting and data validation) are kept.
 ///
@@ -1138,15 +1234,15 @@ pub fn sheets_spreadsheets_values_batch_clear_execute(
 
 pub fn sheets_spreadsheets_values_batch_clear(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    body: &BatchClearValuesRequest,
+    args: &SheetsSpreadsheetsValuesBatchClearArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchClearValuesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sheets_spreadsheets_values_batch_clear_builder(client, spreadsheetId, body)?;
+    let builder =
+        sheets_spreadsheets_values_batch_clear_builder(client, &args.spreadsheetId, &args.body)?;
     sheets_spreadsheets_values_batch_clear_execute(builder)
 }
 
@@ -1247,6 +1343,15 @@ pub fn sheets_spreadsheets_values_batch_clear_by_data_filter_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_values_batch_clear_by_data_filter`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesBatchClearByDataFilterArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Request body.
+    pub body: BatchClearValuesByDataFilterRequest,
+}
+
 /// GET v4/spreadsheets/{spreadsheetId}/values:batchClearByDataFilter
 /// Clears one or more ranges of values from a spreadsheet. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). The caller must specify the spreadsheet ID and one or more DataFilters. Ranges matching any of the specified data filters will be cleared. Only values are cleared -- all other properties of the cell (such as formatting, data validation, etc.) are kept.
 ///
@@ -1259,8 +1364,7 @@ pub fn sheets_spreadsheets_values_batch_clear_by_data_filter_execute(
 
 pub fn sheets_spreadsheets_values_batch_clear_by_data_filter(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    body: &BatchClearValuesByDataFilterRequest,
+    args: &SheetsSpreadsheetsValuesBatchClearByDataFilterArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchClearValuesByDataFilterResponse>, ApiError>,
@@ -1269,8 +1373,11 @@ pub fn sheets_spreadsheets_values_batch_clear_by_data_filter(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sheets_spreadsheets_values_batch_clear_by_data_filter_builder(client, spreadsheetId, body)?;
+    let builder = sheets_spreadsheets_values_batch_clear_by_data_filter_builder(
+        client,
+        &args.spreadsheetId,
+        &args.body,
+    )?;
     sheets_spreadsheets_values_batch_clear_by_data_filter_execute(builder)
 }
 
@@ -1390,6 +1497,21 @@ pub fn sheets_spreadsheets_values_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_values_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesBatchGetArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Query parameter: dateTimeRenderOption
+    pub dateTimeRenderOption: Option<String>,
+    /// Query parameter: majorDimension
+    pub majorDimension: Option<String>,
+    /// Query parameter: ranges
+    pub ranges: Option<String>,
+    /// Query parameter: valueRenderOption
+    pub valueRenderOption: Option<String>,
+}
+
 /// GET v4/spreadsheets/{spreadsheetId}/values:batchGet
 /// Returns one or more ranges of values from a spreadsheet. The caller must specify the spreadsheet ID and one or more ranges.
 ///
@@ -1402,11 +1524,7 @@ pub fn sheets_spreadsheets_values_batch_get_execute(
 
 pub fn sheets_spreadsheets_values_batch_get(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    dateTimeRenderOption: Option<&str>,
-    majorDimension: Option<&str>,
-    ranges: Option<&str>,
-    valueRenderOption: Option<&str>,
+    args: &SheetsSpreadsheetsValuesBatchGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchGetValuesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1415,11 +1533,11 @@ pub fn sheets_spreadsheets_values_batch_get(
 > {
     let builder = sheets_spreadsheets_values_batch_get_builder(
         client,
-        spreadsheetId,
-        dateTimeRenderOption,
-        majorDimension,
-        ranges,
-        valueRenderOption,
+        &args.spreadsheetId,
+        args.dateTimeRenderOption.as_deref(),
+        args.majorDimension.as_deref(),
+        args.ranges.as_deref(),
+        args.valueRenderOption.as_deref(),
     )?;
     sheets_spreadsheets_values_batch_get_execute(builder)
 }
@@ -1521,6 +1639,15 @@ pub fn sheets_spreadsheets_values_batch_get_by_data_filter_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_values_batch_get_by_data_filter`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesBatchGetByDataFilterArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Request body.
+    pub body: BatchGetValuesByDataFilterRequest,
+}
+
 /// GET v4/spreadsheets/{spreadsheetId}/values:batchGetByDataFilter
 /// Returns one or more ranges of values that match the specified data filters. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). The caller must specify the spreadsheet ID and one or more DataFilters. Ranges that match any of the data filters in the request will be returned.
 ///
@@ -1533,8 +1660,7 @@ pub fn sheets_spreadsheets_values_batch_get_by_data_filter_execute(
 
 pub fn sheets_spreadsheets_values_batch_get_by_data_filter(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    body: &BatchGetValuesByDataFilterRequest,
+    args: &SheetsSpreadsheetsValuesBatchGetByDataFilterArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchGetValuesByDataFilterResponse>, ApiError>,
@@ -1543,8 +1669,11 @@ pub fn sheets_spreadsheets_values_batch_get_by_data_filter(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sheets_spreadsheets_values_batch_get_by_data_filter_builder(client, spreadsheetId, body)?;
+    let builder = sheets_spreadsheets_values_batch_get_by_data_filter_builder(
+        client,
+        &args.spreadsheetId,
+        &args.body,
+    )?;
     sheets_spreadsheets_values_batch_get_by_data_filter_execute(builder)
 }
 
@@ -1643,6 +1772,15 @@ pub fn sheets_spreadsheets_values_batch_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_values_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesBatchUpdateArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Request body.
+    pub body: BatchUpdateValuesRequest,
+}
+
 /// GET v4/spreadsheets/{spreadsheetId}/values:batchUpdate
 /// Sets values in one or more ranges of a spreadsheet. The caller must specify the spreadsheet ID, a `valueInputOption`, and one or more ValueRanges.
 ///
@@ -1655,15 +1793,15 @@ pub fn sheets_spreadsheets_values_batch_update_execute(
 
 pub fn sheets_spreadsheets_values_batch_update(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    body: &BatchUpdateValuesRequest,
+    args: &SheetsSpreadsheetsValuesBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchUpdateValuesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sheets_spreadsheets_values_batch_update_builder(client, spreadsheetId, body)?;
+    let builder =
+        sheets_spreadsheets_values_batch_update_builder(client, &args.spreadsheetId, &args.body)?;
     sheets_spreadsheets_values_batch_update_execute(builder)
 }
 
@@ -1764,6 +1902,15 @@ pub fn sheets_spreadsheets_values_batch_update_by_data_filter_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_values_batch_update_by_data_filter`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesBatchUpdateByDataFilterArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Request body.
+    pub body: BatchUpdateValuesByDataFilterRequest,
+}
+
 /// GET v4/spreadsheets/{spreadsheetId}/values:batchUpdateByDataFilter
 /// Sets values in one or more ranges of a spreadsheet. For more information, see [Read, write, and search metadata](<https://developers.google.`com/workspace/sheets/api/guides/metadata`>). The caller must specify the spreadsheet ID, a `valueInputOption`, and one or more DataFilterValueRanges.
 ///
@@ -1776,8 +1923,7 @@ pub fn sheets_spreadsheets_values_batch_update_by_data_filter_execute(
 
 pub fn sheets_spreadsheets_values_batch_update_by_data_filter(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    body: &BatchUpdateValuesByDataFilterRequest,
+    args: &SheetsSpreadsheetsValuesBatchUpdateByDataFilterArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUpdateValuesByDataFilterResponse>, ApiError>,
@@ -1788,8 +1934,8 @@ pub fn sheets_spreadsheets_values_batch_update_by_data_filter(
 > {
     let builder = sheets_spreadsheets_values_batch_update_by_data_filter_builder(
         client,
-        spreadsheetId,
-        body,
+        &args.spreadsheetId,
+        &args.body,
     )?;
     sheets_spreadsheets_values_batch_update_by_data_filter_execute(builder)
 }
@@ -1890,6 +2036,17 @@ pub fn sheets_spreadsheets_values_clear_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_values_clear`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesClearArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Path parameter: range
+    pub range: String,
+    /// Request body.
+    pub body: ClearValuesRequest,
+}
+
 /// GET v4/spreadsheets/{spreadsheetId}/values/{range}:clear
 /// Clears values from a spreadsheet. The caller must specify the spreadsheet ID and range. Only values are cleared -- all other properties of the cell (such as formatting, data validation, etc..) are kept.
 ///
@@ -1902,16 +2059,19 @@ pub fn sheets_spreadsheets_values_clear_execute(
 
 pub fn sheets_spreadsheets_values_clear(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    range: &str,
-    body: &ClearValuesRequest,
+    args: &SheetsSpreadsheetsValuesClearArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ClearValuesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sheets_spreadsheets_values_clear_builder(client, spreadsheetId, range, body)?;
+    let builder = sheets_spreadsheets_values_clear_builder(
+        client,
+        &args.spreadsheetId,
+        &args.range,
+        &args.body,
+    )?;
     sheets_spreadsheets_values_clear_execute(builder)
 }
 
@@ -2026,6 +2186,21 @@ pub fn sheets_spreadsheets_values_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_values_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesGetArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Path parameter: range
+    pub range: String,
+    /// Query parameter: dateTimeRenderOption
+    pub dateTimeRenderOption: Option<String>,
+    /// Query parameter: majorDimension
+    pub majorDimension: Option<String>,
+    /// Query parameter: valueRenderOption
+    pub valueRenderOption: Option<String>,
+}
+
 /// GET v4/spreadsheets/{spreadsheetId}/values/{range}
 /// Returns a range of values from a spreadsheet. The caller must specify the spreadsheet ID and a range.
 ///
@@ -2038,22 +2213,18 @@ pub fn sheets_spreadsheets_values_get_execute(
 
 pub fn sheets_spreadsheets_values_get(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    range: &str,
-    dateTimeRenderOption: Option<&str>,
-    majorDimension: Option<&str>,
-    valueRenderOption: Option<&str>,
+    args: &SheetsSpreadsheetsValuesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ValueRange>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = sheets_spreadsheets_values_get_builder(
         client,
-        spreadsheetId,
-        range,
-        dateTimeRenderOption,
-        majorDimension,
-        valueRenderOption,
+        &args.spreadsheetId,
+        &args.range,
+        args.dateTimeRenderOption.as_deref(),
+        args.majorDimension.as_deref(),
+        args.valueRenderOption.as_deref(),
     )?;
     sheets_spreadsheets_values_get_execute(builder)
 }
@@ -2178,6 +2349,25 @@ pub fn sheets_spreadsheets_values_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sheets_spreadsheets_values_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SheetsSpreadsheetsValuesUpdateArgs {
+    /// Path parameter: spreadsheetId
+    pub spreadsheetId: String,
+    /// Path parameter: range
+    pub range: String,
+    /// Query parameter: includeValuesInResponse
+    pub includeValuesInResponse: Option<bool>,
+    /// Query parameter: responseDateTimeRenderOption
+    pub responseDateTimeRenderOption: Option<String>,
+    /// Query parameter: responseValueRenderOption
+    pub responseValueRenderOption: Option<String>,
+    /// Query parameter: valueInputOption
+    pub valueInputOption: Option<String>,
+    /// Request body.
+    pub body: ValueRange,
+}
+
 /// GET v4/spreadsheets/{spreadsheetId}/values/{range}
 /// Sets values in a range of a spreadsheet. The caller must specify the spreadsheet ID, range, and a `valueInputOption`.
 ///
@@ -2190,13 +2380,7 @@ pub fn sheets_spreadsheets_values_update_execute(
 
 pub fn sheets_spreadsheets_values_update(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    range: &str,
-    includeValuesInResponse: Option<bool>,
-    responseDateTimeRenderOption: Option<&str>,
-    responseValueRenderOption: Option<&str>,
-    valueInputOption: Option<&str>,
-    body: &ValueRange,
+    args: &SheetsSpreadsheetsValuesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UpdateValuesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2205,13 +2389,13 @@ pub fn sheets_spreadsheets_values_update(
 > {
     let builder = sheets_spreadsheets_values_update_builder(
         client,
-        spreadsheetId,
-        range,
-        includeValuesInResponse,
-        responseDateTimeRenderOption,
-        responseValueRenderOption,
-        valueInputOption,
-        body,
+        &args.spreadsheetId,
+        &args.range,
+        args.includeValuesInResponse,
+        args.responseDateTimeRenderOption.as_deref(),
+        args.responseValueRenderOption.as_deref(),
+        args.valueInputOption.as_deref(),
+        &args.body,
     )?;
     sheets_spreadsheets_values_update_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET playcustomapp/v1/accounts/{account}/customApps
 /// Creates a new custom app.
@@ -109,6 +111,15 @@ pub fn playcustomapp_accounts_custom_apps_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playcustomapp_accounts_custom_apps_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaycustomappAccountsCustomAppsCreateArgs {
+    /// Path parameter: account
+    pub account: String,
+    /// Request body.
+    pub body: CustomApp,
+}
+
 /// GET playcustomapp/v1/accounts/{account}/customApps
 /// Creates a new custom app.
 ///
@@ -121,12 +132,12 @@ pub fn playcustomapp_accounts_custom_apps_create_execute(
 
 pub fn playcustomapp_accounts_custom_apps_create(
     client: &SimpleHttpClient,
-    account: &str,
-    body: &CustomApp,
+    args: &PlaycustomappAccountsCustomAppsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomApp>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = playcustomapp_accounts_custom_apps_create_builder(client, account, body)?;
+    let builder =
+        playcustomapp_accounts_custom_apps_create_builder(client, &args.account, &args.body)?;
     playcustomapp_accounts_custom_apps_create_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn gkehub_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkehub_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkehubProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn gkehub_projects_locations_get_execute(
 
 pub fn gkehub_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkehubProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkehub_projects_locations_get_builder(client, name)?;
+    let builder = gkehub_projects_locations_get_builder(client, &args.name)?;
     gkehub_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn gkehub_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkehub_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkehubProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn gkehub_projects_locations_list_execute(
 
 pub fn gkehub_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GkehubProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn gkehub_projects_locations_list(
 > {
     let builder = gkehub_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     gkehub_projects_locations_list_execute(builder)
 }
@@ -386,6 +406,19 @@ pub fn gkehub_projects_locations_memberships_features_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkehub_projects_locations_memberships_features_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkehubProjectsLocationsMembershipsFeaturesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: featureId
+    pub featureId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: MembershipFeature,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/memberships/{membershipsId}/features
 /// Creates `membershipFeature` under a given parent.
 ///
@@ -398,16 +431,17 @@ pub fn gkehub_projects_locations_memberships_features_create_execute(
 
 pub fn gkehub_projects_locations_memberships_features_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    featureId: Option<&str>,
-    requestId: Option<&str>,
-    body: &MembershipFeature,
+    args: &GkehubProjectsLocationsMembershipsFeaturesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkehub_projects_locations_memberships_features_create_builder(
-        client, parent, featureId, requestId, body,
+        client,
+        &args.parent,
+        args.featureId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     gkehub_projects_locations_memberships_features_create_execute(builder)
 }
@@ -514,6 +548,15 @@ pub fn gkehub_projects_locations_memberships_features_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkehub_projects_locations_memberships_features_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkehubProjectsLocationsMembershipsFeaturesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/memberships/{membershipsId}/features/{featuresId}
 /// Removes a `membershipFeature`.
 ///
@@ -526,14 +569,16 @@ pub fn gkehub_projects_locations_memberships_features_delete_execute(
 
 pub fn gkehub_projects_locations_memberships_features_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &GkehubProjectsLocationsMembershipsFeaturesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gkehub_projects_locations_memberships_features_delete_builder(client, name, requestId)?;
+    let builder = gkehub_projects_locations_memberships_features_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     gkehub_projects_locations_memberships_features_delete_execute(builder)
 }
 
@@ -629,6 +674,13 @@ pub fn gkehub_projects_locations_memberships_features_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkehub_projects_locations_memberships_features_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkehubProjectsLocationsMembershipsFeaturesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/memberships/{membershipsId}/features/{featuresId}
 /// ========= MembershipFeature Services ========= Gets details of a `membershipFeature`.
 ///
@@ -641,14 +693,14 @@ pub fn gkehub_projects_locations_memberships_features_get_execute(
 
 pub fn gkehub_projects_locations_memberships_features_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkehubProjectsLocationsMembershipsFeaturesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MembershipFeature>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gkehub_projects_locations_memberships_features_get_builder(client, name)?;
+    let builder = gkehub_projects_locations_memberships_features_get_builder(client, &args.name)?;
     gkehub_projects_locations_memberships_features_get_execute(builder)
 }
 
@@ -770,6 +822,21 @@ pub fn gkehub_projects_locations_memberships_features_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkehub_projects_locations_memberships_features_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkehubProjectsLocationsMembershipsFeaturesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/memberships/{membershipsId}/features
 /// Lists MembershipFeatures in a given project and location.
 ///
@@ -782,11 +849,7 @@ pub fn gkehub_projects_locations_memberships_features_list_execute(
 
 pub fn gkehub_projects_locations_memberships_features_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GkehubProjectsLocationsMembershipsFeaturesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMembershipFeaturesResponse>, ApiError>,
@@ -796,7 +859,12 @@ pub fn gkehub_projects_locations_memberships_features_list(
     ApiError,
 > {
     let builder = gkehub_projects_locations_memberships_features_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     gkehub_projects_locations_memberships_features_list_execute(builder)
 }
@@ -914,6 +982,21 @@ pub fn gkehub_projects_locations_memberships_features_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkehub_projects_locations_memberships_features_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkehubProjectsLocationsMembershipsFeaturesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: MembershipFeature,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/memberships/{membershipsId}/features/{featuresId}
 /// Updates an existing MembershipFeature.
 ///
@@ -926,22 +1009,18 @@ pub fn gkehub_projects_locations_memberships_features_patch_execute(
 
 pub fn gkehub_projects_locations_memberships_features_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &MembershipFeature,
+    args: &GkehubProjectsLocationsMembershipsFeaturesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkehub_projects_locations_memberships_features_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     gkehub_projects_locations_memberships_features_patch_execute(builder)
 }
@@ -1039,6 +1118,15 @@ pub fn gkehub_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkehub_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkehubProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1051,13 +1139,13 @@ pub fn gkehub_projects_locations_operations_cancel_execute(
 
 pub fn gkehub_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &GkehubProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkehub_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        gkehub_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     gkehub_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -1151,6 +1239,13 @@ pub fn gkehub_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkehub_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkehubProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1163,12 +1258,12 @@ pub fn gkehub_projects_locations_operations_get_execute(
 
 pub fn gkehub_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkehubProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkehub_projects_locations_operations_get_builder(client, name)?;
+    let builder = gkehub_projects_locations_operations_get_builder(client, &args.name)?;
     gkehub_projects_locations_operations_get_execute(builder)
 }
 
@@ -1288,6 +1383,21 @@ pub fn gkehub_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkehub_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkehubProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1300,11 +1410,7 @@ pub fn gkehub_projects_locations_operations_list_execute(
 
 pub fn gkehub_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &GkehubProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1313,11 +1419,11 @@ pub fn gkehub_projects_locations_operations_list(
 > {
     let builder = gkehub_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     gkehub_projects_locations_operations_list_execute(builder)
 }

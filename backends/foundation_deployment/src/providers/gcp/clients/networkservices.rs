@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn networkservices_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn networkservices_projects_locations_get_execute(
 
 pub fn networkservices_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_get_builder(client, name)?;
+    let builder = networkservices_projects_locations_get_builder(client, &args.name)?;
     networkservices_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn networkservices_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn networkservices_projects_locations_list_execute(
 
 pub fn networkservices_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkservicesProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn networkservices_projects_locations_list(
 > {
     let builder = networkservices_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkservices_projects_locations_list_execute(builder)
 }
@@ -386,6 +406,19 @@ pub fn networkservices_projects_locations_authz_extensions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_authz_extensions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsAuthzExtensionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: authzExtensionId
+    pub authzExtensionId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: AuthzExtension,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authzExtensions
 /// Creates a new AuthzExtension resource in a given project and location.
 ///
@@ -398,20 +431,17 @@ pub fn networkservices_projects_locations_authz_extensions_create_execute(
 
 pub fn networkservices_projects_locations_authz_extensions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    authzExtensionId: Option<&str>,
-    requestId: Option<&str>,
-    body: &AuthzExtension,
+    args: &NetworkservicesProjectsLocationsAuthzExtensionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_authz_extensions_create_builder(
         client,
-        parent,
-        authzExtensionId,
-        requestId,
-        body,
+        &args.parent,
+        args.authzExtensionId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_authz_extensions_create_execute(builder)
 }
@@ -518,6 +548,15 @@ pub fn networkservices_projects_locations_authz_extensions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_authz_extensions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsAuthzExtensionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
 /// Deletes the specified AuthzExtension resource.
 ///
@@ -530,14 +569,15 @@ pub fn networkservices_projects_locations_authz_extensions_delete_execute(
 
 pub fn networkservices_projects_locations_authz_extensions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworkservicesProjectsLocationsAuthzExtensionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_authz_extensions_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     networkservices_projects_locations_authz_extensions_delete_execute(builder)
 }
@@ -634,6 +674,13 @@ pub fn networkservices_projects_locations_authz_extensions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_authz_extensions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsAuthzExtensionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
 /// Gets details of the specified AuthzExtension resource.
 ///
@@ -646,14 +693,15 @@ pub fn networkservices_projects_locations_authz_extensions_get_execute(
 
 pub fn networkservices_projects_locations_authz_extensions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsAuthzExtensionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthzExtension>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_authz_extensions_get_builder(client, name)?;
+    let builder =
+        networkservices_projects_locations_authz_extensions_get_builder(client, &args.name)?;
     networkservices_projects_locations_authz_extensions_get_execute(builder)
 }
 
@@ -775,6 +823,21 @@ pub fn networkservices_projects_locations_authz_extensions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_authz_extensions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsAuthzExtensionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authzExtensions
 /// Lists AuthzExtension resources in a given project and location.
 ///
@@ -787,11 +850,7 @@ pub fn networkservices_projects_locations_authz_extensions_list_execute(
 
 pub fn networkservices_projects_locations_authz_extensions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkservicesProjectsLocationsAuthzExtensionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAuthzExtensionsResponse>, ApiError>,
@@ -801,7 +860,12 @@ pub fn networkservices_projects_locations_authz_extensions_list(
     ApiError,
 > {
     let builder = networkservices_projects_locations_authz_extensions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkservices_projects_locations_authz_extensions_list_execute(builder)
 }
@@ -915,6 +979,19 @@ pub fn networkservices_projects_locations_authz_extensions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_authz_extensions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsAuthzExtensionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AuthzExtension,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
 /// Updates the parameters of the specified AuthzExtension resource.
 ///
@@ -927,16 +1004,17 @@ pub fn networkservices_projects_locations_authz_extensions_patch_execute(
 
 pub fn networkservices_projects_locations_authz_extensions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AuthzExtension,
+    args: &NetworkservicesProjectsLocationsAuthzExtensionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_authz_extensions_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_authz_extensions_patch_execute(builder)
 }
@@ -1043,6 +1121,15 @@ pub fn networkservices_projects_locations_edge_cache_keysets_get_iam_policy_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_edge_cache_keysets_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheKeysetsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1055,16 +1142,15 @@ pub fn networkservices_projects_locations_edge_cache_keysets_get_iam_policy_exec
 
 pub fn networkservices_projects_locations_edge_cache_keysets_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &NetworkservicesProjectsLocationsEdgeCacheKeysetsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_edge_cache_keysets_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     networkservices_projects_locations_edge_cache_keysets_get_iam_policy_execute(builder)
 }
@@ -1162,6 +1248,15 @@ pub fn networkservices_projects_locations_edge_cache_keysets_set_iam_policy_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_edge_cache_keysets_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheKeysetsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1174,14 +1269,15 @@ pub fn networkservices_projects_locations_edge_cache_keysets_set_iam_policy_exec
 
 pub fn networkservices_projects_locations_edge_cache_keysets_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &NetworkservicesProjectsLocationsEdgeCacheKeysetsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_edge_cache_keysets_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     networkservices_projects_locations_edge_cache_keysets_set_iam_policy_execute(builder)
 }
@@ -1283,6 +1379,15 @@ pub fn networkservices_projects_locations_edge_cache_keysets_test_iam_permission
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_edge_cache_keysets_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheKeysetsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1295,8 +1400,7 @@ pub fn networkservices_projects_locations_edge_cache_keysets_test_iam_permission
 
 pub fn networkservices_projects_locations_edge_cache_keysets_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &NetworkservicesProjectsLocationsEdgeCacheKeysetsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1307,7 +1411,9 @@ pub fn networkservices_projects_locations_edge_cache_keysets_test_iam_permission
 > {
     let builder =
         networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     networkservices_projects_locations_edge_cache_keysets_test_iam_permissions_execute(builder)
 }
@@ -1414,6 +1520,15 @@ pub fn networkservices_projects_locations_edge_cache_origins_get_iam_policy_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_edge_cache_origins_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheOriginsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1426,16 +1541,15 @@ pub fn networkservices_projects_locations_edge_cache_origins_get_iam_policy_exec
 
 pub fn networkservices_projects_locations_edge_cache_origins_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &NetworkservicesProjectsLocationsEdgeCacheOriginsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_edge_cache_origins_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     networkservices_projects_locations_edge_cache_origins_get_iam_policy_execute(builder)
 }
@@ -1533,6 +1647,15 @@ pub fn networkservices_projects_locations_edge_cache_origins_set_iam_policy_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_edge_cache_origins_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheOriginsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1545,14 +1668,15 @@ pub fn networkservices_projects_locations_edge_cache_origins_set_iam_policy_exec
 
 pub fn networkservices_projects_locations_edge_cache_origins_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &NetworkservicesProjectsLocationsEdgeCacheOriginsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_edge_cache_origins_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     networkservices_projects_locations_edge_cache_origins_set_iam_policy_execute(builder)
 }
@@ -1654,6 +1778,15 @@ pub fn networkservices_projects_locations_edge_cache_origins_test_iam_permission
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_edge_cache_origins_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheOriginsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1666,8 +1799,7 @@ pub fn networkservices_projects_locations_edge_cache_origins_test_iam_permission
 
 pub fn networkservices_projects_locations_edge_cache_origins_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &NetworkservicesProjectsLocationsEdgeCacheOriginsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1678,7 +1810,9 @@ pub fn networkservices_projects_locations_edge_cache_origins_test_iam_permission
 > {
     let builder =
         networkservices_projects_locations_edge_cache_origins_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     networkservices_projects_locations_edge_cache_origins_test_iam_permissions_execute(builder)
 }
@@ -1785,6 +1919,15 @@ pub fn networkservices_projects_locations_edge_cache_services_get_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_edge_cache_services_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheServicesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1797,16 +1940,15 @@ pub fn networkservices_projects_locations_edge_cache_services_get_iam_policy_exe
 
 pub fn networkservices_projects_locations_edge_cache_services_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &NetworkservicesProjectsLocationsEdgeCacheServicesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_edge_cache_services_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     networkservices_projects_locations_edge_cache_services_get_iam_policy_execute(builder)
 }
@@ -1904,6 +2046,15 @@ pub fn networkservices_projects_locations_edge_cache_services_set_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_edge_cache_services_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheServicesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1916,14 +2067,15 @@ pub fn networkservices_projects_locations_edge_cache_services_set_iam_policy_exe
 
 pub fn networkservices_projects_locations_edge_cache_services_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &NetworkservicesProjectsLocationsEdgeCacheServicesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_edge_cache_services_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     networkservices_projects_locations_edge_cache_services_set_iam_policy_execute(builder)
 }
@@ -2025,6 +2177,15 @@ pub fn networkservices_projects_locations_edge_cache_services_test_iam_permissio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_edge_cache_services_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEdgeCacheServicesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2037,8 +2198,7 @@ pub fn networkservices_projects_locations_edge_cache_services_test_iam_permissio
 
 pub fn networkservices_projects_locations_edge_cache_services_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &NetworkservicesProjectsLocationsEdgeCacheServicesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2049,7 +2209,9 @@ pub fn networkservices_projects_locations_edge_cache_services_test_iam_permissio
 > {
     let builder =
         networkservices_projects_locations_edge_cache_services_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     networkservices_projects_locations_edge_cache_services_test_iam_permissions_execute(builder)
 }
@@ -2159,6 +2321,17 @@ pub fn networkservices_projects_locations_endpoint_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_endpoint_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEndpointPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: endpointPolicyId
+    pub endpointPolicyId: Option<String>,
+    /// Request body.
+    pub body: EndpointPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies
 /// Creates a new EndpointPolicy in a given project and location.
 ///
@@ -2171,18 +2344,16 @@ pub fn networkservices_projects_locations_endpoint_policies_create_execute(
 
 pub fn networkservices_projects_locations_endpoint_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    endpointPolicyId: Option<&str>,
-    body: &EndpointPolicy,
+    args: &NetworkservicesProjectsLocationsEndpointPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_endpoint_policies_create_builder(
         client,
-        parent,
-        endpointPolicyId,
-        body,
+        &args.parent,
+        args.endpointPolicyId.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_endpoint_policies_create_execute(builder)
 }
@@ -2277,6 +2448,13 @@ pub fn networkservices_projects_locations_endpoint_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_endpoint_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEndpointPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}
 /// Deletes a single EndpointPolicy.
 ///
@@ -2289,13 +2467,13 @@ pub fn networkservices_projects_locations_endpoint_policies_delete_execute(
 
 pub fn networkservices_projects_locations_endpoint_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsEndpointPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        networkservices_projects_locations_endpoint_policies_delete_builder(client, name)?;
+        networkservices_projects_locations_endpoint_policies_delete_builder(client, &args.name)?;
     networkservices_projects_locations_endpoint_policies_delete_execute(builder)
 }
 
@@ -2391,6 +2569,13 @@ pub fn networkservices_projects_locations_endpoint_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_endpoint_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEndpointPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}
 /// Gets details of a single EndpointPolicy.
 ///
@@ -2403,14 +2588,15 @@ pub fn networkservices_projects_locations_endpoint_policies_get_execute(
 
 pub fn networkservices_projects_locations_endpoint_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsEndpointPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EndpointPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_endpoint_policies_get_builder(client, name)?;
+    let builder =
+        networkservices_projects_locations_endpoint_policies_get_builder(client, &args.name)?;
     networkservices_projects_locations_endpoint_policies_get_execute(builder)
 }
 
@@ -2528,6 +2714,19 @@ pub fn networkservices_projects_locations_endpoint_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_endpoint_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEndpointPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies
 /// Lists EndpointPolicies in a given project and location.
 ///
@@ -2540,10 +2739,7 @@ pub fn networkservices_projects_locations_endpoint_policies_list_execute(
 
 pub fn networkservices_projects_locations_endpoint_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworkservicesProjectsLocationsEndpointPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListEndpointPoliciesResponse>, ApiError>,
@@ -2554,10 +2750,10 @@ pub fn networkservices_projects_locations_endpoint_policies_list(
 > {
     let builder = networkservices_projects_locations_endpoint_policies_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     networkservices_projects_locations_endpoint_policies_list_execute(builder)
 }
@@ -2667,6 +2863,17 @@ pub fn networkservices_projects_locations_endpoint_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_endpoint_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsEndpointPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: EndpointPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}
 /// Updates the parameters of a single EndpointPolicy.
 ///
@@ -2679,15 +2886,16 @@ pub fn networkservices_projects_locations_endpoint_policies_patch_execute(
 
 pub fn networkservices_projects_locations_endpoint_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &EndpointPolicy,
+    args: &NetworkservicesProjectsLocationsEndpointPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_endpoint_policies_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_endpoint_policies_patch_execute(builder)
 }
@@ -2797,6 +3005,17 @@ pub fn networkservices_projects_locations_gateways_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_gateways_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGatewaysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: gatewayId
+    pub gatewayId: Option<String>,
+    /// Request body.
+    pub body: Gateway,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways
 /// Creates a new Gateway in a given project and location.
 ///
@@ -2809,15 +3028,16 @@ pub fn networkservices_projects_locations_gateways_create_execute(
 
 pub fn networkservices_projects_locations_gateways_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    gatewayId: Option<&str>,
-    body: &Gateway,
+    args: &NetworkservicesProjectsLocationsGatewaysCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_gateways_create_builder(
-        client, parent, gatewayId, body,
+        client,
+        &args.parent,
+        args.gatewayId.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_gateways_create_execute(builder)
 }
@@ -2912,6 +3132,13 @@ pub fn networkservices_projects_locations_gateways_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_gateways_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGatewaysDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
 /// Deletes a single Gateway.
 ///
@@ -2924,12 +3151,12 @@ pub fn networkservices_projects_locations_gateways_delete_execute(
 
 pub fn networkservices_projects_locations_gateways_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsGatewaysDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_gateways_delete_builder(client, name)?;
+    let builder = networkservices_projects_locations_gateways_delete_builder(client, &args.name)?;
     networkservices_projects_locations_gateways_delete_execute(builder)
 }
 
@@ -3023,6 +3250,13 @@ pub fn networkservices_projects_locations_gateways_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_gateways_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGatewaysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
 /// Gets details of a single Gateway.
 ///
@@ -3035,12 +3269,12 @@ pub fn networkservices_projects_locations_gateways_get_execute(
 
 pub fn networkservices_projects_locations_gateways_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsGatewaysGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Gateway>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_gateways_get_builder(client, name)?;
+    let builder = networkservices_projects_locations_gateways_get_builder(client, &args.name)?;
     networkservices_projects_locations_gateways_get_execute(builder)
 }
 
@@ -3152,6 +3386,17 @@ pub fn networkservices_projects_locations_gateways_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_gateways_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGatewaysListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways
 /// Lists Gateways in a given project and location.
 ///
@@ -3164,9 +3409,7 @@ pub fn networkservices_projects_locations_gateways_list_execute(
 
 pub fn networkservices_projects_locations_gateways_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkservicesProjectsLocationsGatewaysListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGatewaysResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3174,7 +3417,10 @@ pub fn networkservices_projects_locations_gateways_list(
     ApiError,
 > {
     let builder = networkservices_projects_locations_gateways_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkservices_projects_locations_gateways_list_execute(builder)
 }
@@ -3284,6 +3530,17 @@ pub fn networkservices_projects_locations_gateways_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_gateways_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGatewaysPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Gateway,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
 /// Updates the parameters of a single Gateway.
 ///
@@ -3296,15 +3553,17 @@ pub fn networkservices_projects_locations_gateways_patch_execute(
 
 pub fn networkservices_projects_locations_gateways_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Gateway,
+    args: &NetworkservicesProjectsLocationsGatewaysPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        networkservices_projects_locations_gateways_patch_builder(client, name, updateMask, body)?;
+    let builder = networkservices_projects_locations_gateways_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     networkservices_projects_locations_gateways_patch_execute(builder)
 }
 
@@ -3400,6 +3659,13 @@ pub fn networkservices_projects_locations_gateways_route_views_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_gateways_route_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGatewaysRouteViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}/routeViews/{routeViewsId}
 /// Get a single RouteView of a Gateway.
 ///
@@ -3412,7 +3678,7 @@ pub fn networkservices_projects_locations_gateways_route_views_get_execute(
 
 pub fn networkservices_projects_locations_gateways_route_views_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsGatewaysRouteViewsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GatewayRouteView>, ApiError>, P = ApiPending>
         + Send
@@ -3420,7 +3686,7 @@ pub fn networkservices_projects_locations_gateways_route_views_get(
     ApiError,
 > {
     let builder =
-        networkservices_projects_locations_gateways_route_views_get_builder(client, name)?;
+        networkservices_projects_locations_gateways_route_views_get_builder(client, &args.name)?;
     networkservices_projects_locations_gateways_route_views_get_execute(builder)
 }
 
@@ -3534,6 +3800,17 @@ pub fn networkservices_projects_locations_gateways_route_views_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_gateways_route_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGatewaysRouteViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}/routeViews
 /// Lists RouteViews
 ///
@@ -3546,9 +3823,7 @@ pub fn networkservices_projects_locations_gateways_route_views_list_execute(
 
 pub fn networkservices_projects_locations_gateways_route_views_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkservicesProjectsLocationsGatewaysRouteViewsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListGatewayRouteViewsResponse>, ApiError>,
@@ -3558,7 +3833,10 @@ pub fn networkservices_projects_locations_gateways_route_views_list(
     ApiError,
 > {
     let builder = networkservices_projects_locations_gateways_route_views_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkservices_projects_locations_gateways_route_views_list_execute(builder)
 }
@@ -3668,6 +3946,17 @@ pub fn networkservices_projects_locations_grpc_routes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_grpc_routes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGrpcRoutesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: grpcRouteId
+    pub grpcRouteId: Option<String>,
+    /// Request body.
+    pub body: GrpcRoute,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes
 /// Creates a new GrpcRoute in a given project and location.
 ///
@@ -3680,18 +3969,16 @@ pub fn networkservices_projects_locations_grpc_routes_create_execute(
 
 pub fn networkservices_projects_locations_grpc_routes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    grpcRouteId: Option<&str>,
-    body: &GrpcRoute,
+    args: &NetworkservicesProjectsLocationsGrpcRoutesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_grpc_routes_create_builder(
         client,
-        parent,
-        grpcRouteId,
-        body,
+        &args.parent,
+        args.grpcRouteId.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_grpc_routes_create_execute(builder)
 }
@@ -3786,6 +4073,13 @@ pub fn networkservices_projects_locations_grpc_routes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_grpc_routes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGrpcRoutesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}
 /// Deletes a single GrpcRoute.
 ///
@@ -3798,12 +4092,13 @@ pub fn networkservices_projects_locations_grpc_routes_delete_execute(
 
 pub fn networkservices_projects_locations_grpc_routes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsGrpcRoutesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_grpc_routes_delete_builder(client, name)?;
+    let builder =
+        networkservices_projects_locations_grpc_routes_delete_builder(client, &args.name)?;
     networkservices_projects_locations_grpc_routes_delete_execute(builder)
 }
 
@@ -3897,6 +4192,13 @@ pub fn networkservices_projects_locations_grpc_routes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_grpc_routes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGrpcRoutesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}
 /// Gets details of a single GrpcRoute.
 ///
@@ -3909,12 +4211,12 @@ pub fn networkservices_projects_locations_grpc_routes_get_execute(
 
 pub fn networkservices_projects_locations_grpc_routes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsGrpcRoutesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GrpcRoute>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_grpc_routes_get_builder(client, name)?;
+    let builder = networkservices_projects_locations_grpc_routes_get_builder(client, &args.name)?;
     networkservices_projects_locations_grpc_routes_get_execute(builder)
 }
 
@@ -4030,6 +4332,19 @@ pub fn networkservices_projects_locations_grpc_routes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_grpc_routes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGrpcRoutesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes
 /// Lists GrpcRoutes in a given project and location.
 ///
@@ -4042,10 +4357,7 @@ pub fn networkservices_projects_locations_grpc_routes_list_execute(
 
 pub fn networkservices_projects_locations_grpc_routes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworkservicesProjectsLocationsGrpcRoutesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGrpcRoutesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4054,10 +4366,10 @@ pub fn networkservices_projects_locations_grpc_routes_list(
 > {
     let builder = networkservices_projects_locations_grpc_routes_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     networkservices_projects_locations_grpc_routes_list_execute(builder)
 }
@@ -4167,6 +4479,17 @@ pub fn networkservices_projects_locations_grpc_routes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_grpc_routes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsGrpcRoutesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GrpcRoute,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}
 /// Updates the parameters of a single GrpcRoute.
 ///
@@ -4179,15 +4502,16 @@ pub fn networkservices_projects_locations_grpc_routes_patch_execute(
 
 pub fn networkservices_projects_locations_grpc_routes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GrpcRoute,
+    args: &NetworkservicesProjectsLocationsGrpcRoutesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_grpc_routes_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_grpc_routes_patch_execute(builder)
 }
@@ -4297,6 +4621,17 @@ pub fn networkservices_projects_locations_http_routes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_http_routes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsHttpRoutesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: httpRouteId
+    pub httpRouteId: Option<String>,
+    /// Request body.
+    pub body: HttpRoute,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/httpRoutes
 /// Creates a new HttpRoute in a given project and location.
 ///
@@ -4309,18 +4644,16 @@ pub fn networkservices_projects_locations_http_routes_create_execute(
 
 pub fn networkservices_projects_locations_http_routes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    httpRouteId: Option<&str>,
-    body: &HttpRoute,
+    args: &NetworkservicesProjectsLocationsHttpRoutesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_http_routes_create_builder(
         client,
-        parent,
-        httpRouteId,
-        body,
+        &args.parent,
+        args.httpRouteId.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_http_routes_create_execute(builder)
 }
@@ -4415,6 +4748,13 @@ pub fn networkservices_projects_locations_http_routes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_http_routes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsHttpRoutesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/httpRoutes/{httpRoutesId}
 /// Deletes a single HttpRoute.
 ///
@@ -4427,12 +4767,13 @@ pub fn networkservices_projects_locations_http_routes_delete_execute(
 
 pub fn networkservices_projects_locations_http_routes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsHttpRoutesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_http_routes_delete_builder(client, name)?;
+    let builder =
+        networkservices_projects_locations_http_routes_delete_builder(client, &args.name)?;
     networkservices_projects_locations_http_routes_delete_execute(builder)
 }
 
@@ -4526,6 +4867,13 @@ pub fn networkservices_projects_locations_http_routes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_http_routes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsHttpRoutesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/httpRoutes/{httpRoutesId}
 /// Gets details of a single HttpRoute.
 ///
@@ -4538,12 +4886,12 @@ pub fn networkservices_projects_locations_http_routes_get_execute(
 
 pub fn networkservices_projects_locations_http_routes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsHttpRoutesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpRoute>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_http_routes_get_builder(client, name)?;
+    let builder = networkservices_projects_locations_http_routes_get_builder(client, &args.name)?;
     networkservices_projects_locations_http_routes_get_execute(builder)
 }
 
@@ -4659,6 +5007,19 @@ pub fn networkservices_projects_locations_http_routes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_http_routes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsHttpRoutesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/httpRoutes
 /// Lists HttpRoute in a given project and location.
 ///
@@ -4671,10 +5032,7 @@ pub fn networkservices_projects_locations_http_routes_list_execute(
 
 pub fn networkservices_projects_locations_http_routes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworkservicesProjectsLocationsHttpRoutesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListHttpRoutesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4683,10 +5041,10 @@ pub fn networkservices_projects_locations_http_routes_list(
 > {
     let builder = networkservices_projects_locations_http_routes_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     networkservices_projects_locations_http_routes_list_execute(builder)
 }
@@ -4796,6 +5154,17 @@ pub fn networkservices_projects_locations_http_routes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_http_routes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsHttpRoutesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: HttpRoute,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/httpRoutes/{httpRoutesId}
 /// Updates the parameters of a single HttpRoute.
 ///
@@ -4808,15 +5177,16 @@ pub fn networkservices_projects_locations_http_routes_patch_execute(
 
 pub fn networkservices_projects_locations_http_routes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &HttpRoute,
+    args: &NetworkservicesProjectsLocationsHttpRoutesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_http_routes_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_http_routes_patch_execute(builder)
 }
@@ -4930,6 +5300,19 @@ pub fn networkservices_projects_locations_lb_edge_extensions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_lb_edge_extensions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbEdgeExtensionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: lbEdgeExtensionId
+    pub lbEdgeExtensionId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: LbEdgeExtension,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions
 /// Creates a new LbEdgeExtension resource in a given project and location.
 ///
@@ -4942,20 +5325,17 @@ pub fn networkservices_projects_locations_lb_edge_extensions_create_execute(
 
 pub fn networkservices_projects_locations_lb_edge_extensions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    lbEdgeExtensionId: Option<&str>,
-    requestId: Option<&str>,
-    body: &LbEdgeExtension,
+    args: &NetworkservicesProjectsLocationsLbEdgeExtensionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_lb_edge_extensions_create_builder(
         client,
-        parent,
-        lbEdgeExtensionId,
-        requestId,
-        body,
+        &args.parent,
+        args.lbEdgeExtensionId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_lb_edge_extensions_create_execute(builder)
 }
@@ -5062,6 +5442,15 @@ pub fn networkservices_projects_locations_lb_edge_extensions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_lb_edge_extensions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbEdgeExtensionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
 /// Deletes the specified LbEdgeExtension resource.
 ///
@@ -5074,14 +5463,15 @@ pub fn networkservices_projects_locations_lb_edge_extensions_delete_execute(
 
 pub fn networkservices_projects_locations_lb_edge_extensions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworkservicesProjectsLocationsLbEdgeExtensionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_lb_edge_extensions_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     networkservices_projects_locations_lb_edge_extensions_delete_execute(builder)
 }
@@ -5178,6 +5568,13 @@ pub fn networkservices_projects_locations_lb_edge_extensions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_lb_edge_extensions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbEdgeExtensionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
 /// Gets details of the specified LbEdgeExtension resource.
 ///
@@ -5190,14 +5587,15 @@ pub fn networkservices_projects_locations_lb_edge_extensions_get_execute(
 
 pub fn networkservices_projects_locations_lb_edge_extensions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsLbEdgeExtensionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LbEdgeExtension>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_lb_edge_extensions_get_builder(client, name)?;
+    let builder =
+        networkservices_projects_locations_lb_edge_extensions_get_builder(client, &args.name)?;
     networkservices_projects_locations_lb_edge_extensions_get_execute(builder)
 }
 
@@ -5319,6 +5717,21 @@ pub fn networkservices_projects_locations_lb_edge_extensions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_lb_edge_extensions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbEdgeExtensionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions
 /// Lists LbEdgeExtension resources in a given project and location.
 ///
@@ -5331,11 +5744,7 @@ pub fn networkservices_projects_locations_lb_edge_extensions_list_execute(
 
 pub fn networkservices_projects_locations_lb_edge_extensions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkservicesProjectsLocationsLbEdgeExtensionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListLbEdgeExtensionsResponse>, ApiError>,
@@ -5345,7 +5754,12 @@ pub fn networkservices_projects_locations_lb_edge_extensions_list(
     ApiError,
 > {
     let builder = networkservices_projects_locations_lb_edge_extensions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkservices_projects_locations_lb_edge_extensions_list_execute(builder)
 }
@@ -5459,6 +5873,19 @@ pub fn networkservices_projects_locations_lb_edge_extensions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_lb_edge_extensions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbEdgeExtensionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LbEdgeExtension,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
 /// Updates the parameters of the specified LbEdgeExtension resource.
 ///
@@ -5471,16 +5898,17 @@ pub fn networkservices_projects_locations_lb_edge_extensions_patch_execute(
 
 pub fn networkservices_projects_locations_lb_edge_extensions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &LbEdgeExtension,
+    args: &NetworkservicesProjectsLocationsLbEdgeExtensionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_lb_edge_extensions_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_lb_edge_extensions_patch_execute(builder)
 }
@@ -5594,6 +6022,19 @@ pub fn networkservices_projects_locations_lb_route_extensions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_lb_route_extensions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbRouteExtensionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: lbRouteExtensionId
+    pub lbRouteExtensionId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: LbRouteExtension,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions
 /// Creates a new LbRouteExtension resource in a given project and location.
 ///
@@ -5606,20 +6047,17 @@ pub fn networkservices_projects_locations_lb_route_extensions_create_execute(
 
 pub fn networkservices_projects_locations_lb_route_extensions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    lbRouteExtensionId: Option<&str>,
-    requestId: Option<&str>,
-    body: &LbRouteExtension,
+    args: &NetworkservicesProjectsLocationsLbRouteExtensionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_lb_route_extensions_create_builder(
         client,
-        parent,
-        lbRouteExtensionId,
-        requestId,
-        body,
+        &args.parent,
+        args.lbRouteExtensionId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_lb_route_extensions_create_execute(builder)
 }
@@ -5726,6 +6164,15 @@ pub fn networkservices_projects_locations_lb_route_extensions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_lb_route_extensions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbRouteExtensionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
 /// Deletes the specified LbRouteExtension resource.
 ///
@@ -5738,14 +6185,15 @@ pub fn networkservices_projects_locations_lb_route_extensions_delete_execute(
 
 pub fn networkservices_projects_locations_lb_route_extensions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworkservicesProjectsLocationsLbRouteExtensionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_lb_route_extensions_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     networkservices_projects_locations_lb_route_extensions_delete_execute(builder)
 }
@@ -5842,6 +6290,13 @@ pub fn networkservices_projects_locations_lb_route_extensions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_lb_route_extensions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbRouteExtensionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
 /// Gets details of the specified LbRouteExtension resource.
 ///
@@ -5854,14 +6309,15 @@ pub fn networkservices_projects_locations_lb_route_extensions_get_execute(
 
 pub fn networkservices_projects_locations_lb_route_extensions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsLbRouteExtensionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LbRouteExtension>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_lb_route_extensions_get_builder(client, name)?;
+    let builder =
+        networkservices_projects_locations_lb_route_extensions_get_builder(client, &args.name)?;
     networkservices_projects_locations_lb_route_extensions_get_execute(builder)
 }
 
@@ -5983,6 +6439,21 @@ pub fn networkservices_projects_locations_lb_route_extensions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_lb_route_extensions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbRouteExtensionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions
 /// Lists LbRouteExtension resources in a given project and location.
 ///
@@ -5995,11 +6466,7 @@ pub fn networkservices_projects_locations_lb_route_extensions_list_execute(
 
 pub fn networkservices_projects_locations_lb_route_extensions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkservicesProjectsLocationsLbRouteExtensionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListLbRouteExtensionsResponse>, ApiError>,
@@ -6009,7 +6476,12 @@ pub fn networkservices_projects_locations_lb_route_extensions_list(
     ApiError,
 > {
     let builder = networkservices_projects_locations_lb_route_extensions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkservices_projects_locations_lb_route_extensions_list_execute(builder)
 }
@@ -6123,6 +6595,19 @@ pub fn networkservices_projects_locations_lb_route_extensions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_lb_route_extensions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbRouteExtensionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LbRouteExtension,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
 /// Updates the parameters of the specified LbRouteExtension resource.
 ///
@@ -6135,16 +6620,17 @@ pub fn networkservices_projects_locations_lb_route_extensions_patch_execute(
 
 pub fn networkservices_projects_locations_lb_route_extensions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &LbRouteExtension,
+    args: &NetworkservicesProjectsLocationsLbRouteExtensionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_lb_route_extensions_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_lb_route_extensions_patch_execute(builder)
 }
@@ -6258,6 +6744,19 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_lb_traffic_extensions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbTrafficExtensionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: lbTrafficExtensionId
+    pub lbTrafficExtensionId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: LbTrafficExtension,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions
 /// Creates a new LbTrafficExtension resource in a given project and location.
 ///
@@ -6270,20 +6769,17 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_create_execute(
 
 pub fn networkservices_projects_locations_lb_traffic_extensions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    lbTrafficExtensionId: Option<&str>,
-    requestId: Option<&str>,
-    body: &LbTrafficExtension,
+    args: &NetworkservicesProjectsLocationsLbTrafficExtensionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_lb_traffic_extensions_create_builder(
         client,
-        parent,
-        lbTrafficExtensionId,
-        requestId,
-        body,
+        &args.parent,
+        args.lbTrafficExtensionId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_lb_traffic_extensions_create_execute(builder)
 }
@@ -6390,6 +6886,15 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_lb_traffic_extensions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbTrafficExtensionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
 /// Deletes the specified LbTrafficExtension resource.
 ///
@@ -6402,14 +6907,15 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_delete_execute(
 
 pub fn networkservices_projects_locations_lb_traffic_extensions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworkservicesProjectsLocationsLbTrafficExtensionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_lb_traffic_extensions_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     networkservices_projects_locations_lb_traffic_extensions_delete_execute(builder)
 }
@@ -6506,6 +7012,13 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_lb_traffic_extensions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbTrafficExtensionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
 /// Gets details of the specified LbTrafficExtension resource.
 ///
@@ -6518,7 +7031,7 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_get_execute(
 
 pub fn networkservices_projects_locations_lb_traffic_extensions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsLbTrafficExtensionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LbTrafficExtension>, ApiError>, P = ApiPending>
         + Send
@@ -6526,7 +7039,7 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_get(
     ApiError,
 > {
     let builder =
-        networkservices_projects_locations_lb_traffic_extensions_get_builder(client, name)?;
+        networkservices_projects_locations_lb_traffic_extensions_get_builder(client, &args.name)?;
     networkservices_projects_locations_lb_traffic_extensions_get_execute(builder)
 }
 
@@ -6648,6 +7161,21 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_lb_traffic_extensions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbTrafficExtensionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions
 /// Lists LbTrafficExtension resources in a given project and location.
 ///
@@ -6660,11 +7188,7 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_list_execute(
 
 pub fn networkservices_projects_locations_lb_traffic_extensions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkservicesProjectsLocationsLbTrafficExtensionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListLbTrafficExtensionsResponse>, ApiError>,
@@ -6674,7 +7198,12 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_list(
     ApiError,
 > {
     let builder = networkservices_projects_locations_lb_traffic_extensions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkservices_projects_locations_lb_traffic_extensions_list_execute(builder)
 }
@@ -6788,6 +7317,19 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_lb_traffic_extensions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsLbTrafficExtensionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LbTrafficExtension,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
 /// Updates the parameters of the specified LbTrafficExtension resource.
 ///
@@ -6800,16 +7342,17 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_patch_execute(
 
 pub fn networkservices_projects_locations_lb_traffic_extensions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &LbTrafficExtension,
+    args: &NetworkservicesProjectsLocationsLbTrafficExtensionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_lb_traffic_extensions_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_lb_traffic_extensions_patch_execute(builder)
 }
@@ -6919,6 +7462,17 @@ pub fn networkservices_projects_locations_meshes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_meshes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsMeshesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: meshId
+    pub meshId: Option<String>,
+    /// Request body.
+    pub body: Mesh,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/meshes
 /// Creates a new Mesh in a given project and location.
 ///
@@ -6931,15 +7485,17 @@ pub fn networkservices_projects_locations_meshes_create_execute(
 
 pub fn networkservices_projects_locations_meshes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    meshId: Option<&str>,
-    body: &Mesh,
+    args: &NetworkservicesProjectsLocationsMeshesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        networkservices_projects_locations_meshes_create_builder(client, parent, meshId, body)?;
+    let builder = networkservices_projects_locations_meshes_create_builder(
+        client,
+        &args.parent,
+        args.meshId.as_deref(),
+        &args.body,
+    )?;
     networkservices_projects_locations_meshes_create_execute(builder)
 }
 
@@ -7033,6 +7589,13 @@ pub fn networkservices_projects_locations_meshes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_meshes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsMeshesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}
 /// Deletes a single Mesh.
 ///
@@ -7045,12 +7608,12 @@ pub fn networkservices_projects_locations_meshes_delete_execute(
 
 pub fn networkservices_projects_locations_meshes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsMeshesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_meshes_delete_builder(client, name)?;
+    let builder = networkservices_projects_locations_meshes_delete_builder(client, &args.name)?;
     networkservices_projects_locations_meshes_delete_execute(builder)
 }
 
@@ -7144,6 +7707,13 @@ pub fn networkservices_projects_locations_meshes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_meshes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsMeshesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}
 /// Gets details of a single Mesh.
 ///
@@ -7156,12 +7726,12 @@ pub fn networkservices_projects_locations_meshes_get_execute(
 
 pub fn networkservices_projects_locations_meshes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsMeshesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Mesh>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_meshes_get_builder(client, name)?;
+    let builder = networkservices_projects_locations_meshes_get_builder(client, &args.name)?;
     networkservices_projects_locations_meshes_get_execute(builder)
 }
 
@@ -7277,6 +7847,19 @@ pub fn networkservices_projects_locations_meshes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_meshes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsMeshesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/meshes
 /// Lists Meshes in a given project and location.
 ///
@@ -7289,10 +7872,7 @@ pub fn networkservices_projects_locations_meshes_list_execute(
 
 pub fn networkservices_projects_locations_meshes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworkservicesProjectsLocationsMeshesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListMeshesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7301,10 +7881,10 @@ pub fn networkservices_projects_locations_meshes_list(
 > {
     let builder = networkservices_projects_locations_meshes_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     networkservices_projects_locations_meshes_list_execute(builder)
 }
@@ -7414,6 +7994,17 @@ pub fn networkservices_projects_locations_meshes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_meshes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsMeshesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Mesh,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}
 /// Updates the parameters of a single Mesh.
 ///
@@ -7426,15 +8017,17 @@ pub fn networkservices_projects_locations_meshes_patch_execute(
 
 pub fn networkservices_projects_locations_meshes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Mesh,
+    args: &NetworkservicesProjectsLocationsMeshesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        networkservices_projects_locations_meshes_patch_builder(client, name, updateMask, body)?;
+    let builder = networkservices_projects_locations_meshes_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     networkservices_projects_locations_meshes_patch_execute(builder)
 }
 
@@ -7530,6 +8123,13 @@ pub fn networkservices_projects_locations_meshes_route_views_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_meshes_route_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsMeshesRouteViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}/routeViews/{routeViewsId}
 /// Get a single RouteView of a Mesh.
 ///
@@ -7542,14 +8142,15 @@ pub fn networkservices_projects_locations_meshes_route_views_get_execute(
 
 pub fn networkservices_projects_locations_meshes_route_views_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsMeshesRouteViewsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MeshRouteView>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_meshes_route_views_get_builder(client, name)?;
+    let builder =
+        networkservices_projects_locations_meshes_route_views_get_builder(client, &args.name)?;
     networkservices_projects_locations_meshes_route_views_get_execute(builder)
 }
 
@@ -7663,6 +8264,17 @@ pub fn networkservices_projects_locations_meshes_route_views_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_meshes_route_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsMeshesRouteViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}/routeViews
 /// Lists RouteViews
 ///
@@ -7675,9 +8287,7 @@ pub fn networkservices_projects_locations_meshes_route_views_list_execute(
 
 pub fn networkservices_projects_locations_meshes_route_views_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkservicesProjectsLocationsMeshesRouteViewsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMeshRouteViewsResponse>, ApiError>,
@@ -7687,7 +8297,10 @@ pub fn networkservices_projects_locations_meshes_route_views_list(
     ApiError,
 > {
     let builder = networkservices_projects_locations_meshes_route_views_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkservices_projects_locations_meshes_route_views_list_execute(builder)
 }
@@ -7785,6 +8398,15 @@ pub fn networkservices_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -7797,13 +8419,14 @@ pub fn networkservices_projects_locations_operations_cancel_execute(
 
 pub fn networkservices_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &NetworkservicesProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = networkservices_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     networkservices_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -7897,6 +8520,13 @@ pub fn networkservices_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -7909,12 +8539,12 @@ pub fn networkservices_projects_locations_operations_delete_execute(
 
 pub fn networkservices_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_operations_delete_builder(client, name)?;
+    let builder = networkservices_projects_locations_operations_delete_builder(client, &args.name)?;
     networkservices_projects_locations_operations_delete_execute(builder)
 }
 
@@ -8008,6 +8638,13 @@ pub fn networkservices_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -8020,12 +8657,12 @@ pub fn networkservices_projects_locations_operations_get_execute(
 
 pub fn networkservices_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_operations_get_builder(client, name)?;
+    let builder = networkservices_projects_locations_operations_get_builder(client, &args.name)?;
     networkservices_projects_locations_operations_get_execute(builder)
 }
 
@@ -8145,6 +8782,21 @@ pub fn networkservices_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -8157,11 +8809,7 @@ pub fn networkservices_projects_locations_operations_list_execute(
 
 pub fn networkservices_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworkservicesProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8170,11 +8818,11 @@ pub fn networkservices_projects_locations_operations_list(
 > {
     let builder = networkservices_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     networkservices_projects_locations_operations_list_execute(builder)
 }
@@ -8284,6 +8932,17 @@ pub fn networkservices_projects_locations_service_bindings_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_service_bindings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceBindingsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: serviceBindingId
+    pub serviceBindingId: Option<String>,
+    /// Request body.
+    pub body: ServiceBinding,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceBindings
 /// Creates a new ServiceBinding in a given project and location.
 ///
@@ -8296,18 +8955,16 @@ pub fn networkservices_projects_locations_service_bindings_create_execute(
 
 pub fn networkservices_projects_locations_service_bindings_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    serviceBindingId: Option<&str>,
-    body: &ServiceBinding,
+    args: &NetworkservicesProjectsLocationsServiceBindingsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_service_bindings_create_builder(
         client,
-        parent,
-        serviceBindingId,
-        body,
+        &args.parent,
+        args.serviceBindingId.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_service_bindings_create_execute(builder)
 }
@@ -8402,6 +9059,13 @@ pub fn networkservices_projects_locations_service_bindings_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_service_bindings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceBindingsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceBindings/{serviceBindingsId}
 /// Deletes a single ServiceBinding.
 ///
@@ -8414,12 +9078,13 @@ pub fn networkservices_projects_locations_service_bindings_delete_execute(
 
 pub fn networkservices_projects_locations_service_bindings_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsServiceBindingsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_service_bindings_delete_builder(client, name)?;
+    let builder =
+        networkservices_projects_locations_service_bindings_delete_builder(client, &args.name)?;
     networkservices_projects_locations_service_bindings_delete_execute(builder)
 }
 
@@ -8515,6 +9180,13 @@ pub fn networkservices_projects_locations_service_bindings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_service_bindings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceBindingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceBindings/{serviceBindingsId}
 /// Gets details of a single ServiceBinding.
 ///
@@ -8527,14 +9199,15 @@ pub fn networkservices_projects_locations_service_bindings_get_execute(
 
 pub fn networkservices_projects_locations_service_bindings_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsServiceBindingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ServiceBinding>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_service_bindings_get_builder(client, name)?;
+    let builder =
+        networkservices_projects_locations_service_bindings_get_builder(client, &args.name)?;
     networkservices_projects_locations_service_bindings_get_execute(builder)
 }
 
@@ -8648,6 +9321,17 @@ pub fn networkservices_projects_locations_service_bindings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_service_bindings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceBindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceBindings
 /// Lists ServiceBinding in a given project and location.
 ///
@@ -8660,9 +9344,7 @@ pub fn networkservices_projects_locations_service_bindings_list_execute(
 
 pub fn networkservices_projects_locations_service_bindings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkservicesProjectsLocationsServiceBindingsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListServiceBindingsResponse>, ApiError>,
@@ -8672,7 +9354,10 @@ pub fn networkservices_projects_locations_service_bindings_list(
     ApiError,
 > {
     let builder = networkservices_projects_locations_service_bindings_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkservices_projects_locations_service_bindings_list_execute(builder)
 }
@@ -8782,6 +9467,17 @@ pub fn networkservices_projects_locations_service_bindings_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_service_bindings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceBindingsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ServiceBinding,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceBindings/{serviceBindingsId}
 /// Updates the parameters of a single ServiceBinding.
 ///
@@ -8794,15 +9490,16 @@ pub fn networkservices_projects_locations_service_bindings_patch_execute(
 
 pub fn networkservices_projects_locations_service_bindings_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ServiceBinding,
+    args: &NetworkservicesProjectsLocationsServiceBindingsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_service_bindings_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_service_bindings_patch_execute(builder)
 }
@@ -8912,6 +9609,17 @@ pub fn networkservices_projects_locations_service_lb_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_service_lb_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceLbPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: serviceLbPolicyId
+    pub serviceLbPolicyId: Option<String>,
+    /// Request body.
+    pub body: ServiceLbPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies
 /// Creates a new ServiceLbPolicy in a given project and location.
 ///
@@ -8924,18 +9632,16 @@ pub fn networkservices_projects_locations_service_lb_policies_create_execute(
 
 pub fn networkservices_projects_locations_service_lb_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    serviceLbPolicyId: Option<&str>,
-    body: &ServiceLbPolicy,
+    args: &NetworkservicesProjectsLocationsServiceLbPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_service_lb_policies_create_builder(
         client,
-        parent,
-        serviceLbPolicyId,
-        body,
+        &args.parent,
+        args.serviceLbPolicyId.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_service_lb_policies_create_execute(builder)
 }
@@ -9030,6 +9736,13 @@ pub fn networkservices_projects_locations_service_lb_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_service_lb_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceLbPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}
 /// Deletes a single ServiceLbPolicy.
 ///
@@ -9042,13 +9755,13 @@ pub fn networkservices_projects_locations_service_lb_policies_delete_execute(
 
 pub fn networkservices_projects_locations_service_lb_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsServiceLbPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        networkservices_projects_locations_service_lb_policies_delete_builder(client, name)?;
+        networkservices_projects_locations_service_lb_policies_delete_builder(client, &args.name)?;
     networkservices_projects_locations_service_lb_policies_delete_execute(builder)
 }
 
@@ -9144,6 +9857,13 @@ pub fn networkservices_projects_locations_service_lb_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_service_lb_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceLbPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}
 /// Gets details of a single ServiceLbPolicy.
 ///
@@ -9156,14 +9876,15 @@ pub fn networkservices_projects_locations_service_lb_policies_get_execute(
 
 pub fn networkservices_projects_locations_service_lb_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsServiceLbPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ServiceLbPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_service_lb_policies_get_builder(client, name)?;
+    let builder =
+        networkservices_projects_locations_service_lb_policies_get_builder(client, &args.name)?;
     networkservices_projects_locations_service_lb_policies_get_execute(builder)
 }
 
@@ -9277,6 +9998,17 @@ pub fn networkservices_projects_locations_service_lb_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_service_lb_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceLbPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies
 /// Lists ServiceLbPolicies in a given project and location.
 ///
@@ -9289,9 +10021,7 @@ pub fn networkservices_projects_locations_service_lb_policies_list_execute(
 
 pub fn networkservices_projects_locations_service_lb_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkservicesProjectsLocationsServiceLbPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListServiceLbPoliciesResponse>, ApiError>,
@@ -9301,7 +10031,10 @@ pub fn networkservices_projects_locations_service_lb_policies_list(
     ApiError,
 > {
     let builder = networkservices_projects_locations_service_lb_policies_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkservices_projects_locations_service_lb_policies_list_execute(builder)
 }
@@ -9411,6 +10144,17 @@ pub fn networkservices_projects_locations_service_lb_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_service_lb_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsServiceLbPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ServiceLbPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}
 /// Updates the parameters of a single ServiceLbPolicy.
 ///
@@ -9423,15 +10167,16 @@ pub fn networkservices_projects_locations_service_lb_policies_patch_execute(
 
 pub fn networkservices_projects_locations_service_lb_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ServiceLbPolicy,
+    args: &NetworkservicesProjectsLocationsServiceLbPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_service_lb_policies_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_service_lb_policies_patch_execute(builder)
 }
@@ -9541,6 +10286,17 @@ pub fn networkservices_projects_locations_tcp_routes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_tcp_routes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTcpRoutesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: tcpRouteId
+    pub tcpRouteId: Option<String>,
+    /// Request body.
+    pub body: TcpRoute,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes
 /// Creates a new TcpRoute in a given project and location.
 ///
@@ -9553,15 +10309,16 @@ pub fn networkservices_projects_locations_tcp_routes_create_execute(
 
 pub fn networkservices_projects_locations_tcp_routes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    tcpRouteId: Option<&str>,
-    body: &TcpRoute,
+    args: &NetworkservicesProjectsLocationsTcpRoutesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_tcp_routes_create_builder(
-        client, parent, tcpRouteId, body,
+        client,
+        &args.parent,
+        args.tcpRouteId.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_tcp_routes_create_execute(builder)
 }
@@ -9656,6 +10413,13 @@ pub fn networkservices_projects_locations_tcp_routes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_tcp_routes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTcpRoutesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}
 /// Deletes a single TcpRoute.
 ///
@@ -9668,12 +10432,12 @@ pub fn networkservices_projects_locations_tcp_routes_delete_execute(
 
 pub fn networkservices_projects_locations_tcp_routes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsTcpRoutesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_tcp_routes_delete_builder(client, name)?;
+    let builder = networkservices_projects_locations_tcp_routes_delete_builder(client, &args.name)?;
     networkservices_projects_locations_tcp_routes_delete_execute(builder)
 }
 
@@ -9767,6 +10531,13 @@ pub fn networkservices_projects_locations_tcp_routes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_tcp_routes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTcpRoutesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}
 /// Gets details of a single TcpRoute.
 ///
@@ -9779,12 +10550,12 @@ pub fn networkservices_projects_locations_tcp_routes_get_execute(
 
 pub fn networkservices_projects_locations_tcp_routes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsTcpRoutesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TcpRoute>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_tcp_routes_get_builder(client, name)?;
+    let builder = networkservices_projects_locations_tcp_routes_get_builder(client, &args.name)?;
     networkservices_projects_locations_tcp_routes_get_execute(builder)
 }
 
@@ -9900,6 +10671,19 @@ pub fn networkservices_projects_locations_tcp_routes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_tcp_routes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTcpRoutesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes
 /// Lists TcpRoute in a given project and location.
 ///
@@ -9912,10 +10696,7 @@ pub fn networkservices_projects_locations_tcp_routes_list_execute(
 
 pub fn networkservices_projects_locations_tcp_routes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworkservicesProjectsLocationsTcpRoutesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTcpRoutesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9924,10 +10705,10 @@ pub fn networkservices_projects_locations_tcp_routes_list(
 > {
     let builder = networkservices_projects_locations_tcp_routes_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     networkservices_projects_locations_tcp_routes_list_execute(builder)
 }
@@ -10037,6 +10818,17 @@ pub fn networkservices_projects_locations_tcp_routes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_tcp_routes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTcpRoutesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: TcpRoute,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}
 /// Updates the parameters of a single TcpRoute.
 ///
@@ -10049,15 +10841,16 @@ pub fn networkservices_projects_locations_tcp_routes_patch_execute(
 
 pub fn networkservices_projects_locations_tcp_routes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &TcpRoute,
+    args: &NetworkservicesProjectsLocationsTcpRoutesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_tcp_routes_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_tcp_routes_patch_execute(builder)
 }
@@ -10167,6 +10960,17 @@ pub fn networkservices_projects_locations_tls_routes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_tls_routes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTlsRoutesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: tlsRouteId
+    pub tlsRouteId: Option<String>,
+    /// Request body.
+    pub body: TlsRoute,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes
 /// Creates a new TlsRoute in a given project and location.
 ///
@@ -10179,15 +10983,16 @@ pub fn networkservices_projects_locations_tls_routes_create_execute(
 
 pub fn networkservices_projects_locations_tls_routes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    tlsRouteId: Option<&str>,
-    body: &TlsRoute,
+    args: &NetworkservicesProjectsLocationsTlsRoutesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_tls_routes_create_builder(
-        client, parent, tlsRouteId, body,
+        client,
+        &args.parent,
+        args.tlsRouteId.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_tls_routes_create_execute(builder)
 }
@@ -10282,6 +11087,13 @@ pub fn networkservices_projects_locations_tls_routes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_tls_routes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTlsRoutesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}
 /// Deletes a single TlsRoute.
 ///
@@ -10294,12 +11106,12 @@ pub fn networkservices_projects_locations_tls_routes_delete_execute(
 
 pub fn networkservices_projects_locations_tls_routes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsTlsRoutesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_tls_routes_delete_builder(client, name)?;
+    let builder = networkservices_projects_locations_tls_routes_delete_builder(client, &args.name)?;
     networkservices_projects_locations_tls_routes_delete_execute(builder)
 }
 
@@ -10393,6 +11205,13 @@ pub fn networkservices_projects_locations_tls_routes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_tls_routes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTlsRoutesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}
 /// Gets details of a single TlsRoute.
 ///
@@ -10405,12 +11224,12 @@ pub fn networkservices_projects_locations_tls_routes_get_execute(
 
 pub fn networkservices_projects_locations_tls_routes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsTlsRoutesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TlsRoute>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_tls_routes_get_builder(client, name)?;
+    let builder = networkservices_projects_locations_tls_routes_get_builder(client, &args.name)?;
     networkservices_projects_locations_tls_routes_get_execute(builder)
 }
 
@@ -10526,6 +11345,19 @@ pub fn networkservices_projects_locations_tls_routes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_tls_routes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTlsRoutesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes
 /// Lists TlsRoute in a given project and location.
 ///
@@ -10538,10 +11370,7 @@ pub fn networkservices_projects_locations_tls_routes_list_execute(
 
 pub fn networkservices_projects_locations_tls_routes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworkservicesProjectsLocationsTlsRoutesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTlsRoutesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -10550,10 +11379,10 @@ pub fn networkservices_projects_locations_tls_routes_list(
 > {
     let builder = networkservices_projects_locations_tls_routes_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     networkservices_projects_locations_tls_routes_list_execute(builder)
 }
@@ -10663,6 +11492,17 @@ pub fn networkservices_projects_locations_tls_routes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_tls_routes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsTlsRoutesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: TlsRoute,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}
 /// Updates the parameters of a single TlsRoute.
 ///
@@ -10675,15 +11515,16 @@ pub fn networkservices_projects_locations_tls_routes_patch_execute(
 
 pub fn networkservices_projects_locations_tls_routes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &TlsRoute,
+    args: &NetworkservicesProjectsLocationsTlsRoutesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_tls_routes_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_tls_routes_patch_execute(builder)
 }
@@ -10793,6 +11634,17 @@ pub fn networkservices_projects_locations_wasm_plugins_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: wasmPluginId
+    pub wasmPluginId: Option<String>,
+    /// Request body.
+    pub body: WasmPlugin,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins
 /// Creates a new WasmPlugin resource in a given project and location.
 ///
@@ -10805,18 +11657,16 @@ pub fn networkservices_projects_locations_wasm_plugins_create_execute(
 
 pub fn networkservices_projects_locations_wasm_plugins_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    wasmPluginId: Option<&str>,
-    body: &WasmPlugin,
+    args: &NetworkservicesProjectsLocationsWasmPluginsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_wasm_plugins_create_builder(
         client,
-        parent,
-        wasmPluginId,
-        body,
+        &args.parent,
+        args.wasmPluginId.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_wasm_plugins_create_execute(builder)
 }
@@ -10911,6 +11761,13 @@ pub fn networkservices_projects_locations_wasm_plugins_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
 /// Deletes the specified WasmPlugin resource.
 ///
@@ -10923,12 +11780,13 @@ pub fn networkservices_projects_locations_wasm_plugins_delete_execute(
 
 pub fn networkservices_projects_locations_wasm_plugins_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsWasmPluginsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_wasm_plugins_delete_builder(client, name)?;
+    let builder =
+        networkservices_projects_locations_wasm_plugins_delete_builder(client, &args.name)?;
     networkservices_projects_locations_wasm_plugins_delete_execute(builder)
 }
 
@@ -11034,6 +11892,15 @@ pub fn networkservices_projects_locations_wasm_plugins_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
 /// Gets details of the specified WasmPlugin resource.
 ///
@@ -11046,13 +11913,16 @@ pub fn networkservices_projects_locations_wasm_plugins_get_execute(
 
 pub fn networkservices_projects_locations_wasm_plugins_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &NetworkservicesProjectsLocationsWasmPluginsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WasmPlugin>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkservices_projects_locations_wasm_plugins_get_builder(client, name, view)?;
+    let builder = networkservices_projects_locations_wasm_plugins_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     networkservices_projects_locations_wasm_plugins_get_execute(builder)
 }
 
@@ -11164,6 +12034,17 @@ pub fn networkservices_projects_locations_wasm_plugins_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins
 /// Lists WasmPlugin resources in a given project and location.
 ///
@@ -11176,9 +12057,7 @@ pub fn networkservices_projects_locations_wasm_plugins_list_execute(
 
 pub fn networkservices_projects_locations_wasm_plugins_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkservicesProjectsLocationsWasmPluginsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListWasmPluginsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -11186,7 +12065,10 @@ pub fn networkservices_projects_locations_wasm_plugins_list(
     ApiError,
 > {
     let builder = networkservices_projects_locations_wasm_plugins_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkservices_projects_locations_wasm_plugins_list_execute(builder)
 }
@@ -11296,6 +12178,17 @@ pub fn networkservices_projects_locations_wasm_plugins_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: WasmPlugin,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
 /// Updates the parameters of the specified WasmPlugin resource.
 ///
@@ -11308,15 +12201,16 @@ pub fn networkservices_projects_locations_wasm_plugins_patch_execute(
 
 pub fn networkservices_projects_locations_wasm_plugins_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &WasmPlugin,
+    args: &NetworkservicesProjectsLocationsWasmPluginsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_wasm_plugins_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_wasm_plugins_patch_execute(builder)
 }
@@ -11426,6 +12320,17 @@ pub fn networkservices_projects_locations_wasm_plugins_versions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: wasmPluginVersionId
+    pub wasmPluginVersionId: Option<String>,
+    /// Request body.
+    pub body: WasmPluginVersion,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions
 /// Creates a new WasmPluginVersion resource in a given project and location.
 ///
@@ -11438,18 +12343,16 @@ pub fn networkservices_projects_locations_wasm_plugins_versions_create_execute(
 
 pub fn networkservices_projects_locations_wasm_plugins_versions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    wasmPluginVersionId: Option<&str>,
-    body: &WasmPluginVersion,
+    args: &NetworkservicesProjectsLocationsWasmPluginsVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkservices_projects_locations_wasm_plugins_versions_create_builder(
         client,
-        parent,
-        wasmPluginVersionId,
-        body,
+        &args.parent,
+        args.wasmPluginVersionId.as_deref(),
+        &args.body,
     )?;
     networkservices_projects_locations_wasm_plugins_versions_create_execute(builder)
 }
@@ -11544,6 +12447,13 @@ pub fn networkservices_projects_locations_wasm_plugins_versions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions/{versionsId}
 /// Deletes the specified WasmPluginVersion resource.
 ///
@@ -11556,13 +12466,14 @@ pub fn networkservices_projects_locations_wasm_plugins_versions_delete_execute(
 
 pub fn networkservices_projects_locations_wasm_plugins_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsWasmPluginsVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        networkservices_projects_locations_wasm_plugins_versions_delete_builder(client, name)?;
+    let builder = networkservices_projects_locations_wasm_plugins_versions_delete_builder(
+        client, &args.name,
+    )?;
     networkservices_projects_locations_wasm_plugins_versions_delete_execute(builder)
 }
 
@@ -11658,6 +12569,13 @@ pub fn networkservices_projects_locations_wasm_plugins_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions/{versionsId}
 /// Gets details of the specified WasmPluginVersion resource.
 ///
@@ -11670,7 +12588,7 @@ pub fn networkservices_projects_locations_wasm_plugins_versions_get_execute(
 
 pub fn networkservices_projects_locations_wasm_plugins_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkservicesProjectsLocationsWasmPluginsVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WasmPluginVersion>, ApiError>, P = ApiPending>
         + Send
@@ -11678,7 +12596,7 @@ pub fn networkservices_projects_locations_wasm_plugins_versions_get(
     ApiError,
 > {
     let builder =
-        networkservices_projects_locations_wasm_plugins_versions_get_builder(client, name)?;
+        networkservices_projects_locations_wasm_plugins_versions_get_builder(client, &args.name)?;
     networkservices_projects_locations_wasm_plugins_versions_get_execute(builder)
 }
 
@@ -11792,6 +12710,17 @@ pub fn networkservices_projects_locations_wasm_plugins_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkservices_projects_locations_wasm_plugins_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkservicesProjectsLocationsWasmPluginsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions
 /// Lists WasmPluginVersion resources in a given project and location.
 ///
@@ -11804,9 +12733,7 @@ pub fn networkservices_projects_locations_wasm_plugins_versions_list_execute(
 
 pub fn networkservices_projects_locations_wasm_plugins_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkservicesProjectsLocationsWasmPluginsVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListWasmPluginVersionsResponse>, ApiError>,
@@ -11816,7 +12743,10 @@ pub fn networkservices_projects_locations_wasm_plugins_versions_list(
     ApiError,
 > {
     let builder = networkservices_projects_locations_wasm_plugins_versions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkservices_projects_locations_wasm_plugins_versions_list_execute(builder)
 }

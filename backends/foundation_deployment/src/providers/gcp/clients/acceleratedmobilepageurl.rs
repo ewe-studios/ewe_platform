@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/ampUrls:batchGet
 /// Returns AMP URL(s) and equivalent [AMP Cache URL(s)](/`amp/cache/overview`#amp-cache-url-format).
@@ -107,6 +109,13 @@ pub fn acceleratedmobilepageurl_amp_urls_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`acceleratedmobilepageurl_amp_urls_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AcceleratedmobilepageurlAmpUrlsBatchGetArgs {
+    /// Request body.
+    pub body: BatchGetAmpUrlsRequest,
+}
+
 /// GET v1/ampUrls:batchGet
 /// Returns AMP URL(s) and equivalent [AMP Cache URL(s)](/`amp/cache/overview`#amp-cache-url-format).
 ///
@@ -119,13 +128,13 @@ pub fn acceleratedmobilepageurl_amp_urls_batch_get_execute(
 
 pub fn acceleratedmobilepageurl_amp_urls_batch_get(
     client: &SimpleHttpClient,
-    body: &BatchGetAmpUrlsRequest,
+    args: &AcceleratedmobilepageurlAmpUrlsBatchGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchGetAmpUrlsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = acceleratedmobilepageurl_amp_urls_batch_get_builder(client, body)?;
+    let builder = acceleratedmobilepageurl_amp_urls_batch_get_builder(client, &args.body)?;
     acceleratedmobilepageurl_amp_urls_batch_get_execute(builder)
 }

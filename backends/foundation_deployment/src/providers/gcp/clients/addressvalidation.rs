@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1:provideValidationFeedback
 /// Feedback about the outcome of the sequence of validation attempts. This should be the last call made after a sequence of validation calls for the same address, and should be called once the transaction is concluded. This should only be sent once for the sequence of ValidateAddress requests needed to validate an address fully.
@@ -113,6 +115,13 @@ pub fn addressvalidation_provide_validation_feedback_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`addressvalidation_provide_validation_feedback`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AddressvalidationProvideValidationFeedbackArgs {
+    /// Request body.
+    pub body: GoogleMapsAddressvalidationV1ProvideValidationFeedbackRequest,
+}
+
 /// GET v1:provideValidationFeedback
 /// Feedback about the outcome of the sequence of validation attempts. This should be the last call made after a sequence of validation calls for the same address, and should be called once the transaction is concluded. This should only be sent once for the sequence of ValidateAddress requests needed to validate an address fully.
 ///
@@ -125,7 +134,7 @@ pub fn addressvalidation_provide_validation_feedback_execute(
 
 pub fn addressvalidation_provide_validation_feedback(
     client: &SimpleHttpClient,
-    body: &GoogleMapsAddressvalidationV1ProvideValidationFeedbackRequest,
+    args: &AddressvalidationProvideValidationFeedbackArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -137,7 +146,7 @@ pub fn addressvalidation_provide_validation_feedback(
         + 'static,
     ApiError,
 > {
-    let builder = addressvalidation_provide_validation_feedback_builder(client, body)?;
+    let builder = addressvalidation_provide_validation_feedback_builder(client, &args.body)?;
     addressvalidation_provide_validation_feedback_execute(builder)
 }
 
@@ -235,6 +244,13 @@ pub fn addressvalidation_validate_address_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`addressvalidation_validate_address`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AddressvalidationValidateAddressArgs {
+    /// Request body.
+    pub body: GoogleMapsAddressvalidationV1ValidateAddressRequest,
+}
+
 /// GET v1:validateAddress
 /// Validates an address.
 ///
@@ -247,7 +263,7 @@ pub fn addressvalidation_validate_address_execute(
 
 pub fn addressvalidation_validate_address(
     client: &SimpleHttpClient,
-    body: &GoogleMapsAddressvalidationV1ValidateAddressRequest,
+    args: &AddressvalidationValidateAddressArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleMapsAddressvalidationV1ValidateAddressResponse>, ApiError>,
@@ -256,6 +272,6 @@ pub fn addressvalidation_validate_address(
         + 'static,
     ApiError,
 > {
-    let builder = addressvalidation_validate_address_builder(client, body)?;
+    let builder = addressvalidation_validate_address_builder(client, &args.body)?;
     addressvalidation_validate_address_execute(builder)
 }

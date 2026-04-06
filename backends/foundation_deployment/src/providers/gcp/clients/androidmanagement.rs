@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/enterprises
 /// Creates an enterprise. This is the last step in the enterprise signup flow. See also: SigninDetail
@@ -129,6 +131,21 @@ pub fn androidmanagement_enterprises_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesCreateArgs {
+    /// Query parameter: agreementAccepted
+    pub agreementAccepted: Option<bool>,
+    /// Query parameter: enterpriseToken
+    pub enterpriseToken: Option<String>,
+    /// Query parameter: projectId
+    pub projectId: Option<String>,
+    /// Query parameter: signupUrlName
+    pub signupUrlName: Option<String>,
+    /// Request body.
+    pub body: Enterprise,
+}
+
 /// GET v1/enterprises
 /// Creates an enterprise. This is the last step in the enterprise signup flow. See also: SigninDetail
 ///
@@ -141,22 +158,18 @@ pub fn androidmanagement_enterprises_create_execute(
 
 pub fn androidmanagement_enterprises_create(
     client: &SimpleHttpClient,
-    agreementAccepted: Option<bool>,
-    enterpriseToken: Option<&str>,
-    projectId: Option<&str>,
-    signupUrlName: Option<&str>,
-    body: &Enterprise,
+    args: &AndroidmanagementEnterprisesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Enterprise>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidmanagement_enterprises_create_builder(
         client,
-        agreementAccepted,
-        enterpriseToken,
-        projectId,
-        signupUrlName,
-        body,
+        args.agreementAccepted,
+        args.enterpriseToken.as_deref(),
+        args.projectId.as_deref(),
+        args.signupUrlName.as_deref(),
+        &args.body,
     )?;
     androidmanagement_enterprises_create_execute(builder)
 }
@@ -251,6 +264,13 @@ pub fn androidmanagement_enterprises_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/enterprises/{enterprisesId}
 /// Permanently deletes an enterprise and all accounts and data associated with it. Warning: this will result in a cascaded deletion of all AM API devices associated with the deleted enterprise. Only available for EMM-managed enterprises.
 ///
@@ -263,12 +283,12 @@ pub fn androidmanagement_enterprises_delete_execute(
 
 pub fn androidmanagement_enterprises_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroidmanagementEnterprisesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_delete_builder(client, name)?;
+    let builder = androidmanagement_enterprises_delete_builder(client, &args.name)?;
     androidmanagement_enterprises_delete_execute(builder)
 }
 
@@ -369,6 +389,15 @@ pub fn androidmanagement_enterprises_generate_enterprise_upgrade_url_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_generate_enterprise_upgrade_url`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesGenerateEnterpriseUpgradeUrlArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GenerateEnterpriseUpgradeUrlRequest,
+}
+
 /// GET v1/enterprises/{enterprisesId}:generateEnterpriseUpgradeUrl
 /// Generates an enterprise upgrade URL to upgrade an existing managed Google Play Accounts enterprise to a managed Google domain. See the guide (<https://developers.google.`com/android/management/upgrade-an-enterprise`>) for more details.
 ///
@@ -381,8 +410,7 @@ pub fn androidmanagement_enterprises_generate_enterprise_upgrade_url_execute(
 
 pub fn androidmanagement_enterprises_generate_enterprise_upgrade_url(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GenerateEnterpriseUpgradeUrlRequest,
+    args: &AndroidmanagementEnterprisesGenerateEnterpriseUpgradeUrlArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateEnterpriseUpgradeUrlResponse>, ApiError>,
@@ -391,8 +419,9 @@ pub fn androidmanagement_enterprises_generate_enterprise_upgrade_url(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidmanagement_enterprises_generate_enterprise_upgrade_url_builder(client, name, body)?;
+    let builder = androidmanagement_enterprises_generate_enterprise_upgrade_url_builder(
+        client, &args.name, &args.body,
+    )?;
     androidmanagement_enterprises_generate_enterprise_upgrade_url_execute(builder)
 }
 
@@ -486,6 +515,13 @@ pub fn androidmanagement_enterprises_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/enterprises/{enterprisesId}
 /// Gets an enterprise.
 ///
@@ -498,12 +534,12 @@ pub fn androidmanagement_enterprises_get_execute(
 
 pub fn androidmanagement_enterprises_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroidmanagementEnterprisesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Enterprise>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_get_builder(client, name)?;
+    let builder = androidmanagement_enterprises_get_builder(client, &args.name)?;
     androidmanagement_enterprises_get_execute(builder)
 }
 
@@ -619,6 +655,19 @@ pub fn androidmanagement_enterprises_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: projectId
+    pub projectId: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/enterprises
 /// Lists EMM-managed enterprises. Only BASIC fields are returned.
 ///
@@ -631,18 +680,20 @@ pub fn androidmanagement_enterprises_list_execute(
 
 pub fn androidmanagement_enterprises_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    projectId: Option<&str>,
-    view: Option<&str>,
+    args: &AndroidmanagementEnterprisesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListEnterprisesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidmanagement_enterprises_list_builder(client, pageSize, pageToken, projectId, view)?;
+    let builder = androidmanagement_enterprises_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.projectId.as_deref(),
+        args.view.as_deref(),
+    )?;
     androidmanagement_enterprises_list_execute(builder)
 }
 
@@ -751,6 +802,17 @@ pub fn androidmanagement_enterprises_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Enterprise,
+}
+
 /// GET v1/enterprises/{enterprisesId}
 /// Updates an enterprise. See also: SigninDetail
 ///
@@ -763,14 +825,17 @@ pub fn androidmanagement_enterprises_patch_execute(
 
 pub fn androidmanagement_enterprises_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Enterprise,
+    args: &AndroidmanagementEnterprisesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Enterprise>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_patch_builder(client, name, updateMask, body)?;
+    let builder = androidmanagement_enterprises_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     androidmanagement_enterprises_patch_execute(builder)
 }
 
@@ -876,6 +941,15 @@ pub fn androidmanagement_enterprises_applications_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_applications_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesApplicationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET v1/enterprises/{enterprisesId}/applications/{applicationsId}
 /// Gets info about an application.
 ///
@@ -888,14 +962,16 @@ pub fn androidmanagement_enterprises_applications_get_execute(
 
 pub fn androidmanagement_enterprises_applications_get(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
+    args: &AndroidmanagementEnterprisesApplicationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Application>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidmanagement_enterprises_applications_get_builder(client, name, languageCode)?;
+    let builder = androidmanagement_enterprises_applications_get_builder(
+        client,
+        &args.name,
+        args.languageCode.as_deref(),
+    )?;
     androidmanagement_enterprises_applications_get_execute(builder)
 }
 
@@ -1005,6 +1081,17 @@ pub fn androidmanagement_enterprises_devices_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_devices_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesDevicesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: wipeDataFlags
+    pub wipeDataFlags: Option<String>,
+    /// Query parameter: wipeReasonMessage
+    pub wipeReasonMessage: Option<String>,
+}
+
 /// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
 /// Deletes a device. This operation attempts to wipe the device but this is not guaranteed to succeed if the device is offline for an extended period. Deleted devices do not show up in enterprises.devices.list calls and a 404 is returned from enterprises.devices.get.
 ///
@@ -1017,18 +1104,16 @@ pub fn androidmanagement_enterprises_devices_delete_execute(
 
 pub fn androidmanagement_enterprises_devices_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    wipeDataFlags: Option<&str>,
-    wipeReasonMessage: Option<&str>,
+    args: &AndroidmanagementEnterprisesDevicesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidmanagement_enterprises_devices_delete_builder(
         client,
-        name,
-        wipeDataFlags,
-        wipeReasonMessage,
+        &args.name,
+        args.wipeDataFlags.as_deref(),
+        args.wipeReasonMessage.as_deref(),
     )?;
     androidmanagement_enterprises_devices_delete_execute(builder)
 }
@@ -1123,6 +1208,13 @@ pub fn androidmanagement_enterprises_devices_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesDevicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
 /// Gets a device. Deleted devices will respond with a 404 error.
 ///
@@ -1135,12 +1227,12 @@ pub fn androidmanagement_enterprises_devices_get_execute(
 
 pub fn androidmanagement_enterprises_devices_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroidmanagementEnterprisesDevicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_devices_get_builder(client, name)?;
+    let builder = androidmanagement_enterprises_devices_get_builder(client, &args.name)?;
     androidmanagement_enterprises_devices_get_execute(builder)
 }
 
@@ -1237,6 +1329,15 @@ pub fn androidmanagement_enterprises_devices_issue_command_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_devices_issue_command`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesDevicesIssueCommandArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: Command,
+}
+
 /// GET v1/enterprises/{enterprisesId}/devices/{devicesId}:issueCommand
 /// Issues a command to a device. The Operation resource returned contains a Command in its metadata field. Use the get operation method to get the status of the command.
 ///
@@ -1249,13 +1350,14 @@ pub fn androidmanagement_enterprises_devices_issue_command_execute(
 
 pub fn androidmanagement_enterprises_devices_issue_command(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &Command,
+    args: &AndroidmanagementEnterprisesDevicesIssueCommandArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_devices_issue_command_builder(client, name, body)?;
+    let builder = androidmanagement_enterprises_devices_issue_command_builder(
+        client, &args.name, &args.body,
+    )?;
     androidmanagement_enterprises_devices_issue_command_execute(builder)
 }
 
@@ -1367,6 +1469,17 @@ pub fn androidmanagement_enterprises_devices_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesDevicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/enterprises/{enterprisesId}/devices
 /// Lists devices for a given enterprise. Deleted devices are not returned in the response.
 ///
@@ -1379,17 +1492,19 @@ pub fn androidmanagement_enterprises_devices_list_execute(
 
 pub fn androidmanagement_enterprises_devices_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AndroidmanagementEnterprisesDevicesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDevicesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidmanagement_enterprises_devices_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = androidmanagement_enterprises_devices_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     androidmanagement_enterprises_devices_list_execute(builder)
 }
 
@@ -1498,6 +1613,17 @@ pub fn androidmanagement_enterprises_devices_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_devices_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesDevicesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Device,
+}
+
 /// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
 /// Updates a device.
 ///
@@ -1510,15 +1636,17 @@ pub fn androidmanagement_enterprises_devices_patch_execute(
 
 pub fn androidmanagement_enterprises_devices_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Device,
+    args: &AndroidmanagementEnterprisesDevicesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidmanagement_enterprises_devices_patch_builder(client, name, updateMask, body)?;
+    let builder = androidmanagement_enterprises_devices_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     androidmanagement_enterprises_devices_patch_execute(builder)
 }
 
@@ -1612,6 +1740,13 @@ pub fn androidmanagement_enterprises_devices_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_devices_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesDevicesOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1624,12 +1759,13 @@ pub fn androidmanagement_enterprises_devices_operations_cancel_execute(
 
 pub fn androidmanagement_enterprises_devices_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroidmanagementEnterprisesDevicesOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_devices_operations_cancel_builder(client, name)?;
+    let builder =
+        androidmanagement_enterprises_devices_operations_cancel_builder(client, &args.name)?;
     androidmanagement_enterprises_devices_operations_cancel_execute(builder)
 }
 
@@ -1723,6 +1859,13 @@ pub fn androidmanagement_enterprises_devices_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_devices_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesDevicesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1735,12 +1878,12 @@ pub fn androidmanagement_enterprises_devices_operations_get_execute(
 
 pub fn androidmanagement_enterprises_devices_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroidmanagementEnterprisesDevicesOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_devices_operations_get_builder(client, name)?;
+    let builder = androidmanagement_enterprises_devices_operations_get_builder(client, &args.name)?;
     androidmanagement_enterprises_devices_operations_get_execute(builder)
 }
 
@@ -1860,6 +2003,21 @@ pub fn androidmanagement_enterprises_devices_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_devices_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesDevicesOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1872,11 +2030,7 @@ pub fn androidmanagement_enterprises_devices_operations_list_execute(
 
 pub fn androidmanagement_enterprises_devices_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &AndroidmanagementEnterprisesDevicesOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1885,11 +2039,11 @@ pub fn androidmanagement_enterprises_devices_operations_list(
 > {
     let builder = androidmanagement_enterprises_devices_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     androidmanagement_enterprises_devices_operations_list_execute(builder)
 }
@@ -1989,6 +2143,15 @@ pub fn androidmanagement_enterprises_enrollment_tokens_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_enrollment_tokens_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesEnrollmentTokensCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: EnrollmentToken,
+}
+
 /// GET v1/enterprises/{enterprisesId}/enrollmentTokens
 /// Creates an enrollment token for a given enterprise. It's up to the caller's responsibility to manage the lifecycle of newly created tokens and deleting them when they're not intended to be used anymore.
 ///
@@ -2001,16 +2164,18 @@ pub fn androidmanagement_enterprises_enrollment_tokens_create_execute(
 
 pub fn androidmanagement_enterprises_enrollment_tokens_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &EnrollmentToken,
+    args: &AndroidmanagementEnterprisesEnrollmentTokensCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EnrollmentToken>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidmanagement_enterprises_enrollment_tokens_create_builder(client, parent, body)?;
+    let builder = androidmanagement_enterprises_enrollment_tokens_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     androidmanagement_enterprises_enrollment_tokens_create_execute(builder)
 }
 
@@ -2104,6 +2269,13 @@ pub fn androidmanagement_enterprises_enrollment_tokens_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_enrollment_tokens_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesEnrollmentTokensDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/enterprises/{enterprisesId}/enrollmentTokens/{enrollmentTokensId}
 /// Deletes an enrollment token. This operation invalidates the token, preventing its future use.
 ///
@@ -2116,12 +2288,13 @@ pub fn androidmanagement_enterprises_enrollment_tokens_delete_execute(
 
 pub fn androidmanagement_enterprises_enrollment_tokens_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroidmanagementEnterprisesEnrollmentTokensDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_enrollment_tokens_delete_builder(client, name)?;
+    let builder =
+        androidmanagement_enterprises_enrollment_tokens_delete_builder(client, &args.name)?;
     androidmanagement_enterprises_enrollment_tokens_delete_execute(builder)
 }
 
@@ -2217,6 +2390,13 @@ pub fn androidmanagement_enterprises_enrollment_tokens_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_enrollment_tokens_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesEnrollmentTokensGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/enterprises/{enterprisesId}/enrollmentTokens/{enrollmentTokensId}
 /// Gets an active, unexpired enrollment token. A partial view of the enrollment token is returned. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
 ///
@@ -2229,14 +2409,14 @@ pub fn androidmanagement_enterprises_enrollment_tokens_get_execute(
 
 pub fn androidmanagement_enterprises_enrollment_tokens_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroidmanagementEnterprisesEnrollmentTokensGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EnrollmentToken>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_enrollment_tokens_get_builder(client, name)?;
+    let builder = androidmanagement_enterprises_enrollment_tokens_get_builder(client, &args.name)?;
     androidmanagement_enterprises_enrollment_tokens_get_execute(builder)
 }
 
@@ -2350,6 +2530,17 @@ pub fn androidmanagement_enterprises_enrollment_tokens_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_enrollment_tokens_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesEnrollmentTokensListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/enterprises/{enterprisesId}/enrollmentTokens
 /// Lists active, unexpired enrollment tokens for a given enterprise. The list items contain only a partial view of EnrollmentToken object. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
 ///
@@ -2362,9 +2553,7 @@ pub fn androidmanagement_enterprises_enrollment_tokens_list_execute(
 
 pub fn androidmanagement_enterprises_enrollment_tokens_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AndroidmanagementEnterprisesEnrollmentTokensListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListEnrollmentTokensResponse>, ApiError>,
@@ -2374,7 +2563,10 @@ pub fn androidmanagement_enterprises_enrollment_tokens_list(
     ApiError,
 > {
     let builder = androidmanagement_enterprises_enrollment_tokens_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     androidmanagement_enterprises_enrollment_tokens_list_execute(builder)
 }
@@ -2474,6 +2666,15 @@ pub fn androidmanagement_enterprises_migration_tokens_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_migration_tokens_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesMigrationTokensCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: MigrationToken,
+}
+
 /// GET v1/enterprises/{enterprisesId}/migrationTokens
 /// Creates a migration token, to migrate an existing device from being managed by the EMM's Device Policy Controller (DPC) to being managed by the Android Management API. See the guide (<https://developers.google.`com/android/management/dpc-migration`>) for more details.
 ///
@@ -2486,16 +2687,18 @@ pub fn androidmanagement_enterprises_migration_tokens_create_execute(
 
 pub fn androidmanagement_enterprises_migration_tokens_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &MigrationToken,
+    args: &AndroidmanagementEnterprisesMigrationTokensCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MigrationToken>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidmanagement_enterprises_migration_tokens_create_builder(client, parent, body)?;
+    let builder = androidmanagement_enterprises_migration_tokens_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     androidmanagement_enterprises_migration_tokens_create_execute(builder)
 }
 
@@ -2591,6 +2794,13 @@ pub fn androidmanagement_enterprises_migration_tokens_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_migration_tokens_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesMigrationTokensGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/enterprises/{enterprisesId}/migrationTokens/{migrationTokensId}
 /// Gets a migration token.
 ///
@@ -2603,14 +2813,14 @@ pub fn androidmanagement_enterprises_migration_tokens_get_execute(
 
 pub fn androidmanagement_enterprises_migration_tokens_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroidmanagementEnterprisesMigrationTokensGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MigrationToken>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_migration_tokens_get_builder(client, name)?;
+    let builder = androidmanagement_enterprises_migration_tokens_get_builder(client, &args.name)?;
     androidmanagement_enterprises_migration_tokens_get_execute(builder)
 }
 
@@ -2724,6 +2934,17 @@ pub fn androidmanagement_enterprises_migration_tokens_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_migration_tokens_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesMigrationTokensListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/enterprises/{enterprisesId}/migrationTokens
 /// Lists migration tokens.
 ///
@@ -2736,9 +2957,7 @@ pub fn androidmanagement_enterprises_migration_tokens_list_execute(
 
 pub fn androidmanagement_enterprises_migration_tokens_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AndroidmanagementEnterprisesMigrationTokensListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMigrationTokensResponse>, ApiError>,
@@ -2748,7 +2967,10 @@ pub fn androidmanagement_enterprises_migration_tokens_list(
     ApiError,
 > {
     let builder = androidmanagement_enterprises_migration_tokens_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     androidmanagement_enterprises_migration_tokens_list_execute(builder)
 }
@@ -2843,6 +3065,13 @@ pub fn androidmanagement_enterprises_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/enterprises/{enterprisesId}/policies/{policiesId}
 /// Deletes a policy. This operation is only permitted if no devices are currently referencing the policy.
 ///
@@ -2855,12 +3084,12 @@ pub fn androidmanagement_enterprises_policies_delete_execute(
 
 pub fn androidmanagement_enterprises_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroidmanagementEnterprisesPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_policies_delete_builder(client, name)?;
+    let builder = androidmanagement_enterprises_policies_delete_builder(client, &args.name)?;
     androidmanagement_enterprises_policies_delete_execute(builder)
 }
 
@@ -2954,6 +3183,13 @@ pub fn androidmanagement_enterprises_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/enterprises/{enterprisesId}/policies/{policiesId}
 /// Gets a policy.
 ///
@@ -2966,12 +3202,12 @@ pub fn androidmanagement_enterprises_policies_get_execute(
 
 pub fn androidmanagement_enterprises_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroidmanagementEnterprisesPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_policies_get_builder(client, name)?;
+    let builder = androidmanagement_enterprises_policies_get_builder(client, &args.name)?;
     androidmanagement_enterprises_policies_get_execute(builder)
 }
 
@@ -3083,6 +3319,17 @@ pub fn androidmanagement_enterprises_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/enterprises/{enterprisesId}/policies
 /// Lists policies for a given enterprise.
 ///
@@ -3095,17 +3342,19 @@ pub fn androidmanagement_enterprises_policies_list_execute(
 
 pub fn androidmanagement_enterprises_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AndroidmanagementEnterprisesPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPoliciesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidmanagement_enterprises_policies_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = androidmanagement_enterprises_policies_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     androidmanagement_enterprises_policies_list_execute(builder)
 }
 
@@ -3206,6 +3455,15 @@ pub fn androidmanagement_enterprises_policies_modify_policy_applications_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_policies_modify_policy_applications`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesPoliciesModifyPolicyApplicationsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ModifyPolicyApplicationsRequest,
+}
+
 /// GET v1/enterprises/{enterprisesId}/policies/{policiesId}:modifyPolicyApplications
 /// Updates or creates applications in a policy.
 ///
@@ -3218,8 +3476,7 @@ pub fn androidmanagement_enterprises_policies_modify_policy_applications_execute
 
 pub fn androidmanagement_enterprises_policies_modify_policy_applications(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ModifyPolicyApplicationsRequest,
+    args: &AndroidmanagementEnterprisesPoliciesModifyPolicyApplicationsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ModifyPolicyApplicationsResponse>, ApiError>,
@@ -3229,7 +3486,7 @@ pub fn androidmanagement_enterprises_policies_modify_policy_applications(
     ApiError,
 > {
     let builder = androidmanagement_enterprises_policies_modify_policy_applications_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     androidmanagement_enterprises_policies_modify_policy_applications_execute(builder)
 }
@@ -3339,6 +3596,17 @@ pub fn androidmanagement_enterprises_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Policy,
+}
+
 /// GET v1/enterprises/{enterprisesId}/policies/{policiesId}
 /// Updates or creates a policy.
 ///
@@ -3351,15 +3619,17 @@ pub fn androidmanagement_enterprises_policies_patch_execute(
 
 pub fn androidmanagement_enterprises_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Policy,
+    args: &AndroidmanagementEnterprisesPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidmanagement_enterprises_policies_patch_builder(client, name, updateMask, body)?;
+    let builder = androidmanagement_enterprises_policies_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     androidmanagement_enterprises_policies_patch_execute(builder)
 }
 
@@ -3460,6 +3730,15 @@ pub fn androidmanagement_enterprises_policies_remove_policy_applications_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_policies_remove_policy_applications`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesPoliciesRemovePolicyApplicationsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RemovePolicyApplicationsRequest,
+}
+
 /// GET v1/enterprises/{enterprisesId}/policies/{policiesId}:removePolicyApplications
 /// Removes applications in a policy.
 ///
@@ -3472,8 +3751,7 @@ pub fn androidmanagement_enterprises_policies_remove_policy_applications_execute
 
 pub fn androidmanagement_enterprises_policies_remove_policy_applications(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RemovePolicyApplicationsRequest,
+    args: &AndroidmanagementEnterprisesPoliciesRemovePolicyApplicationsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RemovePolicyApplicationsResponse>, ApiError>,
@@ -3483,7 +3761,7 @@ pub fn androidmanagement_enterprises_policies_remove_policy_applications(
     ApiError,
 > {
     let builder = androidmanagement_enterprises_policies_remove_policy_applications_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     androidmanagement_enterprises_policies_remove_policy_applications_execute(builder)
 }
@@ -3581,6 +3859,15 @@ pub fn androidmanagement_enterprises_web_apps_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_web_apps_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesWebAppsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: WebApp,
+}
+
 /// GET v1/enterprises/{enterprisesId}/webApps
 /// Creates a web app.
 ///
@@ -3593,13 +3880,13 @@ pub fn androidmanagement_enterprises_web_apps_create_execute(
 
 pub fn androidmanagement_enterprises_web_apps_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &WebApp,
+    args: &AndroidmanagementEnterprisesWebAppsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_web_apps_create_builder(client, parent, body)?;
+    let builder =
+        androidmanagement_enterprises_web_apps_create_builder(client, &args.parent, &args.body)?;
     androidmanagement_enterprises_web_apps_create_execute(builder)
 }
 
@@ -3693,6 +3980,13 @@ pub fn androidmanagement_enterprises_web_apps_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_web_apps_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesWebAppsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/enterprises/{enterprisesId}/webApps/{webAppsId}
 /// Deletes a web app.
 ///
@@ -3705,12 +3999,12 @@ pub fn androidmanagement_enterprises_web_apps_delete_execute(
 
 pub fn androidmanagement_enterprises_web_apps_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroidmanagementEnterprisesWebAppsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_web_apps_delete_builder(client, name)?;
+    let builder = androidmanagement_enterprises_web_apps_delete_builder(client, &args.name)?;
     androidmanagement_enterprises_web_apps_delete_execute(builder)
 }
 
@@ -3804,6 +4098,13 @@ pub fn androidmanagement_enterprises_web_apps_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_web_apps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesWebAppsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/enterprises/{enterprisesId}/webApps/{webAppsId}
 /// Gets a web app.
 ///
@@ -3816,12 +4117,12 @@ pub fn androidmanagement_enterprises_web_apps_get_execute(
 
 pub fn androidmanagement_enterprises_web_apps_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroidmanagementEnterprisesWebAppsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_web_apps_get_builder(client, name)?;
+    let builder = androidmanagement_enterprises_web_apps_get_builder(client, &args.name)?;
     androidmanagement_enterprises_web_apps_get_execute(builder)
 }
 
@@ -3933,6 +4234,17 @@ pub fn androidmanagement_enterprises_web_apps_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_web_apps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesWebAppsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/enterprises/{enterprisesId}/webApps
 /// Lists web apps for a given enterprise.
 ///
@@ -3945,17 +4257,19 @@ pub fn androidmanagement_enterprises_web_apps_list_execute(
 
 pub fn androidmanagement_enterprises_web_apps_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AndroidmanagementEnterprisesWebAppsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListWebAppsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidmanagement_enterprises_web_apps_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = androidmanagement_enterprises_web_apps_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     androidmanagement_enterprises_web_apps_list_execute(builder)
 }
 
@@ -4064,6 +4378,17 @@ pub fn androidmanagement_enterprises_web_apps_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_web_apps_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesWebAppsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: WebApp,
+}
+
 /// GET v1/enterprises/{enterprisesId}/webApps/{webAppsId}
 /// Updates a web app.
 ///
@@ -4076,15 +4401,17 @@ pub fn androidmanagement_enterprises_web_apps_patch_execute(
 
 pub fn androidmanagement_enterprises_web_apps_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &WebApp,
+    args: &AndroidmanagementEnterprisesWebAppsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidmanagement_enterprises_web_apps_patch_builder(client, name, updateMask, body)?;
+    let builder = androidmanagement_enterprises_web_apps_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     androidmanagement_enterprises_web_apps_patch_execute(builder)
 }
 
@@ -4181,6 +4508,15 @@ pub fn androidmanagement_enterprises_web_tokens_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_enterprises_web_tokens_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementEnterprisesWebTokensCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: WebToken,
+}
+
 /// GET v1/enterprises/{enterprisesId}/webTokens
 /// Creates a web token to access an embeddable managed Google Play web UI for a given enterprise.
 ///
@@ -4193,13 +4529,13 @@ pub fn androidmanagement_enterprises_web_tokens_create_execute(
 
 pub fn androidmanagement_enterprises_web_tokens_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &WebToken,
+    args: &AndroidmanagementEnterprisesWebTokensCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WebToken>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_web_tokens_create_builder(client, parent, body)?;
+    let builder =
+        androidmanagement_enterprises_web_tokens_create_builder(client, &args.parent, &args.body)?;
     androidmanagement_enterprises_web_tokens_create_execute(builder)
 }
 
@@ -4295,6 +4631,13 @@ pub fn androidmanagement_provisioning_info_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_provisioning_info_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementProvisioningInfoGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/provisioningInfo/{provisioningInfoId}
 /// Get the device provisioning information by the identifier provided in the sign-in url.
 ///
@@ -4307,14 +4650,14 @@ pub fn androidmanagement_provisioning_info_get_execute(
 
 pub fn androidmanagement_provisioning_info_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroidmanagementProvisioningInfoGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProvisioningInfo>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_provisioning_info_get_builder(client, name)?;
+    let builder = androidmanagement_provisioning_info_get_builder(client, &args.name)?;
     androidmanagement_provisioning_info_get_execute(builder)
 }
 
@@ -4428,6 +4771,19 @@ pub fn androidmanagement_signup_urls_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androidmanagement_signup_urls_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroidmanagementSignupUrlsCreateArgs {
+    /// Query parameter: adminEmail
+    pub adminEmail: Option<String>,
+    /// Query parameter: allowedDomains
+    pub allowedDomains: Option<String>,
+    /// Query parameter: callbackUrl
+    pub callbackUrl: Option<String>,
+    /// Query parameter: projectId
+    pub projectId: Option<String>,
+}
+
 /// GET v1/signupUrls
 /// Creates an enterprise signup URL.
 ///
@@ -4440,20 +4796,17 @@ pub fn androidmanagement_signup_urls_create_execute(
 
 pub fn androidmanagement_signup_urls_create(
     client: &SimpleHttpClient,
-    adminEmail: Option<&str>,
-    allowedDomains: Option<&str>,
-    callbackUrl: Option<&str>,
-    projectId: Option<&str>,
+    args: &AndroidmanagementSignupUrlsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SignupUrl>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androidmanagement_signup_urls_create_builder(
         client,
-        adminEmail,
-        allowedDomains,
-        callbackUrl,
-        projectId,
+        args.adminEmail.as_deref(),
+        args.allowedDomains.as_deref(),
+        args.callbackUrl.as_deref(),
+        args.projectId.as_deref(),
     )?;
     androidmanagement_signup_urls_create_execute(builder)
 }

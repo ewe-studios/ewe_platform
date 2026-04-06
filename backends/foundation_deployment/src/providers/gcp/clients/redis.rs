@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn redis_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn redis_projects_locations_get_execute(
 
 pub fn redis_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RedisProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_get_builder(client, name)?;
+    let builder = redis_projects_locations_get_builder(client, &args.name)?;
     redis_projects_locations_get_execute(builder)
 }
 
@@ -221,6 +230,13 @@ pub fn redis_projects_locations_get_shared_regional_certificate_authority_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_get_shared_regional_certificate_authority`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsGetSharedRegionalCertificateAuthorityArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sharedRegionalCertificateAuthority
 /// Gets the details of regional certificate authority information for Redis cluster.
 ///
@@ -233,7 +249,7 @@ pub fn redis_projects_locations_get_shared_regional_certificate_authority_execut
 
 pub fn redis_projects_locations_get_shared_regional_certificate_authority(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RedisProjectsLocationsGetSharedRegionalCertificateAuthorityArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SharedRegionalCertificateAuthority>, ApiError>,
@@ -242,8 +258,9 @@ pub fn redis_projects_locations_get_shared_regional_certificate_authority(
         + 'static,
     ApiError,
 > {
-    let builder =
-        redis_projects_locations_get_shared_regional_certificate_authority_builder(client, name)?;
+    let builder = redis_projects_locations_get_shared_regional_certificate_authority_builder(
+        client, &args.name,
+    )?;
     redis_projects_locations_get_shared_regional_certificate_authority_execute(builder)
 }
 
@@ -363,6 +380,21 @@ pub fn redis_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -375,11 +407,7 @@ pub fn redis_projects_locations_list_execute(
 
 pub fn redis_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RedisProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -388,11 +416,11 @@ pub fn redis_projects_locations_list(
 > {
     let builder = redis_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     redis_projects_locations_list_execute(builder)
 }
@@ -506,6 +534,19 @@ pub fn redis_projects_locations_acl_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_acl_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsAclPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: aclPolicyId
+    pub aclPolicyId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: AclPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aclPolicies
 /// Creates an ACL Policy. The creation is executed synchronously and the policy is available for use immediately after the RPC returns.
 ///
@@ -518,20 +559,17 @@ pub fn redis_projects_locations_acl_policies_create_execute(
 
 pub fn redis_projects_locations_acl_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    aclPolicyId: Option<&str>,
-    requestId: Option<&str>,
-    body: &AclPolicy,
+    args: &RedisProjectsLocationsAclPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AclPolicy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = redis_projects_locations_acl_policies_create_builder(
         client,
-        parent,
-        aclPolicyId,
-        requestId,
-        body,
+        &args.parent,
+        args.aclPolicyId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     redis_projects_locations_acl_policies_create_execute(builder)
 }
@@ -642,6 +680,17 @@ pub fn redis_projects_locations_acl_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_acl_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsAclPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aclPolicies/{aclPoliciesId}
 /// Deletes a specific Acl Policy. This action will delete the Acl Policy and all the rules associated with it. An ACL policy cannot be deleted if it is attached to a cluster.
 ///
@@ -654,15 +703,17 @@ pub fn redis_projects_locations_acl_policies_delete_execute(
 
 pub fn redis_projects_locations_acl_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
+    args: &RedisProjectsLocationsAclPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        redis_projects_locations_acl_policies_delete_builder(client, name, etag, requestId)?;
+    let builder = redis_projects_locations_acl_policies_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+    )?;
     redis_projects_locations_acl_policies_delete_execute(builder)
 }
 
@@ -756,6 +807,13 @@ pub fn redis_projects_locations_acl_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_acl_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsAclPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aclPolicies/{aclPoliciesId}
 /// Gets the details of a specific Redis Cluster ACL Policy.
 ///
@@ -768,12 +826,12 @@ pub fn redis_projects_locations_acl_policies_get_execute(
 
 pub fn redis_projects_locations_acl_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RedisProjectsLocationsAclPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AclPolicy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_acl_policies_get_builder(client, name)?;
+    let builder = redis_projects_locations_acl_policies_get_builder(client, &args.name)?;
     redis_projects_locations_acl_policies_get_execute(builder)
 }
 
@@ -885,6 +943,17 @@ pub fn redis_projects_locations_acl_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_acl_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsAclPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aclPolicies
 /// Lists all ACL Policies owned by a project in either the specified location (region) or all locations. The location should have the following format: * `projects/{project_id}/locations/{location_id}` If location_id is specified as - (wildcard), then all regions available to the project are queried, and the results are aggregated.
 ///
@@ -897,17 +966,19 @@ pub fn redis_projects_locations_acl_policies_list_execute(
 
 pub fn redis_projects_locations_acl_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RedisProjectsLocationsAclPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAclPoliciesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        redis_projects_locations_acl_policies_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = redis_projects_locations_acl_policies_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     redis_projects_locations_acl_policies_list_execute(builder)
 }
 
@@ -1020,6 +1091,19 @@ pub fn redis_projects_locations_acl_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_acl_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsAclPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AclPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aclPolicies/{aclPoliciesId}
 /// Updates the ACL policy. The operation applies the updated ACL policy to all of the linked clusters. If Memorystore can apply the policy to all clusters, then the operation returns a SUCCESS status. If Memorystore can't apply the policy to all clusters, then to ensure eventual consistency, Memorystore uses reconciliation to apply the policy to the failed clusters. Completed longrunning.Operation will contain the new ACL Policy object in the response field.
 ///
@@ -1032,16 +1116,17 @@ pub fn redis_projects_locations_acl_policies_patch_execute(
 
 pub fn redis_projects_locations_acl_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AclPolicy,
+    args: &RedisProjectsLocationsAclPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = redis_projects_locations_acl_policies_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     redis_projects_locations_acl_policies_patch_execute(builder)
 }
@@ -1138,6 +1223,13 @@ pub fn redis_projects_locations_backup_collections_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_backup_collections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsBackupCollectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupCollections/{backupCollectionsId}
 /// Get a backup collection.
 ///
@@ -1150,14 +1242,14 @@ pub fn redis_projects_locations_backup_collections_get_execute(
 
 pub fn redis_projects_locations_backup_collections_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RedisProjectsLocationsBackupCollectionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BackupCollection>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_backup_collections_get_builder(client, name)?;
+    let builder = redis_projects_locations_backup_collections_get_builder(client, &args.name)?;
     redis_projects_locations_backup_collections_get_execute(builder)
 }
 
@@ -1271,6 +1363,17 @@ pub fn redis_projects_locations_backup_collections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_backup_collections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsBackupCollectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupCollections
 /// Lists all backup collections owned by a consumer project in either the specified location (region) or all locations. If location_id is specified as - (wildcard), then all regions available to the project are queried, and the results are aggregated.
 ///
@@ -1283,9 +1386,7 @@ pub fn redis_projects_locations_backup_collections_list_execute(
 
 pub fn redis_projects_locations_backup_collections_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RedisProjectsLocationsBackupCollectionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBackupCollectionsResponse>, ApiError>,
@@ -1295,7 +1396,10 @@ pub fn redis_projects_locations_backup_collections_list(
     ApiError,
 > {
     let builder = redis_projects_locations_backup_collections_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     redis_projects_locations_backup_collections_list_execute(builder)
 }
@@ -1402,6 +1506,15 @@ pub fn redis_projects_locations_backup_collections_backups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_backup_collections_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsBackupCollectionsBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupCollections/{backupCollectionsId}/backups/{backupsId}
 /// Deletes a specific backup.
 ///
@@ -1414,14 +1527,15 @@ pub fn redis_projects_locations_backup_collections_backups_delete_execute(
 
 pub fn redis_projects_locations_backup_collections_backups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &RedisProjectsLocationsBackupCollectionsBackupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = redis_projects_locations_backup_collections_backups_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     redis_projects_locations_backup_collections_backups_delete_execute(builder)
 }
@@ -1519,6 +1633,15 @@ pub fn redis_projects_locations_backup_collections_backups_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_backup_collections_backups_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsBackupCollectionsBackupsExportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExportBackupRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupCollections/{backupCollectionsId}/backups/{backupsId}:export
 /// Exports a specific backup to a customer target Cloud Storage URI.
 ///
@@ -1531,14 +1654,14 @@ pub fn redis_projects_locations_backup_collections_backups_export_execute(
 
 pub fn redis_projects_locations_backup_collections_backups_export(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExportBackupRequest,
+    args: &RedisProjectsLocationsBackupCollectionsBackupsExportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        redis_projects_locations_backup_collections_backups_export_builder(client, name, body)?;
+    let builder = redis_projects_locations_backup_collections_backups_export_builder(
+        client, &args.name, &args.body,
+    )?;
     redis_projects_locations_backup_collections_backups_export_execute(builder)
 }
 
@@ -1632,6 +1755,13 @@ pub fn redis_projects_locations_backup_collections_backups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_backup_collections_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsBackupCollectionsBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupCollections/{backupCollectionsId}/backups/{backupsId}
 /// Gets the details of a specific backup.
 ///
@@ -1644,12 +1774,13 @@ pub fn redis_projects_locations_backup_collections_backups_get_execute(
 
 pub fn redis_projects_locations_backup_collections_backups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RedisProjectsLocationsBackupCollectionsBackupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_backup_collections_backups_get_builder(client, name)?;
+    let builder =
+        redis_projects_locations_backup_collections_backups_get_builder(client, &args.name)?;
     redis_projects_locations_backup_collections_backups_get_execute(builder)
 }
 
@@ -1761,6 +1892,17 @@ pub fn redis_projects_locations_backup_collections_backups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_backup_collections_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsBackupCollectionsBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupCollections/{backupCollectionsId}/backups
 /// Lists all backups owned by a backup collection.
 ///
@@ -1773,9 +1915,7 @@ pub fn redis_projects_locations_backup_collections_backups_list_execute(
 
 pub fn redis_projects_locations_backup_collections_backups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RedisProjectsLocationsBackupCollectionsBackupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1783,7 +1923,10 @@ pub fn redis_projects_locations_backup_collections_backups_list(
     ApiError,
 > {
     let builder = redis_projects_locations_backup_collections_backups_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     redis_projects_locations_backup_collections_backups_list_execute(builder)
 }
@@ -1881,6 +2024,15 @@ pub fn redis_projects_locations_clusters_add_token_auth_user_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_clusters_add_token_auth_user`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsClustersAddTokenAuthUserArgs {
+    /// Path parameter: cluster
+    pub cluster: String,
+    /// Request body.
+    pub body: AddTokenAuthUserRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:addTokenAuthUser
 /// Adds a token auth user for a token based auth enabled cluster.
 ///
@@ -1893,14 +2045,16 @@ pub fn redis_projects_locations_clusters_add_token_auth_user_execute(
 
 pub fn redis_projects_locations_clusters_add_token_auth_user(
     client: &SimpleHttpClient,
-    cluster: &str,
-    body: &AddTokenAuthUserRequest,
+    args: &RedisProjectsLocationsClustersAddTokenAuthUserArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        redis_projects_locations_clusters_add_token_auth_user_builder(client, cluster, body)?;
+    let builder = redis_projects_locations_clusters_add_token_auth_user_builder(
+        client,
+        &args.cluster,
+        &args.body,
+    )?;
     redis_projects_locations_clusters_add_token_auth_user_execute(builder)
 }
 
@@ -1997,6 +2151,15 @@ pub fn redis_projects_locations_clusters_backup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_clusters_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsClustersBackupArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: BackupClusterRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:backup
 /// Backup Redis Cluster. If this is the first time a backup is being created, a backup collection will be created at the backend, and this backup belongs to this collection. Both collection and backup will have a resource name. Backup will be executed for each shard. A replica (primary if `nonHA`) will be selected to perform the execution. Backup call will be rejected if there is an ongoing backup or update operation. Be aware that during preview, if the cluster's internal software version is too old, critical update will be performed before actual backup. Once the internal software version is updated to the minimum version required by the backup feature, subsequent backups will not require critical update. After preview, there will be no critical update needed for backup.
 ///
@@ -2009,13 +2172,12 @@ pub fn redis_projects_locations_clusters_backup_execute(
 
 pub fn redis_projects_locations_clusters_backup(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &BackupClusterRequest,
+    args: &RedisProjectsLocationsClustersBackupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_clusters_backup_builder(client, name, body)?;
+    let builder = redis_projects_locations_clusters_backup_builder(client, &args.name, &args.body)?;
     redis_projects_locations_clusters_backup_execute(builder)
 }
 
@@ -2128,6 +2290,19 @@ pub fn redis_projects_locations_clusters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: clusterId
+    pub clusterId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Cluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
 /// Creates a Redis cluster based on the specified properties. The creation is executed asynchronously and callers may check the returned operation to track its progress. Once the operation is completed the Redis cluster will be fully functional. The completed longrunning.Operation will contain the new cluster object in the response field. The returned operation is automatically deleted after a few hours, so there is no need to call DeleteOperation.
 ///
@@ -2140,16 +2315,17 @@ pub fn redis_projects_locations_clusters_create_execute(
 
 pub fn redis_projects_locations_clusters_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    clusterId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Cluster,
+    args: &RedisProjectsLocationsClustersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = redis_projects_locations_clusters_create_builder(
-        client, parent, clusterId, requestId, body,
+        client,
+        &args.parent,
+        args.clusterId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     redis_projects_locations_clusters_create_execute(builder)
 }
@@ -2256,6 +2432,15 @@ pub fn redis_projects_locations_clusters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
 /// Deletes a specific Redis cluster. Cluster stops serving and data is deleted.
 ///
@@ -2268,13 +2453,16 @@ pub fn redis_projects_locations_clusters_delete_execute(
 
 pub fn redis_projects_locations_clusters_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &RedisProjectsLocationsClustersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_clusters_delete_builder(client, name, requestId)?;
+    let builder = redis_projects_locations_clusters_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     redis_projects_locations_clusters_delete_execute(builder)
 }
 
@@ -2368,6 +2556,13 @@ pub fn redis_projects_locations_clusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
 /// Gets the details of a specific Redis cluster.
 ///
@@ -2380,12 +2575,12 @@ pub fn redis_projects_locations_clusters_get_execute(
 
 pub fn redis_projects_locations_clusters_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RedisProjectsLocationsClustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_clusters_get_builder(client, name)?;
+    let builder = redis_projects_locations_clusters_get_builder(client, &args.name)?;
     redis_projects_locations_clusters_get_execute(builder)
 }
 
@@ -2481,6 +2676,13 @@ pub fn redis_projects_locations_clusters_get_certificate_authority_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_clusters_get_certificate_authority`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsClustersGetCertificateAuthorityArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/certificateAuthority
 /// Gets the details of certificate authority information for Redis cluster.
 ///
@@ -2493,7 +2695,7 @@ pub fn redis_projects_locations_clusters_get_certificate_authority_execute(
 
 pub fn redis_projects_locations_clusters_get_certificate_authority(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RedisProjectsLocationsClustersGetCertificateAuthorityArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateAuthority>, ApiError>, P = ApiPending>
         + Send
@@ -2501,7 +2703,7 @@ pub fn redis_projects_locations_clusters_get_certificate_authority(
     ApiError,
 > {
     let builder =
-        redis_projects_locations_clusters_get_certificate_authority_builder(client, name)?;
+        redis_projects_locations_clusters_get_certificate_authority_builder(client, &args.name)?;
     redis_projects_locations_clusters_get_certificate_authority_execute(builder)
 }
 
@@ -2613,6 +2815,17 @@ pub fn redis_projects_locations_clusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
 /// Lists all Redis clusters owned by a project in either the specified location (region) or all locations. The location should have the following format: * `projects/{project_id}/locations/{location_id}` If location_id is specified as - (wildcard), then all regions available to the project are queried, and the results are aggregated.
 ///
@@ -2625,17 +2838,19 @@ pub fn redis_projects_locations_clusters_list_execute(
 
 pub fn redis_projects_locations_clusters_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RedisProjectsLocationsClustersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        redis_projects_locations_clusters_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = redis_projects_locations_clusters_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     redis_projects_locations_clusters_list_execute(builder)
 }
 
@@ -2748,6 +2963,19 @@ pub fn redis_projects_locations_clusters_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsClustersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Cluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
 /// Updates the metadata and configuration of a specific Redis cluster. Completed longrunning.Operation will contain the new cluster object in the response field. The returned operation is automatically deleted after a few hours, so there is no need to call DeleteOperation.
 ///
@@ -2760,16 +2988,18 @@ pub fn redis_projects_locations_clusters_patch_execute(
 
 pub fn redis_projects_locations_clusters_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Cluster,
+    args: &RedisProjectsLocationsClustersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        redis_projects_locations_clusters_patch_builder(client, name, requestId, updateMask, body)?;
+    let builder = redis_projects_locations_clusters_patch_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     redis_projects_locations_clusters_patch_execute(builder)
 }
 
@@ -2866,6 +3096,15 @@ pub fn redis_projects_locations_clusters_reschedule_cluster_maintenance_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_clusters_reschedule_cluster_maintenance`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsClustersRescheduleClusterMaintenanceArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RescheduleClusterMaintenanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:rescheduleClusterMaintenance
 /// Reschedules upcoming maintenance event.
 ///
@@ -2878,14 +3117,13 @@ pub fn redis_projects_locations_clusters_reschedule_cluster_maintenance_execute(
 
 pub fn redis_projects_locations_clusters_reschedule_cluster_maintenance(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RescheduleClusterMaintenanceRequest,
+    args: &RedisProjectsLocationsClustersRescheduleClusterMaintenanceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = redis_projects_locations_clusters_reschedule_cluster_maintenance_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     redis_projects_locations_clusters_reschedule_cluster_maintenance_execute(builder)
 }
@@ -2983,6 +3221,15 @@ pub fn redis_projects_locations_clusters_token_auth_users_add_auth_token_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_clusters_token_auth_users_add_auth_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsClustersTokenAuthUsersAddAuthTokenArgs {
+    /// Path parameter: tokenAuthUser
+    pub tokenAuthUser: String,
+    /// Request body.
+    pub body: AddAuthTokenRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/tokenAuthUsers/{tokenAuthUsersId}:addAuthToken
 /// Adds a auth token for a user of a token based auth enabled cluster.
 ///
@@ -2995,16 +3242,15 @@ pub fn redis_projects_locations_clusters_token_auth_users_add_auth_token_execute
 
 pub fn redis_projects_locations_clusters_token_auth_users_add_auth_token(
     client: &SimpleHttpClient,
-    tokenAuthUser: &str,
-    body: &AddAuthTokenRequest,
+    args: &RedisProjectsLocationsClustersTokenAuthUsersAddAuthTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = redis_projects_locations_clusters_token_auth_users_add_auth_token_builder(
         client,
-        tokenAuthUser,
-        body,
+        &args.tokenAuthUser,
+        &args.body,
     )?;
     redis_projects_locations_clusters_token_auth_users_add_auth_token_execute(builder)
 }
@@ -3115,6 +3361,17 @@ pub fn redis_projects_locations_clusters_token_auth_users_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_clusters_token_auth_users_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsClustersTokenAuthUsersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/tokenAuthUsers/{tokenAuthUsersId}
 /// Deletes a token auth user for a token based auth enabled cluster.
 ///
@@ -3127,15 +3384,16 @@ pub fn redis_projects_locations_clusters_token_auth_users_delete_execute(
 
 pub fn redis_projects_locations_clusters_token_auth_users_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    requestId: Option<&str>,
+    args: &RedisProjectsLocationsClustersTokenAuthUsersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = redis_projects_locations_clusters_token_auth_users_delete_builder(
-        client, name, force, requestId,
+        client,
+        &args.name,
+        args.force,
+        args.requestId.as_deref(),
     )?;
     redis_projects_locations_clusters_token_auth_users_delete_execute(builder)
 }
@@ -3232,6 +3490,13 @@ pub fn redis_projects_locations_clusters_token_auth_users_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_clusters_token_auth_users_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsClustersTokenAuthUsersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/tokenAuthUsers/{tokenAuthUsersId}
 /// Gets a specific token auth user for a basic auth enabled cluster.
 ///
@@ -3244,14 +3509,15 @@ pub fn redis_projects_locations_clusters_token_auth_users_get_execute(
 
 pub fn redis_projects_locations_clusters_token_auth_users_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RedisProjectsLocationsClustersTokenAuthUsersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TokenAuthUser>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_clusters_token_auth_users_get_builder(client, name)?;
+    let builder =
+        redis_projects_locations_clusters_token_auth_users_get_builder(client, &args.name)?;
     redis_projects_locations_clusters_token_auth_users_get_execute(builder)
 }
 
@@ -3373,6 +3639,21 @@ pub fn redis_projects_locations_clusters_token_auth_users_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_clusters_token_auth_users_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsClustersTokenAuthUsersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/tokenAuthUsers
 /// Lists all the token auth users for a token based auth enabled cluster.
 ///
@@ -3385,11 +3666,7 @@ pub fn redis_projects_locations_clusters_token_auth_users_list_execute(
 
 pub fn redis_projects_locations_clusters_token_auth_users_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RedisProjectsLocationsClustersTokenAuthUsersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListTokenAuthUsersResponse>, ApiError>,
@@ -3399,7 +3676,12 @@ pub fn redis_projects_locations_clusters_token_auth_users_list(
     ApiError,
 > {
     let builder = redis_projects_locations_clusters_token_auth_users_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     redis_projects_locations_clusters_token_auth_users_list_execute(builder)
 }
@@ -3494,6 +3776,13 @@ pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_delete_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_clusters_token_auth_users_auth_tokens_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsClustersTokenAuthUsersAuthTokensDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/tokenAuthUsers/{tokenAuthUsersId}/authTokens/{authTokensId}
 /// Removes a auth token for a user of a token based auth enabled instance.
 ///
@@ -3506,13 +3795,13 @@ pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_delete_exe
 
 pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RedisProjectsLocationsClustersTokenAuthUsersAuthTokensDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = redis_projects_locations_clusters_token_auth_users_auth_tokens_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     redis_projects_locations_clusters_token_auth_users_auth_tokens_delete_execute(builder)
 }
@@ -3607,6 +3896,13 @@ pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_clusters_token_auth_users_auth_tokens_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsClustersTokenAuthUsersAuthTokensGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/tokenAuthUsers/{tokenAuthUsersId}/authTokens/{authTokensId}
 /// Gets a specific auth token for a specific token auth user.
 ///
@@ -3619,13 +3915,14 @@ pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_get_execut
 
 pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RedisProjectsLocationsClustersTokenAuthUsersAuthTokensGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthToken>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        redis_projects_locations_clusters_token_auth_users_auth_tokens_get_builder(client, name)?;
+    let builder = redis_projects_locations_clusters_token_auth_users_auth_tokens_get_builder(
+        client, &args.name,
+    )?;
     redis_projects_locations_clusters_token_auth_users_auth_tokens_get_execute(builder)
 }
 
@@ -3745,6 +4042,21 @@ pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_clusters_token_auth_users_auth_tokens_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsClustersTokenAuthUsersAuthTokensListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/tokenAuthUsers/{tokenAuthUsersId}/authTokens
 /// Lists all the auth tokens for a specific token auth user.
 ///
@@ -3757,11 +4069,7 @@ pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_list_execu
 
 pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RedisProjectsLocationsClustersTokenAuthUsersAuthTokensListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAuthTokensResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3769,7 +4077,12 @@ pub fn redis_projects_locations_clusters_token_auth_users_auth_tokens_list(
     ApiError,
 > {
     let builder = redis_projects_locations_clusters_token_auth_users_auth_tokens_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     redis_projects_locations_clusters_token_auth_users_auth_tokens_list_execute(builder)
 }
@@ -3879,6 +4192,17 @@ pub fn redis_projects_locations_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: instanceId
+    pub instanceId: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
 /// Creates a Redis instance based on the specified tier and memory size. By default, the instance is accessible from the project's [default network](<https://cloud.google.`com/vpc/docs/vpc`>). The creation is executed asynchronously and callers may check the returned operation to track its progress. Once the operation is completed the Redis instance will be fully functional. Completed longrunning.Operation will contain the new instance object in the response field. The returned operation is automatically deleted after a few hours, so there is no need to call DeleteOperation.
 ///
@@ -3891,15 +4215,17 @@ pub fn redis_projects_locations_instances_create_execute(
 
 pub fn redis_projects_locations_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    instanceId: Option<&str>,
-    body: &Instance,
+    args: &RedisProjectsLocationsInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        redis_projects_locations_instances_create_builder(client, parent, instanceId, body)?;
+    let builder = redis_projects_locations_instances_create_builder(
+        client,
+        &args.parent,
+        args.instanceId.as_deref(),
+        &args.body,
+    )?;
     redis_projects_locations_instances_create_execute(builder)
 }
 
@@ -3993,6 +4319,13 @@ pub fn redis_projects_locations_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Deletes a specific Redis instance. Instance stops serving and data is deleted.
 ///
@@ -4005,12 +4338,12 @@ pub fn redis_projects_locations_instances_delete_execute(
 
 pub fn redis_projects_locations_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RedisProjectsLocationsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_instances_delete_builder(client, name)?;
+    let builder = redis_projects_locations_instances_delete_builder(client, &args.name)?;
     redis_projects_locations_instances_delete_execute(builder)
 }
 
@@ -4107,6 +4440,15 @@ pub fn redis_projects_locations_instances_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_instances_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsInstancesExportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExportInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:export
 /// Export Redis instance data into a Redis RDB format file in Cloud Storage. Redis will continue serving during this operation. The returned operation is automatically deleted after a few hours, so there is no need to call DeleteOperation.
 ///
@@ -4119,13 +4461,13 @@ pub fn redis_projects_locations_instances_export_execute(
 
 pub fn redis_projects_locations_instances_export(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExportInstanceRequest,
+    args: &RedisProjectsLocationsInstancesExportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_instances_export_builder(client, name, body)?;
+    let builder =
+        redis_projects_locations_instances_export_builder(client, &args.name, &args.body)?;
     redis_projects_locations_instances_export_execute(builder)
 }
 
@@ -4222,6 +4564,15 @@ pub fn redis_projects_locations_instances_failover_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_instances_failover`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsInstancesFailoverArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: FailoverInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:failover
 /// Initiates a failover of the primary node to current replica node for a specific STANDARD tier Cloud Memorystore for Redis instance.
 ///
@@ -4234,13 +4585,13 @@ pub fn redis_projects_locations_instances_failover_execute(
 
 pub fn redis_projects_locations_instances_failover(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &FailoverInstanceRequest,
+    args: &RedisProjectsLocationsInstancesFailoverArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_instances_failover_builder(client, name, body)?;
+    let builder =
+        redis_projects_locations_instances_failover_builder(client, &args.name, &args.body)?;
     redis_projects_locations_instances_failover_execute(builder)
 }
 
@@ -4334,6 +4685,13 @@ pub fn redis_projects_locations_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Gets the details of a specific Redis instance.
 ///
@@ -4346,12 +4704,12 @@ pub fn redis_projects_locations_instances_get_execute(
 
 pub fn redis_projects_locations_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RedisProjectsLocationsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_instances_get_builder(client, name)?;
+    let builder = redis_projects_locations_instances_get_builder(client, &args.name)?;
     redis_projects_locations_instances_get_execute(builder)
 }
 
@@ -4447,6 +4805,13 @@ pub fn redis_projects_locations_instances_get_auth_string_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_instances_get_auth_string`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsInstancesGetAuthStringArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}/authString
 /// Gets the AUTH string for a Redis instance. If AUTH is not enabled for the instance the response will be empty. This information is not included in the details returned to GetInstance.
 ///
@@ -4459,14 +4824,14 @@ pub fn redis_projects_locations_instances_get_auth_string_execute(
 
 pub fn redis_projects_locations_instances_get_auth_string(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RedisProjectsLocationsInstancesGetAuthStringArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InstanceAuthString>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_instances_get_auth_string_builder(client, name)?;
+    let builder = redis_projects_locations_instances_get_auth_string_builder(client, &args.name)?;
     redis_projects_locations_instances_get_auth_string_execute(builder)
 }
 
@@ -4563,6 +4928,15 @@ pub fn redis_projects_locations_instances_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_instances_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsInstancesImportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ImportInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:import
 /// Import a Redis RDB snapshot file from Cloud Storage into a Redis instance. Redis may stop serving during this operation. Instance state will be IMPORTING for entire operation. When complete, the instance will contain only data from the imported file. The returned operation is automatically deleted after a few hours, so there is no need to call DeleteOperation.
 ///
@@ -4575,13 +4949,13 @@ pub fn redis_projects_locations_instances_import_execute(
 
 pub fn redis_projects_locations_instances_import(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ImportInstanceRequest,
+    args: &RedisProjectsLocationsInstancesImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_instances_import_builder(client, name, body)?;
+    let builder =
+        redis_projects_locations_instances_import_builder(client, &args.name, &args.body)?;
     redis_projects_locations_instances_import_execute(builder)
 }
 
@@ -4693,6 +5067,17 @@ pub fn redis_projects_locations_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
 /// Lists all Redis instances owned by a project in either the specified location (region) or all locations. The location should have the following format: * `projects/{project_id}/locations/{location_id}` If location_id is specified as - (wildcard), then all regions available to the project are queried, and the results are aggregated.
 ///
@@ -4705,17 +5090,19 @@ pub fn redis_projects_locations_instances_list_execute(
 
 pub fn redis_projects_locations_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RedisProjectsLocationsInstancesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        redis_projects_locations_instances_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = redis_projects_locations_instances_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     redis_projects_locations_instances_list_execute(builder)
 }
 
@@ -4824,6 +5211,17 @@ pub fn redis_projects_locations_instances_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Updates the metadata and configuration of a specific Redis instance. Completed longrunning.Operation will contain the new instance object in the response field. The returned operation is automatically deleted after a few hours, so there is no need to call DeleteOperation.
 ///
@@ -4836,14 +5234,17 @@ pub fn redis_projects_locations_instances_patch_execute(
 
 pub fn redis_projects_locations_instances_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Instance,
+    args: &RedisProjectsLocationsInstancesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_instances_patch_builder(client, name, updateMask, body)?;
+    let builder = redis_projects_locations_instances_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     redis_projects_locations_instances_patch_execute(builder)
 }
 
@@ -4940,6 +5341,15 @@ pub fn redis_projects_locations_instances_reschedule_maintenance_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_instances_reschedule_maintenance`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsInstancesRescheduleMaintenanceArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RescheduleMaintenanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:rescheduleMaintenance
 /// Reschedule maintenance for a given instance in a given project and location.
 ///
@@ -4952,14 +5362,14 @@ pub fn redis_projects_locations_instances_reschedule_maintenance_execute(
 
 pub fn redis_projects_locations_instances_reschedule_maintenance(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RescheduleMaintenanceRequest,
+    args: &RedisProjectsLocationsInstancesRescheduleMaintenanceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        redis_projects_locations_instances_reschedule_maintenance_builder(client, name, body)?;
+    let builder = redis_projects_locations_instances_reschedule_maintenance_builder(
+        client, &args.name, &args.body,
+    )?;
     redis_projects_locations_instances_reschedule_maintenance_execute(builder)
 }
 
@@ -5056,6 +5466,15 @@ pub fn redis_projects_locations_instances_upgrade_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_instances_upgrade`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsInstancesUpgradeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpgradeInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:upgrade
 /// Upgrades Redis instance to the newer Redis version specified in the request.
 ///
@@ -5068,13 +5487,13 @@ pub fn redis_projects_locations_instances_upgrade_execute(
 
 pub fn redis_projects_locations_instances_upgrade(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpgradeInstanceRequest,
+    args: &RedisProjectsLocationsInstancesUpgradeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_instances_upgrade_builder(client, name, body)?;
+    let builder =
+        redis_projects_locations_instances_upgrade_builder(client, &args.name, &args.body)?;
     redis_projects_locations_instances_upgrade_execute(builder)
 }
 
@@ -5168,6 +5587,13 @@ pub fn redis_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -5180,12 +5606,12 @@ pub fn redis_projects_locations_operations_cancel_execute(
 
 pub fn redis_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RedisProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_operations_cancel_builder(client, name)?;
+    let builder = redis_projects_locations_operations_cancel_builder(client, &args.name)?;
     redis_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -5279,6 +5705,13 @@ pub fn redis_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -5291,12 +5724,12 @@ pub fn redis_projects_locations_operations_delete_execute(
 
 pub fn redis_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RedisProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_operations_delete_builder(client, name)?;
+    let builder = redis_projects_locations_operations_delete_builder(client, &args.name)?;
     redis_projects_locations_operations_delete_execute(builder)
 }
 
@@ -5390,6 +5823,13 @@ pub fn redis_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -5402,12 +5842,12 @@ pub fn redis_projects_locations_operations_get_execute(
 
 pub fn redis_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RedisProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = redis_projects_locations_operations_get_builder(client, name)?;
+    let builder = redis_projects_locations_operations_get_builder(client, &args.name)?;
     redis_projects_locations_operations_get_execute(builder)
 }
 
@@ -5527,6 +5967,21 @@ pub fn redis_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`redis_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RedisProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -5539,11 +5994,7 @@ pub fn redis_projects_locations_operations_list_execute(
 
 pub fn redis_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &RedisProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5552,11 +6003,11 @@ pub fn redis_projects_locations_operations_list(
 > {
     let builder = redis_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     redis_projects_locations_operations_list_execute(builder)
 }

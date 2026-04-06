@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
@@ -109,6 +111,15 @@ pub fn texttospeech_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`texttospeech_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TexttospeechOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -121,13 +132,12 @@ pub fn texttospeech_operations_cancel_execute(
 
 pub fn texttospeech_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &TexttospeechOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = texttospeech_operations_cancel_builder(client, name, body)?;
+    let builder = texttospeech_operations_cancel_builder(client, &args.name, &args.body)?;
     texttospeech_operations_cancel_execute(builder)
 }
 
@@ -218,6 +228,13 @@ pub fn texttospeech_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`texttospeech_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TexttospeechOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -230,12 +247,12 @@ pub fn texttospeech_operations_delete_execute(
 
 pub fn texttospeech_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TexttospeechOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = texttospeech_operations_delete_builder(client, name)?;
+    let builder = texttospeech_operations_delete_builder(client, &args.name)?;
     texttospeech_operations_delete_execute(builder)
 }
 
@@ -332,6 +349,15 @@ pub fn texttospeech_projects_locations_synthesize_long_audio_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`texttospeech_projects_locations_synthesize_long_audio`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TexttospeechProjectsLocationsSynthesizeLongAudioArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SynthesizeLongAudioRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:synthesizeLongAudio
 /// Synthesizes long form text asynchronously.
 ///
@@ -344,14 +370,16 @@ pub fn texttospeech_projects_locations_synthesize_long_audio_execute(
 
 pub fn texttospeech_projects_locations_synthesize_long_audio(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SynthesizeLongAudioRequest,
+    args: &TexttospeechProjectsLocationsSynthesizeLongAudioArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        texttospeech_projects_locations_synthesize_long_audio_builder(client, parent, body)?;
+    let builder = texttospeech_projects_locations_synthesize_long_audio_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     texttospeech_projects_locations_synthesize_long_audio_execute(builder)
 }
 
@@ -445,6 +473,13 @@ pub fn texttospeech_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`texttospeech_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TexttospeechProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -457,12 +492,12 @@ pub fn texttospeech_projects_locations_operations_get_execute(
 
 pub fn texttospeech_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TexttospeechProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = texttospeech_projects_locations_operations_get_builder(client, name)?;
+    let builder = texttospeech_projects_locations_operations_get_builder(client, &args.name)?;
     texttospeech_projects_locations_operations_get_execute(builder)
 }
 
@@ -582,6 +617,21 @@ pub fn texttospeech_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`texttospeech_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TexttospeechProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -594,11 +644,7 @@ pub fn texttospeech_projects_locations_operations_list_execute(
 
 pub fn texttospeech_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &TexttospeechProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -607,11 +653,11 @@ pub fn texttospeech_projects_locations_operations_list(
 > {
     let builder = texttospeech_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     texttospeech_projects_locations_operations_list_execute(builder)
 }
@@ -707,6 +753,13 @@ pub fn texttospeech_text_synthesize_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`texttospeech_text_synthesize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TexttospeechTextSynthesizeArgs {
+    /// Request body.
+    pub body: SynthesizeSpeechRequest,
+}
+
 /// GET v1/text:synthesize
 /// Synthesizes speech synchronously: receive results after all text input has been processed.
 ///
@@ -719,14 +772,14 @@ pub fn texttospeech_text_synthesize_execute(
 
 pub fn texttospeech_text_synthesize(
     client: &SimpleHttpClient,
-    body: &SynthesizeSpeechRequest,
+    args: &TexttospeechTextSynthesizeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SynthesizeSpeechResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = texttospeech_text_synthesize_builder(client, body)?;
+    let builder = texttospeech_text_synthesize_builder(client, &args.body)?;
     texttospeech_text_synthesize_execute(builder)
 }
 
@@ -830,6 +883,13 @@ pub fn texttospeech_voices_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`texttospeech_voices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TexttospeechVoicesListArgs {
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET v1/voices
 /// Returns a list of Voice supported for synthesis.
 ///
@@ -842,13 +902,13 @@ pub fn texttospeech_voices_list_execute(
 
 pub fn texttospeech_voices_list(
     client: &SimpleHttpClient,
-    languageCode: Option<&str>,
+    args: &TexttospeechVoicesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListVoicesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = texttospeech_voices_list_builder(client, languageCode)?;
+    let builder = texttospeech_voices_list_builder(client, args.languageCode.as_deref())?;
     texttospeech_voices_list_execute(builder)
 }

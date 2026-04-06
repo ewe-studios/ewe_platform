@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
@@ -106,6 +108,13 @@ pub fn bigtableadmin_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -118,12 +127,12 @@ pub fn bigtableadmin_operations_get_execute(
 
 pub fn bigtableadmin_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigtableadminOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_operations_get_builder(client, name)?;
+    let builder = bigtableadmin_operations_get_builder(client, &args.name)?;
     bigtableadmin_operations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn bigtableadmin_operations_projects_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_operations_projects_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminOperationsProjectsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/operations/projects/{projectsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -255,11 +279,7 @@ pub fn bigtableadmin_operations_projects_operations_list_execute(
 
 pub fn bigtableadmin_operations_projects_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &BigtableadminOperationsProjectsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn bigtableadmin_operations_projects_operations_list(
 > {
     let builder = bigtableadmin_operations_projects_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     bigtableadmin_operations_projects_operations_list_execute(builder)
 }
@@ -370,6 +390,15 @@ pub fn bigtableadmin_projects_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateInstanceRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances
 /// Create an instance within a project. Note that exactly one of Cluster.serve_nodes and Cluster.cluster_config.cluster_autoscaling_config can be set. If serve_nodes is set to non-zero, then the cluster is manually scaled. If cluster_config.cluster_autoscaling_config is non-empty, then autoscaling is enabled.
 ///
@@ -382,13 +411,13 @@ pub fn bigtableadmin_projects_instances_create_execute(
 
 pub fn bigtableadmin_projects_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateInstanceRequest,
+    args: &BigtableadminProjectsInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_create_builder(client, parent, body)?;
+    let builder =
+        bigtableadmin_projects_instances_create_builder(client, &args.parent, &args.body)?;
     bigtableadmin_projects_instances_create_execute(builder)
 }
 
@@ -482,6 +511,13 @@ pub fn bigtableadmin_projects_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}
 /// Delete an instance from a project.
 ///
@@ -494,12 +530,12 @@ pub fn bigtableadmin_projects_instances_delete_execute(
 
 pub fn bigtableadmin_projects_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigtableadminProjectsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_delete_builder(client, name)?;
+    let builder = bigtableadmin_projects_instances_delete_builder(client, &args.name)?;
     bigtableadmin_projects_instances_delete_execute(builder)
 }
 
@@ -593,6 +629,13 @@ pub fn bigtableadmin_projects_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}
 /// Gets information about an instance.
 ///
@@ -605,12 +648,12 @@ pub fn bigtableadmin_projects_instances_get_execute(
 
 pub fn bigtableadmin_projects_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigtableadminProjectsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_get_builder(client, name)?;
+    let builder = bigtableadmin_projects_instances_get_builder(client, &args.name)?;
     bigtableadmin_projects_instances_get_execute(builder)
 }
 
@@ -707,6 +750,15 @@ pub fn bigtableadmin_projects_instances_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}:getIamPolicy
 /// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set.
 ///
@@ -719,13 +771,16 @@ pub fn bigtableadmin_projects_instances_get_iam_policy_execute(
 
 pub fn bigtableadmin_projects_instances_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &BigtableadminProjectsInstancesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_get_iam_policy_builder(client, resource, body)?;
+    let builder = bigtableadmin_projects_instances_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     bigtableadmin_projects_instances_get_iam_policy_execute(builder)
 }
 
@@ -833,6 +888,15 @@ pub fn bigtableadmin_projects_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances
 /// Lists information about instances in a project.
 ///
@@ -845,15 +909,18 @@ pub fn bigtableadmin_projects_instances_list_execute(
 
 pub fn bigtableadmin_projects_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageToken: Option<&str>,
+    args: &BigtableadminProjectsInstancesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_list_builder(client, parent, pageToken)?;
+    let builder = bigtableadmin_projects_instances_list_builder(
+        client,
+        &args.parent,
+        args.pageToken.as_deref(),
+    )?;
     bigtableadmin_projects_instances_list_execute(builder)
 }
 
@@ -962,6 +1029,17 @@ pub fn bigtableadmin_projects_instances_partial_update_instance_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_partial_update_instance`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesPartialUpdateInstanceArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}
 /// Partially updates an instance within a project. This method can modify all fields of an Instance and is the preferred way to update an Instance.
 ///
@@ -974,15 +1052,16 @@ pub fn bigtableadmin_projects_instances_partial_update_instance_execute(
 
 pub fn bigtableadmin_projects_instances_partial_update_instance(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Instance,
+    args: &BigtableadminProjectsInstancesPartialUpdateInstanceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_partial_update_instance_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     bigtableadmin_projects_instances_partial_update_instance_execute(builder)
 }
@@ -1080,6 +1159,15 @@ pub fn bigtableadmin_projects_instances_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}:setIamPolicy
 /// Sets the access control policy on an instance resource. Replaces any existing policy.
 ///
@@ -1092,13 +1180,16 @@ pub fn bigtableadmin_projects_instances_set_iam_policy_execute(
 
 pub fn bigtableadmin_projects_instances_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BigtableadminProjectsInstancesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_set_iam_policy_builder(client, resource, body)?;
+    let builder = bigtableadmin_projects_instances_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     bigtableadmin_projects_instances_set_iam_policy_execute(builder)
 }
 
@@ -1199,6 +1290,15 @@ pub fn bigtableadmin_projects_instances_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}:testIamPermissions
 /// Returns permissions that the caller has on the specified instance resource.
 ///
@@ -1211,8 +1311,7 @@ pub fn bigtableadmin_projects_instances_test_iam_permissions_execute(
 
 pub fn bigtableadmin_projects_instances_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BigtableadminProjectsInstancesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1221,8 +1320,11 @@ pub fn bigtableadmin_projects_instances_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        bigtableadmin_projects_instances_test_iam_permissions_builder(client, resource, body)?;
+    let builder = bigtableadmin_projects_instances_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     bigtableadmin_projects_instances_test_iam_permissions_execute(builder)
 }
 
@@ -1319,6 +1421,15 @@ pub fn bigtableadmin_projects_instances_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}
 /// Updates an instance within a project. This method updates only the display name and type for an Instance. To update other Instance properties, such as labels, use PartialUpdateInstance.
 ///
@@ -1331,13 +1442,12 @@ pub fn bigtableadmin_projects_instances_update_execute(
 
 pub fn bigtableadmin_projects_instances_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &Instance,
+    args: &BigtableadminProjectsInstancesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_update_builder(client, name, body)?;
+    let builder = bigtableadmin_projects_instances_update_builder(client, &args.name, &args.body)?;
     bigtableadmin_projects_instances_update_execute(builder)
 }
 
@@ -1450,6 +1560,19 @@ pub fn bigtableadmin_projects_instances_app_profiles_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_app_profiles_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesAppProfilesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: appProfileId
+    pub appProfileId: Option<String>,
+    /// Query parameter: ignoreWarnings
+    pub ignoreWarnings: Option<bool>,
+    /// Request body.
+    pub body: AppProfile,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/appProfiles
 /// Creates an app profile within an instance.
 ///
@@ -1462,20 +1585,17 @@ pub fn bigtableadmin_projects_instances_app_profiles_create_execute(
 
 pub fn bigtableadmin_projects_instances_app_profiles_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    appProfileId: Option<&str>,
-    ignoreWarnings: Option<bool>,
-    body: &AppProfile,
+    args: &BigtableadminProjectsInstancesAppProfilesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppProfile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_app_profiles_create_builder(
         client,
-        parent,
-        appProfileId,
-        ignoreWarnings,
-        body,
+        &args.parent,
+        args.appProfileId.as_deref(),
+        args.ignoreWarnings,
+        &args.body,
     )?;
     bigtableadmin_projects_instances_app_profiles_create_execute(builder)
 }
@@ -1582,6 +1702,15 @@ pub fn bigtableadmin_projects_instances_app_profiles_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_app_profiles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesAppProfilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: ignoreWarnings
+    pub ignoreWarnings: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
 /// Deletes an app profile from an instance.
 ///
@@ -1594,14 +1723,16 @@ pub fn bigtableadmin_projects_instances_app_profiles_delete_execute(
 
 pub fn bigtableadmin_projects_instances_app_profiles_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    ignoreWarnings: Option<bool>,
+    args: &BigtableadminProjectsInstancesAppProfilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigtableadmin_projects_instances_app_profiles_delete_builder(client, name, ignoreWarnings)?;
+    let builder = bigtableadmin_projects_instances_app_profiles_delete_builder(
+        client,
+        &args.name,
+        args.ignoreWarnings,
+    )?;
     bigtableadmin_projects_instances_app_profiles_delete_execute(builder)
 }
 
@@ -1695,6 +1826,13 @@ pub fn bigtableadmin_projects_instances_app_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_app_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesAppProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
 /// Gets information about an app profile.
 ///
@@ -1707,12 +1845,12 @@ pub fn bigtableadmin_projects_instances_app_profiles_get_execute(
 
 pub fn bigtableadmin_projects_instances_app_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigtableadminProjectsInstancesAppProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppProfile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_app_profiles_get_builder(client, name)?;
+    let builder = bigtableadmin_projects_instances_app_profiles_get_builder(client, &args.name)?;
     bigtableadmin_projects_instances_app_profiles_get_execute(builder)
 }
 
@@ -1824,6 +1962,17 @@ pub fn bigtableadmin_projects_instances_app_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_app_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesAppProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/appProfiles
 /// Lists information about app profiles in an instance.
 ///
@@ -1836,9 +1985,7 @@ pub fn bigtableadmin_projects_instances_app_profiles_list_execute(
 
 pub fn bigtableadmin_projects_instances_app_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigtableadminProjectsInstancesAppProfilesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAppProfilesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1846,7 +1993,10 @@ pub fn bigtableadmin_projects_instances_app_profiles_list(
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_app_profiles_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigtableadmin_projects_instances_app_profiles_list_execute(builder)
 }
@@ -1960,6 +2110,19 @@ pub fn bigtableadmin_projects_instances_app_profiles_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_app_profiles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesAppProfilesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: ignoreWarnings
+    pub ignoreWarnings: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AppProfile,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
 /// Updates an app profile within an instance.
 ///
@@ -1972,20 +2135,17 @@ pub fn bigtableadmin_projects_instances_app_profiles_patch_execute(
 
 pub fn bigtableadmin_projects_instances_app_profiles_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    ignoreWarnings: Option<bool>,
-    updateMask: Option<&str>,
-    body: &AppProfile,
+    args: &BigtableadminProjectsInstancesAppProfilesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_app_profiles_patch_builder(
         client,
-        name,
-        ignoreWarnings,
-        updateMask,
-        body,
+        &args.name,
+        args.ignoreWarnings,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     bigtableadmin_projects_instances_app_profiles_patch_execute(builder)
 }
@@ -2095,6 +2255,17 @@ pub fn bigtableadmin_projects_instances_clusters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: clusterId
+    pub clusterId: Option<String>,
+    /// Request body.
+    pub body: Cluster,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters
 /// Creates a cluster within an instance. Note that exactly one of Cluster.serve_nodes and Cluster.cluster_config.cluster_autoscaling_config can be set. If serve_nodes is set to non-zero, then the cluster is manually scaled. If cluster_config.cluster_autoscaling_config is non-empty, then autoscaling is enabled.
 ///
@@ -2107,15 +2278,17 @@ pub fn bigtableadmin_projects_instances_clusters_create_execute(
 
 pub fn bigtableadmin_projects_instances_clusters_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    clusterId: Option<&str>,
-    body: &Cluster,
+    args: &BigtableadminProjectsInstancesClustersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigtableadmin_projects_instances_clusters_create_builder(client, parent, clusterId, body)?;
+    let builder = bigtableadmin_projects_instances_clusters_create_builder(
+        client,
+        &args.parent,
+        args.clusterId.as_deref(),
+        &args.body,
+    )?;
     bigtableadmin_projects_instances_clusters_create_execute(builder)
 }
 
@@ -2209,6 +2382,13 @@ pub fn bigtableadmin_projects_instances_clusters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
 /// Deletes a cluster from an instance.
 ///
@@ -2221,12 +2401,12 @@ pub fn bigtableadmin_projects_instances_clusters_delete_execute(
 
 pub fn bigtableadmin_projects_instances_clusters_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigtableadminProjectsInstancesClustersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_clusters_delete_builder(client, name)?;
+    let builder = bigtableadmin_projects_instances_clusters_delete_builder(client, &args.name)?;
     bigtableadmin_projects_instances_clusters_delete_execute(builder)
 }
 
@@ -2320,6 +2500,13 @@ pub fn bigtableadmin_projects_instances_clusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
 /// Gets information about a cluster.
 ///
@@ -2332,12 +2519,12 @@ pub fn bigtableadmin_projects_instances_clusters_get_execute(
 
 pub fn bigtableadmin_projects_instances_clusters_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigtableadminProjectsInstancesClustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_clusters_get_builder(client, name)?;
+    let builder = bigtableadmin_projects_instances_clusters_get_builder(client, &args.name)?;
     bigtableadmin_projects_instances_clusters_get_execute(builder)
 }
 
@@ -2445,6 +2632,15 @@ pub fn bigtableadmin_projects_instances_clusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters
 /// Lists information about clusters in an instance.
 ///
@@ -2457,16 +2653,18 @@ pub fn bigtableadmin_projects_instances_clusters_list_execute(
 
 pub fn bigtableadmin_projects_instances_clusters_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageToken: Option<&str>,
+    args: &BigtableadminProjectsInstancesClustersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        bigtableadmin_projects_instances_clusters_list_builder(client, parent, pageToken)?;
+    let builder = bigtableadmin_projects_instances_clusters_list_builder(
+        client,
+        &args.parent,
+        args.pageToken.as_deref(),
+    )?;
     bigtableadmin_projects_instances_clusters_list_execute(builder)
 }
 
@@ -2575,6 +2773,17 @@ pub fn bigtableadmin_projects_instances_clusters_partial_update_cluster_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_clusters_partial_update_cluster`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersPartialUpdateClusterArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Cluster,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
 /// Partially updates a cluster within a project. This method is the preferred way to update a Cluster. To enable and update autoscaling, set cluster_config.cluster_autoscaling_config. When autoscaling is enabled, serve_nodes is treated as an OUTPUT_ONLY field, meaning that updates to it are ignored. Note that an update cannot simultaneously set serve_nodes to non-zero and cluster_config.cluster_autoscaling_config to non-empty, and also specify both in the update_mask. To disable autoscaling, clear cluster_config.cluster_autoscaling_config, and explicitly set a serve_node count via the update_mask.
 ///
@@ -2587,15 +2796,16 @@ pub fn bigtableadmin_projects_instances_clusters_partial_update_cluster_execute(
 
 pub fn bigtableadmin_projects_instances_clusters_partial_update_cluster(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Cluster,
+    args: &BigtableadminProjectsInstancesClustersPartialUpdateClusterArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_clusters_partial_update_cluster_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     bigtableadmin_projects_instances_clusters_partial_update_cluster_execute(builder)
 }
@@ -2693,6 +2903,15 @@ pub fn bigtableadmin_projects_instances_clusters_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_clusters_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: Cluster,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
 /// Updates a cluster within an instance. Note that UpdateCluster does not support updating cluster_config.cluster_autoscaling_config. In order to update it, you must use PartialUpdateCluster.
 ///
@@ -2705,13 +2924,13 @@ pub fn bigtableadmin_projects_instances_clusters_update_execute(
 
 pub fn bigtableadmin_projects_instances_clusters_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &Cluster,
+    args: &BigtableadminProjectsInstancesClustersUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_clusters_update_builder(client, name, body)?;
+    let builder =
+        bigtableadmin_projects_instances_clusters_update_builder(client, &args.name, &args.body)?;
     bigtableadmin_projects_instances_clusters_update_execute(builder)
 }
 
@@ -2808,6 +3027,15 @@ pub fn bigtableadmin_projects_instances_clusters_backups_copy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_copy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsCopyArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CopyBackupRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups:copy
 /// Copy a Cloud Bigtable backup to a new backup in the destination cluster located in the destination instance and project.
 ///
@@ -2820,14 +3048,16 @@ pub fn bigtableadmin_projects_instances_clusters_backups_copy_execute(
 
 pub fn bigtableadmin_projects_instances_clusters_backups_copy(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CopyBackupRequest,
+    args: &BigtableadminProjectsInstancesClustersBackupsCopyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigtableadmin_projects_instances_clusters_backups_copy_builder(client, parent, body)?;
+    let builder = bigtableadmin_projects_instances_clusters_backups_copy_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     bigtableadmin_projects_instances_clusters_backups_copy_execute(builder)
 }
 
@@ -2936,6 +3166,17 @@ pub fn bigtableadmin_projects_instances_clusters_backups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupId
+    pub backupId: Option<String>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups
 /// Starts creating a new Cloud Bigtable Backup. The returned backup long-running operation can be used to track creation of the backup. The metadata field type is CreateBackupMetadata. The response field type is Backup, if successful. Cancelling the returned operation will stop the creation and delete the backup.
 ///
@@ -2948,15 +3189,16 @@ pub fn bigtableadmin_projects_instances_clusters_backups_create_execute(
 
 pub fn bigtableadmin_projects_instances_clusters_backups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backupId: Option<&str>,
-    body: &Backup,
+    args: &BigtableadminProjectsInstancesClustersBackupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_clusters_backups_create_builder(
-        client, parent, backupId, body,
+        client,
+        &args.parent,
+        args.backupId.as_deref(),
+        &args.body,
     )?;
     bigtableadmin_projects_instances_clusters_backups_create_execute(builder)
 }
@@ -3051,6 +3293,13 @@ pub fn bigtableadmin_projects_instances_clusters_backups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}
 /// Deletes a pending or completed Cloud Bigtable backup.
 ///
@@ -3063,12 +3312,13 @@ pub fn bigtableadmin_projects_instances_clusters_backups_delete_execute(
 
 pub fn bigtableadmin_projects_instances_clusters_backups_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigtableadminProjectsInstancesClustersBackupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_clusters_backups_delete_builder(client, name)?;
+    let builder =
+        bigtableadmin_projects_instances_clusters_backups_delete_builder(client, &args.name)?;
     bigtableadmin_projects_instances_clusters_backups_delete_execute(builder)
 }
 
@@ -3162,6 +3412,13 @@ pub fn bigtableadmin_projects_instances_clusters_backups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}
 /// Gets metadata on a pending or completed Cloud Bigtable Backup.
 ///
@@ -3174,12 +3431,13 @@ pub fn bigtableadmin_projects_instances_clusters_backups_get_execute(
 
 pub fn bigtableadmin_projects_instances_clusters_backups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigtableadminProjectsInstancesClustersBackupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_clusters_backups_get_builder(client, name)?;
+    let builder =
+        bigtableadmin_projects_instances_clusters_backups_get_builder(client, &args.name)?;
     bigtableadmin_projects_instances_clusters_backups_get_execute(builder)
 }
 
@@ -3276,6 +3534,15 @@ pub fn bigtableadmin_projects_instances_clusters_backups_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:getIamPolicy
 /// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
 ///
@@ -3288,14 +3555,15 @@ pub fn bigtableadmin_projects_instances_clusters_backups_get_iam_policy_execute(
 
 pub fn bigtableadmin_projects_instances_clusters_backups_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &BigtableadminProjectsInstancesClustersBackupsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_clusters_backups_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigtableadmin_projects_instances_clusters_backups_get_iam_policy_execute(builder)
 }
@@ -3416,6 +3684,21 @@ pub fn bigtableadmin_projects_instances_clusters_backups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups
 /// Lists Cloud Bigtable backups. Returns both completed and pending backups.
 ///
@@ -3428,11 +3711,7 @@ pub fn bigtableadmin_projects_instances_clusters_backups_list_execute(
 
 pub fn bigtableadmin_projects_instances_clusters_backups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigtableadminProjectsInstancesClustersBackupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3440,7 +3719,12 @@ pub fn bigtableadmin_projects_instances_clusters_backups_list(
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_clusters_backups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigtableadmin_projects_instances_clusters_backups_list_execute(builder)
 }
@@ -3550,6 +3834,17 @@ pub fn bigtableadmin_projects_instances_clusters_backups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}
 /// Updates a pending or completed Cloud Bigtable Backup.
 ///
@@ -3562,15 +3857,16 @@ pub fn bigtableadmin_projects_instances_clusters_backups_patch_execute(
 
 pub fn bigtableadmin_projects_instances_clusters_backups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Backup,
+    args: &BigtableadminProjectsInstancesClustersBackupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_clusters_backups_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     bigtableadmin_projects_instances_clusters_backups_patch_execute(builder)
 }
@@ -3668,6 +3964,15 @@ pub fn bigtableadmin_projects_instances_clusters_backups_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:setIamPolicy
 /// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
 ///
@@ -3680,14 +3985,15 @@ pub fn bigtableadmin_projects_instances_clusters_backups_set_iam_policy_execute(
 
 pub fn bigtableadmin_projects_instances_clusters_backups_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BigtableadminProjectsInstancesClustersBackupsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_clusters_backups_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigtableadmin_projects_instances_clusters_backups_set_iam_policy_execute(builder)
 }
@@ -3789,6 +4095,15 @@ pub fn bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_clusters_backups_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersBackupsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}:testIamPermissions
 /// Returns permissions that the caller has on the specified Bigtable resource.
 ///
@@ -3801,8 +4116,7 @@ pub fn bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_ex
 
 pub fn bigtableadmin_projects_instances_clusters_backups_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BigtableadminProjectsInstancesClustersBackupsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3812,7 +4126,9 @@ pub fn bigtableadmin_projects_instances_clusters_backups_test_iam_permissions(
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigtableadmin_projects_instances_clusters_backups_test_iam_permissions_execute(builder)
 }
@@ -3933,6 +4249,21 @@ pub fn bigtableadmin_projects_instances_clusters_hot_tablets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_clusters_hot_tablets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesClustersHotTabletsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: endTime
+    pub endTime: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: startTime
+    pub startTime: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/hotTablets
 /// Lists hot tablets in a cluster, within the time range provided. Hot tablets are ordered based on CPU usage.
 ///
@@ -3945,11 +4276,7 @@ pub fn bigtableadmin_projects_instances_clusters_hot_tablets_list_execute(
 
 pub fn bigtableadmin_projects_instances_clusters_hot_tablets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    endTime: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    startTime: Option<&str>,
+    args: &BigtableadminProjectsInstancesClustersHotTabletsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListHotTabletsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3957,7 +4284,12 @@ pub fn bigtableadmin_projects_instances_clusters_hot_tablets_list(
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_clusters_hot_tablets_list_builder(
-        client, parent, endTime, pageSize, pageToken, startTime,
+        client,
+        &args.parent,
+        args.endTime.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.startTime.as_deref(),
     )?;
     bigtableadmin_projects_instances_clusters_hot_tablets_list_execute(builder)
 }
@@ -4067,6 +4399,17 @@ pub fn bigtableadmin_projects_instances_logical_views_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_logical_views_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesLogicalViewsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: logicalViewId
+    pub logicalViewId: Option<String>,
+    /// Request body.
+    pub body: LogicalView,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews
 /// Creates a logical view within an instance.
 ///
@@ -4079,18 +4422,16 @@ pub fn bigtableadmin_projects_instances_logical_views_create_execute(
 
 pub fn bigtableadmin_projects_instances_logical_views_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    logicalViewId: Option<&str>,
-    body: &LogicalView,
+    args: &BigtableadminProjectsInstancesLogicalViewsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_logical_views_create_builder(
         client,
-        parent,
-        logicalViewId,
-        body,
+        &args.parent,
+        args.logicalViewId.as_deref(),
+        &args.body,
     )?;
     bigtableadmin_projects_instances_logical_views_create_execute(builder)
 }
@@ -4197,6 +4538,15 @@ pub fn bigtableadmin_projects_instances_logical_views_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_logical_views_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesLogicalViewsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
 /// Deletes a logical view from an instance.
 ///
@@ -4209,14 +4559,16 @@ pub fn bigtableadmin_projects_instances_logical_views_delete_execute(
 
 pub fn bigtableadmin_projects_instances_logical_views_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &BigtableadminProjectsInstancesLogicalViewsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigtableadmin_projects_instances_logical_views_delete_builder(client, name, etag)?;
+    let builder = bigtableadmin_projects_instances_logical_views_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     bigtableadmin_projects_instances_logical_views_delete_execute(builder)
 }
 
@@ -4310,6 +4662,13 @@ pub fn bigtableadmin_projects_instances_logical_views_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_logical_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesLogicalViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
 /// Gets information about a logical view.
 ///
@@ -4322,12 +4681,12 @@ pub fn bigtableadmin_projects_instances_logical_views_get_execute(
 
 pub fn bigtableadmin_projects_instances_logical_views_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigtableadminProjectsInstancesLogicalViewsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogicalView>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_logical_views_get_builder(client, name)?;
+    let builder = bigtableadmin_projects_instances_logical_views_get_builder(client, &args.name)?;
     bigtableadmin_projects_instances_logical_views_get_execute(builder)
 }
 
@@ -4424,6 +4783,15 @@ pub fn bigtableadmin_projects_instances_logical_views_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_logical_views_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesLogicalViewsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}:getIamPolicy
 /// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set.
 ///
@@ -4436,14 +4804,15 @@ pub fn bigtableadmin_projects_instances_logical_views_get_iam_policy_execute(
 
 pub fn bigtableadmin_projects_instances_logical_views_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &BigtableadminProjectsInstancesLogicalViewsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_logical_views_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigtableadmin_projects_instances_logical_views_get_iam_policy_execute(builder)
 }
@@ -4556,6 +4925,17 @@ pub fn bigtableadmin_projects_instances_logical_views_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_logical_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesLogicalViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews
 /// Lists information about logical views in an instance.
 ///
@@ -4568,9 +4948,7 @@ pub fn bigtableadmin_projects_instances_logical_views_list_execute(
 
 pub fn bigtableadmin_projects_instances_logical_views_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigtableadminProjectsInstancesLogicalViewsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLogicalViewsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4578,7 +4956,10 @@ pub fn bigtableadmin_projects_instances_logical_views_list(
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_logical_views_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigtableadmin_projects_instances_logical_views_list_execute(builder)
 }
@@ -4688,6 +5069,17 @@ pub fn bigtableadmin_projects_instances_logical_views_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_logical_views_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesLogicalViewsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogicalView,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
 /// Updates a logical view within an instance.
 ///
@@ -4700,15 +5092,16 @@ pub fn bigtableadmin_projects_instances_logical_views_patch_execute(
 
 pub fn bigtableadmin_projects_instances_logical_views_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogicalView,
+    args: &BigtableadminProjectsInstancesLogicalViewsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_logical_views_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     bigtableadmin_projects_instances_logical_views_patch_execute(builder)
 }
@@ -4806,6 +5199,15 @@ pub fn bigtableadmin_projects_instances_logical_views_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_logical_views_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesLogicalViewsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}:setIamPolicy
 /// Sets the access control policy on an instance resource. Replaces any existing policy.
 ///
@@ -4818,14 +5220,15 @@ pub fn bigtableadmin_projects_instances_logical_views_set_iam_policy_execute(
 
 pub fn bigtableadmin_projects_instances_logical_views_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BigtableadminProjectsInstancesLogicalViewsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_logical_views_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigtableadmin_projects_instances_logical_views_set_iam_policy_execute(builder)
 }
@@ -4927,6 +5330,15 @@ pub fn bigtableadmin_projects_instances_logical_views_test_iam_permissions_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_logical_views_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesLogicalViewsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}:testIamPermissions
 /// Returns permissions that the caller has on the specified instance resource.
 ///
@@ -4939,8 +5351,7 @@ pub fn bigtableadmin_projects_instances_logical_views_test_iam_permissions_execu
 
 pub fn bigtableadmin_projects_instances_logical_views_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BigtableadminProjectsInstancesLogicalViewsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -4950,7 +5361,9 @@ pub fn bigtableadmin_projects_instances_logical_views_test_iam_permissions(
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_logical_views_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigtableadmin_projects_instances_logical_views_test_iam_permissions_execute(builder)
 }
@@ -5060,6 +5473,17 @@ pub fn bigtableadmin_projects_instances_materialized_views_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_materialized_views_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesMaterializedViewsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: materializedViewId
+    pub materializedViewId: Option<String>,
+    /// Request body.
+    pub body: MaterializedView,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews
 /// Creates a materialized view within an instance.
 ///
@@ -5072,18 +5496,16 @@ pub fn bigtableadmin_projects_instances_materialized_views_create_execute(
 
 pub fn bigtableadmin_projects_instances_materialized_views_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    materializedViewId: Option<&str>,
-    body: &MaterializedView,
+    args: &BigtableadminProjectsInstancesMaterializedViewsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_materialized_views_create_builder(
         client,
-        parent,
-        materializedViewId,
-        body,
+        &args.parent,
+        args.materializedViewId.as_deref(),
+        &args.body,
     )?;
     bigtableadmin_projects_instances_materialized_views_create_execute(builder)
 }
@@ -5190,6 +5612,15 @@ pub fn bigtableadmin_projects_instances_materialized_views_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_materialized_views_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesMaterializedViewsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
 /// Deletes a materialized view from an instance.
 ///
@@ -5202,14 +5633,16 @@ pub fn bigtableadmin_projects_instances_materialized_views_delete_execute(
 
 pub fn bigtableadmin_projects_instances_materialized_views_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &BigtableadminProjectsInstancesMaterializedViewsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigtableadmin_projects_instances_materialized_views_delete_builder(client, name, etag)?;
+    let builder = bigtableadmin_projects_instances_materialized_views_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     bigtableadmin_projects_instances_materialized_views_delete_execute(builder)
 }
 
@@ -5317,6 +5750,15 @@ pub fn bigtableadmin_projects_instances_materialized_views_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_materialized_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesMaterializedViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
 /// Gets information about a materialized view.
 ///
@@ -5329,16 +5771,18 @@ pub fn bigtableadmin_projects_instances_materialized_views_get_execute(
 
 pub fn bigtableadmin_projects_instances_materialized_views_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &BigtableadminProjectsInstancesMaterializedViewsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MaterializedView>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        bigtableadmin_projects_instances_materialized_views_get_builder(client, name, view)?;
+    let builder = bigtableadmin_projects_instances_materialized_views_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     bigtableadmin_projects_instances_materialized_views_get_execute(builder)
 }
 
@@ -5435,6 +5879,15 @@ pub fn bigtableadmin_projects_instances_materialized_views_get_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_materialized_views_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesMaterializedViewsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}:getIamPolicy
 /// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set.
 ///
@@ -5447,14 +5900,15 @@ pub fn bigtableadmin_projects_instances_materialized_views_get_iam_policy_execut
 
 pub fn bigtableadmin_projects_instances_materialized_views_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &BigtableadminProjectsInstancesMaterializedViewsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_materialized_views_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigtableadmin_projects_instances_materialized_views_get_iam_policy_execute(builder)
 }
@@ -5573,6 +6027,19 @@ pub fn bigtableadmin_projects_instances_materialized_views_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_materialized_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesMaterializedViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews
 /// Lists information about materialized views in an instance.
 ///
@@ -5585,10 +6052,7 @@ pub fn bigtableadmin_projects_instances_materialized_views_list_execute(
 
 pub fn bigtableadmin_projects_instances_materialized_views_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &BigtableadminProjectsInstancesMaterializedViewsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMaterializedViewsResponse>, ApiError>,
@@ -5598,7 +6062,11 @@ pub fn bigtableadmin_projects_instances_materialized_views_list(
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_materialized_views_list_builder(
-        client, parent, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     bigtableadmin_projects_instances_materialized_views_list_execute(builder)
 }
@@ -5708,6 +6176,17 @@ pub fn bigtableadmin_projects_instances_materialized_views_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_materialized_views_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesMaterializedViewsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: MaterializedView,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
 /// Updates a materialized view within an instance.
 ///
@@ -5720,15 +6199,16 @@ pub fn bigtableadmin_projects_instances_materialized_views_patch_execute(
 
 pub fn bigtableadmin_projects_instances_materialized_views_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &MaterializedView,
+    args: &BigtableadminProjectsInstancesMaterializedViewsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_materialized_views_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     bigtableadmin_projects_instances_materialized_views_patch_execute(builder)
 }
@@ -5826,6 +6306,15 @@ pub fn bigtableadmin_projects_instances_materialized_views_set_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_materialized_views_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesMaterializedViewsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}:setIamPolicy
 /// Sets the access control policy on an instance resource. Replaces any existing policy.
 ///
@@ -5838,14 +6327,15 @@ pub fn bigtableadmin_projects_instances_materialized_views_set_iam_policy_execut
 
 pub fn bigtableadmin_projects_instances_materialized_views_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BigtableadminProjectsInstancesMaterializedViewsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_materialized_views_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigtableadmin_projects_instances_materialized_views_set_iam_policy_execute(builder)
 }
@@ -5947,6 +6437,15 @@ pub fn bigtableadmin_projects_instances_materialized_views_test_iam_permissions_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_materialized_views_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesMaterializedViewsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}:testIamPermissions
 /// Returns permissions that the caller has on the specified instance resource.
 ///
@@ -5959,8 +6458,7 @@ pub fn bigtableadmin_projects_instances_materialized_views_test_iam_permissions_
 
 pub fn bigtableadmin_projects_instances_materialized_views_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BigtableadminProjectsInstancesMaterializedViewsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -5970,7 +6468,9 @@ pub fn bigtableadmin_projects_instances_materialized_views_test_iam_permissions(
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_materialized_views_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigtableadmin_projects_instances_materialized_views_test_iam_permissions_execute(builder)
 }
@@ -6070,6 +6570,15 @@ pub fn bigtableadmin_projects_instances_tables_check_consistency_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_check_consistency`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesCheckConsistencyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CheckConsistencyRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:checkConsistency
 /// Checks replication consistency based on a consistency token, that is, if replication has caught up based on the conditions specified in the token and the check request.
 ///
@@ -6082,16 +6591,16 @@ pub fn bigtableadmin_projects_instances_tables_check_consistency_execute(
 
 pub fn bigtableadmin_projects_instances_tables_check_consistency(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CheckConsistencyRequest,
+    args: &BigtableadminProjectsInstancesTablesCheckConsistencyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CheckConsistencyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        bigtableadmin_projects_instances_tables_check_consistency_builder(client, name, body)?;
+    let builder = bigtableadmin_projects_instances_tables_check_consistency_builder(
+        client, &args.name, &args.body,
+    )?;
     bigtableadmin_projects_instances_tables_check_consistency_execute(builder)
 }
 
@@ -6188,6 +6697,15 @@ pub fn bigtableadmin_projects_instances_tables_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateTableRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables
 /// Creates a new table in the specified instance. The table can be created with a full set of initial column families, specified in the request.
 ///
@@ -6200,13 +6718,13 @@ pub fn bigtableadmin_projects_instances_tables_create_execute(
 
 pub fn bigtableadmin_projects_instances_tables_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateTableRequest,
+    args: &BigtableadminProjectsInstancesTablesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_tables_create_builder(client, parent, body)?;
+    let builder =
+        bigtableadmin_projects_instances_tables_create_builder(client, &args.parent, &args.body)?;
     bigtableadmin_projects_instances_tables_create_execute(builder)
 }
 
@@ -6300,6 +6818,13 @@ pub fn bigtableadmin_projects_instances_tables_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
 /// Permanently deletes a specified table and all of its data.
 ///
@@ -6312,12 +6837,12 @@ pub fn bigtableadmin_projects_instances_tables_delete_execute(
 
 pub fn bigtableadmin_projects_instances_tables_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigtableadminProjectsInstancesTablesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_tables_delete_builder(client, name)?;
+    let builder = bigtableadmin_projects_instances_tables_delete_builder(client, &args.name)?;
     bigtableadmin_projects_instances_tables_delete_execute(builder)
 }
 
@@ -6414,6 +6939,15 @@ pub fn bigtableadmin_projects_instances_tables_drop_row_range_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_drop_row_range`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesDropRowRangeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DropRowRangeRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:dropRowRange
 /// Permanently `drop/delete` a row range from a specified table. The request can specify whether to delete all rows in a table, or only those that match a particular prefix. Note that row key prefixes used here are treated as service data. For more information about how service data is handled, see the [Google Cloud Privacy Notice](<https://cloud.google.`com/terms/cloud-privacy-notice`>).
 ///
@@ -6426,14 +6960,14 @@ pub fn bigtableadmin_projects_instances_tables_drop_row_range_execute(
 
 pub fn bigtableadmin_projects_instances_tables_drop_row_range(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DropRowRangeRequest,
+    args: &BigtableadminProjectsInstancesTablesDropRowRangeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigtableadmin_projects_instances_tables_drop_row_range_builder(client, name, body)?;
+    let builder = bigtableadmin_projects_instances_tables_drop_row_range_builder(
+        client, &args.name, &args.body,
+    )?;
     bigtableadmin_projects_instances_tables_drop_row_range_execute(builder)
 }
 
@@ -6534,6 +7068,15 @@ pub fn bigtableadmin_projects_instances_tables_generate_consistency_token_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_generate_consistency_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesGenerateConsistencyTokenArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GenerateConsistencyTokenRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:generateConsistencyToken
 /// Generates a consistency token for a Table, which can be used in CheckConsistency to check whether mutations to the table that finished before this call started have been replicated. The tokens will be available for 90 days.
 ///
@@ -6546,8 +7089,7 @@ pub fn bigtableadmin_projects_instances_tables_generate_consistency_token_execut
 
 pub fn bigtableadmin_projects_instances_tables_generate_consistency_token(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GenerateConsistencyTokenRequest,
+    args: &BigtableadminProjectsInstancesTablesGenerateConsistencyTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateConsistencyTokenResponse>, ApiError>,
@@ -6557,7 +7099,7 @@ pub fn bigtableadmin_projects_instances_tables_generate_consistency_token(
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_tables_generate_consistency_token_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     bigtableadmin_projects_instances_tables_generate_consistency_token_execute(builder)
 }
@@ -6664,6 +7206,15 @@ pub fn bigtableadmin_projects_instances_tables_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
 /// Gets metadata information about the specified table.
 ///
@@ -6676,13 +7227,16 @@ pub fn bigtableadmin_projects_instances_tables_get_execute(
 
 pub fn bigtableadmin_projects_instances_tables_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &BigtableadminProjectsInstancesTablesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_tables_get_builder(client, name, view)?;
+    let builder = bigtableadmin_projects_instances_tables_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     bigtableadmin_projects_instances_tables_get_execute(builder)
 }
 
@@ -6779,6 +7333,15 @@ pub fn bigtableadmin_projects_instances_tables_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:getIamPolicy
 /// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
 ///
@@ -6791,14 +7354,16 @@ pub fn bigtableadmin_projects_instances_tables_get_iam_policy_execute(
 
 pub fn bigtableadmin_projects_instances_tables_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &BigtableadminProjectsInstancesTablesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigtableadmin_projects_instances_tables_get_iam_policy_builder(client, resource, body)?;
+    let builder = bigtableadmin_projects_instances_tables_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     bigtableadmin_projects_instances_tables_get_iam_policy_execute(builder)
 }
 
@@ -6914,6 +7479,19 @@ pub fn bigtableadmin_projects_instances_tables_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables
 /// Lists all tables served from a specified instance.
 ///
@@ -6926,10 +7504,7 @@ pub fn bigtableadmin_projects_instances_tables_list_execute(
 
 pub fn bigtableadmin_projects_instances_tables_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &BigtableadminProjectsInstancesTablesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTablesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6937,7 +7512,11 @@ pub fn bigtableadmin_projects_instances_tables_list(
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_tables_list_builder(
-        client, parent, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     bigtableadmin_projects_instances_tables_list_execute(builder)
 }
@@ -7035,6 +7614,15 @@ pub fn bigtableadmin_projects_instances_tables_modify_column_families_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_modify_column_families`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesModifyColumnFamiliesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ModifyColumnFamiliesRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:modifyColumnFamilies
 /// Performs a series of column family modifications on the specified table. Either all or none of the modifications will occur before this method returns, but data requests received prior to that point may see a table where only some modifications have taken effect.
 ///
@@ -7047,14 +7635,14 @@ pub fn bigtableadmin_projects_instances_tables_modify_column_families_execute(
 
 pub fn bigtableadmin_projects_instances_tables_modify_column_families(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ModifyColumnFamiliesRequest,
+    args: &BigtableadminProjectsInstancesTablesModifyColumnFamiliesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigtableadmin_projects_instances_tables_modify_column_families_builder(client, name, body)?;
+    let builder = bigtableadmin_projects_instances_tables_modify_column_families_builder(
+        client, &args.name, &args.body,
+    )?;
     bigtableadmin_projects_instances_tables_modify_column_families_execute(builder)
 }
 
@@ -7167,6 +7755,19 @@ pub fn bigtableadmin_projects_instances_tables_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: ignoreWarnings
+    pub ignoreWarnings: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Table,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
 /// Updates a specified table.
 ///
@@ -7179,20 +7780,17 @@ pub fn bigtableadmin_projects_instances_tables_patch_execute(
 
 pub fn bigtableadmin_projects_instances_tables_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    ignoreWarnings: Option<bool>,
-    updateMask: Option<&str>,
-    body: &Table,
+    args: &BigtableadminProjectsInstancesTablesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_tables_patch_builder(
         client,
-        name,
-        ignoreWarnings,
-        updateMask,
-        body,
+        &args.name,
+        args.ignoreWarnings,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     bigtableadmin_projects_instances_tables_patch_execute(builder)
 }
@@ -7290,6 +7888,15 @@ pub fn bigtableadmin_projects_instances_tables_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesRestoreArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: RestoreTableRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables:restore
 /// Create a new table by restoring from a completed backup. The returned table long-running operation can be used to track the progress of the operation, and to cancel it. The metadata field type is RestoreTableMetadata. The response type is Table, if successful.
 ///
@@ -7302,13 +7909,13 @@ pub fn bigtableadmin_projects_instances_tables_restore_execute(
 
 pub fn bigtableadmin_projects_instances_tables_restore(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &RestoreTableRequest,
+    args: &BigtableadminProjectsInstancesTablesRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_tables_restore_builder(client, parent, body)?;
+    let builder =
+        bigtableadmin_projects_instances_tables_restore_builder(client, &args.parent, &args.body)?;
     bigtableadmin_projects_instances_tables_restore_execute(builder)
 }
 
@@ -7405,6 +8012,15 @@ pub fn bigtableadmin_projects_instances_tables_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:setIamPolicy
 /// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
 ///
@@ -7417,14 +8033,16 @@ pub fn bigtableadmin_projects_instances_tables_set_iam_policy_execute(
 
 pub fn bigtableadmin_projects_instances_tables_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BigtableadminProjectsInstancesTablesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigtableadmin_projects_instances_tables_set_iam_policy_builder(client, resource, body)?;
+    let builder = bigtableadmin_projects_instances_tables_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     bigtableadmin_projects_instances_tables_set_iam_policy_execute(builder)
 }
 
@@ -7525,6 +8143,15 @@ pub fn bigtableadmin_projects_instances_tables_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:testIamPermissions
 /// Returns permissions that the caller has on the specified Bigtable resource.
 ///
@@ -7537,8 +8164,7 @@ pub fn bigtableadmin_projects_instances_tables_test_iam_permissions_execute(
 
 pub fn bigtableadmin_projects_instances_tables_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BigtableadminProjectsInstancesTablesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -7548,7 +8174,9 @@ pub fn bigtableadmin_projects_instances_tables_test_iam_permissions(
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_tables_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigtableadmin_projects_instances_tables_test_iam_permissions_execute(builder)
 }
@@ -7646,6 +8274,15 @@ pub fn bigtableadmin_projects_instances_tables_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesUndeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UndeleteTableRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}:undelete
 /// Restores a specified table which was accidentally deleted.
 ///
@@ -7658,13 +8295,13 @@ pub fn bigtableadmin_projects_instances_tables_undelete_execute(
 
 pub fn bigtableadmin_projects_instances_tables_undelete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UndeleteTableRequest,
+    args: &BigtableadminProjectsInstancesTablesUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_tables_undelete_builder(client, name, body)?;
+    let builder =
+        bigtableadmin_projects_instances_tables_undelete_builder(client, &args.name, &args.body)?;
     bigtableadmin_projects_instances_tables_undelete_execute(builder)
 }
 
@@ -7773,6 +8410,17 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_authorized_views_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: authorizedViewId
+    pub authorizedViewId: Option<String>,
+    /// Request body.
+    pub body: AuthorizedView,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews
 /// Creates a new AuthorizedView in a table.
 ///
@@ -7785,18 +8433,16 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_create_execute(
 
 pub fn bigtableadmin_projects_instances_tables_authorized_views_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    authorizedViewId: Option<&str>,
-    body: &AuthorizedView,
+    args: &BigtableadminProjectsInstancesTablesAuthorizedViewsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_tables_authorized_views_create_builder(
         client,
-        parent,
-        authorizedViewId,
-        body,
+        &args.parent,
+        args.authorizedViewId.as_deref(),
+        &args.body,
     )?;
     bigtableadmin_projects_instances_tables_authorized_views_create_execute(builder)
 }
@@ -7903,6 +8549,15 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_authorized_views_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
 /// Permanently deletes a specified AuthorizedView.
 ///
@@ -7915,14 +8570,15 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_delete_execute(
 
 pub fn bigtableadmin_projects_instances_tables_authorized_views_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &BigtableadminProjectsInstancesTablesAuthorizedViewsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_tables_authorized_views_delete_builder(
-        client, name, etag,
+        client,
+        &args.name,
+        args.etag.as_deref(),
     )?;
     bigtableadmin_projects_instances_tables_authorized_views_delete_execute(builder)
 }
@@ -8031,6 +8687,15 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_authorized_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
 /// Gets information from a specified AuthorizedView.
 ///
@@ -8043,16 +8708,18 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_get_execute(
 
 pub fn bigtableadmin_projects_instances_tables_authorized_views_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &BigtableadminProjectsInstancesTablesAuthorizedViewsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthorizedView>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        bigtableadmin_projects_instances_tables_authorized_views_get_builder(client, name, view)?;
+    let builder = bigtableadmin_projects_instances_tables_authorized_views_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     bigtableadmin_projects_instances_tables_authorized_views_get_execute(builder)
 }
 
@@ -8149,6 +8816,15 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:getIamPolicy
 /// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
 ///
@@ -8161,14 +8837,15 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_e
 
 pub fn bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &BigtableadminProjectsInstancesTablesAuthorizedViewsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy_execute(builder)
 }
@@ -8287,6 +8964,19 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_authorized_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews
 /// Lists all AuthorizedViews from a specific table.
 ///
@@ -8299,10 +8989,7 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_list_execute(
 
 pub fn bigtableadmin_projects_instances_tables_authorized_views_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &BigtableadminProjectsInstancesTablesAuthorizedViewsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAuthorizedViewsResponse>, ApiError>,
@@ -8312,7 +8999,11 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_list(
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_tables_authorized_views_list_builder(
-        client, parent, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     bigtableadmin_projects_instances_tables_authorized_views_list_execute(builder)
 }
@@ -8426,6 +9117,19 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_authorized_views_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: ignoreWarnings
+    pub ignoreWarnings: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AuthorizedView,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
 /// Updates an AuthorizedView in a table.
 ///
@@ -8438,20 +9142,17 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_patch_execute(
 
 pub fn bigtableadmin_projects_instances_tables_authorized_views_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    ignoreWarnings: Option<bool>,
-    updateMask: Option<&str>,
-    body: &AuthorizedView,
+    args: &BigtableadminProjectsInstancesTablesAuthorizedViewsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_tables_authorized_views_patch_builder(
         client,
-        name,
-        ignoreWarnings,
-        updateMask,
-        body,
+        &args.name,
+        args.ignoreWarnings,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     bigtableadmin_projects_instances_tables_authorized_views_patch_execute(builder)
 }
@@ -8549,6 +9250,15 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:setIamPolicy
 /// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
 ///
@@ -8561,14 +9271,15 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_e
 
 pub fn bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BigtableadminProjectsInstancesTablesAuthorizedViewsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigtableadmin_projects_instances_tables_authorized_views_set_iam_policy_execute(builder)
 }
@@ -8670,6 +9381,15 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_test_iam_permiss
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}:testIamPermissions
 /// Returns permissions that the caller has on the specified Bigtable resource.
 ///
@@ -8682,8 +9402,7 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_test_iam_permiss
 
 pub fn bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BigtableadminProjectsInstancesTablesAuthorizedViewsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -8694,7 +9413,9 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_test_iam_permiss
 > {
     let builder =
         bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     bigtableadmin_projects_instances_tables_authorized_views_test_iam_permissions_execute(builder)
 }
@@ -8804,6 +9525,17 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_schema_bundles_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSchemaBundlesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: schemaBundleId
+    pub schemaBundleId: Option<String>,
+    /// Request body.
+    pub body: SchemaBundle,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles
 /// Creates a new schema bundle in the specified table.
 ///
@@ -8816,18 +9548,16 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_create_execute(
 
 pub fn bigtableadmin_projects_instances_tables_schema_bundles_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    schemaBundleId: Option<&str>,
-    body: &SchemaBundle,
+    args: &BigtableadminProjectsInstancesTablesSchemaBundlesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_tables_schema_bundles_create_builder(
         client,
-        parent,
-        schemaBundleId,
-        body,
+        &args.parent,
+        args.schemaBundleId.as_deref(),
+        &args.body,
     )?;
     bigtableadmin_projects_instances_tables_schema_bundles_create_execute(builder)
 }
@@ -8934,6 +9664,15 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_schema_bundles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSchemaBundlesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
 /// Deletes a schema bundle in the specified table.
 ///
@@ -8946,14 +9685,16 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_delete_execute(
 
 pub fn bigtableadmin_projects_instances_tables_schema_bundles_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &BigtableadminProjectsInstancesTablesSchemaBundlesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigtableadmin_projects_instances_tables_schema_bundles_delete_builder(client, name, etag)?;
+    let builder = bigtableadmin_projects_instances_tables_schema_bundles_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     bigtableadmin_projects_instances_tables_schema_bundles_delete_execute(builder)
 }
 
@@ -9049,6 +9790,13 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_schema_bundles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSchemaBundlesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
 /// Gets metadata information about the specified schema bundle.
 ///
@@ -9061,14 +9809,15 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_execute(
 
 pub fn bigtableadmin_projects_instances_tables_schema_bundles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigtableadminProjectsInstancesTablesSchemaBundlesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaBundle>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_projects_instances_tables_schema_bundles_get_builder(client, name)?;
+    let builder =
+        bigtableadmin_projects_instances_tables_schema_bundles_get_builder(client, &args.name)?;
     bigtableadmin_projects_instances_tables_schema_bundles_get_execute(builder)
 }
 
@@ -9165,6 +9914,15 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSchemaBundlesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:getIamPolicy
 /// Gets the access control policy for a Bigtable resource. Returns an empty policy if the resource exists but does not have a policy set.
 ///
@@ -9177,14 +9935,15 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_exe
 
 pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &BigtableadminProjectsInstancesTablesSchemaBundlesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy_execute(builder)
 }
@@ -9301,6 +10060,19 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_schema_bundles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSchemaBundlesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles
 /// Lists all schema bundles associated with the specified table.
 ///
@@ -9313,10 +10085,7 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_list_execute(
 
 pub fn bigtableadmin_projects_instances_tables_schema_bundles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &BigtableadminProjectsInstancesTablesSchemaBundlesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSchemaBundlesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9324,7 +10093,11 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_list(
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_tables_schema_bundles_list_builder(
-        client, parent, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     bigtableadmin_projects_instances_tables_schema_bundles_list_execute(builder)
 }
@@ -9438,6 +10211,19 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_schema_bundles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSchemaBundlesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: ignoreWarnings
+    pub ignoreWarnings: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SchemaBundle,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
 /// Updates a schema bundle in the specified table.
 ///
@@ -9450,20 +10236,17 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_patch_execute(
 
 pub fn bigtableadmin_projects_instances_tables_schema_bundles_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    ignoreWarnings: Option<bool>,
-    updateMask: Option<&str>,
-    body: &SchemaBundle,
+    args: &BigtableadminProjectsInstancesTablesSchemaBundlesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_tables_schema_bundles_patch_builder(
         client,
-        name,
-        ignoreWarnings,
-        updateMask,
-        body,
+        &args.name,
+        args.ignoreWarnings,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     bigtableadmin_projects_instances_tables_schema_bundles_patch_execute(builder)
 }
@@ -9561,6 +10344,15 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSchemaBundlesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:setIamPolicy
 /// Sets the access control policy on a Bigtable resource. Replaces any existing policy.
 ///
@@ -9573,14 +10365,15 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_exe
 
 pub fn bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BigtableadminProjectsInstancesTablesSchemaBundlesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigtableadmin_projects_instances_tables_schema_bundles_set_iam_policy_execute(builder)
 }
@@ -9682,6 +10475,15 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsInstancesTablesSchemaBundlesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}:testIamPermissions
 /// Returns permissions that the caller has on the specified Bigtable resource.
 ///
@@ -9694,8 +10496,7 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissio
 
 pub fn bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BigtableadminProjectsInstancesTablesSchemaBundlesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -9706,7 +10507,9 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissio
 > {
     let builder =
         bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissions_execute(builder)
 }
@@ -9827,6 +10630,21 @@ pub fn bigtableadmin_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigtableadmin_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigtableadminProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
 ///
@@ -9839,11 +10657,7 @@ pub fn bigtableadmin_projects_locations_list_execute(
 
 pub fn bigtableadmin_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigtableadminProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9852,11 +10666,11 @@ pub fn bigtableadmin_projects_locations_list(
 > {
     let builder = bigtableadmin_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigtableadmin_projects_locations_list_execute(builder)
 }

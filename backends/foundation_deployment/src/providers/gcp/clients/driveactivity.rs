@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/activity:query
 /// Query past activity in Google Drive.
@@ -109,6 +111,13 @@ pub fn driveactivity_activity_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`driveactivity_activity_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveactivityActivityQueryArgs {
+    /// Request body.
+    pub body: QueryDriveActivityRequest,
+}
+
 /// GET v2/activity:query
 /// Query past activity in Google Drive.
 ///
@@ -121,7 +130,7 @@ pub fn driveactivity_activity_query_execute(
 
 pub fn driveactivity_activity_query(
     client: &SimpleHttpClient,
-    body: &QueryDriveActivityRequest,
+    args: &DriveactivityActivityQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<QueryDriveActivityResponse>, ApiError>,
@@ -130,6 +139,6 @@ pub fn driveactivity_activity_query(
         + 'static,
     ApiError,
 > {
-    let builder = driveactivity_activity_query_builder(client, body)?;
+    let builder = driveactivity_activity_query_builder(client, &args.body)?;
     driveactivity_activity_query_execute(builder)
 }

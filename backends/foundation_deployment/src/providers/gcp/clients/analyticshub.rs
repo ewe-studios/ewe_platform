@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/dataExchanges
 /// Lists all data exchanges from projects in a given organization and location.
@@ -126,6 +128,17 @@ pub fn analyticshub_organizations_locations_data_exchanges_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_organizations_locations_data_exchanges_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubOrganizationsLocationsDataExchangesListArgs {
+    /// Path parameter: organization
+    pub organization: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/dataExchanges
 /// Lists all data exchanges from projects in a given organization and location.
 ///
@@ -138,9 +151,7 @@ pub fn analyticshub_organizations_locations_data_exchanges_list_execute(
 
 pub fn analyticshub_organizations_locations_data_exchanges_list(
     client: &SimpleHttpClient,
-    organization: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AnalyticshubOrganizationsLocationsDataExchangesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListOrgDataExchangesResponse>, ApiError>,
@@ -151,9 +162,9 @@ pub fn analyticshub_organizations_locations_data_exchanges_list(
 > {
     let builder = analyticshub_organizations_locations_data_exchanges_list_builder(
         client,
-        organization,
-        pageSize,
-        pageToken,
+        &args.organization,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     analyticshub_organizations_locations_data_exchanges_list_execute(builder)
 }
@@ -265,6 +276,17 @@ pub fn analyticshub_projects_locations_data_exchanges_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataExchangeId
+    pub dataExchangeId: Option<String>,
+    /// Request body.
+    pub body: DataExchange,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges
 /// Creates a new data exchange.
 ///
@@ -277,9 +299,7 @@ pub fn analyticshub_projects_locations_data_exchanges_create_execute(
 
 pub fn analyticshub_projects_locations_data_exchanges_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataExchangeId: Option<&str>,
-    body: &DataExchange,
+    args: &AnalyticshubProjectsLocationsDataExchangesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DataExchange>, ApiError>, P = ApiPending>
         + Send
@@ -288,9 +308,9 @@ pub fn analyticshub_projects_locations_data_exchanges_create(
 > {
     let builder = analyticshub_projects_locations_data_exchanges_create_builder(
         client,
-        parent,
-        dataExchangeId,
-        body,
+        &args.parent,
+        args.dataExchangeId.as_deref(),
+        &args.body,
     )?;
     analyticshub_projects_locations_data_exchanges_create_execute(builder)
 }
@@ -385,6 +405,13 @@ pub fn analyticshub_projects_locations_data_exchanges_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}
 /// Deletes an existing data exchange.
 ///
@@ -397,12 +424,13 @@ pub fn analyticshub_projects_locations_data_exchanges_delete_execute(
 
 pub fn analyticshub_projects_locations_data_exchanges_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticshubProjectsLocationsDataExchangesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analyticshub_projects_locations_data_exchanges_delete_builder(client, name)?;
+    let builder =
+        analyticshub_projects_locations_data_exchanges_delete_builder(client, &args.name)?;
     analyticshub_projects_locations_data_exchanges_delete_execute(builder)
 }
 
@@ -498,6 +526,13 @@ pub fn analyticshub_projects_locations_data_exchanges_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}
 /// Gets the details of a data exchange.
 ///
@@ -510,14 +545,14 @@ pub fn analyticshub_projects_locations_data_exchanges_get_execute(
 
 pub fn analyticshub_projects_locations_data_exchanges_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticshubProjectsLocationsDataExchangesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DataExchange>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = analyticshub_projects_locations_data_exchanges_get_builder(client, name)?;
+    let builder = analyticshub_projects_locations_data_exchanges_get_builder(client, &args.name)?;
     analyticshub_projects_locations_data_exchanges_get_execute(builder)
 }
 
@@ -614,6 +649,15 @@ pub fn analyticshub_projects_locations_data_exchanges_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}:getIamPolicy
 /// Gets the IAM policy.
 ///
@@ -626,14 +670,15 @@ pub fn analyticshub_projects_locations_data_exchanges_get_iam_policy_execute(
 
 pub fn analyticshub_projects_locations_data_exchanges_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &AnalyticshubProjectsLocationsDataExchangesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     analyticshub_projects_locations_data_exchanges_get_iam_policy_execute(builder)
 }
@@ -746,6 +791,17 @@ pub fn analyticshub_projects_locations_data_exchanges_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges
 /// Lists all data exchanges in a given project and location.
 ///
@@ -758,9 +814,7 @@ pub fn analyticshub_projects_locations_data_exchanges_list_execute(
 
 pub fn analyticshub_projects_locations_data_exchanges_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AnalyticshubProjectsLocationsDataExchangesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDataExchangesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -768,7 +822,10 @@ pub fn analyticshub_projects_locations_data_exchanges_list(
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     analyticshub_projects_locations_data_exchanges_list_execute(builder)
 }
@@ -888,6 +945,19 @@ pub fn analyticshub_projects_locations_data_exchanges_list_subscriptions_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_list_subscriptions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesListSubscriptionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: includeDeletedSubscriptions
+    pub includeDeletedSubscriptions: Option<bool>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}:listSubscriptions
 /// Lists all subscriptions on a given Data Exchange or Listing.
 ///
@@ -900,10 +970,7 @@ pub fn analyticshub_projects_locations_data_exchanges_list_subscriptions_execute
 
 pub fn analyticshub_projects_locations_data_exchanges_list_subscriptions(
     client: &SimpleHttpClient,
-    resource: &str,
-    includeDeletedSubscriptions: Option<bool>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AnalyticshubProjectsLocationsDataExchangesListSubscriptionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSharedResourceSubscriptionsResponse>, ApiError>,
@@ -914,10 +981,10 @@ pub fn analyticshub_projects_locations_data_exchanges_list_subscriptions(
 > {
     let builder = analyticshub_projects_locations_data_exchanges_list_subscriptions_builder(
         client,
-        resource,
-        includeDeletedSubscriptions,
-        pageSize,
-        pageToken,
+        &args.resource,
+        args.includeDeletedSubscriptions,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     analyticshub_projects_locations_data_exchanges_list_subscriptions_execute(builder)
 }
@@ -1029,6 +1096,17 @@ pub fn analyticshub_projects_locations_data_exchanges_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: DataExchange,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}
 /// Updates an existing data exchange.
 ///
@@ -1041,9 +1119,7 @@ pub fn analyticshub_projects_locations_data_exchanges_patch_execute(
 
 pub fn analyticshub_projects_locations_data_exchanges_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &DataExchange,
+    args: &AnalyticshubProjectsLocationsDataExchangesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DataExchange>, ApiError>, P = ApiPending>
         + Send
@@ -1051,7 +1127,10 @@ pub fn analyticshub_projects_locations_data_exchanges_patch(
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     analyticshub_projects_locations_data_exchanges_patch_execute(builder)
 }
@@ -1149,6 +1228,15 @@ pub fn analyticshub_projects_locations_data_exchanges_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}:setIamPolicy
 /// Sets the IAM policy.
 ///
@@ -1161,14 +1249,15 @@ pub fn analyticshub_projects_locations_data_exchanges_set_iam_policy_execute(
 
 pub fn analyticshub_projects_locations_data_exchanges_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &AnalyticshubProjectsLocationsDataExchangesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     analyticshub_projects_locations_data_exchanges_set_iam_policy_execute(builder)
 }
@@ -1266,6 +1355,15 @@ pub fn analyticshub_projects_locations_data_exchanges_subscribe_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_subscribe`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesSubscribeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SubscribeDataExchangeRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}:subscribe
 /// Creates a Subscription to a Data Clean Room. This is a long-running operation as it will create one or more linked datasets. Throws a Bad Request error if the Data Exchange does not contain any listings.
 ///
@@ -1278,14 +1376,14 @@ pub fn analyticshub_projects_locations_data_exchanges_subscribe_execute(
 
 pub fn analyticshub_projects_locations_data_exchanges_subscribe(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SubscribeDataExchangeRequest,
+    args: &AnalyticshubProjectsLocationsDataExchangesSubscribeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        analyticshub_projects_locations_data_exchanges_subscribe_builder(client, name, body)?;
+    let builder = analyticshub_projects_locations_data_exchanges_subscribe_builder(
+        client, &args.name, &args.body,
+    )?;
     analyticshub_projects_locations_data_exchanges_subscribe_execute(builder)
 }
 
@@ -1386,6 +1484,15 @@ pub fn analyticshub_projects_locations_data_exchanges_test_iam_permissions_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}:testIamPermissions
 /// Returns the permissions that a caller has.
 ///
@@ -1398,8 +1505,7 @@ pub fn analyticshub_projects_locations_data_exchanges_test_iam_permissions_execu
 
 pub fn analyticshub_projects_locations_data_exchanges_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &AnalyticshubProjectsLocationsDataExchangesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1409,7 +1515,9 @@ pub fn analyticshub_projects_locations_data_exchanges_test_iam_permissions(
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     analyticshub_projects_locations_data_exchanges_test_iam_permissions_execute(builder)
 }
@@ -1519,6 +1627,17 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_listings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesListingsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: listingId
+    pub listingId: Option<String>,
+    /// Request body.
+    pub body: Listing,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings
 /// Creates a new listing.
 ///
@@ -1531,15 +1650,16 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_create_execute(
 
 pub fn analyticshub_projects_locations_data_exchanges_listings_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    listingId: Option<&str>,
-    body: &Listing,
+    args: &AnalyticshubProjectsLocationsDataExchangesListingsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_listings_create_builder(
-        client, parent, listingId, body,
+        client,
+        &args.parent,
+        args.listingId.as_deref(),
+        &args.body,
     )?;
     analyticshub_projects_locations_data_exchanges_listings_create_execute(builder)
 }
@@ -1646,6 +1766,15 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_listings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesListingsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: deleteCommercial
+    pub deleteCommercial: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}
 /// Deletes a listing.
 ///
@@ -1658,16 +1787,15 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_delete_execute(
 
 pub fn analyticshub_projects_locations_data_exchanges_listings_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    deleteCommercial: Option<bool>,
+    args: &AnalyticshubProjectsLocationsDataExchangesListingsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_listings_delete_builder(
         client,
-        name,
-        deleteCommercial,
+        &args.name,
+        args.deleteCommercial,
     )?;
     analyticshub_projects_locations_data_exchanges_listings_delete_execute(builder)
 }
@@ -1762,6 +1890,13 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_listings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesListingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}
 /// Gets the details of a listing.
 ///
@@ -1774,13 +1909,13 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_get_execute(
 
 pub fn analyticshub_projects_locations_data_exchanges_listings_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticshubProjectsLocationsDataExchangesListingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        analyticshub_projects_locations_data_exchanges_listings_get_builder(client, name)?;
+        analyticshub_projects_locations_data_exchanges_listings_get_builder(client, &args.name)?;
     analyticshub_projects_locations_data_exchanges_listings_get_execute(builder)
 }
 
@@ -1877,6 +2012,15 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_get_iam_policy_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_listings_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesListingsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}:getIamPolicy
 /// Gets the IAM policy.
 ///
@@ -1889,14 +2033,15 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_get_iam_policy_ex
 
 pub fn analyticshub_projects_locations_data_exchanges_listings_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &AnalyticshubProjectsLocationsDataExchangesListingsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_listings_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     analyticshub_projects_locations_data_exchanges_listings_get_iam_policy_execute(builder)
 }
@@ -2009,6 +2154,17 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_listings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesListingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings
 /// Lists all listings in a given project and location.
 ///
@@ -2021,9 +2177,7 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_list_execute(
 
 pub fn analyticshub_projects_locations_data_exchanges_listings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AnalyticshubProjectsLocationsDataExchangesListingsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListListingsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2031,7 +2185,10 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_list(
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_listings_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     analyticshub_projects_locations_data_exchanges_listings_list_execute(builder)
 }
@@ -2151,6 +2308,19 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_list_subscription
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_listings_list_subscriptions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesListingsListSubscriptionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: includeDeletedSubscriptions
+    pub includeDeletedSubscriptions: Option<bool>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}:listSubscriptions
 /// Lists all subscriptions on a given Data Exchange or Listing.
 ///
@@ -2163,10 +2333,7 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_list_subscription
 
 pub fn analyticshub_projects_locations_data_exchanges_listings_list_subscriptions(
     client: &SimpleHttpClient,
-    resource: &str,
-    includeDeletedSubscriptions: Option<bool>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AnalyticshubProjectsLocationsDataExchangesListingsListSubscriptionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSharedResourceSubscriptionsResponse>, ApiError>,
@@ -2178,10 +2345,10 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_list_subscription
     let builder =
         analyticshub_projects_locations_data_exchanges_listings_list_subscriptions_builder(
             client,
-            resource,
-            includeDeletedSubscriptions,
-            pageSize,
-            pageToken,
+            &args.resource,
+            args.includeDeletedSubscriptions,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     analyticshub_projects_locations_data_exchanges_listings_list_subscriptions_execute(builder)
 }
@@ -2291,6 +2458,17 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_listings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesListingsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Listing,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}
 /// Updates an existing listing.
 ///
@@ -2303,15 +2481,16 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_patch_execute(
 
 pub fn analyticshub_projects_locations_data_exchanges_listings_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Listing,
+    args: &AnalyticshubProjectsLocationsDataExchangesListingsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_listings_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     analyticshub_projects_locations_data_exchanges_listings_patch_execute(builder)
 }
@@ -2409,6 +2588,15 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_set_iam_policy_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_listings_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesListingsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}:setIamPolicy
 /// Sets the IAM policy.
 ///
@@ -2421,14 +2609,15 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_set_iam_policy_ex
 
 pub fn analyticshub_projects_locations_data_exchanges_listings_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &AnalyticshubProjectsLocationsDataExchangesListingsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_listings_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     analyticshub_projects_locations_data_exchanges_listings_set_iam_policy_execute(builder)
 }
@@ -2528,6 +2717,15 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_subscribe_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_listings_subscribe`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesListingsSubscribeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SubscribeListingRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}:subscribe
 /// Subscribes to a listing. Currently, with Analytics Hub, you can create listings that reference only BigQuery datasets. Upon subscription to a listing for a BigQuery dataset, Analytics Hub creates a linked dataset in the subscriber's project.
 ///
@@ -2540,8 +2738,7 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_subscribe_execute
 
 pub fn analyticshub_projects_locations_data_exchanges_listings_subscribe(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SubscribeListingRequest,
+    args: &AnalyticshubProjectsLocationsDataExchangesListingsSubscribeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SubscribeListingResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2549,7 +2746,7 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_subscribe(
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_listings_subscribe_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     analyticshub_projects_locations_data_exchanges_listings_subscribe_execute(builder)
 }
@@ -2651,6 +2848,15 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_test_iam_permissi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_listings_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesListingsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}:testIamPermissions
 /// Returns the permissions that a caller has.
 ///
@@ -2663,8 +2869,7 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_test_iam_permissi
 
 pub fn analyticshub_projects_locations_data_exchanges_listings_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &AnalyticshubProjectsLocationsDataExchangesListingsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2675,7 +2880,9 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_test_iam_permissi
 > {
     let builder =
         analyticshub_projects_locations_data_exchanges_listings_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     analyticshub_projects_locations_data_exchanges_listings_test_iam_permissions_execute(builder)
 }
@@ -2775,6 +2982,15 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_approve_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_query_templates_approve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesQueryTemplatesApproveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ApproveQueryTemplateRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates/{queryTemplatesId}:approve
 /// Approves a query template.
 ///
@@ -2787,8 +3003,7 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_approve_ex
 
 pub fn analyticshub_projects_locations_data_exchanges_query_templates_approve(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ApproveQueryTemplateRequest,
+    args: &AnalyticshubProjectsLocationsDataExchangesQueryTemplatesApproveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryTemplate>, ApiError>, P = ApiPending>
         + Send
@@ -2796,7 +3011,7 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_approve(
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_query_templates_approve_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     analyticshub_projects_locations_data_exchanges_query_templates_approve_execute(builder)
 }
@@ -2908,6 +3123,17 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_create_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_query_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesQueryTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: queryTemplateId
+    pub queryTemplateId: Option<String>,
+    /// Request body.
+    pub body: QueryTemplate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates
 /// Creates a new QueryTemplate
 ///
@@ -2920,9 +3146,7 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_create_exe
 
 pub fn analyticshub_projects_locations_data_exchanges_query_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    queryTemplateId: Option<&str>,
-    body: &QueryTemplate,
+    args: &AnalyticshubProjectsLocationsDataExchangesQueryTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryTemplate>, ApiError>, P = ApiPending>
         + Send
@@ -2931,9 +3155,9 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_create(
 > {
     let builder = analyticshub_projects_locations_data_exchanges_query_templates_create_builder(
         client,
-        parent,
-        queryTemplateId,
-        body,
+        &args.parent,
+        args.queryTemplateId.as_deref(),
+        &args.body,
     )?;
     analyticshub_projects_locations_data_exchanges_query_templates_create_execute(builder)
 }
@@ -3028,6 +3252,13 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_delete_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_query_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesQueryTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates/{queryTemplatesId}
 /// Deletes a query template.
 ///
@@ -3040,13 +3271,13 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_delete_exe
 
 pub fn analyticshub_projects_locations_data_exchanges_query_templates_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticshubProjectsLocationsDataExchangesQueryTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_query_templates_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     analyticshub_projects_locations_data_exchanges_query_templates_delete_execute(builder)
 }
@@ -3143,6 +3374,13 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_query_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesQueryTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates/{queryTemplatesId}
 /// Gets a QueryTemplate
 ///
@@ -3155,15 +3393,16 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_get_execut
 
 pub fn analyticshub_projects_locations_data_exchanges_query_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticshubProjectsLocationsDataExchangesQueryTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticshub_projects_locations_data_exchanges_query_templates_get_builder(client, name)?;
+    let builder = analyticshub_projects_locations_data_exchanges_query_templates_get_builder(
+        client, &args.name,
+    )?;
     analyticshub_projects_locations_data_exchanges_query_templates_get_execute(builder)
 }
 
@@ -3277,6 +3516,17 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_query_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesQueryTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates
 /// Lists all QueryTemplates in a given project and location.
 ///
@@ -3289,9 +3539,7 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_list_execu
 
 pub fn analyticshub_projects_locations_data_exchanges_query_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AnalyticshubProjectsLocationsDataExchangesQueryTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListQueryTemplatesResponse>, ApiError>,
@@ -3301,7 +3549,10 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_list(
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_query_templates_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     analyticshub_projects_locations_data_exchanges_query_templates_list_execute(builder)
 }
@@ -3413,6 +3664,17 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_patch_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_query_templates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesQueryTemplatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: QueryTemplate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates/{queryTemplatesId}
 /// Updates an existing QueryTemplate
 ///
@@ -3425,9 +3687,7 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_patch_exec
 
 pub fn analyticshub_projects_locations_data_exchanges_query_templates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &QueryTemplate,
+    args: &AnalyticshubProjectsLocationsDataExchangesQueryTemplatesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryTemplate>, ApiError>, P = ApiPending>
         + Send
@@ -3435,7 +3695,10 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_patch(
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_query_templates_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     analyticshub_projects_locations_data_exchanges_query_templates_patch_execute(builder)
 }
@@ -3535,6 +3798,15 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_submit_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_data_exchanges_query_templates_submit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsDataExchangesQueryTemplatesSubmitArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SubmitQueryTemplateRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates/{queryTemplatesId}:submit
 /// Submits a query template for approval.
 ///
@@ -3547,8 +3819,7 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_submit_exe
 
 pub fn analyticshub_projects_locations_data_exchanges_query_templates_submit(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SubmitQueryTemplateRequest,
+    args: &AnalyticshubProjectsLocationsDataExchangesQueryTemplatesSubmitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryTemplate>, ApiError>, P = ApiPending>
         + Send
@@ -3556,7 +3827,7 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_submit(
     ApiError,
 > {
     let builder = analyticshub_projects_locations_data_exchanges_query_templates_submit_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     analyticshub_projects_locations_data_exchanges_query_templates_submit_execute(builder)
 }
@@ -3651,6 +3922,13 @@ pub fn analyticshub_projects_locations_subscriptions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_subscriptions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsSubscriptionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/subscriptions/{subscriptionsId}
 /// Deletes a subscription.
 ///
@@ -3663,12 +3941,12 @@ pub fn analyticshub_projects_locations_subscriptions_delete_execute(
 
 pub fn analyticshub_projects_locations_subscriptions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticshubProjectsLocationsSubscriptionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analyticshub_projects_locations_subscriptions_delete_builder(client, name)?;
+    let builder = analyticshub_projects_locations_subscriptions_delete_builder(client, &args.name)?;
     analyticshub_projects_locations_subscriptions_delete_execute(builder)
 }
 
@@ -3764,6 +4042,13 @@ pub fn analyticshub_projects_locations_subscriptions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_subscriptions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsSubscriptionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/subscriptions/{subscriptionsId}
 /// Gets the details of a Subscription.
 ///
@@ -3776,14 +4061,14 @@ pub fn analyticshub_projects_locations_subscriptions_get_execute(
 
 pub fn analyticshub_projects_locations_subscriptions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AnalyticshubProjectsLocationsSubscriptionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = analyticshub_projects_locations_subscriptions_get_builder(client, name)?;
+    let builder = analyticshub_projects_locations_subscriptions_get_builder(client, &args.name)?;
     analyticshub_projects_locations_subscriptions_get_execute(builder)
 }
 
@@ -3880,6 +4165,15 @@ pub fn analyticshub_projects_locations_subscriptions_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_subscriptions_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsSubscriptionsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/subscriptions/{subscriptionsId}:getIamPolicy
 /// Gets the IAM policy.
 ///
@@ -3892,14 +4186,15 @@ pub fn analyticshub_projects_locations_subscriptions_get_iam_policy_execute(
 
 pub fn analyticshub_projects_locations_subscriptions_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &AnalyticshubProjectsLocationsSubscriptionsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analyticshub_projects_locations_subscriptions_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     analyticshub_projects_locations_subscriptions_get_iam_policy_execute(builder)
 }
@@ -4016,6 +4311,19 @@ pub fn analyticshub_projects_locations_subscriptions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_subscriptions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsSubscriptionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/subscriptions
 /// Lists all subscriptions in a given project and location.
 ///
@@ -4028,10 +4336,7 @@ pub fn analyticshub_projects_locations_subscriptions_list_execute(
 
 pub fn analyticshub_projects_locations_subscriptions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AnalyticshubProjectsLocationsSubscriptionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSubscriptionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4039,7 +4344,11 @@ pub fn analyticshub_projects_locations_subscriptions_list(
     ApiError,
 > {
     let builder = analyticshub_projects_locations_subscriptions_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     analyticshub_projects_locations_subscriptions_list_execute(builder)
 }
@@ -4137,6 +4446,15 @@ pub fn analyticshub_projects_locations_subscriptions_refresh_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_subscriptions_refresh`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsSubscriptionsRefreshArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RefreshSubscriptionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/subscriptions/{subscriptionsId}:refresh
 /// Refreshes a Subscription to a Data Exchange. A Data Exchange can become stale when a publisher adds or removes data. This is a long-running operation as it may create many linked datasets.
 ///
@@ -4149,14 +4467,14 @@ pub fn analyticshub_projects_locations_subscriptions_refresh_execute(
 
 pub fn analyticshub_projects_locations_subscriptions_refresh(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RefreshSubscriptionRequest,
+    args: &AnalyticshubProjectsLocationsSubscriptionsRefreshArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        analyticshub_projects_locations_subscriptions_refresh_builder(client, name, body)?;
+    let builder = analyticshub_projects_locations_subscriptions_refresh_builder(
+        client, &args.name, &args.body,
+    )?;
     analyticshub_projects_locations_subscriptions_refresh_execute(builder)
 }
 
@@ -4257,6 +4575,15 @@ pub fn analyticshub_projects_locations_subscriptions_revoke_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_subscriptions_revoke`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsSubscriptionsRevokeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RevokeSubscriptionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/subscriptions/{subscriptionsId}:revoke
 /// Revokes a given subscription.
 ///
@@ -4269,8 +4596,7 @@ pub fn analyticshub_projects_locations_subscriptions_revoke_execute(
 
 pub fn analyticshub_projects_locations_subscriptions_revoke(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RevokeSubscriptionRequest,
+    args: &AnalyticshubProjectsLocationsSubscriptionsRevokeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RevokeSubscriptionResponse>, ApiError>,
@@ -4279,7 +4605,9 @@ pub fn analyticshub_projects_locations_subscriptions_revoke(
         + 'static,
     ApiError,
 > {
-    let builder = analyticshub_projects_locations_subscriptions_revoke_builder(client, name, body)?;
+    let builder = analyticshub_projects_locations_subscriptions_revoke_builder(
+        client, &args.name, &args.body,
+    )?;
     analyticshub_projects_locations_subscriptions_revoke_execute(builder)
 }
 
@@ -4376,6 +4704,15 @@ pub fn analyticshub_projects_locations_subscriptions_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analyticshub_projects_locations_subscriptions_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticshubProjectsLocationsSubscriptionsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/subscriptions/{subscriptionsId}:setIamPolicy
 /// Sets the IAM policy.
 ///
@@ -4388,14 +4725,15 @@ pub fn analyticshub_projects_locations_subscriptions_set_iam_policy_execute(
 
 pub fn analyticshub_projects_locations_subscriptions_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &AnalyticshubProjectsLocationsSubscriptionsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analyticshub_projects_locations_subscriptions_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     analyticshub_projects_locations_subscriptions_set_iam_policy_execute(builder)
 }

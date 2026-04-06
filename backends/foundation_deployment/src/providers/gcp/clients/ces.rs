@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn ces_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn ces_projects_locations_get_execute(
 
 pub fn ces_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CesProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_get_builder(client, name)?;
+    let builder = ces_projects_locations_get_builder(client, &args.name)?;
     ces_projects_locations_get_execute(builder)
 }
 
@@ -240,6 +249,21 @@ pub fn ces_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -252,11 +276,7 @@ pub fn ces_projects_locations_list_execute(
 
 pub fn ces_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CesProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -265,11 +285,11 @@ pub fn ces_projects_locations_list(
 > {
     let builder = ces_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     ces_projects_locations_list_execute(builder)
 }
@@ -379,6 +399,17 @@ pub fn ces_projects_locations_apps_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: appId
+    pub appId: Option<String>,
+    /// Request body.
+    pub body: App,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps
 /// Creates a new app in the given project and location.
 ///
@@ -391,14 +422,17 @@ pub fn ces_projects_locations_apps_create_execute(
 
 pub fn ces_projects_locations_apps_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    appId: Option<&str>,
-    body: &App,
+    args: &CesProjectsLocationsAppsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_create_builder(client, parent, appId, body)?;
+    let builder = ces_projects_locations_apps_create_builder(
+        client,
+        &args.parent,
+        args.appId.as_deref(),
+        &args.body,
+    )?;
     ces_projects_locations_apps_create_execute(builder)
 }
 
@@ -504,6 +538,15 @@ pub fn ces_projects_locations_apps_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
 /// Deletes the specified app.
 ///
@@ -516,13 +559,13 @@ pub fn ces_projects_locations_apps_delete_execute(
 
 pub fn ces_projects_locations_apps_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &CesProjectsLocationsAppsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_delete_builder(client, name, etag)?;
+    let builder =
+        ces_projects_locations_apps_delete_builder(client, &args.name, args.etag.as_deref())?;
     ces_projects_locations_apps_delete_execute(builder)
 }
 
@@ -621,6 +664,15 @@ pub fn ces_projects_locations_apps_execute_tool_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_execute_tool`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsExecuteToolArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ExecuteToolRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}:executeTool
 /// Executes the given tool with the given arguments.
 ///
@@ -633,15 +685,15 @@ pub fn ces_projects_locations_apps_execute_tool_execute(
 
 pub fn ces_projects_locations_apps_execute_tool(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ExecuteToolRequest,
+    args: &CesProjectsLocationsAppsExecuteToolArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExecuteToolResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_execute_tool_builder(client, parent, body)?;
+    let builder =
+        ces_projects_locations_apps_execute_tool_builder(client, &args.parent, &args.body)?;
     ces_projects_locations_apps_execute_tool_execute(builder)
 }
 
@@ -738,6 +790,15 @@ pub fn ces_projects_locations_apps_export_app_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_export_app`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsExportAppArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExportAppRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}:exportApp
 /// Exports the specified app.
 ///
@@ -750,13 +811,12 @@ pub fn ces_projects_locations_apps_export_app_execute(
 
 pub fn ces_projects_locations_apps_export_app(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExportAppRequest,
+    args: &CesProjectsLocationsAppsExportAppArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_export_app_builder(client, name, body)?;
+    let builder = ces_projects_locations_apps_export_app_builder(client, &args.name, &args.body)?;
     ces_projects_locations_apps_export_app_execute(builder)
 }
 
@@ -850,6 +910,13 @@ pub fn ces_projects_locations_apps_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
 /// Gets details of the specified app.
 ///
@@ -862,12 +929,12 @@ pub fn ces_projects_locations_apps_get_execute(
 
 pub fn ces_projects_locations_apps_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CesProjectsLocationsAppsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<App>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_get_builder(client, name)?;
+    let builder = ces_projects_locations_apps_get_builder(client, &args.name)?;
     ces_projects_locations_apps_get_execute(builder)
 }
 
@@ -964,6 +1031,15 @@ pub fn ces_projects_locations_apps_import_app_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_import_app`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsImportAppArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ImportAppRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps:importApp
 /// Imports the specified app.
 ///
@@ -976,13 +1052,12 @@ pub fn ces_projects_locations_apps_import_app_execute(
 
 pub fn ces_projects_locations_apps_import_app(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ImportAppRequest,
+    args: &CesProjectsLocationsAppsImportAppArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_import_app_builder(client, parent, body)?;
+    let builder = ces_projects_locations_apps_import_app_builder(client, &args.parent, &args.body)?;
     ces_projects_locations_apps_import_app_execute(builder)
 }
 
@@ -1102,6 +1177,21 @@ pub fn ces_projects_locations_apps_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps
 /// Lists apps in the given project and location.
 ///
@@ -1114,11 +1204,7 @@ pub fn ces_projects_locations_apps_list_execute(
 
 pub fn ces_projects_locations_apps_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CesProjectsLocationsAppsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAppsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1126,7 +1212,12 @@ pub fn ces_projects_locations_apps_list(
     ApiError,
 > {
     let builder = ces_projects_locations_apps_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     ces_projects_locations_apps_list_execute(builder)
 }
@@ -1236,6 +1327,17 @@ pub fn ces_projects_locations_apps_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: App,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
 /// Updates the specified app.
 ///
@@ -1248,14 +1350,17 @@ pub fn ces_projects_locations_apps_patch_execute(
 
 pub fn ces_projects_locations_apps_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &App,
+    args: &CesProjectsLocationsAppsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<App>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_patch_builder(client, name, updateMask, body)?;
+    let builder = ces_projects_locations_apps_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     ces_projects_locations_apps_patch_execute(builder)
 }
 
@@ -1356,6 +1461,15 @@ pub fn ces_projects_locations_apps_retrieve_tool_schema_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_retrieve_tool_schema`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsRetrieveToolSchemaArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: RetrieveToolSchemaRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}:retrieveToolSchema
 /// Retrieve the schema of the given tool. The schema is computed on the fly for the given instance of the tool.
 ///
@@ -1368,8 +1482,7 @@ pub fn ces_projects_locations_apps_retrieve_tool_schema_execute(
 
 pub fn ces_projects_locations_apps_retrieve_tool_schema(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &RetrieveToolSchemaRequest,
+    args: &CesProjectsLocationsAppsRetrieveToolSchemaArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RetrieveToolSchemaResponse>, ApiError>,
@@ -1378,7 +1491,8 @@ pub fn ces_projects_locations_apps_retrieve_tool_schema(
         + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_retrieve_tool_schema_builder(client, parent, body)?;
+    let builder =
+        ces_projects_locations_apps_retrieve_tool_schema_builder(client, &args.parent, &args.body)?;
     ces_projects_locations_apps_retrieve_tool_schema_execute(builder)
 }
 
@@ -1487,6 +1601,17 @@ pub fn ces_projects_locations_apps_agents_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_agents_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsAgentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: agentId
+    pub agentId: Option<String>,
+    /// Request body.
+    pub body: Agent,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents
 /// Creates a new agent in the given app.
 ///
@@ -1499,14 +1624,17 @@ pub fn ces_projects_locations_apps_agents_create_execute(
 
 pub fn ces_projects_locations_apps_agents_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    agentId: Option<&str>,
-    body: &Agent,
+    args: &CesProjectsLocationsAppsAgentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Agent>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_agents_create_builder(client, parent, agentId, body)?;
+    let builder = ces_projects_locations_apps_agents_create_builder(
+        client,
+        &args.parent,
+        args.agentId.as_deref(),
+        &args.body,
+    )?;
     ces_projects_locations_apps_agents_create_execute(builder)
 }
 
@@ -1616,6 +1744,17 @@ pub fn ces_projects_locations_apps_agents_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_agents_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsAgentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
 /// Deletes the specified agent.
 ///
@@ -1628,14 +1767,17 @@ pub fn ces_projects_locations_apps_agents_delete_execute(
 
 pub fn ces_projects_locations_apps_agents_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    force: Option<bool>,
+    args: &CesProjectsLocationsAppsAgentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_agents_delete_builder(client, name, etag, force)?;
+    let builder = ces_projects_locations_apps_agents_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.force,
+    )?;
     ces_projects_locations_apps_agents_delete_execute(builder)
 }
 
@@ -1729,6 +1871,13 @@ pub fn ces_projects_locations_apps_agents_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_agents_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsAgentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
 /// Gets details of the specified agent.
 ///
@@ -1741,12 +1890,12 @@ pub fn ces_projects_locations_apps_agents_get_execute(
 
 pub fn ces_projects_locations_apps_agents_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CesProjectsLocationsAppsAgentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Agent>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_agents_get_builder(client, name)?;
+    let builder = ces_projects_locations_apps_agents_get_builder(client, &args.name)?;
     ces_projects_locations_apps_agents_get_execute(builder)
 }
 
@@ -1866,6 +2015,21 @@ pub fn ces_projects_locations_apps_agents_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_agents_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsAgentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents
 /// Lists agents in the given app.
 ///
@@ -1878,11 +2042,7 @@ pub fn ces_projects_locations_apps_agents_list_execute(
 
 pub fn ces_projects_locations_apps_agents_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CesProjectsLocationsAppsAgentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAgentsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1890,7 +2050,12 @@ pub fn ces_projects_locations_apps_agents_list(
     ApiError,
 > {
     let builder = ces_projects_locations_apps_agents_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     ces_projects_locations_apps_agents_list_execute(builder)
 }
@@ -2000,6 +2165,17 @@ pub fn ces_projects_locations_apps_agents_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_agents_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsAgentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Agent,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
 /// Updates the specified agent.
 ///
@@ -2012,14 +2188,17 @@ pub fn ces_projects_locations_apps_agents_patch_execute(
 
 pub fn ces_projects_locations_apps_agents_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Agent,
+    args: &CesProjectsLocationsAppsAgentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Agent>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_agents_patch_builder(client, name, updateMask, body)?;
+    let builder = ces_projects_locations_apps_agents_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     ces_projects_locations_apps_agents_patch_execute(builder)
 }
 
@@ -2113,6 +2292,13 @@ pub fn ces_projects_locations_apps_changelogs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_changelogs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsChangelogsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/changelogs/{changelogsId}
 /// Gets the specified changelog.
 ///
@@ -2125,12 +2311,12 @@ pub fn ces_projects_locations_apps_changelogs_get_execute(
 
 pub fn ces_projects_locations_apps_changelogs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CesProjectsLocationsAppsChangelogsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Changelog>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_changelogs_get_builder(client, name)?;
+    let builder = ces_projects_locations_apps_changelogs_get_builder(client, &args.name)?;
     ces_projects_locations_apps_changelogs_get_execute(builder)
 }
 
@@ -2250,6 +2436,21 @@ pub fn ces_projects_locations_apps_changelogs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_changelogs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsChangelogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/changelogs
 /// Lists the changelogs of the specified app.
 ///
@@ -2262,11 +2463,7 @@ pub fn ces_projects_locations_apps_changelogs_list_execute(
 
 pub fn ces_projects_locations_apps_changelogs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CesProjectsLocationsAppsChangelogsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListChangelogsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2274,7 +2471,12 @@ pub fn ces_projects_locations_apps_changelogs_list(
     ApiError,
 > {
     let builder = ces_projects_locations_apps_changelogs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     ces_projects_locations_apps_changelogs_list_execute(builder)
 }
@@ -2372,6 +2574,15 @@ pub fn ces_projects_locations_apps_conversations_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_conversations_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsConversationsBatchDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchDeleteConversationsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations:batchDelete
 /// Batch deletes the specified conversations.
 ///
@@ -2384,14 +2595,16 @@ pub fn ces_projects_locations_apps_conversations_batch_delete_execute(
 
 pub fn ces_projects_locations_apps_conversations_batch_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchDeleteConversationsRequest,
+    args: &CesProjectsLocationsAppsConversationsBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        ces_projects_locations_apps_conversations_batch_delete_builder(client, parent, body)?;
+    let builder = ces_projects_locations_apps_conversations_batch_delete_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     ces_projects_locations_apps_conversations_batch_delete_execute(builder)
 }
 
@@ -2497,6 +2710,15 @@ pub fn ces_projects_locations_apps_conversations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_conversations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsConversationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations/{conversationsId}
 /// Deletes the specified conversation.
 ///
@@ -2509,13 +2731,16 @@ pub fn ces_projects_locations_apps_conversations_delete_execute(
 
 pub fn ces_projects_locations_apps_conversations_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    source: Option<&str>,
+    args: &CesProjectsLocationsAppsConversationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_conversations_delete_builder(client, name, source)?;
+    let builder = ces_projects_locations_apps_conversations_delete_builder(
+        client,
+        &args.name,
+        args.source.as_deref(),
+    )?;
     ces_projects_locations_apps_conversations_delete_execute(builder)
 }
 
@@ -2623,6 +2848,15 @@ pub fn ces_projects_locations_apps_conversations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_conversations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsConversationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations/{conversationsId}
 /// Gets details of the specified conversation.
 ///
@@ -2635,15 +2869,18 @@ pub fn ces_projects_locations_apps_conversations_get_execute(
 
 pub fn ces_projects_locations_apps_conversations_get(
     client: &SimpleHttpClient,
-    name: &str,
-    source: Option<&str>,
+    args: &CesProjectsLocationsAppsConversationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Conversation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_conversations_get_builder(client, name, source)?;
+    let builder = ces_projects_locations_apps_conversations_get_builder(
+        client,
+        &args.name,
+        args.source.as_deref(),
+    )?;
     ces_projects_locations_apps_conversations_get_execute(builder)
 }
 
@@ -2767,6 +3004,23 @@ pub fn ces_projects_locations_apps_conversations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_conversations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsConversationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+    /// Query parameter: sources
+    pub sources: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations
 /// Lists conversations in the given app.
 ///
@@ -2779,12 +3033,7 @@ pub fn ces_projects_locations_apps_conversations_list_execute(
 
 pub fn ces_projects_locations_apps_conversations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    source: Option<&str>,
-    sources: Option<&str>,
+    args: &CesProjectsLocationsAppsConversationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListConversationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2792,7 +3041,13 @@ pub fn ces_projects_locations_apps_conversations_list(
     ApiError,
 > {
     let builder = ces_projects_locations_apps_conversations_list_builder(
-        client, parent, filter, pageSize, pageToken, source, sources,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.source.as_deref(),
+        args.sources.as_deref(),
     )?;
     ces_projects_locations_apps_conversations_list_execute(builder)
 }
@@ -2902,6 +3157,17 @@ pub fn ces_projects_locations_apps_deployments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deploymentId
+    pub deploymentId: Option<String>,
+    /// Request body.
+    pub body: Deployment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments
 /// Creates a new deployment in the given app.
 ///
@@ -2914,15 +3180,17 @@ pub fn ces_projects_locations_apps_deployments_create_execute(
 
 pub fn ces_projects_locations_apps_deployments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    deploymentId: Option<&str>,
-    body: &Deployment,
+    args: &CesProjectsLocationsAppsDeploymentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        ces_projects_locations_apps_deployments_create_builder(client, parent, deploymentId, body)?;
+    let builder = ces_projects_locations_apps_deployments_create_builder(
+        client,
+        &args.parent,
+        args.deploymentId.as_deref(),
+        &args.body,
+    )?;
     ces_projects_locations_apps_deployments_create_execute(builder)
 }
 
@@ -3028,6 +3296,15 @@ pub fn ces_projects_locations_apps_deployments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsDeploymentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
 /// Deletes the specified deployment.
 ///
@@ -3040,13 +3317,16 @@ pub fn ces_projects_locations_apps_deployments_delete_execute(
 
 pub fn ces_projects_locations_apps_deployments_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &CesProjectsLocationsAppsDeploymentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_deployments_delete_builder(client, name, etag)?;
+    let builder = ces_projects_locations_apps_deployments_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     ces_projects_locations_apps_deployments_delete_execute(builder)
 }
 
@@ -3140,6 +3420,13 @@ pub fn ces_projects_locations_apps_deployments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
 /// Gets details of the specified deployment.
 ///
@@ -3152,12 +3439,12 @@ pub fn ces_projects_locations_apps_deployments_get_execute(
 
 pub fn ces_projects_locations_apps_deployments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CesProjectsLocationsAppsDeploymentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_deployments_get_builder(client, name)?;
+    let builder = ces_projects_locations_apps_deployments_get_builder(client, &args.name)?;
     ces_projects_locations_apps_deployments_get_execute(builder)
 }
 
@@ -3273,6 +3560,19 @@ pub fn ces_projects_locations_apps_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments
 /// Lists deployments in the given app.
 ///
@@ -3285,10 +3585,7 @@ pub fn ces_projects_locations_apps_deployments_list_execute(
 
 pub fn ces_projects_locations_apps_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CesProjectsLocationsAppsDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDeploymentsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3296,7 +3593,11 @@ pub fn ces_projects_locations_apps_deployments_list(
     ApiError,
 > {
     let builder = ces_projects_locations_apps_deployments_list_builder(
-        client, parent, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     ces_projects_locations_apps_deployments_list_execute(builder)
 }
@@ -3406,6 +3707,17 @@ pub fn ces_projects_locations_apps_deployments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_deployments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsDeploymentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Deployment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
 /// Updates the specified deployment.
 ///
@@ -3418,15 +3730,17 @@ pub fn ces_projects_locations_apps_deployments_patch_execute(
 
 pub fn ces_projects_locations_apps_deployments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Deployment,
+    args: &CesProjectsLocationsAppsDeploymentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        ces_projects_locations_apps_deployments_patch_builder(client, name, updateMask, body)?;
+    let builder = ces_projects_locations_apps_deployments_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     ces_projects_locations_apps_deployments_patch_execute(builder)
 }
 
@@ -3535,6 +3849,17 @@ pub fn ces_projects_locations_apps_examples_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_examples_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsExamplesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: exampleId
+    pub exampleId: Option<String>,
+    /// Request body.
+    pub body: Example,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples
 /// Creates a new example in the given app.
 ///
@@ -3547,15 +3872,17 @@ pub fn ces_projects_locations_apps_examples_create_execute(
 
 pub fn ces_projects_locations_apps_examples_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    exampleId: Option<&str>,
-    body: &Example,
+    args: &CesProjectsLocationsAppsExamplesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Example>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        ces_projects_locations_apps_examples_create_builder(client, parent, exampleId, body)?;
+    let builder = ces_projects_locations_apps_examples_create_builder(
+        client,
+        &args.parent,
+        args.exampleId.as_deref(),
+        &args.body,
+    )?;
     ces_projects_locations_apps_examples_create_execute(builder)
 }
 
@@ -3661,6 +3988,15 @@ pub fn ces_projects_locations_apps_examples_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_examples_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsExamplesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
 /// Deletes the specified example.
 ///
@@ -3673,13 +4009,16 @@ pub fn ces_projects_locations_apps_examples_delete_execute(
 
 pub fn ces_projects_locations_apps_examples_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &CesProjectsLocationsAppsExamplesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_examples_delete_builder(client, name, etag)?;
+    let builder = ces_projects_locations_apps_examples_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     ces_projects_locations_apps_examples_delete_execute(builder)
 }
 
@@ -3773,6 +4112,13 @@ pub fn ces_projects_locations_apps_examples_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_examples_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsExamplesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
 /// Gets details of the specified example.
 ///
@@ -3785,12 +4131,12 @@ pub fn ces_projects_locations_apps_examples_get_execute(
 
 pub fn ces_projects_locations_apps_examples_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CesProjectsLocationsAppsExamplesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Example>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_examples_get_builder(client, name)?;
+    let builder = ces_projects_locations_apps_examples_get_builder(client, &args.name)?;
     ces_projects_locations_apps_examples_get_execute(builder)
 }
 
@@ -3910,6 +4256,21 @@ pub fn ces_projects_locations_apps_examples_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_examples_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsExamplesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples
 /// Lists examples in the given app.
 ///
@@ -3922,11 +4283,7 @@ pub fn ces_projects_locations_apps_examples_list_execute(
 
 pub fn ces_projects_locations_apps_examples_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CesProjectsLocationsAppsExamplesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListExamplesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3934,7 +4291,12 @@ pub fn ces_projects_locations_apps_examples_list(
     ApiError,
 > {
     let builder = ces_projects_locations_apps_examples_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     ces_projects_locations_apps_examples_list_execute(builder)
 }
@@ -4044,6 +4406,17 @@ pub fn ces_projects_locations_apps_examples_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_examples_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsExamplesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Example,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
 /// Updates the specified example.
 ///
@@ -4056,15 +4429,17 @@ pub fn ces_projects_locations_apps_examples_patch_execute(
 
 pub fn ces_projects_locations_apps_examples_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Example,
+    args: &CesProjectsLocationsAppsExamplesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Example>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        ces_projects_locations_apps_examples_patch_builder(client, name, updateMask, body)?;
+    let builder = ces_projects_locations_apps_examples_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     ces_projects_locations_apps_examples_patch_execute(builder)
 }
 
@@ -4173,6 +4548,17 @@ pub fn ces_projects_locations_apps_guardrails_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_guardrails_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsGuardrailsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: guardrailId
+    pub guardrailId: Option<String>,
+    /// Request body.
+    pub body: Guardrail,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails
 /// Creates a new guardrail in the given app.
 ///
@@ -4185,15 +4571,17 @@ pub fn ces_projects_locations_apps_guardrails_create_execute(
 
 pub fn ces_projects_locations_apps_guardrails_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    guardrailId: Option<&str>,
-    body: &Guardrail,
+    args: &CesProjectsLocationsAppsGuardrailsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Guardrail>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        ces_projects_locations_apps_guardrails_create_builder(client, parent, guardrailId, body)?;
+    let builder = ces_projects_locations_apps_guardrails_create_builder(
+        client,
+        &args.parent,
+        args.guardrailId.as_deref(),
+        &args.body,
+    )?;
     ces_projects_locations_apps_guardrails_create_execute(builder)
 }
 
@@ -4303,6 +4691,17 @@ pub fn ces_projects_locations_apps_guardrails_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_guardrails_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsGuardrailsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
 /// Deletes the specified guardrail.
 ///
@@ -4315,14 +4714,17 @@ pub fn ces_projects_locations_apps_guardrails_delete_execute(
 
 pub fn ces_projects_locations_apps_guardrails_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    force: Option<bool>,
+    args: &CesProjectsLocationsAppsGuardrailsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_guardrails_delete_builder(client, name, etag, force)?;
+    let builder = ces_projects_locations_apps_guardrails_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.force,
+    )?;
     ces_projects_locations_apps_guardrails_delete_execute(builder)
 }
 
@@ -4416,6 +4818,13 @@ pub fn ces_projects_locations_apps_guardrails_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_guardrails_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsGuardrailsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
 /// Gets details of the specified guardrail.
 ///
@@ -4428,12 +4837,12 @@ pub fn ces_projects_locations_apps_guardrails_get_execute(
 
 pub fn ces_projects_locations_apps_guardrails_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CesProjectsLocationsAppsGuardrailsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Guardrail>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_guardrails_get_builder(client, name)?;
+    let builder = ces_projects_locations_apps_guardrails_get_builder(client, &args.name)?;
     ces_projects_locations_apps_guardrails_get_execute(builder)
 }
 
@@ -4553,6 +4962,21 @@ pub fn ces_projects_locations_apps_guardrails_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_guardrails_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsGuardrailsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails
 /// Lists guardrails in the given app.
 ///
@@ -4565,11 +4989,7 @@ pub fn ces_projects_locations_apps_guardrails_list_execute(
 
 pub fn ces_projects_locations_apps_guardrails_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CesProjectsLocationsAppsGuardrailsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGuardrailsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4577,7 +4997,12 @@ pub fn ces_projects_locations_apps_guardrails_list(
     ApiError,
 > {
     let builder = ces_projects_locations_apps_guardrails_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     ces_projects_locations_apps_guardrails_list_execute(builder)
 }
@@ -4687,6 +5112,17 @@ pub fn ces_projects_locations_apps_guardrails_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_guardrails_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsGuardrailsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Guardrail,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
 /// Updates the specified guardrail.
 ///
@@ -4699,15 +5135,17 @@ pub fn ces_projects_locations_apps_guardrails_patch_execute(
 
 pub fn ces_projects_locations_apps_guardrails_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Guardrail,
+    args: &CesProjectsLocationsAppsGuardrailsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Guardrail>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        ces_projects_locations_apps_guardrails_patch_builder(client, name, updateMask, body)?;
+    let builder = ces_projects_locations_apps_guardrails_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     ces_projects_locations_apps_guardrails_patch_execute(builder)
 }
 
@@ -4806,6 +5244,15 @@ pub fn ces_projects_locations_apps_sessions_generate_chat_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_sessions_generate_chat_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsSessionsGenerateChatTokenArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GenerateChatTokenRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:generateChatToken
 /// Generates a session scoped token for chat widget to authenticate with Session APIs.
 ///
@@ -4818,16 +5265,16 @@ pub fn ces_projects_locations_apps_sessions_generate_chat_token_execute(
 
 pub fn ces_projects_locations_apps_sessions_generate_chat_token(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GenerateChatTokenRequest,
+    args: &CesProjectsLocationsAppsSessionsGenerateChatTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GenerateChatTokenResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        ces_projects_locations_apps_sessions_generate_chat_token_builder(client, name, body)?;
+    let builder = ces_projects_locations_apps_sessions_generate_chat_token_builder(
+        client, &args.name, &args.body,
+    )?;
     ces_projects_locations_apps_sessions_generate_chat_token_execute(builder)
 }
 
@@ -4926,6 +5373,15 @@ pub fn ces_projects_locations_apps_sessions_run_session_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_sessions_run_session`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsSessionsRunSessionArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: RunSessionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:runSession
 /// Initiates a single-turn interaction with the CES agent within a session.
 ///
@@ -4938,15 +5394,18 @@ pub fn ces_projects_locations_apps_sessions_run_session_execute(
 
 pub fn ces_projects_locations_apps_sessions_run_session(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &RunSessionRequest,
+    args: &CesProjectsLocationsAppsSessionsRunSessionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RunSessionResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_sessions_run_session_builder(client, session, body)?;
+    let builder = ces_projects_locations_apps_sessions_run_session_builder(
+        client,
+        &args.session,
+        &args.body,
+    )?;
     ces_projects_locations_apps_sessions_run_session_execute(builder)
 }
 
@@ -5045,6 +5504,15 @@ pub fn ces_projects_locations_apps_sessions_stream_run_session_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_sessions_stream_run_session`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsSessionsStreamRunSessionArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: RunSessionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/sessions/{sessionsId}:streamRunSession
 /// Initiates a single-turn interaction with the CES agent. Uses server-side streaming to deliver incremental results and partial responses as they are generated. By default, complete responses (e.g., messages from callbacks or full LLM responses) are sent to the client as soon as they are available. To enable streaming individual text chunks directly from the model, set enable_text_streaming to `true`.
 ///
@@ -5057,16 +5525,18 @@ pub fn ces_projects_locations_apps_sessions_stream_run_session_execute(
 
 pub fn ces_projects_locations_apps_sessions_stream_run_session(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &RunSessionRequest,
+    args: &CesProjectsLocationsAppsSessionsStreamRunSessionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RunSessionResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        ces_projects_locations_apps_sessions_stream_run_session_builder(client, session, body)?;
+    let builder = ces_projects_locations_apps_sessions_stream_run_session_builder(
+        client,
+        &args.session,
+        &args.body,
+    )?;
     ces_projects_locations_apps_sessions_stream_run_session_execute(builder)
 }
 
@@ -5175,6 +5645,17 @@ pub fn ces_projects_locations_apps_tools_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_tools_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: toolId
+    pub toolId: Option<String>,
+    /// Request body.
+    pub body: Tool,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools
 /// Creates a new tool in the given app.
 ///
@@ -5187,14 +5668,17 @@ pub fn ces_projects_locations_apps_tools_create_execute(
 
 pub fn ces_projects_locations_apps_tools_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    toolId: Option<&str>,
-    body: &Tool,
+    args: &CesProjectsLocationsAppsToolsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Tool>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_tools_create_builder(client, parent, toolId, body)?;
+    let builder = ces_projects_locations_apps_tools_create_builder(
+        client,
+        &args.parent,
+        args.toolId.as_deref(),
+        &args.body,
+    )?;
     ces_projects_locations_apps_tools_create_execute(builder)
 }
 
@@ -5304,6 +5788,17 @@ pub fn ces_projects_locations_apps_tools_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_tools_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
 /// Deletes the specified tool.
 ///
@@ -5316,14 +5811,17 @@ pub fn ces_projects_locations_apps_tools_delete_execute(
 
 pub fn ces_projects_locations_apps_tools_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    force: Option<bool>,
+    args: &CesProjectsLocationsAppsToolsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_tools_delete_builder(client, name, etag, force)?;
+    let builder = ces_projects_locations_apps_tools_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.force,
+    )?;
     ces_projects_locations_apps_tools_delete_execute(builder)
 }
 
@@ -5417,6 +5915,13 @@ pub fn ces_projects_locations_apps_tools_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_tools_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
 /// Gets details of the specified tool.
 ///
@@ -5429,12 +5934,12 @@ pub fn ces_projects_locations_apps_tools_get_execute(
 
 pub fn ces_projects_locations_apps_tools_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CesProjectsLocationsAppsToolsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Tool>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_tools_get_builder(client, name)?;
+    let builder = ces_projects_locations_apps_tools_get_builder(client, &args.name)?;
     ces_projects_locations_apps_tools_get_execute(builder)
 }
 
@@ -5554,6 +6059,21 @@ pub fn ces_projects_locations_apps_tools_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_tools_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools
 /// Lists tools in the given app.
 ///
@@ -5566,11 +6086,7 @@ pub fn ces_projects_locations_apps_tools_list_execute(
 
 pub fn ces_projects_locations_apps_tools_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CesProjectsLocationsAppsToolsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListToolsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5578,7 +6094,12 @@ pub fn ces_projects_locations_apps_tools_list(
     ApiError,
 > {
     let builder = ces_projects_locations_apps_tools_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     ces_projects_locations_apps_tools_list_execute(builder)
 }
@@ -5688,6 +6209,17 @@ pub fn ces_projects_locations_apps_tools_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_tools_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Tool,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
 /// Updates the specified tool.
 ///
@@ -5700,14 +6232,17 @@ pub fn ces_projects_locations_apps_tools_patch_execute(
 
 pub fn ces_projects_locations_apps_tools_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Tool,
+    args: &CesProjectsLocationsAppsToolsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Tool>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_tools_patch_builder(client, name, updateMask, body)?;
+    let builder = ces_projects_locations_apps_tools_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     ces_projects_locations_apps_tools_patch_execute(builder)
 }
 
@@ -5816,6 +6351,17 @@ pub fn ces_projects_locations_apps_toolsets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_toolsets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: toolsetId
+    pub toolsetId: Option<String>,
+    /// Request body.
+    pub body: Toolset,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets
 /// Creates a new toolset in the given app.
 ///
@@ -5828,15 +6374,17 @@ pub fn ces_projects_locations_apps_toolsets_create_execute(
 
 pub fn ces_projects_locations_apps_toolsets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    toolsetId: Option<&str>,
-    body: &Toolset,
+    args: &CesProjectsLocationsAppsToolsetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Toolset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        ces_projects_locations_apps_toolsets_create_builder(client, parent, toolsetId, body)?;
+    let builder = ces_projects_locations_apps_toolsets_create_builder(
+        client,
+        &args.parent,
+        args.toolsetId.as_deref(),
+        &args.body,
+    )?;
     ces_projects_locations_apps_toolsets_create_execute(builder)
 }
 
@@ -5946,6 +6494,17 @@ pub fn ces_projects_locations_apps_toolsets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_toolsets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
 /// Deletes the specified toolset.
 ///
@@ -5958,14 +6517,17 @@ pub fn ces_projects_locations_apps_toolsets_delete_execute(
 
 pub fn ces_projects_locations_apps_toolsets_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    force: Option<bool>,
+    args: &CesProjectsLocationsAppsToolsetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_toolsets_delete_builder(client, name, etag, force)?;
+    let builder = ces_projects_locations_apps_toolsets_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.force,
+    )?;
     ces_projects_locations_apps_toolsets_delete_execute(builder)
 }
 
@@ -6059,6 +6621,13 @@ pub fn ces_projects_locations_apps_toolsets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_toolsets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
 /// Gets details of the specified toolset.
 ///
@@ -6071,12 +6640,12 @@ pub fn ces_projects_locations_apps_toolsets_get_execute(
 
 pub fn ces_projects_locations_apps_toolsets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CesProjectsLocationsAppsToolsetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Toolset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_toolsets_get_builder(client, name)?;
+    let builder = ces_projects_locations_apps_toolsets_get_builder(client, &args.name)?;
     ces_projects_locations_apps_toolsets_get_execute(builder)
 }
 
@@ -6196,6 +6765,21 @@ pub fn ces_projects_locations_apps_toolsets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_toolsets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets
 /// Lists toolsets in the given app.
 ///
@@ -6208,11 +6792,7 @@ pub fn ces_projects_locations_apps_toolsets_list_execute(
 
 pub fn ces_projects_locations_apps_toolsets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CesProjectsLocationsAppsToolsetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListToolsetsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6220,7 +6800,12 @@ pub fn ces_projects_locations_apps_toolsets_list(
     ApiError,
 > {
     let builder = ces_projects_locations_apps_toolsets_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     ces_projects_locations_apps_toolsets_list_execute(builder)
 }
@@ -6330,6 +6915,17 @@ pub fn ces_projects_locations_apps_toolsets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_toolsets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Toolset,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
 /// Updates the specified toolset.
 ///
@@ -6342,15 +6938,17 @@ pub fn ces_projects_locations_apps_toolsets_patch_execute(
 
 pub fn ces_projects_locations_apps_toolsets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Toolset,
+    args: &CesProjectsLocationsAppsToolsetsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Toolset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        ces_projects_locations_apps_toolsets_patch_builder(client, name, updateMask, body)?;
+    let builder = ces_projects_locations_apps_toolsets_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     ces_projects_locations_apps_toolsets_patch_execute(builder)
 }
 
@@ -6449,6 +7047,15 @@ pub fn ces_projects_locations_apps_toolsets_retrieve_tools_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_toolsets_retrieve_tools`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsToolsetsRetrieveToolsArgs {
+    /// Path parameter: toolset
+    pub toolset: String,
+    /// Request body.
+    pub body: RetrieveToolsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}:retrieveTools
 /// Retrieve the list of tools included in the specified toolset.
 ///
@@ -6461,16 +7068,18 @@ pub fn ces_projects_locations_apps_toolsets_retrieve_tools_execute(
 
 pub fn ces_projects_locations_apps_toolsets_retrieve_tools(
     client: &SimpleHttpClient,
-    toolset: &str,
-    body: &RetrieveToolsRequest,
+    args: &CesProjectsLocationsAppsToolsetsRetrieveToolsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RetrieveToolsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        ces_projects_locations_apps_toolsets_retrieve_tools_builder(client, toolset, body)?;
+    let builder = ces_projects_locations_apps_toolsets_retrieve_tools_builder(
+        client,
+        &args.toolset,
+        &args.body,
+    )?;
     ces_projects_locations_apps_toolsets_retrieve_tools_execute(builder)
 }
 
@@ -6579,6 +7188,17 @@ pub fn ces_projects_locations_apps_versions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: appVersionId
+    pub appVersionId: Option<String>,
+    /// Request body.
+    pub body: AppVersion,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions
 /// Creates a new app version in the given app.
 ///
@@ -6591,15 +7211,17 @@ pub fn ces_projects_locations_apps_versions_create_execute(
 
 pub fn ces_projects_locations_apps_versions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    appVersionId: Option<&str>,
-    body: &AppVersion,
+    args: &CesProjectsLocationsAppsVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppVersion>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        ces_projects_locations_apps_versions_create_builder(client, parent, appVersionId, body)?;
+    let builder = ces_projects_locations_apps_versions_create_builder(
+        client,
+        &args.parent,
+        args.appVersionId.as_deref(),
+        &args.body,
+    )?;
     ces_projects_locations_apps_versions_create_execute(builder)
 }
 
@@ -6705,6 +7327,15 @@ pub fn ces_projects_locations_apps_versions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}
 /// Deletes the specified app version.
 ///
@@ -6717,13 +7348,16 @@ pub fn ces_projects_locations_apps_versions_delete_execute(
 
 pub fn ces_projects_locations_apps_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &CesProjectsLocationsAppsVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_versions_delete_builder(client, name, etag)?;
+    let builder = ces_projects_locations_apps_versions_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     ces_projects_locations_apps_versions_delete_execute(builder)
 }
 
@@ -6817,6 +7451,13 @@ pub fn ces_projects_locations_apps_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}
 /// Gets details of the specified app version.
 ///
@@ -6829,12 +7470,12 @@ pub fn ces_projects_locations_apps_versions_get_execute(
 
 pub fn ces_projects_locations_apps_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CesProjectsLocationsAppsVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppVersion>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_versions_get_builder(client, name)?;
+    let builder = ces_projects_locations_apps_versions_get_builder(client, &args.name)?;
     ces_projects_locations_apps_versions_get_execute(builder)
 }
 
@@ -6954,6 +7595,21 @@ pub fn ces_projects_locations_apps_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions
 /// Lists all app versions in the given app.
 ///
@@ -6966,11 +7622,7 @@ pub fn ces_projects_locations_apps_versions_list_execute(
 
 pub fn ces_projects_locations_apps_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CesProjectsLocationsAppsVersionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAppVersionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6978,7 +7630,12 @@ pub fn ces_projects_locations_apps_versions_list(
     ApiError,
 > {
     let builder = ces_projects_locations_apps_versions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     ces_projects_locations_apps_versions_list_execute(builder)
 }
@@ -7076,6 +7733,15 @@ pub fn ces_projects_locations_apps_versions_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_apps_versions_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsAppsVersionsRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RestoreAppVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}:restore
 /// Restores the specified app version. This will create a new app version from the current draft app and overwrite the current draft with the specified app version.
 ///
@@ -7088,13 +7754,13 @@ pub fn ces_projects_locations_apps_versions_restore_execute(
 
 pub fn ces_projects_locations_apps_versions_restore(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RestoreAppVersionRequest,
+    args: &CesProjectsLocationsAppsVersionsRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_apps_versions_restore_builder(client, name, body)?;
+    let builder =
+        ces_projects_locations_apps_versions_restore_builder(client, &args.name, &args.body)?;
     ces_projects_locations_apps_versions_restore_execute(builder)
 }
 
@@ -7191,6 +7857,15 @@ pub fn ces_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -7203,13 +7878,12 @@ pub fn ces_projects_locations_operations_cancel_execute(
 
 pub fn ces_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &CesProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = ces_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     ces_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -7303,6 +7977,13 @@ pub fn ces_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -7315,12 +7996,12 @@ pub fn ces_projects_locations_operations_delete_execute(
 
 pub fn ces_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CesProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_operations_delete_builder(client, name)?;
+    let builder = ces_projects_locations_operations_delete_builder(client, &args.name)?;
     ces_projects_locations_operations_delete_execute(builder)
 }
 
@@ -7414,6 +8095,13 @@ pub fn ces_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -7426,12 +8114,12 @@ pub fn ces_projects_locations_operations_get_execute(
 
 pub fn ces_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CesProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ces_projects_locations_operations_get_builder(client, name)?;
+    let builder = ces_projects_locations_operations_get_builder(client, &args.name)?;
     ces_projects_locations_operations_get_execute(builder)
 }
 
@@ -7551,6 +8239,21 @@ pub fn ces_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ces_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CesProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -7563,11 +8266,7 @@ pub fn ces_projects_locations_operations_list_execute(
 
 pub fn ces_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &CesProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7576,11 +8275,11 @@ pub fn ces_projects_locations_operations_list(
 > {
     let builder = ces_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     ces_projects_locations_operations_list_execute(builder)
 }

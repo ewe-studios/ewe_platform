@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/matters/{matterId}:addPermissions
 /// Adds an account as a matter collaborator.
@@ -111,6 +113,15 @@ pub fn vault_matters_add_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_add_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersAddPermissionsArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Request body.
+    pub body: AddMatterPermissionsRequest,
+}
+
 /// GET v1/matters/{matterId}:addPermissions
 /// Adds an account as a matter collaborator.
 ///
@@ -123,15 +134,14 @@ pub fn vault_matters_add_permissions_execute(
 
 pub fn vault_matters_add_permissions(
     client: &SimpleHttpClient,
-    matterId: &str,
-    body: &AddMatterPermissionsRequest,
+    args: &VaultMattersAddPermissionsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MatterPermission>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_add_permissions_builder(client, matterId, body)?;
+    let builder = vault_matters_add_permissions_builder(client, &args.matterId, &args.body)?;
     vault_matters_add_permissions_execute(builder)
 }
 
@@ -227,6 +237,15 @@ pub fn vault_matters_close_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_close`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersCloseArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Request body.
+    pub body: CloseMatterRequest,
+}
+
 /// GET v1/matters/{matterId}:close
 /// Closes the specified matter. Returns the matter with updated state.
 ///
@@ -239,15 +258,14 @@ pub fn vault_matters_close_execute(
 
 pub fn vault_matters_close(
     client: &SimpleHttpClient,
-    matterId: &str,
-    body: &CloseMatterRequest,
+    args: &VaultMattersCloseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CloseMatterResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_close_builder(client, matterId, body)?;
+    let builder = vault_matters_close_builder(client, &args.matterId, &args.body)?;
     vault_matters_close_execute(builder)
 }
 
@@ -341,6 +359,15 @@ pub fn vault_matters_count_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_count`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersCountArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Request body.
+    pub body: CountArtifactsRequest,
+}
+
 /// GET v1/matters/{matterId}:count
 /// Counts the accounts processed by the specified query.
 ///
@@ -353,13 +380,12 @@ pub fn vault_matters_count_execute(
 
 pub fn vault_matters_count(
     client: &SimpleHttpClient,
-    matterId: &str,
-    body: &CountArtifactsRequest,
+    args: &VaultMattersCountArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_count_builder(client, matterId, body)?;
+    let builder = vault_matters_count_builder(client, &args.matterId, &args.body)?;
     vault_matters_count_execute(builder)
 }
 
@@ -452,6 +478,13 @@ pub fn vault_matters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersCreateArgs {
+    /// Request body.
+    pub body: Matter,
+}
+
 /// GET v1/matters
 /// Creates a matter with the given name and description. The initial state is open, and the owner is the method caller. Returns the created matter with default view.
 ///
@@ -464,12 +497,12 @@ pub fn vault_matters_create_execute(
 
 pub fn vault_matters_create(
     client: &SimpleHttpClient,
-    body: &Matter,
+    args: &VaultMattersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Matter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_create_builder(client, body)?;
+    let builder = vault_matters_create_builder(client, &args.body)?;
     vault_matters_create_execute(builder)
 }
 
@@ -560,6 +593,13 @@ pub fn vault_matters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersDeleteArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+}
+
 /// GET v1/matters/{matterId}
 /// Deletes the specified matter. Returns the matter with updated state.
 ///
@@ -572,12 +612,12 @@ pub fn vault_matters_delete_execute(
 
 pub fn vault_matters_delete(
     client: &SimpleHttpClient,
-    matterId: &str,
+    args: &VaultMattersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Matter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_delete_builder(client, matterId)?;
+    let builder = vault_matters_delete_builder(client, &args.matterId)?;
     vault_matters_delete_execute(builder)
 }
 
@@ -680,6 +720,15 @@ pub fn vault_matters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersGetArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/matters/{matterId}
 /// Gets the specified matter.
 ///
@@ -692,13 +741,12 @@ pub fn vault_matters_get_execute(
 
 pub fn vault_matters_get(
     client: &SimpleHttpClient,
-    matterId: &str,
-    view: Option<&str>,
+    args: &VaultMattersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Matter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_get_builder(client, matterId, view)?;
+    let builder = vault_matters_get_builder(client, &args.matterId, args.view.as_deref())?;
     vault_matters_get_execute(builder)
 }
 
@@ -814,6 +862,19 @@ pub fn vault_matters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: state
+    pub state: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/matters
 /// Lists matters the requestor has access to.
 ///
@@ -826,17 +887,20 @@ pub fn vault_matters_list_execute(
 
 pub fn vault_matters_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    state: Option<&str>,
-    view: Option<&str>,
+    args: &VaultMattersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListMattersResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_list_builder(client, pageSize, pageToken, state, view)?;
+    let builder = vault_matters_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.state.as_deref(),
+        args.view.as_deref(),
+    )?;
     vault_matters_list_execute(builder)
 }
 
@@ -933,6 +997,15 @@ pub fn vault_matters_remove_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_remove_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersRemovePermissionsArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Request body.
+    pub body: RemoveMatterPermissionsRequest,
+}
+
 /// GET v1/matters/{matterId}:removePermissions
 /// Removes an account as a matter collaborator.
 ///
@@ -945,13 +1018,12 @@ pub fn vault_matters_remove_permissions_execute(
 
 pub fn vault_matters_remove_permissions(
     client: &SimpleHttpClient,
-    matterId: &str,
-    body: &RemoveMatterPermissionsRequest,
+    args: &VaultMattersRemovePermissionsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_remove_permissions_builder(client, matterId, body)?;
+    let builder = vault_matters_remove_permissions_builder(client, &args.matterId, &args.body)?;
     vault_matters_remove_permissions_execute(builder)
 }
 
@@ -1050,6 +1122,15 @@ pub fn vault_matters_reopen_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_reopen`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersReopenArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Request body.
+    pub body: ReopenMatterRequest,
+}
+
 /// GET v1/matters/{matterId}:reopen
 /// Reopens the specified matter. Returns the matter with updated state.
 ///
@@ -1062,15 +1143,14 @@ pub fn vault_matters_reopen_execute(
 
 pub fn vault_matters_reopen(
     client: &SimpleHttpClient,
-    matterId: &str,
-    body: &ReopenMatterRequest,
+    args: &VaultMattersReopenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReopenMatterResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_reopen_builder(client, matterId, body)?;
+    let builder = vault_matters_reopen_builder(client, &args.matterId, &args.body)?;
     vault_matters_reopen_execute(builder)
 }
 
@@ -1167,6 +1247,15 @@ pub fn vault_matters_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersUndeleteArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Request body.
+    pub body: UndeleteMatterRequest,
+}
+
 /// GET v1/matters/{matterId}:undelete
 /// Undeletes the specified matter. Returns the matter with updated state.
 ///
@@ -1179,13 +1268,12 @@ pub fn vault_matters_undelete_execute(
 
 pub fn vault_matters_undelete(
     client: &SimpleHttpClient,
-    matterId: &str,
-    body: &UndeleteMatterRequest,
+    args: &VaultMattersUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Matter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_undelete_builder(client, matterId, body)?;
+    let builder = vault_matters_undelete_builder(client, &args.matterId, &args.body)?;
     vault_matters_undelete_execute(builder)
 }
 
@@ -1279,6 +1367,15 @@ pub fn vault_matters_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersUpdateArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Request body.
+    pub body: Matter,
+}
+
 /// GET v1/matters/{matterId}
 /// Updates the specified matter. This updates only the name and description of the matter, identified by matter ID. Changes to any other fields are ignored. Returns the default view of the matter.
 ///
@@ -1291,13 +1388,12 @@ pub fn vault_matters_update_execute(
 
 pub fn vault_matters_update(
     client: &SimpleHttpClient,
-    matterId: &str,
-    body: &Matter,
+    args: &VaultMattersUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Matter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_update_builder(client, matterId, body)?;
+    let builder = vault_matters_update_builder(client, &args.matterId, &args.body)?;
     vault_matters_update_execute(builder)
 }
 
@@ -1394,6 +1490,15 @@ pub fn vault_matters_exports_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_exports_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersExportsCreateArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Request body.
+    pub body: Export,
+}
+
 /// GET v1/matters/{matterId}/exports
 /// Creates an export.
 ///
@@ -1406,13 +1511,12 @@ pub fn vault_matters_exports_create_execute(
 
 pub fn vault_matters_exports_create(
     client: &SimpleHttpClient,
-    matterId: &str,
-    body: &Export,
+    args: &VaultMattersExportsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Export>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_exports_create_builder(client, matterId, body)?;
+    let builder = vault_matters_exports_create_builder(client, &args.matterId, &args.body)?;
     vault_matters_exports_create_execute(builder)
 }
 
@@ -1507,6 +1611,15 @@ pub fn vault_matters_exports_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_exports_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersExportsDeleteArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: exportId
+    pub exportId: String,
+}
+
 /// GET v1/matters/{matterId}/exports/{exportId}
 /// Deletes an export.
 ///
@@ -1519,13 +1632,12 @@ pub fn vault_matters_exports_delete_execute(
 
 pub fn vault_matters_exports_delete(
     client: &SimpleHttpClient,
-    matterId: &str,
-    exportId: &str,
+    args: &VaultMattersExportsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_exports_delete_builder(client, matterId, exportId)?;
+    let builder = vault_matters_exports_delete_builder(client, &args.matterId, &args.exportId)?;
     vault_matters_exports_delete_execute(builder)
 }
 
@@ -1620,6 +1732,15 @@ pub fn vault_matters_exports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_exports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersExportsGetArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: exportId
+    pub exportId: String,
+}
+
 /// GET v1/matters/{matterId}/exports/{exportId}
 /// Gets an export.
 ///
@@ -1632,13 +1753,12 @@ pub fn vault_matters_exports_get_execute(
 
 pub fn vault_matters_exports_get(
     client: &SimpleHttpClient,
-    matterId: &str,
-    exportId: &str,
+    args: &VaultMattersExportsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Export>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_exports_get_builder(client, matterId, exportId)?;
+    let builder = vault_matters_exports_get_builder(client, &args.matterId, &args.exportId)?;
     vault_matters_exports_get_execute(builder)
 }
 
@@ -1750,6 +1870,17 @@ pub fn vault_matters_exports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_exports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersExportsListArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/matters/{matterId}/exports
 /// Lists details about the exports in the specified matter.
 ///
@@ -1762,16 +1893,19 @@ pub fn vault_matters_exports_list_execute(
 
 pub fn vault_matters_exports_list(
     client: &SimpleHttpClient,
-    matterId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VaultMattersExportsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListExportsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_exports_list_builder(client, matterId, pageSize, pageToken)?;
+    let builder = vault_matters_exports_list_builder(
+        client,
+        &args.matterId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     vault_matters_exports_list_execute(builder)
 }
 
@@ -1871,6 +2005,17 @@ pub fn vault_matters_holds_add_held_accounts_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_holds_add_held_accounts`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersHoldsAddHeldAccountsArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: holdId
+    pub holdId: String,
+    /// Request body.
+    pub body: AddHeldAccountsRequest,
+}
+
 /// GET v1/matters/{matterId}/holds/{holdId}:addHeldAccounts
 /// Adds accounts to a hold. Returns a list of accounts that have been successfully added. Accounts can be added only to an existing account-based hold.
 ///
@@ -1883,16 +2028,19 @@ pub fn vault_matters_holds_add_held_accounts_execute(
 
 pub fn vault_matters_holds_add_held_accounts(
     client: &SimpleHttpClient,
-    matterId: &str,
-    holdId: &str,
-    body: &AddHeldAccountsRequest,
+    args: &VaultMattersHoldsAddHeldAccountsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddHeldAccountsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_holds_add_held_accounts_builder(client, matterId, holdId, body)?;
+    let builder = vault_matters_holds_add_held_accounts_builder(
+        client,
+        &args.matterId,
+        &args.holdId,
+        &args.body,
+    )?;
     vault_matters_holds_add_held_accounts_execute(builder)
 }
 
@@ -1986,6 +2134,15 @@ pub fn vault_matters_holds_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_holds_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersHoldsCreateArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Request body.
+    pub body: Hold,
+}
+
 /// GET v1/matters/{matterId}/holds
 /// Creates a hold in the specified matter.
 ///
@@ -1998,13 +2155,12 @@ pub fn vault_matters_holds_create_execute(
 
 pub fn vault_matters_holds_create(
     client: &SimpleHttpClient,
-    matterId: &str,
-    body: &Hold,
+    args: &VaultMattersHoldsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Hold>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_holds_create_builder(client, matterId, body)?;
+    let builder = vault_matters_holds_create_builder(client, &args.matterId, &args.body)?;
     vault_matters_holds_create_execute(builder)
 }
 
@@ -2099,6 +2255,15 @@ pub fn vault_matters_holds_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_holds_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersHoldsDeleteArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: holdId
+    pub holdId: String,
+}
+
 /// GET v1/matters/{matterId}/holds/{holdId}
 /// Removes the specified hold and releases the accounts or organizational unit covered by the hold. If the data is not preserved by another hold or retention rule, it might be purged.
 ///
@@ -2111,13 +2276,12 @@ pub fn vault_matters_holds_delete_execute(
 
 pub fn vault_matters_holds_delete(
     client: &SimpleHttpClient,
-    matterId: &str,
-    holdId: &str,
+    args: &VaultMattersHoldsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_holds_delete_builder(client, matterId, holdId)?;
+    let builder = vault_matters_holds_delete_builder(client, &args.matterId, &args.holdId)?;
     vault_matters_holds_delete_execute(builder)
 }
 
@@ -2224,6 +2388,17 @@ pub fn vault_matters_holds_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_holds_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersHoldsGetArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: holdId
+    pub holdId: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/matters/{matterId}/holds/{holdId}
 /// Gets the specified hold.
 ///
@@ -2236,14 +2411,17 @@ pub fn vault_matters_holds_get_execute(
 
 pub fn vault_matters_holds_get(
     client: &SimpleHttpClient,
-    matterId: &str,
-    holdId: &str,
-    view: Option<&str>,
+    args: &VaultMattersHoldsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Hold>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_holds_get_builder(client, matterId, holdId, view)?;
+    let builder = vault_matters_holds_get_builder(
+        client,
+        &args.matterId,
+        &args.holdId,
+        args.view.as_deref(),
+    )?;
     vault_matters_holds_get_execute(builder)
 }
 
@@ -2356,6 +2534,19 @@ pub fn vault_matters_holds_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_holds_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersHoldsListArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/matters/{matterId}/holds
 /// Lists the holds in a matter.
 ///
@@ -2368,17 +2559,20 @@ pub fn vault_matters_holds_list_execute(
 
 pub fn vault_matters_holds_list(
     client: &SimpleHttpClient,
-    matterId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &VaultMattersHoldsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListHoldsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_holds_list_builder(client, matterId, pageSize, pageToken, view)?;
+    let builder = vault_matters_holds_list_builder(
+        client,
+        &args.matterId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
+    )?;
     vault_matters_holds_list_execute(builder)
 }
 
@@ -2480,6 +2674,17 @@ pub fn vault_matters_holds_remove_held_accounts_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_holds_remove_held_accounts`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersHoldsRemoveHeldAccountsArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: holdId
+    pub holdId: String,
+    /// Request body.
+    pub body: RemoveHeldAccountsRequest,
+}
+
 /// GET v1/matters/{matterId}/holds/{holdId}:removeHeldAccounts
 /// Removes the specified accounts from a hold. Returns a list of statuses in the same order as the request.
 ///
@@ -2492,9 +2697,7 @@ pub fn vault_matters_holds_remove_held_accounts_execute(
 
 pub fn vault_matters_holds_remove_held_accounts(
     client: &SimpleHttpClient,
-    matterId: &str,
-    holdId: &str,
-    body: &RemoveHeldAccountsRequest,
+    args: &VaultMattersHoldsRemoveHeldAccountsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RemoveHeldAccountsResponse>, ApiError>,
@@ -2503,7 +2706,12 @@ pub fn vault_matters_holds_remove_held_accounts(
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_holds_remove_held_accounts_builder(client, matterId, holdId, body)?;
+    let builder = vault_matters_holds_remove_held_accounts_builder(
+        client,
+        &args.matterId,
+        &args.holdId,
+        &args.body,
+    )?;
     vault_matters_holds_remove_held_accounts_execute(builder)
 }
 
@@ -2601,6 +2809,17 @@ pub fn vault_matters_holds_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_holds_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersHoldsUpdateArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: holdId
+    pub holdId: String,
+    /// Request body.
+    pub body: Hold,
+}
+
 /// GET v1/matters/{matterId}/holds/{holdId}
 /// Updates the scope (organizational unit or accounts) and query parameters of a hold. You cannot add accounts to a hold that covers an organizational unit, nor can you add organizational units to a hold that covers individual accounts. If you try, the unsupported values are ignored.
 ///
@@ -2613,14 +2832,13 @@ pub fn vault_matters_holds_update_execute(
 
 pub fn vault_matters_holds_update(
     client: &SimpleHttpClient,
-    matterId: &str,
-    holdId: &str,
-    body: &Hold,
+    args: &VaultMattersHoldsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Hold>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_holds_update_builder(client, matterId, holdId, body)?;
+    let builder =
+        vault_matters_holds_update_builder(client, &args.matterId, &args.holdId, &args.body)?;
     vault_matters_holds_update_execute(builder)
 }
 
@@ -2718,6 +2936,17 @@ pub fn vault_matters_holds_accounts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_holds_accounts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersHoldsAccountsCreateArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: holdId
+    pub holdId: String,
+    /// Request body.
+    pub body: HeldAccount,
+}
+
 /// GET v1/matters/{matterId}/holds/{holdId}/accounts
 /// Adds an account to a hold. Accounts can be added only to a hold that does not have an organizational unit set. If you try to add an account to an organizational unit-based hold, an error is returned.
 ///
@@ -2730,14 +2959,17 @@ pub fn vault_matters_holds_accounts_create_execute(
 
 pub fn vault_matters_holds_accounts_create(
     client: &SimpleHttpClient,
-    matterId: &str,
-    holdId: &str,
-    body: &HeldAccount,
+    args: &VaultMattersHoldsAccountsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HeldAccount>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_holds_accounts_create_builder(client, matterId, holdId, body)?;
+    let builder = vault_matters_holds_accounts_create_builder(
+        client,
+        &args.matterId,
+        &args.holdId,
+        &args.body,
+    )?;
     vault_matters_holds_accounts_create_execute(builder)
 }
 
@@ -2833,6 +3065,17 @@ pub fn vault_matters_holds_accounts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_holds_accounts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersHoldsAccountsDeleteArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: holdId
+    pub holdId: String,
+    /// Path parameter: accountId
+    pub accountId: String,
+}
+
 /// GET v1/matters/{matterId}/holds/{holdId}/accounts/{accountId}
 /// Removes an account from a hold.
 ///
@@ -2845,14 +3088,17 @@ pub fn vault_matters_holds_accounts_delete_execute(
 
 pub fn vault_matters_holds_accounts_delete(
     client: &SimpleHttpClient,
-    matterId: &str,
-    holdId: &str,
-    accountId: &str,
+    args: &VaultMattersHoldsAccountsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_holds_accounts_delete_builder(client, matterId, holdId, accountId)?;
+    let builder = vault_matters_holds_accounts_delete_builder(
+        client,
+        &args.matterId,
+        &args.holdId,
+        &args.accountId,
+    )?;
     vault_matters_holds_accounts_delete_execute(builder)
 }
 
@@ -2949,6 +3195,15 @@ pub fn vault_matters_holds_accounts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_holds_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersHoldsAccountsListArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: holdId
+    pub holdId: String,
+}
+
 /// GET v1/matters/{matterId}/holds/{holdId}/accounts
 /// Lists the accounts covered by a hold. This can list only individually-specified accounts covered by the hold. If the hold covers an organizational unit, use the [Admin SDK](<https://developers.google.`com/admin-sdk/`>). to list the members of the organizational unit on hold.
 ///
@@ -2961,15 +3216,14 @@ pub fn vault_matters_holds_accounts_list_execute(
 
 pub fn vault_matters_holds_accounts_list(
     client: &SimpleHttpClient,
-    matterId: &str,
-    holdId: &str,
+    args: &VaultMattersHoldsAccountsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListHeldAccountsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_holds_accounts_list_builder(client, matterId, holdId)?;
+    let builder = vault_matters_holds_accounts_list_builder(client, &args.matterId, &args.holdId)?;
     vault_matters_holds_accounts_list_execute(builder)
 }
 
@@ -3066,6 +3320,15 @@ pub fn vault_matters_saved_queries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_saved_queries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersSavedQueriesCreateArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Request body.
+    pub body: SavedQuery,
+}
+
 /// GET v1/matters/{matterId}/savedQueries
 /// Creates a saved query.
 ///
@@ -3078,13 +3341,12 @@ pub fn vault_matters_saved_queries_create_execute(
 
 pub fn vault_matters_saved_queries_create(
     client: &SimpleHttpClient,
-    matterId: &str,
-    body: &SavedQuery,
+    args: &VaultMattersSavedQueriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_saved_queries_create_builder(client, matterId, body)?;
+    let builder = vault_matters_saved_queries_create_builder(client, &args.matterId, &args.body)?;
     vault_matters_saved_queries_create_execute(builder)
 }
 
@@ -3179,6 +3441,15 @@ pub fn vault_matters_saved_queries_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_saved_queries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersSavedQueriesDeleteArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: savedQueryId
+    pub savedQueryId: String,
+}
+
 /// GET v1/matters/{matterId}/savedQueries/{savedQueryId}
 /// Deletes the specified saved query.
 ///
@@ -3191,13 +3462,13 @@ pub fn vault_matters_saved_queries_delete_execute(
 
 pub fn vault_matters_saved_queries_delete(
     client: &SimpleHttpClient,
-    matterId: &str,
-    savedQueryId: &str,
+    args: &VaultMattersSavedQueriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_saved_queries_delete_builder(client, matterId, savedQueryId)?;
+    let builder =
+        vault_matters_saved_queries_delete_builder(client, &args.matterId, &args.savedQueryId)?;
     vault_matters_saved_queries_delete_execute(builder)
 }
 
@@ -3292,6 +3563,15 @@ pub fn vault_matters_saved_queries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_saved_queries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersSavedQueriesGetArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: savedQueryId
+    pub savedQueryId: String,
+}
+
 /// GET v1/matters/{matterId}/savedQueries/{savedQueryId}
 /// Retrieves the specified saved query.
 ///
@@ -3304,13 +3584,13 @@ pub fn vault_matters_saved_queries_get_execute(
 
 pub fn vault_matters_saved_queries_get(
     client: &SimpleHttpClient,
-    matterId: &str,
-    savedQueryId: &str,
+    args: &VaultMattersSavedQueriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_saved_queries_get_builder(client, matterId, savedQueryId)?;
+    let builder =
+        vault_matters_saved_queries_get_builder(client, &args.matterId, &args.savedQueryId)?;
     vault_matters_saved_queries_get_execute(builder)
 }
 
@@ -3422,6 +3702,17 @@ pub fn vault_matters_saved_queries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_matters_saved_queries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersSavedQueriesListArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/matters/{matterId}/savedQueries
 /// Lists the saved queries in a matter.
 ///
@@ -3434,16 +3725,19 @@ pub fn vault_matters_saved_queries_list_execute(
 
 pub fn vault_matters_saved_queries_list(
     client: &SimpleHttpClient,
-    matterId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VaultMattersSavedQueriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSavedQueriesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_saved_queries_list_builder(client, matterId, pageSize, pageToken)?;
+    let builder = vault_matters_saved_queries_list_builder(
+        client,
+        &args.matterId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     vault_matters_saved_queries_list_execute(builder)
 }
 
@@ -3537,6 +3831,15 @@ pub fn vault_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -3549,13 +3852,12 @@ pub fn vault_operations_cancel_execute(
 
 pub fn vault_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &VaultOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_operations_cancel_builder(client, name, body)?;
+    let builder = vault_operations_cancel_builder(client, &args.name, &args.body)?;
     vault_operations_cancel_execute(builder)
 }
 
@@ -3646,6 +3948,13 @@ pub fn vault_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -3658,12 +3967,12 @@ pub fn vault_operations_delete_execute(
 
 pub fn vault_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VaultOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_operations_delete_builder(client, name)?;
+    let builder = vault_operations_delete_builder(client, &args.name)?;
     vault_operations_delete_execute(builder)
 }
 
@@ -3754,6 +4063,13 @@ pub fn vault_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -3766,12 +4082,12 @@ pub fn vault_operations_get_execute(
 
 pub fn vault_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VaultOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_operations_get_builder(client, name)?;
+    let builder = vault_operations_get_builder(client, &args.name)?;
     vault_operations_get_execute(builder)
 }
 
@@ -3888,6 +4204,21 @@ pub fn vault_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vault_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -3900,11 +4231,7 @@ pub fn vault_operations_list_execute(
 
 pub fn vault_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &VaultOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3913,11 +4240,11 @@ pub fn vault_operations_list(
 > {
     let builder = vault_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     vault_operations_list_execute(builder)
 }

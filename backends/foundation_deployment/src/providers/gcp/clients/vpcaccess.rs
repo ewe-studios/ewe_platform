@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
@@ -132,6 +134,21 @@ pub fn vpcaccess_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vpcaccess_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VpcaccessProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -144,11 +161,7 @@ pub fn vpcaccess_projects_locations_list_execute(
 
 pub fn vpcaccess_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VpcaccessProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -157,11 +170,11 @@ pub fn vpcaccess_projects_locations_list(
 > {
     let builder = vpcaccess_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vpcaccess_projects_locations_list_execute(builder)
 }
@@ -271,6 +284,17 @@ pub fn vpcaccess_projects_locations_connectors_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vpcaccess_projects_locations_connectors_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VpcaccessProjectsLocationsConnectorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: connectorId
+    pub connectorId: Option<String>,
+    /// Request body.
+    pub body: Connector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectors
 /// Creates a Serverless VPC Access connector, returns an operation.
 ///
@@ -283,15 +307,17 @@ pub fn vpcaccess_projects_locations_connectors_create_execute(
 
 pub fn vpcaccess_projects_locations_connectors_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    connectorId: Option<&str>,
-    body: &Connector,
+    args: &VpcaccessProjectsLocationsConnectorsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vpcaccess_projects_locations_connectors_create_builder(client, parent, connectorId, body)?;
+    let builder = vpcaccess_projects_locations_connectors_create_builder(
+        client,
+        &args.parent,
+        args.connectorId.as_deref(),
+        &args.body,
+    )?;
     vpcaccess_projects_locations_connectors_create_execute(builder)
 }
 
@@ -385,6 +411,13 @@ pub fn vpcaccess_projects_locations_connectors_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vpcaccess_projects_locations_connectors_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VpcaccessProjectsLocationsConnectorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectors/{connectorsId}
 /// Deletes a Serverless VPC Access connector. Returns NOT_FOUND if the resource does not exist.
 ///
@@ -397,12 +430,12 @@ pub fn vpcaccess_projects_locations_connectors_delete_execute(
 
 pub fn vpcaccess_projects_locations_connectors_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VpcaccessProjectsLocationsConnectorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vpcaccess_projects_locations_connectors_delete_builder(client, name)?;
+    let builder = vpcaccess_projects_locations_connectors_delete_builder(client, &args.name)?;
     vpcaccess_projects_locations_connectors_delete_execute(builder)
 }
 
@@ -496,6 +529,13 @@ pub fn vpcaccess_projects_locations_connectors_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vpcaccess_projects_locations_connectors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VpcaccessProjectsLocationsConnectorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectors/{connectorsId}
 /// Gets a Serverless VPC Access connector. Returns NOT_FOUND if the resource does not exist.
 ///
@@ -508,12 +548,12 @@ pub fn vpcaccess_projects_locations_connectors_get_execute(
 
 pub fn vpcaccess_projects_locations_connectors_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VpcaccessProjectsLocationsConnectorsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Connector>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vpcaccess_projects_locations_connectors_get_builder(client, name)?;
+    let builder = vpcaccess_projects_locations_connectors_get_builder(client, &args.name)?;
     vpcaccess_projects_locations_connectors_get_execute(builder)
 }
 
@@ -625,6 +665,17 @@ pub fn vpcaccess_projects_locations_connectors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vpcaccess_projects_locations_connectors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VpcaccessProjectsLocationsConnectorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectors
 /// Lists Serverless VPC Access connectors.
 ///
@@ -637,17 +688,19 @@ pub fn vpcaccess_projects_locations_connectors_list_execute(
 
 pub fn vpcaccess_projects_locations_connectors_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VpcaccessProjectsLocationsConnectorsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListConnectorsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        vpcaccess_projects_locations_connectors_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = vpcaccess_projects_locations_connectors_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     vpcaccess_projects_locations_connectors_list_execute(builder)
 }
 
@@ -756,6 +809,17 @@ pub fn vpcaccess_projects_locations_connectors_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vpcaccess_projects_locations_connectors_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VpcaccessProjectsLocationsConnectorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Connector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectors/{connectorsId}
 /// Updates a Serverless VPC Access connector, returns an operation.
 ///
@@ -768,15 +832,17 @@ pub fn vpcaccess_projects_locations_connectors_patch_execute(
 
 pub fn vpcaccess_projects_locations_connectors_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Connector,
+    args: &VpcaccessProjectsLocationsConnectorsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vpcaccess_projects_locations_connectors_patch_builder(client, name, updateMask, body)?;
+    let builder = vpcaccess_projects_locations_connectors_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     vpcaccess_projects_locations_connectors_patch_execute(builder)
 }
 
@@ -870,6 +936,13 @@ pub fn vpcaccess_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vpcaccess_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VpcaccessProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -882,12 +955,12 @@ pub fn vpcaccess_projects_locations_operations_get_execute(
 
 pub fn vpcaccess_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VpcaccessProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vpcaccess_projects_locations_operations_get_builder(client, name)?;
+    let builder = vpcaccess_projects_locations_operations_get_builder(client, &args.name)?;
     vpcaccess_projects_locations_operations_get_execute(builder)
 }
 
@@ -1007,6 +1080,21 @@ pub fn vpcaccess_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vpcaccess_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VpcaccessProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1019,11 +1107,7 @@ pub fn vpcaccess_projects_locations_operations_list_execute(
 
 pub fn vpcaccess_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &VpcaccessProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1032,11 +1116,11 @@ pub fn vpcaccess_projects_locations_operations_list(
 > {
     let builder = vpcaccess_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     vpcaccess_projects_locations_operations_list_execute(builder)
 }

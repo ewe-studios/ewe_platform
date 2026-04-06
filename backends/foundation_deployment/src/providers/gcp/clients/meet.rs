@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}
 /// Gets a conference record by conference ID.
@@ -105,6 +107,13 @@ pub fn meet_conference_records_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_conference_records_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetConferenceRecordsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/conferenceRecords/{conferenceRecordsId}
 /// Gets a conference record by conference ID.
 ///
@@ -117,14 +126,14 @@ pub fn meet_conference_records_get_execute(
 
 pub fn meet_conference_records_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MeetConferenceRecordsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConferenceRecord>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = meet_conference_records_get_builder(client, name)?;
+    let builder = meet_conference_records_get_builder(client, &args.name)?;
     meet_conference_records_get_execute(builder)
 }
 
@@ -238,6 +247,17 @@ pub fn meet_conference_records_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_conference_records_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetConferenceRecordsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/conferenceRecords
 /// Lists the conference records. By default, ordered by start time and in descending order.
 ///
@@ -250,9 +270,7 @@ pub fn meet_conference_records_list_execute(
 
 pub fn meet_conference_records_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MeetConferenceRecordsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListConferenceRecordsResponse>, ApiError>,
@@ -261,7 +279,12 @@ pub fn meet_conference_records_list(
         + 'static,
     ApiError,
 > {
-    let builder = meet_conference_records_list_builder(client, filter, pageSize, pageToken)?;
+    let builder = meet_conference_records_list_builder(
+        client,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     meet_conference_records_list_execute(builder)
 }
 
@@ -355,6 +378,13 @@ pub fn meet_conference_records_participants_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_conference_records_participants_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetConferenceRecordsParticipantsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}
 /// Gets a participant by participant ID.
 ///
@@ -367,12 +397,12 @@ pub fn meet_conference_records_participants_get_execute(
 
 pub fn meet_conference_records_participants_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MeetConferenceRecordsParticipantsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Participant>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = meet_conference_records_participants_get_builder(client, name)?;
+    let builder = meet_conference_records_participants_get_builder(client, &args.name)?;
     meet_conference_records_participants_get_execute(builder)
 }
 
@@ -488,6 +518,19 @@ pub fn meet_conference_records_participants_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_conference_records_participants_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetConferenceRecordsParticipantsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/conferenceRecords/{conferenceRecordsId}/participants
 /// Lists the participants in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted, this API defaults to 'participants/*, next_page_token'.
 ///
@@ -500,10 +543,7 @@ pub fn meet_conference_records_participants_list_execute(
 
 pub fn meet_conference_records_participants_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MeetConferenceRecordsParticipantsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListParticipantsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -511,7 +551,11 @@ pub fn meet_conference_records_participants_list(
     ApiError,
 > {
     let builder = meet_conference_records_participants_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     meet_conference_records_participants_list_execute(builder)
 }
@@ -608,6 +652,13 @@ pub fn meet_conference_records_participants_participant_sessions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_conference_records_participants_participant_sessions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetConferenceRecordsParticipantsParticipantSessionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}/participantSessions/{participantSessionsId}
 /// Gets a participant session by participant session ID.
 ///
@@ -620,7 +671,7 @@ pub fn meet_conference_records_participants_participant_sessions_get_execute(
 
 pub fn meet_conference_records_participants_participant_sessions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MeetConferenceRecordsParticipantsParticipantSessionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ParticipantSession>, ApiError>, P = ApiPending>
         + Send
@@ -628,7 +679,7 @@ pub fn meet_conference_records_participants_participant_sessions_get(
     ApiError,
 > {
     let builder =
-        meet_conference_records_participants_participant_sessions_get_builder(client, name)?;
+        meet_conference_records_participants_participant_sessions_get_builder(client, &args.name)?;
     meet_conference_records_participants_participant_sessions_get_execute(builder)
 }
 
@@ -746,6 +797,19 @@ pub fn meet_conference_records_participants_participant_sessions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_conference_records_participants_participant_sessions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetConferenceRecordsParticipantsParticipantSessionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}/participantSessions
 /// Lists the participant sessions of a participant in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted this API defaults to 'participantsessions/*, next_page_token'.
 ///
@@ -758,10 +822,7 @@ pub fn meet_conference_records_participants_participant_sessions_list_execute(
 
 pub fn meet_conference_records_participants_participant_sessions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MeetConferenceRecordsParticipantsParticipantSessionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListParticipantSessionsResponse>, ApiError>,
@@ -771,7 +832,11 @@ pub fn meet_conference_records_participants_participant_sessions_list(
     ApiError,
 > {
     let builder = meet_conference_records_participants_participant_sessions_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     meet_conference_records_participants_participant_sessions_list_execute(builder)
 }
@@ -866,6 +931,13 @@ pub fn meet_conference_records_recordings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_conference_records_recordings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetConferenceRecordsRecordingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/conferenceRecords/{conferenceRecordsId}/recordings/{recordingsId}
 /// Gets a recording by recording ID.
 ///
@@ -878,12 +950,12 @@ pub fn meet_conference_records_recordings_get_execute(
 
 pub fn meet_conference_records_recordings_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MeetConferenceRecordsRecordingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Recording>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = meet_conference_records_recordings_get_builder(client, name)?;
+    let builder = meet_conference_records_recordings_get_builder(client, &args.name)?;
     meet_conference_records_recordings_get_execute(builder)
 }
 
@@ -995,6 +1067,17 @@ pub fn meet_conference_records_recordings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_conference_records_recordings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetConferenceRecordsRecordingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/conferenceRecords/{conferenceRecordsId}/recordings
 /// Lists the recording resources from the conference record. By default, ordered by start time and in ascending order.
 ///
@@ -1007,17 +1090,19 @@ pub fn meet_conference_records_recordings_list_execute(
 
 pub fn meet_conference_records_recordings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MeetConferenceRecordsRecordingsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRecordingsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        meet_conference_records_recordings_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = meet_conference_records_recordings_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     meet_conference_records_recordings_list_execute(builder)
 }
 
@@ -1111,6 +1196,13 @@ pub fn meet_conference_records_smart_notes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_conference_records_smart_notes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetConferenceRecordsSmartNotesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/conferenceRecords/{conferenceRecordsId}/smartNotes/{smartNotesId}
 /// Gets smart notes by smart note ID.
 ///
@@ -1123,12 +1215,12 @@ pub fn meet_conference_records_smart_notes_get_execute(
 
 pub fn meet_conference_records_smart_notes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MeetConferenceRecordsSmartNotesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SmartNote>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = meet_conference_records_smart_notes_get_builder(client, name)?;
+    let builder = meet_conference_records_smart_notes_get_builder(client, &args.name)?;
     meet_conference_records_smart_notes_get_execute(builder)
 }
 
@@ -1240,6 +1332,17 @@ pub fn meet_conference_records_smart_notes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_conference_records_smart_notes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetConferenceRecordsSmartNotesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/conferenceRecords/{conferenceRecordsId}/smartNotes
 /// Lists the set of smart notes from the conference record. By default, ordered by start time and in ascending order.
 ///
@@ -1252,17 +1355,19 @@ pub fn meet_conference_records_smart_notes_list_execute(
 
 pub fn meet_conference_records_smart_notes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MeetConferenceRecordsSmartNotesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSmartNotesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        meet_conference_records_smart_notes_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = meet_conference_records_smart_notes_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     meet_conference_records_smart_notes_list_execute(builder)
 }
 
@@ -1356,6 +1461,13 @@ pub fn meet_conference_records_transcripts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_conference_records_transcripts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetConferenceRecordsTranscriptsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts/{transcriptsId}
 /// Gets a transcript by transcript ID.
 ///
@@ -1368,12 +1480,12 @@ pub fn meet_conference_records_transcripts_get_execute(
 
 pub fn meet_conference_records_transcripts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MeetConferenceRecordsTranscriptsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Transcript>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = meet_conference_records_transcripts_get_builder(client, name)?;
+    let builder = meet_conference_records_transcripts_get_builder(client, &args.name)?;
     meet_conference_records_transcripts_get_execute(builder)
 }
 
@@ -1485,6 +1597,17 @@ pub fn meet_conference_records_transcripts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_conference_records_transcripts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetConferenceRecordsTranscriptsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts
 /// Lists the set of transcripts from the conference record. By default, ordered by start time and in ascending order.
 ///
@@ -1497,17 +1620,19 @@ pub fn meet_conference_records_transcripts_list_execute(
 
 pub fn meet_conference_records_transcripts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MeetConferenceRecordsTranscriptsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTranscriptsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        meet_conference_records_transcripts_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = meet_conference_records_transcripts_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     meet_conference_records_transcripts_list_execute(builder)
 }
 
@@ -1603,6 +1728,13 @@ pub fn meet_conference_records_transcripts_entries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_conference_records_transcripts_entries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetConferenceRecordsTranscriptsEntriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts/{transcriptsId}/entries/{entriesId}
 /// Gets a TranscriptEntry resource by entry ID. Note: The transcript entries returned by the Google Meet API might not match the transcription found in the Google Docs transcript file. This can occur when 1) we have interleaved speakers within milliseconds, or 2) the Google Docs transcript file is modified after generation.
 ///
@@ -1615,14 +1747,14 @@ pub fn meet_conference_records_transcripts_entries_get_execute(
 
 pub fn meet_conference_records_transcripts_entries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MeetConferenceRecordsTranscriptsEntriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TranscriptEntry>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = meet_conference_records_transcripts_entries_get_builder(client, name)?;
+    let builder = meet_conference_records_transcripts_entries_get_builder(client, &args.name)?;
     meet_conference_records_transcripts_entries_get_execute(builder)
 }
 
@@ -1736,6 +1868,17 @@ pub fn meet_conference_records_transcripts_entries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_conference_records_transcripts_entries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetConferenceRecordsTranscriptsEntriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts/{transcriptsId}/entries
 /// Lists the structured transcript entries per transcript. By default, ordered by start time and in ascending order. Note: The transcript entries returned by the Google Meet API might not match the transcription found in the Google Docs transcript file. This can occur when 1) we have interleaved speakers within milliseconds, or 2) the Google Docs transcript file is modified after generation.
 ///
@@ -1748,9 +1891,7 @@ pub fn meet_conference_records_transcripts_entries_list_execute(
 
 pub fn meet_conference_records_transcripts_entries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MeetConferenceRecordsTranscriptsEntriesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListTranscriptEntriesResponse>, ApiError>,
@@ -1760,7 +1901,10 @@ pub fn meet_conference_records_transcripts_entries_list(
     ApiError,
 > {
     let builder = meet_conference_records_transcripts_entries_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     meet_conference_records_transcripts_entries_list_execute(builder)
 }
@@ -1854,6 +1998,13 @@ pub fn meet_spaces_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_spaces_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetSpacesCreateArgs {
+    /// Request body.
+    pub body: Space,
+}
+
 /// GET v2/spaces
 /// Creates a space.
 ///
@@ -1866,12 +2017,12 @@ pub fn meet_spaces_create_execute(
 
 pub fn meet_spaces_create(
     client: &SimpleHttpClient,
-    body: &Space,
+    args: &MeetSpacesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Space>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = meet_spaces_create_builder(client, body)?;
+    let builder = meet_spaces_create_builder(client, &args.body)?;
     meet_spaces_create_execute(builder)
 }
 
@@ -1968,6 +2119,15 @@ pub fn meet_spaces_end_active_conference_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_spaces_end_active_conference`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetSpacesEndActiveConferenceArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EndActiveConferenceRequest,
+}
+
 /// GET v2/spaces/{spacesId}:endActiveConference
 /// Ends an active conference (if there's one). For an example, see [End active conference](<https://developers.google.`com/workspace/meet/api/guides/meeting-spaces`#end-active-conference>).
 ///
@@ -1980,13 +2140,12 @@ pub fn meet_spaces_end_active_conference_execute(
 
 pub fn meet_spaces_end_active_conference(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EndActiveConferenceRequest,
+    args: &MeetSpacesEndActiveConferenceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = meet_spaces_end_active_conference_builder(client, name, body)?;
+    let builder = meet_spaces_end_active_conference_builder(client, &args.name, &args.body)?;
     meet_spaces_end_active_conference_execute(builder)
 }
 
@@ -2077,6 +2236,13 @@ pub fn meet_spaces_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_spaces_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetSpacesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/spaces/{spacesId}
 /// Gets details about a meeting space. For an example, see [Get a meeting space](<https://developers.google.`com/workspace/meet/api/guides/meeting-spaces`#get-meeting-space>).
 ///
@@ -2089,12 +2255,12 @@ pub fn meet_spaces_get_execute(
 
 pub fn meet_spaces_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MeetSpacesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Space>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = meet_spaces_get_builder(client, name)?;
+    let builder = meet_spaces_get_builder(client, &args.name)?;
     meet_spaces_get_execute(builder)
 }
 
@@ -2200,6 +2366,17 @@ pub fn meet_spaces_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`meet_spaces_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MeetSpacesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Space,
+}
+
 /// GET v2/spaces/{spacesId}
 /// Updates details about a meeting space. For an example, see [Update a meeting space](<https://developers.google.`com/workspace/meet/api/guides/meeting-spaces`#update-meeting-space>).
 ///
@@ -2212,13 +2389,12 @@ pub fn meet_spaces_patch_execute(
 
 pub fn meet_spaces_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Space,
+    args: &MeetSpacesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Space>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = meet_spaces_patch_builder(client, name, updateMask, body)?;
+    let builder =
+        meet_spaces_patch_builder(client, &args.name, args.updateMask.as_deref(), &args.body)?;
     meet_spaces_patch_execute(builder)
 }

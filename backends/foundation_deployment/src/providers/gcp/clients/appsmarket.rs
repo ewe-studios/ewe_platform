@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET appsmarket/v2/customerLicense/{applicationId}/{customerId}
 /// Gets the customer's licensing status to determine if they have access to a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
@@ -109,6 +111,15 @@ pub fn appsmarket_customer_license_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appsmarket_customer_license_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppsmarketCustomerLicenseGetArgs {
+    /// Path parameter: applicationId
+    pub applicationId: String,
+    /// Path parameter: customerId
+    pub customerId: String,
+}
+
 /// GET appsmarket/v2/customerLicense/{applicationId}/{customerId}
 /// Gets the customer's licensing status to determine if they have access to a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
 ///
@@ -121,15 +132,15 @@ pub fn appsmarket_customer_license_get_execute(
 
 pub fn appsmarket_customer_license_get(
     client: &SimpleHttpClient,
-    applicationId: &str,
-    customerId: &str,
+    args: &AppsmarketCustomerLicenseGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomerLicense>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = appsmarket_customer_license_get_builder(client, applicationId, customerId)?;
+    let builder =
+        appsmarket_customer_license_get_builder(client, &args.applicationId, &args.customerId)?;
     appsmarket_customer_license_get_execute(builder)
 }
 
@@ -224,6 +235,15 @@ pub fn appsmarket_user_license_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`appsmarket_user_license_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AppsmarketUserLicenseGetArgs {
+    /// Path parameter: applicationId
+    pub applicationId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET appsmarket/v2/userLicense/{applicationId}/{userId}
 /// Gets the user's licensing status to determine if they have permission to use a given app. For more information, see [Getting app installation and licensing details](<https://developers.google.`com/workspace/marketplace/example-calls-marketplace-api`>).
 ///
@@ -236,12 +256,11 @@ pub fn appsmarket_user_license_get_execute(
 
 pub fn appsmarket_user_license_get(
     client: &SimpleHttpClient,
-    applicationId: &str,
-    userId: &str,
+    args: &AppsmarketUserLicenseGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserLicense>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appsmarket_user_license_get_builder(client, applicationId, userId)?;
+    let builder = appsmarket_user_license_get_builder(client, &args.applicationId, &args.userId)?;
     appsmarket_user_license_get_execute(builder)
 }

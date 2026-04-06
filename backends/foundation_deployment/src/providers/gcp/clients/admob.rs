@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/accounts/{accountsId}
 /// Gets information about the specified AdMob publisher account.
@@ -105,6 +107,13 @@ pub fn admob_accounts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`admob_accounts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdmobAccountsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}
 /// Gets information about the specified AdMob publisher account.
 ///
@@ -117,14 +126,14 @@ pub fn admob_accounts_get_execute(
 
 pub fn admob_accounts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdmobAccountsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PublisherAccount>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = admob_accounts_get_builder(client, name)?;
+    let builder = admob_accounts_get_builder(client, &args.name)?;
     admob_accounts_get_execute(builder)
 }
 
@@ -234,6 +243,15 @@ pub fn admob_accounts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`admob_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdmobAccountsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts
 /// Lists the AdMob publisher account that was most recently signed in to from the AdMob UI. For more information, see <https://support.google.`com/admob/answer/10243672`.>
 ///
@@ -246,8 +264,7 @@ pub fn admob_accounts_list_execute(
 
 pub fn admob_accounts_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AdmobAccountsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPublisherAccountsResponse>, ApiError>,
@@ -256,7 +273,7 @@ pub fn admob_accounts_list(
         + 'static,
     ApiError,
 > {
-    let builder = admob_accounts_list_builder(client, pageSize, pageToken)?;
+    let builder = admob_accounts_list_builder(client, args.pageSize, args.pageToken.as_deref())?;
     admob_accounts_list_execute(builder)
 }
 
@@ -368,6 +385,17 @@ pub fn admob_accounts_ad_units_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`admob_accounts_ad_units_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdmobAccountsAdUnitsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/adUnits
 /// List the ad units under the specified AdMob account.
 ///
@@ -380,16 +408,19 @@ pub fn admob_accounts_ad_units_list_execute(
 
 pub fn admob_accounts_ad_units_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AdmobAccountsAdUnitsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAdUnitsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = admob_accounts_ad_units_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = admob_accounts_ad_units_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     admob_accounts_ad_units_list_execute(builder)
 }
 
@@ -498,6 +529,17 @@ pub fn admob_accounts_apps_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`admob_accounts_apps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdmobAccountsAppsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/apps
 /// List the apps under the specified AdMob account.
 ///
@@ -510,16 +552,19 @@ pub fn admob_accounts_apps_list_execute(
 
 pub fn admob_accounts_apps_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AdmobAccountsAppsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAppsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = admob_accounts_apps_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = admob_accounts_apps_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     admob_accounts_apps_list_execute(builder)
 }
 
@@ -620,6 +665,15 @@ pub fn admob_accounts_mediation_report_generate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`admob_accounts_mediation_report_generate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdmobAccountsMediationReportGenerateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GenerateMediationReportRequest,
+}
+
 /// GET v1/accounts/{accountsId}/mediationReport:generate
 /// Generates an AdMob Mediation report based on the provided report specification. Returns result of a server-side streaming RPC. The result is returned in a sequence of responses.
 ///
@@ -632,8 +686,7 @@ pub fn admob_accounts_mediation_report_generate_execute(
 
 pub fn admob_accounts_mediation_report_generate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GenerateMediationReportRequest,
+    args: &AdmobAccountsMediationReportGenerateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateMediationReportResponse>, ApiError>,
@@ -642,7 +695,8 @@ pub fn admob_accounts_mediation_report_generate(
         + 'static,
     ApiError,
 > {
-    let builder = admob_accounts_mediation_report_generate_builder(client, parent, body)?;
+    let builder =
+        admob_accounts_mediation_report_generate_builder(client, &args.parent, &args.body)?;
     admob_accounts_mediation_report_generate_execute(builder)
 }
 
@@ -743,6 +797,15 @@ pub fn admob_accounts_network_report_generate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`admob_accounts_network_report_generate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdmobAccountsNetworkReportGenerateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GenerateNetworkReportRequest,
+}
+
 /// GET v1/accounts/{accountsId}/networkReport:generate
 /// Generates an AdMob Network report based on the provided report specification. Returns result of a server-side streaming RPC. The result is returned in a sequence of responses.
 ///
@@ -755,8 +818,7 @@ pub fn admob_accounts_network_report_generate_execute(
 
 pub fn admob_accounts_network_report_generate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GenerateNetworkReportRequest,
+    args: &AdmobAccountsNetworkReportGenerateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateNetworkReportResponse>, ApiError>,
@@ -765,6 +827,6 @@ pub fn admob_accounts_network_report_generate(
         + 'static,
     ApiError,
 > {
-    let builder = admob_accounts_network_report_generate_builder(client, parent, body)?;
+    let builder = admob_accounts_network_report_generate_builder(client, &args.parent, &args.body)?;
     admob_accounts_network_report_generate_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/folders/{foldersId}/accessApprovalSettings
 /// Deletes the settings associated with a project, folder, or organization. This will have the effect of disabling Access Approval for the resource. Access Approval may remain active based on parent resource settings. To confirm the effective settings, call GetAccessApprovalSettings and verify effective setting is disabled.
@@ -106,6 +108,13 @@ pub fn accessapproval_folders_delete_access_approval_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_folders_delete_access_approval_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalFoldersDeleteAccessApprovalSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/accessApprovalSettings
 /// Deletes the settings associated with a project, folder, or organization. This will have the effect of disabling Access Approval for the resource. Access Approval may remain active based on parent resource settings. To confirm the effective settings, call GetAccessApprovalSettings and verify effective setting is disabled.
 ///
@@ -118,12 +127,13 @@ pub fn accessapproval_folders_delete_access_approval_settings_execute(
 
 pub fn accessapproval_folders_delete_access_approval_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccessapprovalFoldersDeleteAccessApprovalSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = accessapproval_folders_delete_access_approval_settings_builder(client, name)?;
+    let builder =
+        accessapproval_folders_delete_access_approval_settings_builder(client, &args.name)?;
     accessapproval_folders_delete_access_approval_settings_execute(builder)
 }
 
@@ -219,6 +229,13 @@ pub fn accessapproval_folders_get_access_approval_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_folders_get_access_approval_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalFoldersGetAccessApprovalSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/accessApprovalSettings
 /// Gets the Access Approval settings associated with a project, folder, or organization.
 ///
@@ -231,14 +248,14 @@ pub fn accessapproval_folders_get_access_approval_settings_execute(
 
 pub fn accessapproval_folders_get_access_approval_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccessapprovalFoldersGetAccessApprovalSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_folders_get_access_approval_settings_builder(client, name)?;
+    let builder = accessapproval_folders_get_access_approval_settings_builder(client, &args.name)?;
     accessapproval_folders_get_access_approval_settings_execute(builder)
 }
 
@@ -336,6 +353,13 @@ pub fn accessapproval_folders_get_service_account_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_folders_get_service_account`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalFoldersGetServiceAccountArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/serviceAccount
 /// Retrieves the service account that is used by Access Approval to access KMS keys for signing approved approval requests.
 ///
@@ -348,7 +372,7 @@ pub fn accessapproval_folders_get_service_account_execute(
 
 pub fn accessapproval_folders_get_service_account(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccessapprovalFoldersGetServiceAccountArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessApprovalServiceAccount>, ApiError>,
@@ -357,7 +381,7 @@ pub fn accessapproval_folders_get_service_account(
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_folders_get_service_account_builder(client, name)?;
+    let builder = accessapproval_folders_get_service_account_builder(client, &args.name)?;
     accessapproval_folders_get_service_account_execute(builder)
 }
 
@@ -468,6 +492,17 @@ pub fn accessapproval_folders_update_access_approval_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_folders_update_access_approval_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalFoldersUpdateAccessApprovalSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AccessApprovalSettings,
+}
+
 /// GET v1/folders/{foldersId}/accessApprovalSettings
 /// Updates the settings associated with a project, folder, or organization. Settings to update are determined by the value of field_mask.
 ///
@@ -480,9 +515,7 @@ pub fn accessapproval_folders_update_access_approval_settings_execute(
 
 pub fn accessapproval_folders_update_access_approval_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AccessApprovalSettings,
+    args: &AccessapprovalFoldersUpdateAccessApprovalSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
         + Send
@@ -490,7 +523,10 @@ pub fn accessapproval_folders_update_access_approval_settings(
     ApiError,
 > {
     let builder = accessapproval_folders_update_access_approval_settings_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     accessapproval_folders_update_access_approval_settings_execute(builder)
 }
@@ -590,6 +626,15 @@ pub fn accessapproval_folders_approval_requests_approve_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_folders_approval_requests_approve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalFoldersApprovalRequestsApproveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ApproveApprovalRequestMessage,
+}
+
 /// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}:approve
 /// Approves a request and returns the updated ApprovalRequest. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
 ///
@@ -602,15 +647,15 @@ pub fn accessapproval_folders_approval_requests_approve_execute(
 
 pub fn accessapproval_folders_approval_requests_approve(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ApproveApprovalRequestMessage,
+    args: &AccessapprovalFoldersApprovalRequestsApproveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_folders_approval_requests_approve_builder(client, name, body)?;
+    let builder =
+        accessapproval_folders_approval_requests_approve_builder(client, &args.name, &args.body)?;
     accessapproval_folders_approval_requests_approve_execute(builder)
 }
 
@@ -709,6 +754,15 @@ pub fn accessapproval_folders_approval_requests_dismiss_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_folders_approval_requests_dismiss`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalFoldersApprovalRequestsDismissArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DismissApprovalRequestMessage,
+}
+
 /// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}:dismiss
 /// Dismisses a request. Returns the updated ApprovalRequest. NOTE: When a request is dismissed, it is considered ignored. Dismissing a request does not prevent access granted by other Access Approval requests. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
 ///
@@ -721,15 +775,15 @@ pub fn accessapproval_folders_approval_requests_dismiss_execute(
 
 pub fn accessapproval_folders_approval_requests_dismiss(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DismissApprovalRequestMessage,
+    args: &AccessapprovalFoldersApprovalRequestsDismissArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_folders_approval_requests_dismiss_builder(client, name, body)?;
+    let builder =
+        accessapproval_folders_approval_requests_dismiss_builder(client, &args.name, &args.body)?;
     accessapproval_folders_approval_requests_dismiss_execute(builder)
 }
 
@@ -825,6 +879,13 @@ pub fn accessapproval_folders_approval_requests_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_folders_approval_requests_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalFoldersApprovalRequestsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}
 /// Gets an approval request. Returns NOT_FOUND if the request does not exist.
 ///
@@ -837,14 +898,14 @@ pub fn accessapproval_folders_approval_requests_get_execute(
 
 pub fn accessapproval_folders_approval_requests_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccessapprovalFoldersApprovalRequestsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_folders_approval_requests_get_builder(client, name)?;
+    let builder = accessapproval_folders_approval_requests_get_builder(client, &args.name)?;
     accessapproval_folders_approval_requests_get_execute(builder)
 }
 
@@ -943,6 +1004,15 @@ pub fn accessapproval_folders_approval_requests_invalidate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_folders_approval_requests_invalidate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalFoldersApprovalRequestsInvalidateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: InvalidateApprovalRequestMessage,
+}
+
 /// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}:invalidate
 /// Invalidates an existing ApprovalRequest. Returns the updated ApprovalRequest. NOTE: This action revokes Google access based on this approval request. If the resource has other active approvals, access will remain granted. Returns FAILED_PRECONDITION if the request exists but is not in an approved state.
 ///
@@ -955,15 +1025,16 @@ pub fn accessapproval_folders_approval_requests_invalidate_execute(
 
 pub fn accessapproval_folders_approval_requests_invalidate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &InvalidateApprovalRequestMessage,
+    args: &AccessapprovalFoldersApprovalRequestsInvalidateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_folders_approval_requests_invalidate_builder(client, name, body)?;
+    let builder = accessapproval_folders_approval_requests_invalidate_builder(
+        client, &args.name, &args.body,
+    )?;
     accessapproval_folders_approval_requests_invalidate_execute(builder)
 }
 
@@ -1081,6 +1152,19 @@ pub fn accessapproval_folders_approval_requests_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_folders_approval_requests_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalFoldersApprovalRequestsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/approvalRequests
 /// Lists approval requests associated with a project, folder, or organization. Approval requests can be filtered by state (pending, active, dismissed). The order is reverse chronological.
 ///
@@ -1093,10 +1177,7 @@ pub fn accessapproval_folders_approval_requests_list_execute(
 
 pub fn accessapproval_folders_approval_requests_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AccessapprovalFoldersApprovalRequestsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListApprovalRequestsResponse>, ApiError>,
@@ -1106,7 +1187,11 @@ pub fn accessapproval_folders_approval_requests_list(
     ApiError,
 > {
     let builder = accessapproval_folders_approval_requests_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     accessapproval_folders_approval_requests_list_execute(builder)
 }
@@ -1201,6 +1286,13 @@ pub fn accessapproval_organizations_delete_access_approval_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_organizations_delete_access_approval_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalOrganizationsDeleteAccessApprovalSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/accessApprovalSettings
 /// Deletes the settings associated with a project, folder, or organization. This will have the effect of disabling Access Approval for the resource. Access Approval may remain active based on parent resource settings. To confirm the effective settings, call GetAccessApprovalSettings and verify effective setting is disabled.
 ///
@@ -1213,13 +1305,13 @@ pub fn accessapproval_organizations_delete_access_approval_settings_execute(
 
 pub fn accessapproval_organizations_delete_access_approval_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccessapprovalOrganizationsDeleteAccessApprovalSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        accessapproval_organizations_delete_access_approval_settings_builder(client, name)?;
+        accessapproval_organizations_delete_access_approval_settings_builder(client, &args.name)?;
     accessapproval_organizations_delete_access_approval_settings_execute(builder)
 }
 
@@ -1315,6 +1407,13 @@ pub fn accessapproval_organizations_get_access_approval_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_organizations_get_access_approval_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalOrganizationsGetAccessApprovalSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/accessApprovalSettings
 /// Gets the Access Approval settings associated with a project, folder, or organization.
 ///
@@ -1327,14 +1426,15 @@ pub fn accessapproval_organizations_get_access_approval_settings_execute(
 
 pub fn accessapproval_organizations_get_access_approval_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccessapprovalOrganizationsGetAccessApprovalSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_organizations_get_access_approval_settings_builder(client, name)?;
+    let builder =
+        accessapproval_organizations_get_access_approval_settings_builder(client, &args.name)?;
     accessapproval_organizations_get_access_approval_settings_execute(builder)
 }
 
@@ -1432,6 +1532,13 @@ pub fn accessapproval_organizations_get_service_account_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_organizations_get_service_account`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalOrganizationsGetServiceAccountArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/serviceAccount
 /// Retrieves the service account that is used by Access Approval to access KMS keys for signing approved approval requests.
 ///
@@ -1444,7 +1551,7 @@ pub fn accessapproval_organizations_get_service_account_execute(
 
 pub fn accessapproval_organizations_get_service_account(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccessapprovalOrganizationsGetServiceAccountArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessApprovalServiceAccount>, ApiError>,
@@ -1453,7 +1560,7 @@ pub fn accessapproval_organizations_get_service_account(
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_organizations_get_service_account_builder(client, name)?;
+    let builder = accessapproval_organizations_get_service_account_builder(client, &args.name)?;
     accessapproval_organizations_get_service_account_execute(builder)
 }
 
@@ -1564,6 +1671,17 @@ pub fn accessapproval_organizations_update_access_approval_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_organizations_update_access_approval_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalOrganizationsUpdateAccessApprovalSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AccessApprovalSettings,
+}
+
 /// GET v1/organizations/{organizationsId}/accessApprovalSettings
 /// Updates the settings associated with a project, folder, or organization. Settings to update are determined by the value of field_mask.
 ///
@@ -1576,9 +1694,7 @@ pub fn accessapproval_organizations_update_access_approval_settings_execute(
 
 pub fn accessapproval_organizations_update_access_approval_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AccessApprovalSettings,
+    args: &AccessapprovalOrganizationsUpdateAccessApprovalSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
         + Send
@@ -1586,7 +1702,10 @@ pub fn accessapproval_organizations_update_access_approval_settings(
     ApiError,
 > {
     let builder = accessapproval_organizations_update_access_approval_settings_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     accessapproval_organizations_update_access_approval_settings_execute(builder)
 }
@@ -1686,6 +1805,15 @@ pub fn accessapproval_organizations_approval_requests_approve_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_organizations_approval_requests_approve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalOrganizationsApprovalRequestsApproveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ApproveApprovalRequestMessage,
+}
+
 /// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}:approve
 /// Approves a request and returns the updated ApprovalRequest. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
 ///
@@ -1698,16 +1826,16 @@ pub fn accessapproval_organizations_approval_requests_approve_execute(
 
 pub fn accessapproval_organizations_approval_requests_approve(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ApproveApprovalRequestMessage,
+    args: &AccessapprovalOrganizationsApprovalRequestsApproveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        accessapproval_organizations_approval_requests_approve_builder(client, name, body)?;
+    let builder = accessapproval_organizations_approval_requests_approve_builder(
+        client, &args.name, &args.body,
+    )?;
     accessapproval_organizations_approval_requests_approve_execute(builder)
 }
 
@@ -1806,6 +1934,15 @@ pub fn accessapproval_organizations_approval_requests_dismiss_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_organizations_approval_requests_dismiss`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalOrganizationsApprovalRequestsDismissArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DismissApprovalRequestMessage,
+}
+
 /// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}:dismiss
 /// Dismisses a request. Returns the updated ApprovalRequest. NOTE: When a request is dismissed, it is considered ignored. Dismissing a request does not prevent access granted by other Access Approval requests. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
 ///
@@ -1818,16 +1955,16 @@ pub fn accessapproval_organizations_approval_requests_dismiss_execute(
 
 pub fn accessapproval_organizations_approval_requests_dismiss(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DismissApprovalRequestMessage,
+    args: &AccessapprovalOrganizationsApprovalRequestsDismissArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        accessapproval_organizations_approval_requests_dismiss_builder(client, name, body)?;
+    let builder = accessapproval_organizations_approval_requests_dismiss_builder(
+        client, &args.name, &args.body,
+    )?;
     accessapproval_organizations_approval_requests_dismiss_execute(builder)
 }
 
@@ -1923,6 +2060,13 @@ pub fn accessapproval_organizations_approval_requests_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_organizations_approval_requests_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalOrganizationsApprovalRequestsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}
 /// Gets an approval request. Returns NOT_FOUND if the request does not exist.
 ///
@@ -1935,14 +2079,14 @@ pub fn accessapproval_organizations_approval_requests_get_execute(
 
 pub fn accessapproval_organizations_approval_requests_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccessapprovalOrganizationsApprovalRequestsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_organizations_approval_requests_get_builder(client, name)?;
+    let builder = accessapproval_organizations_approval_requests_get_builder(client, &args.name)?;
     accessapproval_organizations_approval_requests_get_execute(builder)
 }
 
@@ -2041,6 +2185,15 @@ pub fn accessapproval_organizations_approval_requests_invalidate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_organizations_approval_requests_invalidate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalOrganizationsApprovalRequestsInvalidateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: InvalidateApprovalRequestMessage,
+}
+
 /// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}:invalidate
 /// Invalidates an existing ApprovalRequest. Returns the updated ApprovalRequest. NOTE: This action revokes Google access based on this approval request. If the resource has other active approvals, access will remain granted. Returns FAILED_PRECONDITION if the request exists but is not in an approved state.
 ///
@@ -2053,16 +2206,16 @@ pub fn accessapproval_organizations_approval_requests_invalidate_execute(
 
 pub fn accessapproval_organizations_approval_requests_invalidate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &InvalidateApprovalRequestMessage,
+    args: &AccessapprovalOrganizationsApprovalRequestsInvalidateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        accessapproval_organizations_approval_requests_invalidate_builder(client, name, body)?;
+    let builder = accessapproval_organizations_approval_requests_invalidate_builder(
+        client, &args.name, &args.body,
+    )?;
     accessapproval_organizations_approval_requests_invalidate_execute(builder)
 }
 
@@ -2180,6 +2333,19 @@ pub fn accessapproval_organizations_approval_requests_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_organizations_approval_requests_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalOrganizationsApprovalRequestsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/approvalRequests
 /// Lists approval requests associated with a project, folder, or organization. Approval requests can be filtered by state (pending, active, dismissed). The order is reverse chronological.
 ///
@@ -2192,10 +2358,7 @@ pub fn accessapproval_organizations_approval_requests_list_execute(
 
 pub fn accessapproval_organizations_approval_requests_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AccessapprovalOrganizationsApprovalRequestsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListApprovalRequestsResponse>, ApiError>,
@@ -2205,7 +2368,11 @@ pub fn accessapproval_organizations_approval_requests_list(
     ApiError,
 > {
     let builder = accessapproval_organizations_approval_requests_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     accessapproval_organizations_approval_requests_list_execute(builder)
 }
@@ -2300,6 +2467,13 @@ pub fn accessapproval_projects_delete_access_approval_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_projects_delete_access_approval_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalProjectsDeleteAccessApprovalSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/accessApprovalSettings
 /// Deletes the settings associated with a project, folder, or organization. This will have the effect of disabling Access Approval for the resource. Access Approval may remain active based on parent resource settings. To confirm the effective settings, call GetAccessApprovalSettings and verify effective setting is disabled.
 ///
@@ -2312,12 +2486,13 @@ pub fn accessapproval_projects_delete_access_approval_settings_execute(
 
 pub fn accessapproval_projects_delete_access_approval_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccessapprovalProjectsDeleteAccessApprovalSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = accessapproval_projects_delete_access_approval_settings_builder(client, name)?;
+    let builder =
+        accessapproval_projects_delete_access_approval_settings_builder(client, &args.name)?;
     accessapproval_projects_delete_access_approval_settings_execute(builder)
 }
 
@@ -2413,6 +2588,13 @@ pub fn accessapproval_projects_get_access_approval_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_projects_get_access_approval_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalProjectsGetAccessApprovalSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/accessApprovalSettings
 /// Gets the Access Approval settings associated with a project, folder, or organization.
 ///
@@ -2425,14 +2607,14 @@ pub fn accessapproval_projects_get_access_approval_settings_execute(
 
 pub fn accessapproval_projects_get_access_approval_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccessapprovalProjectsGetAccessApprovalSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_projects_get_access_approval_settings_builder(client, name)?;
+    let builder = accessapproval_projects_get_access_approval_settings_builder(client, &args.name)?;
     accessapproval_projects_get_access_approval_settings_execute(builder)
 }
 
@@ -2530,6 +2712,13 @@ pub fn accessapproval_projects_get_service_account_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_projects_get_service_account`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalProjectsGetServiceAccountArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/serviceAccount
 /// Retrieves the service account that is used by Access Approval to access KMS keys for signing approved approval requests.
 ///
@@ -2542,7 +2731,7 @@ pub fn accessapproval_projects_get_service_account_execute(
 
 pub fn accessapproval_projects_get_service_account(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccessapprovalProjectsGetServiceAccountArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessApprovalServiceAccount>, ApiError>,
@@ -2551,7 +2740,7 @@ pub fn accessapproval_projects_get_service_account(
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_projects_get_service_account_builder(client, name)?;
+    let builder = accessapproval_projects_get_service_account_builder(client, &args.name)?;
     accessapproval_projects_get_service_account_execute(builder)
 }
 
@@ -2662,6 +2851,17 @@ pub fn accessapproval_projects_update_access_approval_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_projects_update_access_approval_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalProjectsUpdateAccessApprovalSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AccessApprovalSettings,
+}
+
 /// GET v1/projects/{projectsId}/accessApprovalSettings
 /// Updates the settings associated with a project, folder, or organization. Settings to update are determined by the value of field_mask.
 ///
@@ -2674,9 +2874,7 @@ pub fn accessapproval_projects_update_access_approval_settings_execute(
 
 pub fn accessapproval_projects_update_access_approval_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AccessApprovalSettings,
+    args: &AccessapprovalProjectsUpdateAccessApprovalSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
         + Send
@@ -2684,7 +2882,10 @@ pub fn accessapproval_projects_update_access_approval_settings(
     ApiError,
 > {
     let builder = accessapproval_projects_update_access_approval_settings_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     accessapproval_projects_update_access_approval_settings_execute(builder)
 }
@@ -2784,6 +2985,15 @@ pub fn accessapproval_projects_approval_requests_approve_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_projects_approval_requests_approve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalProjectsApprovalRequestsApproveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ApproveApprovalRequestMessage,
+}
+
 /// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}:approve
 /// Approves a request and returns the updated ApprovalRequest. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
 ///
@@ -2796,15 +3006,15 @@ pub fn accessapproval_projects_approval_requests_approve_execute(
 
 pub fn accessapproval_projects_approval_requests_approve(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ApproveApprovalRequestMessage,
+    args: &AccessapprovalProjectsApprovalRequestsApproveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_projects_approval_requests_approve_builder(client, name, body)?;
+    let builder =
+        accessapproval_projects_approval_requests_approve_builder(client, &args.name, &args.body)?;
     accessapproval_projects_approval_requests_approve_execute(builder)
 }
 
@@ -2903,6 +3113,15 @@ pub fn accessapproval_projects_approval_requests_dismiss_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_projects_approval_requests_dismiss`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalProjectsApprovalRequestsDismissArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DismissApprovalRequestMessage,
+}
+
 /// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}:dismiss
 /// Dismisses a request. Returns the updated ApprovalRequest. NOTE: When a request is dismissed, it is considered ignored. Dismissing a request does not prevent access granted by other Access Approval requests. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
 ///
@@ -2915,15 +3134,15 @@ pub fn accessapproval_projects_approval_requests_dismiss_execute(
 
 pub fn accessapproval_projects_approval_requests_dismiss(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DismissApprovalRequestMessage,
+    args: &AccessapprovalProjectsApprovalRequestsDismissArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_projects_approval_requests_dismiss_builder(client, name, body)?;
+    let builder =
+        accessapproval_projects_approval_requests_dismiss_builder(client, &args.name, &args.body)?;
     accessapproval_projects_approval_requests_dismiss_execute(builder)
 }
 
@@ -3019,6 +3238,13 @@ pub fn accessapproval_projects_approval_requests_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_projects_approval_requests_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalProjectsApprovalRequestsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}
 /// Gets an approval request. Returns NOT_FOUND if the request does not exist.
 ///
@@ -3031,14 +3257,14 @@ pub fn accessapproval_projects_approval_requests_get_execute(
 
 pub fn accessapproval_projects_approval_requests_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccessapprovalProjectsApprovalRequestsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_projects_approval_requests_get_builder(client, name)?;
+    let builder = accessapproval_projects_approval_requests_get_builder(client, &args.name)?;
     accessapproval_projects_approval_requests_get_execute(builder)
 }
 
@@ -3137,6 +3363,15 @@ pub fn accessapproval_projects_approval_requests_invalidate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_projects_approval_requests_invalidate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalProjectsApprovalRequestsInvalidateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: InvalidateApprovalRequestMessage,
+}
+
 /// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}:invalidate
 /// Invalidates an existing ApprovalRequest. Returns the updated ApprovalRequest. NOTE: This action revokes Google access based on this approval request. If the resource has other active approvals, access will remain granted. Returns FAILED_PRECONDITION if the request exists but is not in an approved state.
 ///
@@ -3149,15 +3384,16 @@ pub fn accessapproval_projects_approval_requests_invalidate_execute(
 
 pub fn accessapproval_projects_approval_requests_invalidate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &InvalidateApprovalRequestMessage,
+    args: &AccessapprovalProjectsApprovalRequestsInvalidateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_projects_approval_requests_invalidate_builder(client, name, body)?;
+    let builder = accessapproval_projects_approval_requests_invalidate_builder(
+        client, &args.name, &args.body,
+    )?;
     accessapproval_projects_approval_requests_invalidate_execute(builder)
 }
 
@@ -3275,6 +3511,19 @@ pub fn accessapproval_projects_approval_requests_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accessapproval_projects_approval_requests_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccessapprovalProjectsApprovalRequestsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/approvalRequests
 /// Lists approval requests associated with a project, folder, or organization. Approval requests can be filtered by state (pending, active, dismissed). The order is reverse chronological.
 ///
@@ -3287,10 +3536,7 @@ pub fn accessapproval_projects_approval_requests_list_execute(
 
 pub fn accessapproval_projects_approval_requests_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AccessapprovalProjectsApprovalRequestsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListApprovalRequestsResponse>, ApiError>,
@@ -3300,7 +3546,11 @@ pub fn accessapproval_projects_approval_requests_list(
     ApiError,
 > {
     let builder = accessapproval_projects_approval_requests_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     accessapproval_projects_approval_requests_list_execute(builder)
 }

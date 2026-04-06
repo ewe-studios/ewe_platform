@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
@@ -109,6 +111,15 @@ pub fn servicenetworking_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -121,13 +132,12 @@ pub fn servicenetworking_operations_cancel_execute(
 
 pub fn servicenetworking_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ServicenetworkingOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_operations_cancel_builder(client, name, body)?;
+    let builder = servicenetworking_operations_cancel_builder(client, &args.name, &args.body)?;
     servicenetworking_operations_cancel_execute(builder)
 }
 
@@ -221,6 +231,13 @@ pub fn servicenetworking_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -233,12 +250,12 @@ pub fn servicenetworking_operations_delete_execute(
 
 pub fn servicenetworking_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServicenetworkingOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_operations_delete_builder(client, name)?;
+    let builder = servicenetworking_operations_delete_builder(client, &args.name)?;
     servicenetworking_operations_delete_execute(builder)
 }
 
@@ -332,6 +349,13 @@ pub fn servicenetworking_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -344,12 +368,12 @@ pub fn servicenetworking_operations_get_execute(
 
 pub fn servicenetworking_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServicenetworkingOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_operations_get_builder(client, name)?;
+    let builder = servicenetworking_operations_get_builder(client, &args.name)?;
     servicenetworking_operations_get_execute(builder)
 }
 
@@ -469,6 +493,21 @@ pub fn servicenetworking_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -481,11 +520,7 @@ pub fn servicenetworking_operations_list_execute(
 
 pub fn servicenetworking_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ServicenetworkingOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -494,11 +529,11 @@ pub fn servicenetworking_operations_list(
 > {
     let builder = servicenetworking_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     servicenetworking_operations_list_execute(builder)
 }
@@ -596,6 +631,15 @@ pub fn servicenetworking_services_add_subnetwork_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_add_subnetwork`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesAddSubnetworkArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AddSubnetworkRequest,
+}
+
 /// GET v1/services/{servicesId}/{servicesId1}/{servicesId2}:addSubnetwork
 /// For service producers, provisions a new subnet in a peered service's shared VPC network in the requested region and with the requested size that's expressed as a CIDR range (number of leading bits of `ipV4` network mask). The method checks against the assigned allocated ranges to find a non-conflicting IP address range. The method will reuse a subnet if subsequent calls contain the same subnet name, region, and prefix length. This method will make producer's tenant project to be a shared VPC service project as needed.
 ///
@@ -608,13 +652,13 @@ pub fn servicenetworking_services_add_subnetwork_execute(
 
 pub fn servicenetworking_services_add_subnetwork(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AddSubnetworkRequest,
+    args: &ServicenetworkingServicesAddSubnetworkArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_services_add_subnetwork_builder(client, parent, body)?;
+    let builder =
+        servicenetworking_services_add_subnetwork_builder(client, &args.parent, &args.body)?;
     servicenetworking_services_add_subnetwork_execute(builder)
 }
 
@@ -711,6 +755,15 @@ pub fn servicenetworking_services_disable_vpc_service_controls_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_disable_vpc_service_controls`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesDisableVpcServiceControlsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: DisableVpcServiceControlsRequest,
+}
+
 /// GET v1/services/{servicesId}:disableVpcServiceControls
 /// Disables VPC service controls for a connection.
 ///
@@ -723,14 +776,16 @@ pub fn servicenetworking_services_disable_vpc_service_controls_execute(
 
 pub fn servicenetworking_services_disable_vpc_service_controls(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &DisableVpcServiceControlsRequest,
+    args: &ServicenetworkingServicesDisableVpcServiceControlsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicenetworking_services_disable_vpc_service_controls_builder(client, parent, body)?;
+    let builder = servicenetworking_services_disable_vpc_service_controls_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     servicenetworking_services_disable_vpc_service_controls_execute(builder)
 }
 
@@ -827,6 +882,15 @@ pub fn servicenetworking_services_enable_vpc_service_controls_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_enable_vpc_service_controls`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesEnableVpcServiceControlsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: EnableVpcServiceControlsRequest,
+}
+
 /// GET v1/services/{servicesId}:enableVpcServiceControls
 /// Enables VPC service controls for a connection.
 ///
@@ -839,14 +903,16 @@ pub fn servicenetworking_services_enable_vpc_service_controls_execute(
 
 pub fn servicenetworking_services_enable_vpc_service_controls(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &EnableVpcServiceControlsRequest,
+    args: &ServicenetworkingServicesEnableVpcServiceControlsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicenetworking_services_enable_vpc_service_controls_builder(client, parent, body)?;
+    let builder = servicenetworking_services_enable_vpc_service_controls_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     servicenetworking_services_enable_vpc_service_controls_execute(builder)
 }
 
@@ -943,6 +1009,15 @@ pub fn servicenetworking_services_search_range_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_search_range`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesSearchRangeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SearchRangeRequest,
+}
+
 /// GET v1/services/{servicesId}:searchRange
 /// Service producers can use this method to find a currently unused range within consumer allocated ranges. This returned range is not reserved, and not guaranteed to remain unused. It will validate previously provided allocated ranges, find non-conflicting sub-range of requested size (expressed in number of leading bits of ipv4 network mask, as in CIDR range notation).
 ///
@@ -955,13 +1030,13 @@ pub fn servicenetworking_services_search_range_execute(
 
 pub fn servicenetworking_services_search_range(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SearchRangeRequest,
+    args: &ServicenetworkingServicesSearchRangeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_services_search_range_builder(client, parent, body)?;
+    let builder =
+        servicenetworking_services_search_range_builder(client, &args.parent, &args.body)?;
     servicenetworking_services_search_range_execute(builder)
 }
 
@@ -1062,6 +1137,15 @@ pub fn servicenetworking_services_validate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_validate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesValidateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ValidateConsumerConfigRequest,
+}
+
 /// GET v1/services/{servicesId}:validate
 /// Service producers use this method to validate if the consumer provided network, project and requested range are valid. This allows them to use a fail-fast mechanism for consumer requests, and not have to wait for AddSubnetwork operation completion to determine if user request is invalid.
 ///
@@ -1074,8 +1158,7 @@ pub fn servicenetworking_services_validate_execute(
 
 pub fn servicenetworking_services_validate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ValidateConsumerConfigRequest,
+    args: &ServicenetworkingServicesValidateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ValidateConsumerConfigResponse>, ApiError>,
@@ -1084,7 +1167,7 @@ pub fn servicenetworking_services_validate(
         + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_services_validate_builder(client, parent, body)?;
+    let builder = servicenetworking_services_validate_builder(client, &args.parent, &args.body)?;
     servicenetworking_services_validate_execute(builder)
 }
 
@@ -1181,6 +1264,15 @@ pub fn servicenetworking_services_connections_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_connections_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesConnectionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Connection,
+}
+
 /// GET v1/services/{servicesId}/connections
 /// Creates a private connection that establishes a VPC Network Peering connection to a VPC network in the service producer's organization. The administrator of the service consumer's VPC network invokes this method. The administrator must assign one or more allocated IP ranges for provisioning subnetworks in the service producer's VPC network. This connection is used for all supported services in the service producer's organization, so it only needs to be invoked once.
 ///
@@ -1193,13 +1285,13 @@ pub fn servicenetworking_services_connections_create_execute(
 
 pub fn servicenetworking_services_connections_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Connection,
+    args: &ServicenetworkingServicesConnectionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_services_connections_create_builder(client, parent, body)?;
+    let builder =
+        servicenetworking_services_connections_create_builder(client, &args.parent, &args.body)?;
     servicenetworking_services_connections_create_execute(builder)
 }
 
@@ -1296,6 +1388,15 @@ pub fn servicenetworking_services_connections_delete_connection_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_connections_delete_connection`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesConnectionsDeleteConnectionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DeleteConnectionRequest,
+}
+
 /// GET v1/services/{servicesId}/connections/{connectionsId}
 /// Deletes a private service access connection.
 ///
@@ -1308,14 +1409,14 @@ pub fn servicenetworking_services_connections_delete_connection_execute(
 
 pub fn servicenetworking_services_connections_delete_connection(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DeleteConnectionRequest,
+    args: &ServicenetworkingServicesConnectionsDeleteConnectionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicenetworking_services_connections_delete_connection_builder(client, name, body)?;
+    let builder = servicenetworking_services_connections_delete_connection_builder(
+        client, &args.name, &args.body,
+    )?;
     servicenetworking_services_connections_delete_connection_execute(builder)
 }
 
@@ -1423,6 +1524,15 @@ pub fn servicenetworking_services_connections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesConnectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: network
+    pub network: Option<String>,
+}
+
 /// GET v1/services/{servicesId}/connections
 /// List the private connections that are configured in a service consumer's VPC network.
 ///
@@ -1435,15 +1545,18 @@ pub fn servicenetworking_services_connections_list_execute(
 
 pub fn servicenetworking_services_connections_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    network: Option<&str>,
+    args: &ServicenetworkingServicesConnectionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListConnectionsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_services_connections_list_builder(client, parent, network)?;
+    let builder = servicenetworking_services_connections_list_builder(
+        client,
+        &args.parent,
+        args.network.as_deref(),
+    )?;
     servicenetworking_services_connections_list_execute(builder)
 }
 
@@ -1556,6 +1669,19 @@ pub fn servicenetworking_services_connections_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_connections_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesConnectionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Connection,
+}
+
 /// GET v1/services/{servicesId}/connections/{connectionsId}
 /// Updates the allocated ranges that are assigned to a connection.
 ///
@@ -1568,16 +1694,17 @@ pub fn servicenetworking_services_connections_patch_execute(
 
 pub fn servicenetworking_services_connections_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    updateMask: Option<&str>,
-    body: &Connection,
+    args: &ServicenetworkingServicesConnectionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = servicenetworking_services_connections_patch_builder(
-        client, name, force, updateMask, body,
+        client,
+        &args.name,
+        args.force,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     servicenetworking_services_connections_patch_execute(builder)
 }
@@ -1675,6 +1802,15 @@ pub fn servicenetworking_services_dns_record_sets_add_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_dns_record_sets_add`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesDnsRecordSetsAddArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AddDnsRecordSetRequest,
+}
+
 /// GET v1/services/{servicesId}/dnsRecordSets:add
 /// Service producers can use this method to add DNS record sets to private DNS zones in the shared producer host project.
 ///
@@ -1687,13 +1823,13 @@ pub fn servicenetworking_services_dns_record_sets_add_execute(
 
 pub fn servicenetworking_services_dns_record_sets_add(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AddDnsRecordSetRequest,
+    args: &ServicenetworkingServicesDnsRecordSetsAddArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_services_dns_record_sets_add_builder(client, parent, body)?;
+    let builder =
+        servicenetworking_services_dns_record_sets_add_builder(client, &args.parent, &args.body)?;
     servicenetworking_services_dns_record_sets_add_execute(builder)
 }
 
@@ -1813,6 +1949,21 @@ pub fn servicenetworking_services_dns_record_sets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_dns_record_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesDnsRecordSetsGetArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: consumerNetwork
+    pub consumerNetwork: Option<String>,
+    /// Query parameter: domain
+    pub domain: Option<String>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+    /// Query parameter: zone
+    pub zone: Option<String>,
+}
+
 /// GET v1/services/{servicesId}/dnsRecordSets:get
 /// Producers can use this method to retrieve information about the DNS record set added to the private zone inside the shared tenant host project associated with a consumer network.
 ///
@@ -1825,11 +1976,7 @@ pub fn servicenetworking_services_dns_record_sets_get_execute(
 
 pub fn servicenetworking_services_dns_record_sets_get(
     client: &SimpleHttpClient,
-    parent: &str,
-    consumerNetwork: Option<&str>,
-    domain: Option<&str>,
-    type_rs: Option<&str>,
-    zone: Option<&str>,
+    args: &ServicenetworkingServicesDnsRecordSetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DnsRecordSet>, ApiError>, P = ApiPending>
         + Send
@@ -1838,11 +1985,11 @@ pub fn servicenetworking_services_dns_record_sets_get(
 > {
     let builder = servicenetworking_services_dns_record_sets_get_builder(
         client,
-        parent,
-        consumerNetwork,
-        domain,
-        type_rs,
-        zone,
+        &args.parent,
+        args.consumerNetwork.as_deref(),
+        args.domain.as_deref(),
+        args.type_rs.as_deref(),
+        args.zone.as_deref(),
     )?;
     servicenetworking_services_dns_record_sets_get_execute(builder)
 }
@@ -1955,6 +2102,17 @@ pub fn servicenetworking_services_dns_record_sets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_dns_record_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesDnsRecordSetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: consumerNetwork
+    pub consumerNetwork: Option<String>,
+    /// Query parameter: zone
+    pub zone: Option<String>,
+}
+
 /// GET v1/services/{servicesId}/dnsRecordSets:list
 /// Producers can use this method to retrieve a list of available DNS RecordSets available inside the private zone on the tenant host project accessible from their network.
 ///
@@ -1967,9 +2125,7 @@ pub fn servicenetworking_services_dns_record_sets_list_execute(
 
 pub fn servicenetworking_services_dns_record_sets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    consumerNetwork: Option<&str>,
-    zone: Option<&str>,
+    args: &ServicenetworkingServicesDnsRecordSetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDnsRecordSetsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1978,9 +2134,9 @@ pub fn servicenetworking_services_dns_record_sets_list(
 > {
     let builder = servicenetworking_services_dns_record_sets_list_builder(
         client,
-        parent,
-        consumerNetwork,
-        zone,
+        &args.parent,
+        args.consumerNetwork.as_deref(),
+        args.zone.as_deref(),
     )?;
     servicenetworking_services_dns_record_sets_list_execute(builder)
 }
@@ -2078,6 +2234,15 @@ pub fn servicenetworking_services_dns_record_sets_remove_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_dns_record_sets_remove`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesDnsRecordSetsRemoveArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: RemoveDnsRecordSetRequest,
+}
+
 /// GET v1/services/{servicesId}/dnsRecordSets:remove
 /// Service producers can use this method to remove DNS record sets from private DNS zones in the shared producer host project.
 ///
@@ -2090,13 +2255,16 @@ pub fn servicenetworking_services_dns_record_sets_remove_execute(
 
 pub fn servicenetworking_services_dns_record_sets_remove(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &RemoveDnsRecordSetRequest,
+    args: &ServicenetworkingServicesDnsRecordSetsRemoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_services_dns_record_sets_remove_builder(client, parent, body)?;
+    let builder = servicenetworking_services_dns_record_sets_remove_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     servicenetworking_services_dns_record_sets_remove_execute(builder)
 }
 
@@ -2193,6 +2361,15 @@ pub fn servicenetworking_services_dns_record_sets_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_dns_record_sets_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesDnsRecordSetsUpdateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UpdateDnsRecordSetRequest,
+}
+
 /// GET v1/services/{servicesId}/dnsRecordSets:update
 /// Service producers can use this method to update DNS record sets from private DNS zones in the shared producer host project.
 ///
@@ -2205,13 +2382,16 @@ pub fn servicenetworking_services_dns_record_sets_update_execute(
 
 pub fn servicenetworking_services_dns_record_sets_update(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UpdateDnsRecordSetRequest,
+    args: &ServicenetworkingServicesDnsRecordSetsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_services_dns_record_sets_update_builder(client, parent, body)?;
+    let builder = servicenetworking_services_dns_record_sets_update_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     servicenetworking_services_dns_record_sets_update_execute(builder)
 }
 
@@ -2308,6 +2488,15 @@ pub fn servicenetworking_services_dns_zones_add_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_dns_zones_add`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesDnsZonesAddArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AddDnsZoneRequest,
+}
+
 /// GET v1/services/{servicesId}/dnsZones:add
 /// Service producers can use this method to add private DNS zones in the shared producer host project and matching peering zones in the consumer project.
 ///
@@ -2320,13 +2509,13 @@ pub fn servicenetworking_services_dns_zones_add_execute(
 
 pub fn servicenetworking_services_dns_zones_add(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AddDnsZoneRequest,
+    args: &ServicenetworkingServicesDnsZonesAddArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_services_dns_zones_add_builder(client, parent, body)?;
+    let builder =
+        servicenetworking_services_dns_zones_add_builder(client, &args.parent, &args.body)?;
     servicenetworking_services_dns_zones_add_execute(builder)
 }
 
@@ -2423,6 +2612,15 @@ pub fn servicenetworking_services_dns_zones_remove_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_dns_zones_remove`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesDnsZonesRemoveArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: RemoveDnsZoneRequest,
+}
+
 /// GET v1/services/{servicesId}/dnsZones:remove
 /// Service producers can use this method to remove private DNS zones in the shared producer host project and matching peering zones in the consumer project.
 ///
@@ -2435,13 +2633,13 @@ pub fn servicenetworking_services_dns_zones_remove_execute(
 
 pub fn servicenetworking_services_dns_zones_remove(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &RemoveDnsZoneRequest,
+    args: &ServicenetworkingServicesDnsZonesRemoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_services_dns_zones_remove_builder(client, parent, body)?;
+    let builder =
+        servicenetworking_services_dns_zones_remove_builder(client, &args.parent, &args.body)?;
     servicenetworking_services_dns_zones_remove_execute(builder)
 }
 
@@ -2549,6 +2747,15 @@ pub fn servicenetworking_services_projects_global_networks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_projects_global_networks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesProjectsGlobalNetworksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: includeUsedIpRanges
+    pub includeUsedIpRanges: Option<bool>,
+}
+
 /// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}
 /// Service producers use this method to get the configuration of their connection including the `import/export` of custom routes and subnetwork routes with public IP.
 ///
@@ -2561,8 +2768,7 @@ pub fn servicenetworking_services_projects_global_networks_get_execute(
 
 pub fn servicenetworking_services_projects_global_networks_get(
     client: &SimpleHttpClient,
-    name: &str,
-    includeUsedIpRanges: Option<bool>,
+    args: &ServicenetworkingServicesProjectsGlobalNetworksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConsumerConfig>, ApiError>, P = ApiPending>
         + Send
@@ -2571,8 +2777,8 @@ pub fn servicenetworking_services_projects_global_networks_get(
 > {
     let builder = servicenetworking_services_projects_global_networks_get_builder(
         client,
-        name,
-        includeUsedIpRanges,
+        &args.name,
+        args.includeUsedIpRanges,
     )?;
     servicenetworking_services_projects_global_networks_get_execute(builder)
 }
@@ -2669,6 +2875,13 @@ pub fn servicenetworking_services_projects_global_networks_get_vpc_service_contr
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_projects_global_networks_get_vpc_service_controls`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesProjectsGlobalNetworksGetVpcServiceControlsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/vpcServiceControls
 /// Consumers use this method to find out the state of VPC Service Controls. The controls could be enabled or disabled for a connection.
 ///
@@ -2681,7 +2894,7 @@ pub fn servicenetworking_services_projects_global_networks_get_vpc_service_contr
 
 pub fn servicenetworking_services_projects_global_networks_get_vpc_service_controls(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServicenetworkingServicesProjectsGlobalNetworksGetVpcServiceControlsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VpcServiceControls>, ApiError>, P = ApiPending>
         + Send
@@ -2690,7 +2903,7 @@ pub fn servicenetworking_services_projects_global_networks_get_vpc_service_contr
 > {
     let builder =
         servicenetworking_services_projects_global_networks_get_vpc_service_controls_builder(
-            client, name,
+            client, &args.name,
         )?;
     servicenetworking_services_projects_global_networks_get_vpc_service_controls_execute(builder)
 }
@@ -2788,6 +3001,15 @@ pub fn servicenetworking_services_projects_global_networks_update_consumer_confi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_projects_global_networks_update_consumer_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesProjectsGlobalNetworksUpdateConsumerConfigArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UpdateConsumerConfigRequest,
+}
+
 /// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}:updateConsumerConfig
 /// Service producers use this method to update the configuration of their connection including the `import/export` of custom routes and subnetwork routes with public IP.
 ///
@@ -2800,15 +3022,16 @@ pub fn servicenetworking_services_projects_global_networks_update_consumer_confi
 
 pub fn servicenetworking_services_projects_global_networks_update_consumer_config(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UpdateConsumerConfigRequest,
+    args: &ServicenetworkingServicesProjectsGlobalNetworksUpdateConsumerConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         servicenetworking_services_projects_global_networks_update_consumer_config_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     servicenetworking_services_projects_global_networks_update_consumer_config_execute(builder)
 }
@@ -2905,6 +3128,13 @@ pub fn servicenetworking_services_projects_global_networks_dns_zones_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_projects_global_networks_dns_zones_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesProjectsGlobalNetworksDnsZonesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/dnsZones/{dnsZonesId}
 /// Service producers can use this method to retrieve a DNS zone in the shared producer host project and the matching peering zones in consumer project
 ///
@@ -2917,15 +3147,16 @@ pub fn servicenetworking_services_projects_global_networks_dns_zones_get_execute
 
 pub fn servicenetworking_services_projects_global_networks_dns_zones_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServicenetworkingServicesProjectsGlobalNetworksDnsZonesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GetDnsZoneResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        servicenetworking_services_projects_global_networks_dns_zones_get_builder(client, name)?;
+    let builder = servicenetworking_services_projects_global_networks_dns_zones_get_builder(
+        client, &args.name,
+    )?;
     servicenetworking_services_projects_global_networks_dns_zones_get_execute(builder)
 }
 
@@ -3021,6 +3252,13 @@ pub fn servicenetworking_services_projects_global_networks_dns_zones_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_projects_global_networks_dns_zones_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesProjectsGlobalNetworksDnsZonesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/dnsZones:list
 /// * Service producers can use this method to retrieve a list of available DNS zones in the shared producer host project and the matching peering zones in the consumer project. *
 ///
@@ -3033,15 +3271,17 @@ pub fn servicenetworking_services_projects_global_networks_dns_zones_list_execut
 
 pub fn servicenetworking_services_projects_global_networks_dns_zones_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ServicenetworkingServicesProjectsGlobalNetworksDnsZonesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDnsZonesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        servicenetworking_services_projects_global_networks_dns_zones_list_builder(client, parent)?;
+    let builder = servicenetworking_services_projects_global_networks_dns_zones_list_builder(
+        client,
+        &args.parent,
+    )?;
     servicenetworking_services_projects_global_networks_dns_zones_list_execute(builder)
 }
 
@@ -3138,6 +3378,15 @@ pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_cr
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_projects_global_networks_peered_dns_domains_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesProjectsGlobalNetworksPeeredDnsDomainsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: PeeredDnsDomain,
+}
+
 /// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains
 /// Creates a peered DNS domain which sends requests for records in given namespace originating in the service producer VPC network to the consumer VPC network to be resolved.
 ///
@@ -3150,15 +3399,16 @@ pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_cr
 
 pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &PeeredDnsDomain,
+    args: &ServicenetworkingServicesProjectsGlobalNetworksPeeredDnsDomainsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         servicenetworking_services_projects_global_networks_peered_dns_domains_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     servicenetworking_services_projects_global_networks_peered_dns_domains_create_execute(builder)
 }
@@ -3253,6 +3503,13 @@ pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_de
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_projects_global_networks_peered_dns_domains_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesProjectsGlobalNetworksPeeredDnsDomainsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains/{peeredDnsDomainsId}
 /// Deletes a peered DNS domain.
 ///
@@ -3265,14 +3522,14 @@ pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_de
 
 pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServicenetworkingServicesProjectsGlobalNetworksPeeredDnsDomainsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         servicenetworking_services_projects_global_networks_peered_dns_domains_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     servicenetworking_services_projects_global_networks_peered_dns_domains_delete_execute(builder)
 }
@@ -3371,6 +3628,13 @@ pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_li
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_projects_global_networks_peered_dns_domains_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesProjectsGlobalNetworksPeeredDnsDomainsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains
 /// Lists peered DNS domains for a connection.
 ///
@@ -3383,7 +3647,7 @@ pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_li
 
 pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ServicenetworkingServicesProjectsGlobalNetworksPeeredDnsDomainsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPeeredDnsDomainsResponse>, ApiError>,
@@ -3394,7 +3658,8 @@ pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_li
 > {
     let builder =
         servicenetworking_services_projects_global_networks_peered_dns_domains_list_builder(
-            client, parent,
+            client,
+            &args.parent,
         )?;
     servicenetworking_services_projects_global_networks_peered_dns_domains_list_execute(builder)
 }
@@ -3492,6 +3757,15 @@ pub fn servicenetworking_services_roles_add_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicenetworking_services_roles_add`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicenetworkingServicesRolesAddArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AddRolesRequest,
+}
+
 /// GET v1/services/{servicesId}/roles:add
 /// Service producers can use this method to add roles in the shared VPC host project. Each role is bound to the provided member. Each role must be selected from within an allowlisted set of roles. Each role is applied at only the granularity specified in the allowlist.
 ///
@@ -3504,12 +3778,11 @@ pub fn servicenetworking_services_roles_add_execute(
 
 pub fn servicenetworking_services_roles_add(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AddRolesRequest,
+    args: &ServicenetworkingServicesRolesAddArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_services_roles_add_builder(client, parent, body)?;
+    let builder = servicenetworking_services_roles_add_builder(client, &args.parent, &args.body)?;
     servicenetworking_services_roles_add_execute(builder)
 }

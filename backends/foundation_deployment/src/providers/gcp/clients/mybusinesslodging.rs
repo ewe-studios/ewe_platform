@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/locations/{locationsId}/lodging
 /// Returns the Lodging of a specific location.
@@ -118,6 +120,15 @@ pub fn mybusinesslodging_locations_get_lodging_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinesslodging_locations_get_lodging`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinesslodgingLocationsGetLodgingArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/locations/{locationsId}/lodging
 /// Returns the Lodging of a specific location.
 ///
@@ -130,13 +141,16 @@ pub fn mybusinesslodging_locations_get_lodging_execute(
 
 pub fn mybusinesslodging_locations_get_lodging(
     client: &SimpleHttpClient,
-    name: &str,
-    readMask: Option<&str>,
+    args: &MybusinesslodgingLocationsGetLodgingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Lodging>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinesslodging_locations_get_lodging_builder(client, name, readMask)?;
+    let builder = mybusinesslodging_locations_get_lodging_builder(
+        client,
+        &args.name,
+        args.readMask.as_deref(),
+    )?;
     mybusinesslodging_locations_get_lodging_execute(builder)
 }
 
@@ -245,6 +259,17 @@ pub fn mybusinesslodging_locations_update_lodging_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinesslodging_locations_update_lodging`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinesslodgingLocationsUpdateLodgingArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Lodging,
+}
+
 /// GET v1/locations/{locationsId}/lodging
 /// Updates the Lodging of a specific location.
 ///
@@ -257,15 +282,17 @@ pub fn mybusinesslodging_locations_update_lodging_execute(
 
 pub fn mybusinesslodging_locations_update_lodging(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Lodging,
+    args: &MybusinesslodgingLocationsUpdateLodgingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Lodging>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinesslodging_locations_update_lodging_builder(client, name, updateMask, body)?;
+    let builder = mybusinesslodging_locations_update_lodging_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     mybusinesslodging_locations_update_lodging_execute(builder)
 }
 
@@ -375,6 +402,15 @@ pub fn mybusinesslodging_locations_lodging_get_google_updated_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinesslodging_locations_lodging_get_google_updated`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinesslodgingLocationsLodgingGetGoogleUpdatedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/locations/{locationsId}/lodging:getGoogleUpdated
 /// Returns the Google updated Lodging of a specific location.
 ///
@@ -387,8 +423,7 @@ pub fn mybusinesslodging_locations_lodging_get_google_updated_execute(
 
 pub fn mybusinesslodging_locations_lodging_get_google_updated(
     client: &SimpleHttpClient,
-    name: &str,
-    readMask: Option<&str>,
+    args: &MybusinesslodgingLocationsLodgingGetGoogleUpdatedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetGoogleUpdatedLodgingResponse>, ApiError>,
@@ -397,7 +432,10 @@ pub fn mybusinesslodging_locations_lodging_get_google_updated(
         + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinesslodging_locations_lodging_get_google_updated_builder(client, name, readMask)?;
+    let builder = mybusinesslodging_locations_lodging_get_google_updated_builder(
+        client,
+        &args.name,
+        args.readMask.as_deref(),
+    )?;
     mybusinesslodging_locations_lodging_get_google_updated_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/locations/{locationsId}/workforcePools/{workforcePoolsId}/allowedLocations
 /// Returns the trust boundary info for a given workforce pool.
@@ -110,6 +112,13 @@ pub fn iamcredentials_locations_workforce_pools_get_allowed_locations_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iamcredentials_locations_workforce_pools_get_allowed_locations`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IamcredentialsLocationsWorkforcePoolsGetAllowedLocationsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/locations/{locationsId}/workforcePools/{workforcePoolsId}/allowedLocations
 /// Returns the trust boundary info for a given workforce pool.
 ///
@@ -122,7 +131,7 @@ pub fn iamcredentials_locations_workforce_pools_get_allowed_locations_execute(
 
 pub fn iamcredentials_locations_workforce_pools_get_allowed_locations(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IamcredentialsLocationsWorkforcePoolsGetAllowedLocationsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<WorkforcePoolAllowedLocations>, ApiError>,
@@ -132,7 +141,7 @@ pub fn iamcredentials_locations_workforce_pools_get_allowed_locations(
     ApiError,
 > {
     let builder =
-        iamcredentials_locations_workforce_pools_get_allowed_locations_builder(client, name)?;
+        iamcredentials_locations_workforce_pools_get_allowed_locations_builder(client, &args.name)?;
     iamcredentials_locations_workforce_pools_get_allowed_locations_execute(builder)
 }
 
@@ -230,6 +239,13 @@ pub fn iamcredentials_projects_locations_workload_identity_pools_get_allowed_loc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iamcredentials_projects_locations_workload_identity_pools_get_allowed_locations`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IamcredentialsProjectsLocationsWorkloadIdentityPoolsGetAllowedLocationsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workloadIdentityPools/{workloadIdentityPoolsId}/allowedLocations
 /// Returns the trust boundary info for a given workload identity pool.
 ///
@@ -242,7 +258,7 @@ pub fn iamcredentials_projects_locations_workload_identity_pools_get_allowed_loc
 
 pub fn iamcredentials_projects_locations_workload_identity_pools_get_allowed_locations(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IamcredentialsProjectsLocationsWorkloadIdentityPoolsGetAllowedLocationsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<WorkloadIdentityPoolAllowedLocations>, ApiError>,
@@ -253,7 +269,7 @@ pub fn iamcredentials_projects_locations_workload_identity_pools_get_allowed_loc
 > {
     let builder =
         iamcredentials_projects_locations_workload_identity_pools_get_allowed_locations_builder(
-            client, name,
+            client, &args.name,
         )?;
     iamcredentials_projects_locations_workload_identity_pools_get_allowed_locations_execute(builder)
 }
@@ -355,6 +371,15 @@ pub fn iamcredentials_projects_service_accounts_generate_access_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iamcredentials_projects_service_accounts_generate_access_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IamcredentialsProjectsServiceAccountsGenerateAccessTokenArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GenerateAccessTokenRequest,
+}
+
 /// GET v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:generateAccessToken
 /// Generates an OAuth 2.0 access token for a service account.
 ///
@@ -367,8 +392,7 @@ pub fn iamcredentials_projects_service_accounts_generate_access_token_execute(
 
 pub fn iamcredentials_projects_service_accounts_generate_access_token(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GenerateAccessTokenRequest,
+    args: &IamcredentialsProjectsServiceAccountsGenerateAccessTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateAccessTokenResponse>, ApiError>,
@@ -377,8 +401,9 @@ pub fn iamcredentials_projects_service_accounts_generate_access_token(
         + 'static,
     ApiError,
 > {
-    let builder =
-        iamcredentials_projects_service_accounts_generate_access_token_builder(client, name, body)?;
+    let builder = iamcredentials_projects_service_accounts_generate_access_token_builder(
+        client, &args.name, &args.body,
+    )?;
     iamcredentials_projects_service_accounts_generate_access_token_execute(builder)
 }
 
@@ -477,6 +502,15 @@ pub fn iamcredentials_projects_service_accounts_generate_id_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iamcredentials_projects_service_accounts_generate_id_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IamcredentialsProjectsServiceAccountsGenerateIdTokenArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GenerateIdTokenRequest,
+}
+
 /// GET v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:generateIdToken
 /// Generates an OpenID Connect ID token for a service account.
 ///
@@ -489,16 +523,16 @@ pub fn iamcredentials_projects_service_accounts_generate_id_token_execute(
 
 pub fn iamcredentials_projects_service_accounts_generate_id_token(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GenerateIdTokenRequest,
+    args: &IamcredentialsProjectsServiceAccountsGenerateIdTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GenerateIdTokenResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        iamcredentials_projects_service_accounts_generate_id_token_builder(client, name, body)?;
+    let builder = iamcredentials_projects_service_accounts_generate_id_token_builder(
+        client, &args.name, &args.body,
+    )?;
     iamcredentials_projects_service_accounts_generate_id_token_execute(builder)
 }
 
@@ -596,6 +630,13 @@ pub fn iamcredentials_projects_service_accounts_get_allowed_locations_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iamcredentials_projects_service_accounts_get_allowed_locations`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IamcredentialsProjectsServiceAccountsGetAllowedLocationsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}/allowedLocations
 /// Returns the trust boundary info for a given service account.
 ///
@@ -608,7 +649,7 @@ pub fn iamcredentials_projects_service_accounts_get_allowed_locations_execute(
 
 pub fn iamcredentials_projects_service_accounts_get_allowed_locations(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IamcredentialsProjectsServiceAccountsGetAllowedLocationsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ServiceAccountAllowedLocations>, ApiError>,
@@ -618,7 +659,7 @@ pub fn iamcredentials_projects_service_accounts_get_allowed_locations(
     ApiError,
 > {
     let builder =
-        iamcredentials_projects_service_accounts_get_allowed_locations_builder(client, name)?;
+        iamcredentials_projects_service_accounts_get_allowed_locations_builder(client, &args.name)?;
     iamcredentials_projects_service_accounts_get_allowed_locations_execute(builder)
 }
 
@@ -717,6 +758,15 @@ pub fn iamcredentials_projects_service_accounts_sign_blob_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iamcredentials_projects_service_accounts_sign_blob`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IamcredentialsProjectsServiceAccountsSignBlobArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SignBlobRequest,
+}
+
 /// GET v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:signBlob
 /// Signs a blob using a service account's system-managed private key.
 ///
@@ -729,15 +779,15 @@ pub fn iamcredentials_projects_service_accounts_sign_blob_execute(
 
 pub fn iamcredentials_projects_service_accounts_sign_blob(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SignBlobRequest,
+    args: &IamcredentialsProjectsServiceAccountsSignBlobArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SignBlobResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = iamcredentials_projects_service_accounts_sign_blob_builder(client, name, body)?;
+    let builder =
+        iamcredentials_projects_service_accounts_sign_blob_builder(client, &args.name, &args.body)?;
     iamcredentials_projects_service_accounts_sign_blob_execute(builder)
 }
 
@@ -836,6 +886,15 @@ pub fn iamcredentials_projects_service_accounts_sign_jwt_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iamcredentials_projects_service_accounts_sign_jwt`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IamcredentialsProjectsServiceAccountsSignJwtArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SignJwtRequest,
+}
+
 /// GET v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:signJwt
 /// Signs a JWT using a service account's system-managed private key.
 ///
@@ -848,14 +907,14 @@ pub fn iamcredentials_projects_service_accounts_sign_jwt_execute(
 
 pub fn iamcredentials_projects_service_accounts_sign_jwt(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SignJwtRequest,
+    args: &IamcredentialsProjectsServiceAccountsSignJwtArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SignJwtResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = iamcredentials_projects_service_accounts_sign_jwt_builder(client, name, body)?;
+    let builder =
+        iamcredentials_projects_service_accounts_sign_jwt_builder(client, &args.name, &args.body)?;
     iamcredentials_projects_service_accounts_sign_jwt_execute(builder)
 }

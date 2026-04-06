@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET groups/v1/groups/{groupId}/archive
 /// Inserts a new mail into the archive of the Google group.
@@ -106,6 +108,13 @@ pub fn groupsmigration_archive_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`groupsmigration_archive_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GroupsmigrationArchiveInsertArgs {
+    /// Path parameter: groupId
+    pub groupId: String,
+}
+
 /// GET groups/v1/groups/{groupId}/archive
 /// Inserts a new mail into the archive of the Google group.
 ///
@@ -118,11 +127,11 @@ pub fn groupsmigration_archive_insert_execute(
 
 pub fn groupsmigration_archive_insert(
     client: &SimpleHttpClient,
-    groupId: &str,
+    args: &GroupsmigrationArchiveInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Groups>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = groupsmigration_archive_insert_builder(client, groupId)?;
+    let builder = groupsmigration_archive_insert_builder(client, &args.groupId)?;
     groupsmigration_archive_insert_execute(builder)
 }

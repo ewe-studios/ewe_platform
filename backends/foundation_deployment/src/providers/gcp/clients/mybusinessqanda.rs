@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/locations/{locationsId}/questions
 /// Adds a question for the specified location.
@@ -109,6 +111,15 @@ pub fn mybusinessqanda_locations_questions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessqanda_locations_questions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessqandaLocationsQuestionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Question,
+}
+
 /// GET v1/locations/{locationsId}/questions
 /// Adds a question for the specified location.
 ///
@@ -121,13 +132,13 @@ pub fn mybusinessqanda_locations_questions_create_execute(
 
 pub fn mybusinessqanda_locations_questions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Question,
+    args: &MybusinessqandaLocationsQuestionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Question>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessqanda_locations_questions_create_builder(client, parent, body)?;
+    let builder =
+        mybusinessqanda_locations_questions_create_builder(client, &args.parent, &args.body)?;
     mybusinessqanda_locations_questions_create_execute(builder)
 }
 
@@ -221,6 +232,13 @@ pub fn mybusinessqanda_locations_questions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessqanda_locations_questions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessqandaLocationsQuestionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/locations/{locationsId}/questions/{questionsId}
 /// Deletes a specific question written by the current user.
 ///
@@ -233,12 +251,12 @@ pub fn mybusinessqanda_locations_questions_delete_execute(
 
 pub fn mybusinessqanda_locations_questions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MybusinessqandaLocationsQuestionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessqanda_locations_questions_delete_builder(client, name)?;
+    let builder = mybusinessqanda_locations_questions_delete_builder(client, &args.name)?;
     mybusinessqanda_locations_questions_delete_execute(builder)
 }
 
@@ -362,6 +380,23 @@ pub fn mybusinessqanda_locations_questions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessqanda_locations_questions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessqandaLocationsQuestionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: answersPerQuestion
+    pub answersPerQuestion: Option<i32>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/locations/{locationsId}/questions
 /// Returns the paginated list of questions and some of its answers for a specified location. This operation is only valid if the specified location is verified.
 ///
@@ -374,12 +409,7 @@ pub fn mybusinessqanda_locations_questions_list_execute(
 
 pub fn mybusinessqanda_locations_questions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    answersPerQuestion: Option<i32>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MybusinessqandaLocationsQuestionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListQuestionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -388,12 +418,12 @@ pub fn mybusinessqanda_locations_questions_list(
 > {
     let builder = mybusinessqanda_locations_questions_list_builder(
         client,
-        parent,
-        answersPerQuestion,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.answersPerQuestion,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     mybusinessqanda_locations_questions_list_execute(builder)
 }
@@ -503,6 +533,17 @@ pub fn mybusinessqanda_locations_questions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessqanda_locations_questions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessqandaLocationsQuestionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Question,
+}
+
 /// GET v1/locations/{locationsId}/questions/{questionsId}
 /// Updates a specific question written by the current user.
 ///
@@ -515,15 +556,17 @@ pub fn mybusinessqanda_locations_questions_patch_execute(
 
 pub fn mybusinessqanda_locations_questions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Question,
+    args: &MybusinessqandaLocationsQuestionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Question>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinessqanda_locations_questions_patch_builder(client, name, updateMask, body)?;
+    let builder = mybusinessqanda_locations_questions_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     mybusinessqanda_locations_questions_patch_execute(builder)
 }
 
@@ -617,6 +660,13 @@ pub fn mybusinessqanda_locations_questions_answers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessqanda_locations_questions_answers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessqandaLocationsQuestionsAnswersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/locations/{locationsId}/questions/{questionsId}/answers:delete
 /// Deletes the answer written by the current user to a question.
 ///
@@ -629,12 +679,12 @@ pub fn mybusinessqanda_locations_questions_answers_delete_execute(
 
 pub fn mybusinessqanda_locations_questions_answers_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MybusinessqandaLocationsQuestionsAnswersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessqanda_locations_questions_answers_delete_builder(client, name)?;
+    let builder = mybusinessqanda_locations_questions_answers_delete_builder(client, &args.name)?;
     mybusinessqanda_locations_questions_answers_delete_execute(builder)
 }
 
@@ -750,6 +800,19 @@ pub fn mybusinessqanda_locations_questions_answers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessqanda_locations_questions_answers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessqandaLocationsQuestionsAnswersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/locations/{locationsId}/questions/{questionsId}/answers
 /// Returns the paginated list of answers for a specified question.
 ///
@@ -762,10 +825,7 @@ pub fn mybusinessqanda_locations_questions_answers_list_execute(
 
 pub fn mybusinessqanda_locations_questions_answers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MybusinessqandaLocationsQuestionsAnswersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAnswersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -773,7 +833,11 @@ pub fn mybusinessqanda_locations_questions_answers_list(
     ApiError,
 > {
     let builder = mybusinessqanda_locations_questions_answers_list_builder(
-        client, parent, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     mybusinessqanda_locations_questions_answers_list_execute(builder)
 }
@@ -871,6 +935,15 @@ pub fn mybusinessqanda_locations_questions_answers_upsert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessqanda_locations_questions_answers_upsert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessqandaLocationsQuestionsAnswersUpsertArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UpsertAnswerRequest,
+}
+
 /// GET v1/locations/{locationsId}/questions/{questionsId}/answers:upsert
 /// Creates an answer or updates the existing answer written by the user for the specified question. A user can only create one answer per question.
 ///
@@ -883,12 +956,15 @@ pub fn mybusinessqanda_locations_questions_answers_upsert_execute(
 
 pub fn mybusinessqanda_locations_questions_answers_upsert(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UpsertAnswerRequest,
+    args: &MybusinessqandaLocationsQuestionsAnswersUpsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Answer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessqanda_locations_questions_answers_upsert_builder(client, parent, body)?;
+    let builder = mybusinessqanda_locations_questions_answers_upsert_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     mybusinessqanda_locations_questions_answers_upsert_execute(builder)
 }

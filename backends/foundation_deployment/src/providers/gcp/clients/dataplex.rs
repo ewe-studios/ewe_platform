@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/encryptionConfigs
 /// Create an EncryptionConfig.
@@ -125,6 +127,17 @@ pub fn dataplex_organizations_locations_encryption_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_organizations_locations_encryption_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexOrganizationsLocationsEncryptionConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: encryptionConfigId
+    pub encryptionConfigId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1EncryptionConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/encryptionConfigs
 /// Create an EncryptionConfig.
 ///
@@ -137,9 +150,7 @@ pub fn dataplex_organizations_locations_encryption_configs_create_execute(
 
 pub fn dataplex_organizations_locations_encryption_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    encryptionConfigId: Option<&str>,
-    body: &GoogleCloudDataplexV1EncryptionConfig,
+    args: &DataplexOrganizationsLocationsEncryptionConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -150,9 +161,9 @@ pub fn dataplex_organizations_locations_encryption_configs_create(
 > {
     let builder = dataplex_organizations_locations_encryption_configs_create_builder(
         client,
-        parent,
-        encryptionConfigId,
-        body,
+        &args.parent,
+        args.encryptionConfigId.as_deref(),
+        &args.body,
     )?;
     dataplex_organizations_locations_encryption_configs_create_execute(builder)
 }
@@ -263,6 +274,15 @@ pub fn dataplex_organizations_locations_encryption_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_organizations_locations_encryption_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexOrganizationsLocationsEncryptionConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/encryptionConfigs/{encryptionConfigsId}
 /// Delete an EncryptionConfig.
 ///
@@ -275,8 +295,7 @@ pub fn dataplex_organizations_locations_encryption_configs_delete_execute(
 
 pub fn dataplex_organizations_locations_encryption_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &DataplexOrganizationsLocationsEncryptionConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -285,8 +304,11 @@ pub fn dataplex_organizations_locations_encryption_configs_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_organizations_locations_encryption_configs_delete_builder(client, name, etag)?;
+    let builder = dataplex_organizations_locations_encryption_configs_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     dataplex_organizations_locations_encryption_configs_delete_execute(builder)
 }
 
@@ -384,6 +406,13 @@ pub fn dataplex_organizations_locations_encryption_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_organizations_locations_encryption_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexOrganizationsLocationsEncryptionConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/encryptionConfigs/{encryptionConfigsId}
 /// Get an EncryptionConfig.
 ///
@@ -396,7 +425,7 @@ pub fn dataplex_organizations_locations_encryption_configs_get_execute(
 
 pub fn dataplex_organizations_locations_encryption_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexOrganizationsLocationsEncryptionConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1EncryptionConfig>, ApiError>,
@@ -405,7 +434,8 @@ pub fn dataplex_organizations_locations_encryption_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_organizations_locations_encryption_configs_get_builder(client, name)?;
+    let builder =
+        dataplex_organizations_locations_encryption_configs_get_builder(client, &args.name)?;
     dataplex_organizations_locations_encryption_configs_get_execute(builder)
 }
 
@@ -513,6 +543,15 @@ pub fn dataplex_organizations_locations_encryption_configs_get_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_organizations_locations_encryption_configs_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexOrganizationsLocationsEncryptionConfigsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/encryptionConfigs/{encryptionConfigsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -525,8 +564,7 @@ pub fn dataplex_organizations_locations_encryption_configs_get_iam_policy_execut
 
 pub fn dataplex_organizations_locations_encryption_configs_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexOrganizationsLocationsEncryptionConfigsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -535,8 +573,8 @@ pub fn dataplex_organizations_locations_encryption_configs_get_iam_policy(
 > {
     let builder = dataplex_organizations_locations_encryption_configs_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_organizations_locations_encryption_configs_get_iam_policy_execute(builder)
 }
@@ -660,6 +698,21 @@ pub fn dataplex_organizations_locations_encryption_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_organizations_locations_encryption_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexOrganizationsLocationsEncryptionConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/encryptionConfigs
 /// List EncryptionConfigs.
 ///
@@ -672,11 +725,7 @@ pub fn dataplex_organizations_locations_encryption_configs_list_execute(
 
 pub fn dataplex_organizations_locations_encryption_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexOrganizationsLocationsEncryptionConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListEncryptionConfigsResponse>, ApiError>,
@@ -686,7 +735,12 @@ pub fn dataplex_organizations_locations_encryption_configs_list(
     ApiError,
 > {
     let builder = dataplex_organizations_locations_encryption_configs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_organizations_locations_encryption_configs_list_execute(builder)
 }
@@ -800,6 +854,17 @@ pub fn dataplex_organizations_locations_encryption_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_organizations_locations_encryption_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexOrganizationsLocationsEncryptionConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1EncryptionConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/encryptionConfigs/{encryptionConfigsId}
 /// Update an EncryptionConfig.
 ///
@@ -812,9 +877,7 @@ pub fn dataplex_organizations_locations_encryption_configs_patch_execute(
 
 pub fn dataplex_organizations_locations_encryption_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDataplexV1EncryptionConfig,
+    args: &DataplexOrganizationsLocationsEncryptionConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -824,7 +887,10 @@ pub fn dataplex_organizations_locations_encryption_configs_patch(
     ApiError,
 > {
     let builder = dataplex_organizations_locations_encryption_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dataplex_organizations_locations_encryption_configs_patch_execute(builder)
 }
@@ -924,6 +990,15 @@ pub fn dataplex_organizations_locations_encryption_configs_set_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_organizations_locations_encryption_configs_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexOrganizationsLocationsEncryptionConfigsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/encryptionConfigs/{encryptionConfigsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -936,8 +1011,7 @@ pub fn dataplex_organizations_locations_encryption_configs_set_iam_policy_execut
 
 pub fn dataplex_organizations_locations_encryption_configs_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexOrganizationsLocationsEncryptionConfigsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -945,7 +1019,9 @@ pub fn dataplex_organizations_locations_encryption_configs_set_iam_policy(
     ApiError,
 > {
     let builder = dataplex_organizations_locations_encryption_configs_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_organizations_locations_encryption_configs_set_iam_policy_execute(builder)
 }
@@ -1047,6 +1123,15 @@ pub fn dataplex_organizations_locations_encryption_configs_test_iam_permissions_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_organizations_locations_encryption_configs_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexOrganizationsLocationsEncryptionConfigsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/encryptionConfigs/{encryptionConfigsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1059,8 +1144,7 @@ pub fn dataplex_organizations_locations_encryption_configs_test_iam_permissions_
 
 pub fn dataplex_organizations_locations_encryption_configs_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexOrganizationsLocationsEncryptionConfigsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -1070,7 +1154,9 @@ pub fn dataplex_organizations_locations_encryption_configs_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_organizations_locations_encryption_configs_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_organizations_locations_encryption_configs_test_iam_permissions_execute(builder)
 }
@@ -1168,6 +1254,15 @@ pub fn dataplex_organizations_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_organizations_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexOrganizationsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1180,13 +1275,13 @@ pub fn dataplex_organizations_locations_operations_cancel_execute(
 
 pub fn dataplex_organizations_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &DataplexOrganizationsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataplex_organizations_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        dataplex_organizations_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     dataplex_organizations_locations_operations_cancel_execute(builder)
 }
 
@@ -1280,6 +1375,13 @@ pub fn dataplex_organizations_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_organizations_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexOrganizationsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1292,12 +1394,12 @@ pub fn dataplex_organizations_locations_operations_delete_execute(
 
 pub fn dataplex_organizations_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexOrganizationsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataplex_organizations_locations_operations_delete_builder(client, name)?;
+    let builder = dataplex_organizations_locations_operations_delete_builder(client, &args.name)?;
     dataplex_organizations_locations_operations_delete_execute(builder)
 }
 
@@ -1395,6 +1497,13 @@ pub fn dataplex_organizations_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_organizations_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexOrganizationsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1407,7 +1516,7 @@ pub fn dataplex_organizations_locations_operations_get_execute(
 
 pub fn dataplex_organizations_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexOrganizationsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1416,7 +1525,7 @@ pub fn dataplex_organizations_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_organizations_locations_operations_get_builder(client, name)?;
+    let builder = dataplex_organizations_locations_operations_get_builder(client, &args.name)?;
     dataplex_organizations_locations_operations_get_execute(builder)
 }
 
@@ -1539,6 +1648,21 @@ pub fn dataplex_organizations_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_organizations_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexOrganizationsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1551,11 +1675,7 @@ pub fn dataplex_organizations_locations_operations_list_execute(
 
 pub fn dataplex_organizations_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DataplexOrganizationsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -1566,11 +1686,11 @@ pub fn dataplex_organizations_locations_operations_list(
 > {
     let builder = dataplex_organizations_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     dataplex_organizations_locations_operations_list_execute(builder)
 }
@@ -1669,6 +1789,13 @@ pub fn dataplex_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -1681,7 +1808,7 @@ pub fn dataplex_projects_locations_get_execute(
 
 pub fn dataplex_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudLocationLocation>, ApiError>,
@@ -1690,7 +1817,7 @@ pub fn dataplex_projects_locations_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_get_builder(client, &args.name)?;
     dataplex_projects_locations_get_execute(builder)
 }
 
@@ -1812,6 +1939,21 @@ pub fn dataplex_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service.This method lists locations based on the resource scope provided in the ListLocationsRequest.name field: Global locations: If name is empty, the method lists the public locations available to all projects. Project-specific locations: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project.For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -1824,11 +1966,7 @@ pub fn dataplex_projects_locations_list_execute(
 
 pub fn dataplex_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudLocationListLocationsResponse>, ApiError>,
@@ -1839,11 +1977,11 @@ pub fn dataplex_projects_locations_list(
 > {
     let builder = dataplex_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_list_execute(builder)
 }
@@ -1946,6 +2084,15 @@ pub fn dataplex_projects_locations_lookup_context_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lookup_context`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLookupContextArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1LookupContextRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:lookupContext
 /// Looks up LLM Context for the specified resources.
 ///
@@ -1958,8 +2105,7 @@ pub fn dataplex_projects_locations_lookup_context_execute(
 
 pub fn dataplex_projects_locations_lookup_context(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDataplexV1LookupContextRequest,
+    args: &DataplexProjectsLocationsLookupContextArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1LookupContextResponse>, ApiError>,
@@ -1968,7 +2114,8 @@ pub fn dataplex_projects_locations_lookup_context(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_lookup_context_builder(client, name, body)?;
+    let builder =
+        dataplex_projects_locations_lookup_context_builder(client, &args.name, &args.body)?;
     dataplex_projects_locations_lookup_context_execute(builder)
 }
 
@@ -2090,6 +2237,21 @@ pub fn dataplex_projects_locations_lookup_entry_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lookup_entry`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLookupEntryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: aspectTypes
+    pub aspectTypes: Option<String>,
+    /// Query parameter: entry
+    pub entry: Option<String>,
+    /// Query parameter: paths
+    pub paths: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:lookupEntry
 /// Looks up an entry by name using the permission on the source system.
 ///
@@ -2102,11 +2264,7 @@ pub fn dataplex_projects_locations_lookup_entry_execute(
 
 pub fn dataplex_projects_locations_lookup_entry(
     client: &SimpleHttpClient,
-    name: &str,
-    aspectTypes: Option<&str>,
-    entry: Option<&str>,
-    paths: Option<&str>,
-    view: Option<&str>,
+    args: &DataplexProjectsLocationsLookupEntryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1Entry>, ApiError>,
@@ -2117,11 +2275,11 @@ pub fn dataplex_projects_locations_lookup_entry(
 > {
     let builder = dataplex_projects_locations_lookup_entry_builder(
         client,
-        name,
-        aspectTypes,
-        entry,
-        paths,
-        view,
+        &args.name,
+        args.aspectTypes.as_deref(),
+        args.entry.as_deref(),
+        args.paths.as_deref(),
+        args.view.as_deref(),
     )?;
     dataplex_projects_locations_lookup_entry_execute(builder)
 }
@@ -2249,6 +2407,23 @@ pub fn dataplex_projects_locations_lookup_entry_links_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lookup_entry_links`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLookupEntryLinksArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: entry
+    pub entry: Option<String>,
+    /// Query parameter: entryLinkTypes
+    pub entryLinkTypes: Option<String>,
+    /// Query parameter: entryMode
+    pub entryMode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:lookupEntryLinks
 /// Looks up Entry Links referencing the specified Entry.
 ///
@@ -2261,12 +2436,7 @@ pub fn dataplex_projects_locations_lookup_entry_links_execute(
 
 pub fn dataplex_projects_locations_lookup_entry_links(
     client: &SimpleHttpClient,
-    name: &str,
-    entry: Option<&str>,
-    entryLinkTypes: Option<&str>,
-    entryMode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsLookupEntryLinksArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1LookupEntryLinksResponse>, ApiError>,
@@ -2277,12 +2447,12 @@ pub fn dataplex_projects_locations_lookup_entry_links(
 > {
     let builder = dataplex_projects_locations_lookup_entry_links_builder(
         client,
-        name,
-        entry,
-        entryLinkTypes,
-        entryMode,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.entry.as_deref(),
+        args.entryLinkTypes.as_deref(),
+        args.entryMode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_lookup_entry_links_execute(builder)
 }
@@ -2414,6 +2584,25 @@ pub fn dataplex_projects_locations_search_entries_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_search_entries`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsSearchEntriesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: scope
+    pub scope: Option<String>,
+    /// Query parameter: semanticSearch
+    pub semanticSearch: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:searchEntries
 /// Searches for Entries matching the given query and scope.
 ///
@@ -2426,13 +2615,7 @@ pub fn dataplex_projects_locations_search_entries_execute(
 
 pub fn dataplex_projects_locations_search_entries(
     client: &SimpleHttpClient,
-    name: &str,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
-    scope: Option<&str>,
-    semanticSearch: Option<bool>,
+    args: &DataplexProjectsLocationsSearchEntriesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1SearchEntriesResponse>, ApiError>,
@@ -2443,13 +2626,13 @@ pub fn dataplex_projects_locations_search_entries(
 > {
     let builder = dataplex_projects_locations_search_entries_builder(
         client,
-        name,
-        orderBy,
-        pageSize,
-        pageToken,
-        query,
-        scope,
-        semanticSearch,
+        &args.name,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
+        args.scope.as_deref(),
+        args.semanticSearch,
     )?;
     dataplex_projects_locations_search_entries_execute(builder)
 }
@@ -2567,6 +2750,19 @@ pub fn dataplex_projects_locations_aspect_types_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_aspect_types_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsAspectTypesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: aspectTypeId
+    pub aspectTypeId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1AspectType,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aspectTypes
 /// Creates an AspectType.
 ///
@@ -2579,10 +2775,7 @@ pub fn dataplex_projects_locations_aspect_types_create_execute(
 
 pub fn dataplex_projects_locations_aspect_types_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    aspectTypeId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1AspectType,
+    args: &DataplexProjectsLocationsAspectTypesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2593,10 +2786,10 @@ pub fn dataplex_projects_locations_aspect_types_create(
 > {
     let builder = dataplex_projects_locations_aspect_types_create_builder(
         client,
-        parent,
-        aspectTypeId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.aspectTypeId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_aspect_types_create_execute(builder)
 }
@@ -2707,6 +2900,15 @@ pub fn dataplex_projects_locations_aspect_types_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_aspect_types_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsAspectTypesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aspectTypes/{aspectTypesId}
 /// Deletes an AspectType.
 ///
@@ -2719,8 +2921,7 @@ pub fn dataplex_projects_locations_aspect_types_delete_execute(
 
 pub fn dataplex_projects_locations_aspect_types_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &DataplexProjectsLocationsAspectTypesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2729,7 +2930,11 @@ pub fn dataplex_projects_locations_aspect_types_delete(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_aspect_types_delete_builder(client, name, etag)?;
+    let builder = dataplex_projects_locations_aspect_types_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     dataplex_projects_locations_aspect_types_delete_execute(builder)
 }
 
@@ -2827,6 +3032,13 @@ pub fn dataplex_projects_locations_aspect_types_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_aspect_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsAspectTypesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aspectTypes/{aspectTypesId}
 /// Gets an AspectType.
 ///
@@ -2839,7 +3051,7 @@ pub fn dataplex_projects_locations_aspect_types_get_execute(
 
 pub fn dataplex_projects_locations_aspect_types_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsAspectTypesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1AspectType>, ApiError>,
@@ -2848,7 +3060,7 @@ pub fn dataplex_projects_locations_aspect_types_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_aspect_types_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_aspect_types_get_builder(client, &args.name)?;
     dataplex_projects_locations_aspect_types_get_execute(builder)
 }
 
@@ -2956,6 +3168,15 @@ pub fn dataplex_projects_locations_aspect_types_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_aspect_types_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsAspectTypesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aspectTypes/{aspectTypesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2968,8 +3189,7 @@ pub fn dataplex_projects_locations_aspect_types_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_aspect_types_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsAspectTypesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -2978,8 +3198,8 @@ pub fn dataplex_projects_locations_aspect_types_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_aspect_types_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_aspect_types_get_iam_policy_execute(builder)
 }
@@ -3103,6 +3323,21 @@ pub fn dataplex_projects_locations_aspect_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_aspect_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsAspectTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aspectTypes
 /// Lists AspectType resources in a project and location.
 ///
@@ -3115,11 +3350,7 @@ pub fn dataplex_projects_locations_aspect_types_list_execute(
 
 pub fn dataplex_projects_locations_aspect_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsAspectTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListAspectTypesResponse>, ApiError>,
@@ -3129,7 +3360,12 @@ pub fn dataplex_projects_locations_aspect_types_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_aspect_types_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_aspect_types_list_execute(builder)
 }
@@ -3247,6 +3483,19 @@ pub fn dataplex_projects_locations_aspect_types_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_aspect_types_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsAspectTypesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1AspectType,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aspectTypes/{aspectTypesId}
 /// Updates an AspectType.
 ///
@@ -3259,10 +3508,7 @@ pub fn dataplex_projects_locations_aspect_types_patch_execute(
 
 pub fn dataplex_projects_locations_aspect_types_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1AspectType,
+    args: &DataplexProjectsLocationsAspectTypesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3273,10 +3519,10 @@ pub fn dataplex_projects_locations_aspect_types_patch(
 > {
     let builder = dataplex_projects_locations_aspect_types_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_aspect_types_patch_execute(builder)
 }
@@ -3376,6 +3622,15 @@ pub fn dataplex_projects_locations_aspect_types_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_aspect_types_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsAspectTypesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aspectTypes/{aspectTypesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3388,16 +3643,18 @@ pub fn dataplex_projects_locations_aspect_types_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_aspect_types_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsAspectTypesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_aspect_types_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataplex_projects_locations_aspect_types_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataplex_projects_locations_aspect_types_set_iam_policy_execute(builder)
 }
 
@@ -3498,6 +3755,15 @@ pub fn dataplex_projects_locations_aspect_types_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_aspect_types_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsAspectTypesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aspectTypes/{aspectTypesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3510,8 +3776,7 @@ pub fn dataplex_projects_locations_aspect_types_test_iam_permissions_execute(
 
 pub fn dataplex_projects_locations_aspect_types_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsAspectTypesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -3521,7 +3786,9 @@ pub fn dataplex_projects_locations_aspect_types_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_aspect_types_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_aspect_types_test_iam_permissions_execute(builder)
 }
@@ -3630,6 +3897,15 @@ pub fn dataplex_projects_locations_change_requests_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_change_requests_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsChangeRequestsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/changeRequests/{changeRequestsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -3642,8 +3918,7 @@ pub fn dataplex_projects_locations_change_requests_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_change_requests_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsChangeRequestsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -3652,8 +3927,8 @@ pub fn dataplex_projects_locations_change_requests_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_change_requests_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_change_requests_get_iam_policy_execute(builder)
 }
@@ -3753,6 +4028,15 @@ pub fn dataplex_projects_locations_change_requests_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_change_requests_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsChangeRequestsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/changeRequests/{changeRequestsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3765,16 +4049,18 @@ pub fn dataplex_projects_locations_change_requests_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_change_requests_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsChangeRequestsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_change_requests_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataplex_projects_locations_change_requests_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataplex_projects_locations_change_requests_set_iam_policy_execute(builder)
 }
 
@@ -3875,6 +4161,15 @@ pub fn dataplex_projects_locations_change_requests_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_change_requests_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsChangeRequestsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/changeRequests/{changeRequestsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3887,8 +4182,7 @@ pub fn dataplex_projects_locations_change_requests_test_iam_permissions_execute(
 
 pub fn dataplex_projects_locations_change_requests_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsChangeRequestsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -3898,7 +4192,9 @@ pub fn dataplex_projects_locations_change_requests_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_change_requests_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_change_requests_test_iam_permissions_execute(builder)
 }
@@ -4016,6 +4312,19 @@ pub fn dataplex_projects_locations_data_attribute_bindings_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_attribute_bindings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataAttributeBindingsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataAttributeBindingId
+    pub dataAttributeBindingId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1DataAttributeBinding,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataAttributeBindings
 /// Create a DataAttributeBinding resource.
 ///
@@ -4028,10 +4337,7 @@ pub fn dataplex_projects_locations_data_attribute_bindings_create_execute(
 
 pub fn dataplex_projects_locations_data_attribute_bindings_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataAttributeBindingId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1DataAttributeBinding,
+    args: &DataplexProjectsLocationsDataAttributeBindingsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4042,10 +4348,10 @@ pub fn dataplex_projects_locations_data_attribute_bindings_create(
 > {
     let builder = dataplex_projects_locations_data_attribute_bindings_create_builder(
         client,
-        parent,
-        dataAttributeBindingId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.dataAttributeBindingId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_data_attribute_bindings_create_execute(builder)
 }
@@ -4156,6 +4462,15 @@ pub fn dataplex_projects_locations_data_attribute_bindings_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_attribute_bindings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataAttributeBindingsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataAttributeBindings/{dataAttributeBindingsId}
 /// Deletes a DataAttributeBinding resource. All attributes within the DataAttributeBinding must be deleted before the DataAttributeBinding can be deleted.
 ///
@@ -4168,8 +4483,7 @@ pub fn dataplex_projects_locations_data_attribute_bindings_delete_execute(
 
 pub fn dataplex_projects_locations_data_attribute_bindings_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &DataplexProjectsLocationsDataAttributeBindingsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4178,8 +4492,11 @@ pub fn dataplex_projects_locations_data_attribute_bindings_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_data_attribute_bindings_delete_builder(client, name, etag)?;
+    let builder = dataplex_projects_locations_data_attribute_bindings_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     dataplex_projects_locations_data_attribute_bindings_delete_execute(builder)
 }
 
@@ -4277,6 +4594,13 @@ pub fn dataplex_projects_locations_data_attribute_bindings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_attribute_bindings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataAttributeBindingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataAttributeBindings/{dataAttributeBindingsId}
 /// Retrieves a DataAttributeBinding resource.
 ///
@@ -4289,7 +4613,7 @@ pub fn dataplex_projects_locations_data_attribute_bindings_get_execute(
 
 pub fn dataplex_projects_locations_data_attribute_bindings_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsDataAttributeBindingsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1DataAttributeBinding>, ApiError>,
@@ -4298,7 +4622,8 @@ pub fn dataplex_projects_locations_data_attribute_bindings_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_data_attribute_bindings_get_builder(client, name)?;
+    let builder =
+        dataplex_projects_locations_data_attribute_bindings_get_builder(client, &args.name)?;
     dataplex_projects_locations_data_attribute_bindings_get_execute(builder)
 }
 
@@ -4406,6 +4731,15 @@ pub fn dataplex_projects_locations_data_attribute_bindings_get_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_attribute_bindings_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataAttributeBindingsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataAttributeBindings/{dataAttributeBindingsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -4418,8 +4752,7 @@ pub fn dataplex_projects_locations_data_attribute_bindings_get_iam_policy_execut
 
 pub fn dataplex_projects_locations_data_attribute_bindings_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsDataAttributeBindingsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -4428,8 +4761,8 @@ pub fn dataplex_projects_locations_data_attribute_bindings_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_data_attribute_bindings_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_data_attribute_bindings_get_iam_policy_execute(builder)
 }
@@ -4556,6 +4889,21 @@ pub fn dataplex_projects_locations_data_attribute_bindings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_attribute_bindings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataAttributeBindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataAttributeBindings
 /// Lists DataAttributeBinding resources in a project and location.
 ///
@@ -4568,11 +4916,7 @@ pub fn dataplex_projects_locations_data_attribute_bindings_list_execute(
 
 pub fn dataplex_projects_locations_data_attribute_bindings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsDataAttributeBindingsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4585,7 +4929,12 @@ pub fn dataplex_projects_locations_data_attribute_bindings_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_data_attribute_bindings_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_data_attribute_bindings_list_execute(builder)
 }
@@ -4703,6 +5052,19 @@ pub fn dataplex_projects_locations_data_attribute_bindings_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_attribute_bindings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataAttributeBindingsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1DataAttributeBinding,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataAttributeBindings/{dataAttributeBindingsId}
 /// Updates a DataAttributeBinding resource.
 ///
@@ -4715,10 +5077,7 @@ pub fn dataplex_projects_locations_data_attribute_bindings_patch_execute(
 
 pub fn dataplex_projects_locations_data_attribute_bindings_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1DataAttributeBinding,
+    args: &DataplexProjectsLocationsDataAttributeBindingsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4729,10 +5088,10 @@ pub fn dataplex_projects_locations_data_attribute_bindings_patch(
 > {
     let builder = dataplex_projects_locations_data_attribute_bindings_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_data_attribute_bindings_patch_execute(builder)
 }
@@ -4832,6 +5191,15 @@ pub fn dataplex_projects_locations_data_attribute_bindings_set_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_attribute_bindings_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataAttributeBindingsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataAttributeBindings/{dataAttributeBindingsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -4844,8 +5212,7 @@ pub fn dataplex_projects_locations_data_attribute_bindings_set_iam_policy_execut
 
 pub fn dataplex_projects_locations_data_attribute_bindings_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsDataAttributeBindingsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -4853,7 +5220,9 @@ pub fn dataplex_projects_locations_data_attribute_bindings_set_iam_policy(
     ApiError,
 > {
     let builder = dataplex_projects_locations_data_attribute_bindings_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_data_attribute_bindings_set_iam_policy_execute(builder)
 }
@@ -4955,6 +5324,15 @@ pub fn dataplex_projects_locations_data_attribute_bindings_test_iam_permissions_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_attribute_bindings_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataAttributeBindingsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataAttributeBindings/{dataAttributeBindingsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -4967,8 +5345,7 @@ pub fn dataplex_projects_locations_data_attribute_bindings_test_iam_permissions_
 
 pub fn dataplex_projects_locations_data_attribute_bindings_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsDataAttributeBindingsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -4978,7 +5355,9 @@ pub fn dataplex_projects_locations_data_attribute_bindings_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_data_attribute_bindings_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_data_attribute_bindings_test_iam_permissions_execute(builder)
 }
@@ -5087,6 +5466,15 @@ pub fn dataplex_projects_locations_data_domains_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_domains_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataDomainsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataDomains/{dataDomainsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -5099,8 +5487,7 @@ pub fn dataplex_projects_locations_data_domains_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_data_domains_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsDataDomainsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -5109,8 +5496,8 @@ pub fn dataplex_projects_locations_data_domains_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_data_domains_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_data_domains_get_iam_policy_execute(builder)
 }
@@ -5210,6 +5597,15 @@ pub fn dataplex_projects_locations_data_domains_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_domains_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataDomainsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataDomains/{dataDomainsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -5222,16 +5618,18 @@ pub fn dataplex_projects_locations_data_domains_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_data_domains_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsDataDomainsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_data_domains_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataplex_projects_locations_data_domains_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataplex_projects_locations_data_domains_set_iam_policy_execute(builder)
 }
 
@@ -5332,6 +5730,15 @@ pub fn dataplex_projects_locations_data_domains_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_domains_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataDomainsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataDomains/{dataDomainsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -5344,8 +5751,7 @@ pub fn dataplex_projects_locations_data_domains_test_iam_permissions_execute(
 
 pub fn dataplex_projects_locations_data_domains_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsDataDomainsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -5355,7 +5761,9 @@ pub fn dataplex_projects_locations_data_domains_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_data_domains_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_data_domains_test_iam_permissions_execute(builder)
 }
@@ -5473,6 +5881,19 @@ pub fn dataplex_projects_locations_data_products_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_products_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataProductsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataProductId
+    pub dataProductId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1DataProduct,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataProducts
 /// Creates a data product.
 ///
@@ -5485,10 +5906,7 @@ pub fn dataplex_projects_locations_data_products_create_execute(
 
 pub fn dataplex_projects_locations_data_products_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataProductId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1DataProduct,
+    args: &DataplexProjectsLocationsDataProductsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5499,10 +5917,10 @@ pub fn dataplex_projects_locations_data_products_create(
 > {
     let builder = dataplex_projects_locations_data_products_create_builder(
         client,
-        parent,
-        dataProductId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.dataProductId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_data_products_create_execute(builder)
 }
@@ -5617,6 +6035,17 @@ pub fn dataplex_projects_locations_data_products_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_products_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataProductsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}
 /// Deletes a data product. The deletion will fail if the data product is not empty (i.e. contains at least one data asset).
 ///
@@ -5629,9 +6058,7 @@ pub fn dataplex_projects_locations_data_products_delete_execute(
 
 pub fn dataplex_projects_locations_data_products_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &DataplexProjectsLocationsDataProductsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5640,8 +6067,12 @@ pub fn dataplex_projects_locations_data_products_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_data_products_delete_builder(client, name, etag, validateOnly)?;
+    let builder = dataplex_projects_locations_data_products_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.validateOnly,
+    )?;
     dataplex_projects_locations_data_products_delete_execute(builder)
 }
 
@@ -5739,6 +6170,13 @@ pub fn dataplex_projects_locations_data_products_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_products_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataProductsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}
 /// Gets a data product.
 ///
@@ -5751,7 +6189,7 @@ pub fn dataplex_projects_locations_data_products_get_execute(
 
 pub fn dataplex_projects_locations_data_products_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsDataProductsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1DataProduct>, ApiError>,
@@ -5760,7 +6198,7 @@ pub fn dataplex_projects_locations_data_products_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_data_products_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_data_products_get_builder(client, &args.name)?;
     dataplex_projects_locations_data_products_get_execute(builder)
 }
 
@@ -5868,6 +6306,15 @@ pub fn dataplex_projects_locations_data_products_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_products_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataProductsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -5880,8 +6327,7 @@ pub fn dataplex_projects_locations_data_products_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_data_products_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsDataProductsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -5890,8 +6336,8 @@ pub fn dataplex_projects_locations_data_products_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_data_products_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_data_products_get_iam_policy_execute(builder)
 }
@@ -6015,6 +6461,21 @@ pub fn dataplex_projects_locations_data_products_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_products_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataProductsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataProducts
 /// Lists data products for a given project.
 ///
@@ -6027,11 +6488,7 @@ pub fn dataplex_projects_locations_data_products_list_execute(
 
 pub fn dataplex_projects_locations_data_products_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsDataProductsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListDataProductsResponse>, ApiError>,
@@ -6041,7 +6498,12 @@ pub fn dataplex_projects_locations_data_products_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_data_products_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_data_products_list_execute(builder)
 }
@@ -6159,6 +6621,19 @@ pub fn dataplex_projects_locations_data_products_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_products_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataProductsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1DataProduct,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}
 /// Updates a data product.
 ///
@@ -6171,10 +6646,7 @@ pub fn dataplex_projects_locations_data_products_patch_execute(
 
 pub fn dataplex_projects_locations_data_products_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1DataProduct,
+    args: &DataplexProjectsLocationsDataProductsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6185,10 +6657,10 @@ pub fn dataplex_projects_locations_data_products_patch(
 > {
     let builder = dataplex_projects_locations_data_products_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_data_products_patch_execute(builder)
 }
@@ -6288,6 +6760,15 @@ pub fn dataplex_projects_locations_data_products_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_products_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataProductsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -6300,16 +6781,18 @@ pub fn dataplex_projects_locations_data_products_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_data_products_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsDataProductsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_data_products_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataplex_projects_locations_data_products_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataplex_projects_locations_data_products_set_iam_policy_execute(builder)
 }
 
@@ -6410,6 +6893,15 @@ pub fn dataplex_projects_locations_data_products_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_products_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataProductsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -6422,8 +6914,7 @@ pub fn dataplex_projects_locations_data_products_test_iam_permissions_execute(
 
 pub fn dataplex_projects_locations_data_products_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsDataProductsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -6433,7 +6924,9 @@ pub fn dataplex_projects_locations_data_products_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_data_products_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_data_products_test_iam_permissions_execute(builder)
 }
@@ -6551,6 +7044,19 @@ pub fn dataplex_projects_locations_data_products_data_assets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_products_data_assets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataProductsDataAssetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataAssetId
+    pub dataAssetId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1DataAsset,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}/dataAssets
 /// Creates a data asset.
 ///
@@ -6563,10 +7069,7 @@ pub fn dataplex_projects_locations_data_products_data_assets_create_execute(
 
 pub fn dataplex_projects_locations_data_products_data_assets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataAssetId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1DataAsset,
+    args: &DataplexProjectsLocationsDataProductsDataAssetsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6577,10 +7080,10 @@ pub fn dataplex_projects_locations_data_products_data_assets_create(
 > {
     let builder = dataplex_projects_locations_data_products_data_assets_create_builder(
         client,
-        parent,
-        dataAssetId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.dataAssetId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_data_products_data_assets_create_execute(builder)
 }
@@ -6695,6 +7198,17 @@ pub fn dataplex_projects_locations_data_products_data_assets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_products_data_assets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataProductsDataAssetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}/dataAssets/{dataAssetsId}
 /// Deletes a data asset.
 ///
@@ -6707,9 +7221,7 @@ pub fn dataplex_projects_locations_data_products_data_assets_delete_execute(
 
 pub fn dataplex_projects_locations_data_products_data_assets_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &DataplexProjectsLocationsDataProductsDataAssetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6720,9 +7232,9 @@ pub fn dataplex_projects_locations_data_products_data_assets_delete(
 > {
     let builder = dataplex_projects_locations_data_products_data_assets_delete_builder(
         client,
-        name,
-        etag,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.validateOnly,
     )?;
     dataplex_projects_locations_data_products_data_assets_delete_execute(builder)
 }
@@ -6821,6 +7333,13 @@ pub fn dataplex_projects_locations_data_products_data_assets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_products_data_assets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataProductsDataAssetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}/dataAssets/{dataAssetsId}
 /// Gets a data asset.
 ///
@@ -6833,7 +7352,7 @@ pub fn dataplex_projects_locations_data_products_data_assets_get_execute(
 
 pub fn dataplex_projects_locations_data_products_data_assets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsDataProductsDataAssetsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1DataAsset>, ApiError>,
@@ -6842,7 +7361,8 @@ pub fn dataplex_projects_locations_data_products_data_assets_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_data_products_data_assets_get_builder(client, name)?;
+    let builder =
+        dataplex_projects_locations_data_products_data_assets_get_builder(client, &args.name)?;
     dataplex_projects_locations_data_products_data_assets_get_execute(builder)
 }
 
@@ -6965,6 +7485,21 @@ pub fn dataplex_projects_locations_data_products_data_assets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_products_data_assets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataProductsDataAssetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}/dataAssets
 /// Lists data assets for a given data product.
 ///
@@ -6977,11 +7512,7 @@ pub fn dataplex_projects_locations_data_products_data_assets_list_execute(
 
 pub fn dataplex_projects_locations_data_products_data_assets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsDataProductsDataAssetsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListDataAssetsResponse>, ApiError>,
@@ -6991,7 +7522,12 @@ pub fn dataplex_projects_locations_data_products_data_assets_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_data_products_data_assets_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_data_products_data_assets_list_execute(builder)
 }
@@ -7109,6 +7645,19 @@ pub fn dataplex_projects_locations_data_products_data_assets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_products_data_assets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataProductsDataAssetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1DataAsset,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}/dataAssets/{dataAssetsId}
 /// Updates a data asset.
 ///
@@ -7121,10 +7670,7 @@ pub fn dataplex_projects_locations_data_products_data_assets_patch_execute(
 
 pub fn dataplex_projects_locations_data_products_data_assets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1DataAsset,
+    args: &DataplexProjectsLocationsDataProductsDataAssetsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7135,10 +7681,10 @@ pub fn dataplex_projects_locations_data_products_data_assets_patch(
 > {
     let builder = dataplex_projects_locations_data_products_data_assets_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_data_products_data_assets_patch_execute(builder)
 }
@@ -7256,6 +7802,19 @@ pub fn dataplex_projects_locations_data_scans_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_scans_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataScansCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataScanId
+    pub dataScanId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1DataScan,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans
 /// Creates a DataScan resource.
 ///
@@ -7268,10 +7827,7 @@ pub fn dataplex_projects_locations_data_scans_create_execute(
 
 pub fn dataplex_projects_locations_data_scans_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataScanId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1DataScan,
+    args: &DataplexProjectsLocationsDataScansCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7282,10 +7838,10 @@ pub fn dataplex_projects_locations_data_scans_create(
 > {
     let builder = dataplex_projects_locations_data_scans_create_builder(
         client,
-        parent,
-        dataScanId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.dataScanId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_data_scans_create_execute(builder)
 }
@@ -7396,6 +7952,15 @@ pub fn dataplex_projects_locations_data_scans_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_scans_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataScansDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}
 /// Deletes a DataScan resource.
 ///
@@ -7408,8 +7973,7 @@ pub fn dataplex_projects_locations_data_scans_delete_execute(
 
 pub fn dataplex_projects_locations_data_scans_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &DataplexProjectsLocationsDataScansDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7418,7 +7982,8 @@ pub fn dataplex_projects_locations_data_scans_delete(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_data_scans_delete_builder(client, name, force)?;
+    let builder =
+        dataplex_projects_locations_data_scans_delete_builder(client, &args.name, args.force)?;
     dataplex_projects_locations_data_scans_delete_execute(builder)
 }
 
@@ -7523,6 +8088,15 @@ pub fn dataplex_projects_locations_data_scans_generate_data_quality_rules_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_scans_generate_data_quality_rules`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataScansGenerateDataQualityRulesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1GenerateDataQualityRulesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}:generateDataQualityRules
 /// Generates recommended data quality rules based on the results of a data profiling scan.Use the recommendations to build rules for a data quality scan.
 ///
@@ -7535,8 +8109,7 @@ pub fn dataplex_projects_locations_data_scans_generate_data_quality_rules_execut
 
 pub fn dataplex_projects_locations_data_scans_generate_data_quality_rules(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDataplexV1GenerateDataQualityRulesRequest,
+    args: &DataplexProjectsLocationsDataScansGenerateDataQualityRulesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -7549,7 +8122,7 @@ pub fn dataplex_projects_locations_data_scans_generate_data_quality_rules(
     ApiError,
 > {
     let builder = dataplex_projects_locations_data_scans_generate_data_quality_rules_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     dataplex_projects_locations_data_scans_generate_data_quality_rules_execute(builder)
 }
@@ -7660,6 +8233,15 @@ pub fn dataplex_projects_locations_data_scans_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_scans_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataScansGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}
 /// Gets a DataScan resource.
 ///
@@ -7672,8 +8254,7 @@ pub fn dataplex_projects_locations_data_scans_get_execute(
 
 pub fn dataplex_projects_locations_data_scans_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &DataplexProjectsLocationsDataScansGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1DataScan>, ApiError>,
@@ -7682,7 +8263,11 @@ pub fn dataplex_projects_locations_data_scans_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_data_scans_get_builder(client, name, view)?;
+    let builder = dataplex_projects_locations_data_scans_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     dataplex_projects_locations_data_scans_get_execute(builder)
 }
 
@@ -7790,6 +8375,15 @@ pub fn dataplex_projects_locations_data_scans_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_scans_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataScansGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -7802,8 +8396,7 @@ pub fn dataplex_projects_locations_data_scans_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_data_scans_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsDataScansGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -7812,8 +8405,8 @@ pub fn dataplex_projects_locations_data_scans_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_data_scans_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_data_scans_get_iam_policy_execute(builder)
 }
@@ -7937,6 +8530,21 @@ pub fn dataplex_projects_locations_data_scans_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_scans_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataScansListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans
 /// Lists DataScans.
 ///
@@ -7949,11 +8557,7 @@ pub fn dataplex_projects_locations_data_scans_list_execute(
 
 pub fn dataplex_projects_locations_data_scans_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsDataScansListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListDataScansResponse>, ApiError>,
@@ -7963,7 +8567,12 @@ pub fn dataplex_projects_locations_data_scans_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_data_scans_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_data_scans_list_execute(builder)
 }
@@ -8081,6 +8690,19 @@ pub fn dataplex_projects_locations_data_scans_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_scans_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataScansPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1DataScan,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}
 /// Updates a DataScan resource.
 ///
@@ -8093,10 +8715,7 @@ pub fn dataplex_projects_locations_data_scans_patch_execute(
 
 pub fn dataplex_projects_locations_data_scans_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1DataScan,
+    args: &DataplexProjectsLocationsDataScansPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -8107,10 +8726,10 @@ pub fn dataplex_projects_locations_data_scans_patch(
 > {
     let builder = dataplex_projects_locations_data_scans_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_data_scans_patch_execute(builder)
 }
@@ -8212,6 +8831,15 @@ pub fn dataplex_projects_locations_data_scans_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_scans_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataScansRunArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1RunDataScanRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}:run
 /// Runs an on-demand execution of a DataScan
 ///
@@ -8224,8 +8852,7 @@ pub fn dataplex_projects_locations_data_scans_run_execute(
 
 pub fn dataplex_projects_locations_data_scans_run(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDataplexV1RunDataScanRequest,
+    args: &DataplexProjectsLocationsDataScansRunArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1RunDataScanResponse>, ApiError>,
@@ -8234,7 +8861,8 @@ pub fn dataplex_projects_locations_data_scans_run(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_data_scans_run_builder(client, name, body)?;
+    let builder =
+        dataplex_projects_locations_data_scans_run_builder(client, &args.name, &args.body)?;
     dataplex_projects_locations_data_scans_run_execute(builder)
 }
 
@@ -8333,6 +8961,15 @@ pub fn dataplex_projects_locations_data_scans_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_scans_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataScansSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -8345,16 +8982,18 @@ pub fn dataplex_projects_locations_data_scans_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_data_scans_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsDataScansSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_data_scans_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataplex_projects_locations_data_scans_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataplex_projects_locations_data_scans_set_iam_policy_execute(builder)
 }
 
@@ -8455,6 +9094,15 @@ pub fn dataplex_projects_locations_data_scans_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_scans_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataScansTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -8467,8 +9115,7 @@ pub fn dataplex_projects_locations_data_scans_test_iam_permissions_execute(
 
 pub fn dataplex_projects_locations_data_scans_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsDataScansTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -8478,7 +9125,9 @@ pub fn dataplex_projects_locations_data_scans_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_data_scans_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_data_scans_test_iam_permissions_execute(builder)
 }
@@ -8584,6 +9233,15 @@ pub fn dataplex_projects_locations_data_scans_jobs_generate_data_quality_rules_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_scans_jobs_generate_data_quality_rules`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataScansJobsGenerateDataQualityRulesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1GenerateDataQualityRulesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}/jobs/{jobsId}:generateDataQualityRules
 /// Generates recommended data quality rules based on the results of a data profiling scan.Use the recommendations to build rules for a data quality scan.
 ///
@@ -8596,8 +9254,7 @@ pub fn dataplex_projects_locations_data_scans_jobs_generate_data_quality_rules_e
 
 pub fn dataplex_projects_locations_data_scans_jobs_generate_data_quality_rules(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDataplexV1GenerateDataQualityRulesRequest,
+    args: &DataplexProjectsLocationsDataScansJobsGenerateDataQualityRulesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -8610,7 +9267,7 @@ pub fn dataplex_projects_locations_data_scans_jobs_generate_data_quality_rules(
     ApiError,
 > {
     let builder = dataplex_projects_locations_data_scans_jobs_generate_data_quality_rules_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     dataplex_projects_locations_data_scans_jobs_generate_data_quality_rules_execute(builder)
 }
@@ -8721,6 +9378,15 @@ pub fn dataplex_projects_locations_data_scans_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_scans_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataScansJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}/jobs/{jobsId}
 /// Gets a DataScanJob resource.
 ///
@@ -8733,8 +9399,7 @@ pub fn dataplex_projects_locations_data_scans_jobs_get_execute(
 
 pub fn dataplex_projects_locations_data_scans_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &DataplexProjectsLocationsDataScansJobsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1DataScanJob>, ApiError>,
@@ -8743,7 +9408,11 @@ pub fn dataplex_projects_locations_data_scans_jobs_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_data_scans_jobs_get_builder(client, name, view)?;
+    let builder = dataplex_projects_locations_data_scans_jobs_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     dataplex_projects_locations_data_scans_jobs_get_execute(builder)
 }
 
@@ -8862,6 +9531,19 @@ pub fn dataplex_projects_locations_data_scans_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_scans_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataScansJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}/jobs
 /// Lists DataScanJobs under the given DataScan.
 ///
@@ -8874,10 +9556,7 @@ pub fn dataplex_projects_locations_data_scans_jobs_list_execute(
 
 pub fn dataplex_projects_locations_data_scans_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsDataScansJobsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListDataScanJobsResponse>, ApiError>,
@@ -8887,7 +9566,11 @@ pub fn dataplex_projects_locations_data_scans_jobs_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_data_scans_jobs_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_data_scans_jobs_list_execute(builder)
 }
@@ -9005,6 +9688,19 @@ pub fn dataplex_projects_locations_data_taxonomies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_taxonomies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataTaxonomiesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataTaxonomyId
+    pub dataTaxonomyId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1DataTaxonomy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies
 /// Create a DataTaxonomy resource.
 ///
@@ -9017,10 +9713,7 @@ pub fn dataplex_projects_locations_data_taxonomies_create_execute(
 
 pub fn dataplex_projects_locations_data_taxonomies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataTaxonomyId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1DataTaxonomy,
+    args: &DataplexProjectsLocationsDataTaxonomiesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -9031,10 +9724,10 @@ pub fn dataplex_projects_locations_data_taxonomies_create(
 > {
     let builder = dataplex_projects_locations_data_taxonomies_create_builder(
         client,
-        parent,
-        dataTaxonomyId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.dataTaxonomyId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_data_taxonomies_create_execute(builder)
 }
@@ -9145,6 +9838,15 @@ pub fn dataplex_projects_locations_data_taxonomies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_taxonomies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataTaxonomiesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}
 /// Deletes a DataTaxonomy resource. All attributes within the DataTaxonomy must be deleted before the DataTaxonomy can be deleted.
 ///
@@ -9157,8 +9859,7 @@ pub fn dataplex_projects_locations_data_taxonomies_delete_execute(
 
 pub fn dataplex_projects_locations_data_taxonomies_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &DataplexProjectsLocationsDataTaxonomiesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -9167,7 +9868,11 @@ pub fn dataplex_projects_locations_data_taxonomies_delete(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_data_taxonomies_delete_builder(client, name, etag)?;
+    let builder = dataplex_projects_locations_data_taxonomies_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     dataplex_projects_locations_data_taxonomies_delete_execute(builder)
 }
 
@@ -9265,6 +9970,13 @@ pub fn dataplex_projects_locations_data_taxonomies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_taxonomies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataTaxonomiesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}
 /// Retrieves a DataTaxonomy resource.
 ///
@@ -9277,7 +9989,7 @@ pub fn dataplex_projects_locations_data_taxonomies_get_execute(
 
 pub fn dataplex_projects_locations_data_taxonomies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsDataTaxonomiesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1DataTaxonomy>, ApiError>,
@@ -9286,7 +9998,7 @@ pub fn dataplex_projects_locations_data_taxonomies_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_data_taxonomies_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_data_taxonomies_get_builder(client, &args.name)?;
     dataplex_projects_locations_data_taxonomies_get_execute(builder)
 }
 
@@ -9394,6 +10106,15 @@ pub fn dataplex_projects_locations_data_taxonomies_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_taxonomies_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataTaxonomiesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -9406,8 +10127,7 @@ pub fn dataplex_projects_locations_data_taxonomies_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_data_taxonomies_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsDataTaxonomiesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -9416,8 +10136,8 @@ pub fn dataplex_projects_locations_data_taxonomies_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_data_taxonomies_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_data_taxonomies_get_iam_policy_execute(builder)
 }
@@ -9541,6 +10261,21 @@ pub fn dataplex_projects_locations_data_taxonomies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_taxonomies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataTaxonomiesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies
 /// Lists DataTaxonomy resources in a project and location.
 ///
@@ -9553,11 +10288,7 @@ pub fn dataplex_projects_locations_data_taxonomies_list_execute(
 
 pub fn dataplex_projects_locations_data_taxonomies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsDataTaxonomiesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListDataTaxonomiesResponse>, ApiError>,
@@ -9567,7 +10298,12 @@ pub fn dataplex_projects_locations_data_taxonomies_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_data_taxonomies_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_data_taxonomies_list_execute(builder)
 }
@@ -9685,6 +10421,19 @@ pub fn dataplex_projects_locations_data_taxonomies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_taxonomies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataTaxonomiesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1DataTaxonomy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}
 /// Updates a DataTaxonomy resource.
 ///
@@ -9697,10 +10446,7 @@ pub fn dataplex_projects_locations_data_taxonomies_patch_execute(
 
 pub fn dataplex_projects_locations_data_taxonomies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1DataTaxonomy,
+    args: &DataplexProjectsLocationsDataTaxonomiesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -9711,10 +10457,10 @@ pub fn dataplex_projects_locations_data_taxonomies_patch(
 > {
     let builder = dataplex_projects_locations_data_taxonomies_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_data_taxonomies_patch_execute(builder)
 }
@@ -9814,6 +10560,15 @@ pub fn dataplex_projects_locations_data_taxonomies_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_taxonomies_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataTaxonomiesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -9826,16 +10581,18 @@ pub fn dataplex_projects_locations_data_taxonomies_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_data_taxonomies_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsDataTaxonomiesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_data_taxonomies_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataplex_projects_locations_data_taxonomies_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataplex_projects_locations_data_taxonomies_set_iam_policy_execute(builder)
 }
 
@@ -9936,6 +10693,15 @@ pub fn dataplex_projects_locations_data_taxonomies_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_taxonomies_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataTaxonomiesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -9948,8 +10714,7 @@ pub fn dataplex_projects_locations_data_taxonomies_test_iam_permissions_execute(
 
 pub fn dataplex_projects_locations_data_taxonomies_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsDataTaxonomiesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -9959,7 +10724,9 @@ pub fn dataplex_projects_locations_data_taxonomies_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_data_taxonomies_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_data_taxonomies_test_iam_permissions_execute(builder)
 }
@@ -10077,6 +10844,19 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_taxonomies_attributes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataTaxonomiesAttributesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataAttributeId
+    pub dataAttributeId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1DataAttribute,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes
 /// Create a DataAttribute resource.
 ///
@@ -10089,10 +10869,7 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_create_execute(
 
 pub fn dataplex_projects_locations_data_taxonomies_attributes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataAttributeId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1DataAttribute,
+    args: &DataplexProjectsLocationsDataTaxonomiesAttributesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10103,10 +10880,10 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_create(
 > {
     let builder = dataplex_projects_locations_data_taxonomies_attributes_create_builder(
         client,
-        parent,
-        dataAttributeId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.dataAttributeId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_data_taxonomies_attributes_create_execute(builder)
 }
@@ -10217,6 +10994,15 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_taxonomies_attributes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataTaxonomiesAttributesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes/{attributesId}
 /// Deletes a Data Attribute resource.
 ///
@@ -10229,8 +11015,7 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_delete_execute(
 
 pub fn dataplex_projects_locations_data_taxonomies_attributes_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &DataplexProjectsLocationsDataTaxonomiesAttributesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10239,8 +11024,11 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_data_taxonomies_attributes_delete_builder(client, name, etag)?;
+    let builder = dataplex_projects_locations_data_taxonomies_attributes_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     dataplex_projects_locations_data_taxonomies_attributes_delete_execute(builder)
 }
 
@@ -10338,6 +11126,13 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_taxonomies_attributes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataTaxonomiesAttributesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes/{attributesId}
 /// Retrieves a Data Attribute resource.
 ///
@@ -10350,7 +11145,7 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_get_execute(
 
 pub fn dataplex_projects_locations_data_taxonomies_attributes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsDataTaxonomiesAttributesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1DataAttribute>, ApiError>,
@@ -10359,7 +11154,8 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_data_taxonomies_attributes_get_builder(client, name)?;
+    let builder =
+        dataplex_projects_locations_data_taxonomies_attributes_get_builder(client, &args.name)?;
     dataplex_projects_locations_data_taxonomies_attributes_get_execute(builder)
 }
 
@@ -10467,6 +11263,15 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_get_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_taxonomies_attributes_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataTaxonomiesAttributesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes/{attributesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -10479,8 +11284,7 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_get_iam_policy_exe
 
 pub fn dataplex_projects_locations_data_taxonomies_attributes_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsDataTaxonomiesAttributesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -10489,8 +11293,8 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_data_taxonomies_attributes_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_data_taxonomies_attributes_get_iam_policy_execute(builder)
 }
@@ -10614,6 +11418,21 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_taxonomies_attributes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataTaxonomiesAttributesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes
 /// Lists Data Attribute resources in a DataTaxonomy.
 ///
@@ -10626,11 +11445,7 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_list_execute(
 
 pub fn dataplex_projects_locations_data_taxonomies_attributes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsDataTaxonomiesAttributesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListDataAttributesResponse>, ApiError>,
@@ -10640,7 +11455,12 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_data_taxonomies_attributes_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_data_taxonomies_attributes_list_execute(builder)
 }
@@ -10758,6 +11578,19 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_taxonomies_attributes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataTaxonomiesAttributesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1DataAttribute,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes/{attributesId}
 /// Updates a DataAttribute resource.
 ///
@@ -10770,10 +11603,7 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_patch_execute(
 
 pub fn dataplex_projects_locations_data_taxonomies_attributes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1DataAttribute,
+    args: &DataplexProjectsLocationsDataTaxonomiesAttributesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10784,10 +11614,10 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_patch(
 > {
     let builder = dataplex_projects_locations_data_taxonomies_attributes_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_data_taxonomies_attributes_patch_execute(builder)
 }
@@ -10887,6 +11717,15 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_set_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_taxonomies_attributes_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataTaxonomiesAttributesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes/{attributesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -10899,8 +11738,7 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_set_iam_policy_exe
 
 pub fn dataplex_projects_locations_data_taxonomies_attributes_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsDataTaxonomiesAttributesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -10908,7 +11746,9 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_set_iam_policy(
     ApiError,
 > {
     let builder = dataplex_projects_locations_data_taxonomies_attributes_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_data_taxonomies_attributes_set_iam_policy_execute(builder)
 }
@@ -11010,6 +11850,15 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_test_iam_permissio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_data_taxonomies_attributes_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsDataTaxonomiesAttributesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes/{attributesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -11022,8 +11871,7 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_test_iam_permissio
 
 pub fn dataplex_projects_locations_data_taxonomies_attributes_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsDataTaxonomiesAttributesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -11034,7 +11882,9 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_test_iam_permissio
 > {
     let builder =
         dataplex_projects_locations_data_taxonomies_attributes_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     dataplex_projects_locations_data_taxonomies_attributes_test_iam_permissions_execute(builder)
 }
@@ -11152,6 +12002,19 @@ pub fn dataplex_projects_locations_entry_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: entryGroupId
+    pub entryGroupId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1EntryGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups
 /// Creates an EntryGroup.
 ///
@@ -11164,10 +12027,7 @@ pub fn dataplex_projects_locations_entry_groups_create_execute(
 
 pub fn dataplex_projects_locations_entry_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    entryGroupId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1EntryGroup,
+    args: &DataplexProjectsLocationsEntryGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11178,10 +12038,10 @@ pub fn dataplex_projects_locations_entry_groups_create(
 > {
     let builder = dataplex_projects_locations_entry_groups_create_builder(
         client,
-        parent,
-        entryGroupId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.entryGroupId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_entry_groups_create_execute(builder)
 }
@@ -11292,6 +12152,15 @@ pub fn dataplex_projects_locations_entry_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
 /// Deletes an EntryGroup.
 ///
@@ -11304,8 +12173,7 @@ pub fn dataplex_projects_locations_entry_groups_delete_execute(
 
 pub fn dataplex_projects_locations_entry_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &DataplexProjectsLocationsEntryGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11314,7 +12182,11 @@ pub fn dataplex_projects_locations_entry_groups_delete(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_entry_groups_delete_builder(client, name, etag)?;
+    let builder = dataplex_projects_locations_entry_groups_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     dataplex_projects_locations_entry_groups_delete_execute(builder)
 }
 
@@ -11412,6 +12284,13 @@ pub fn dataplex_projects_locations_entry_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
 /// Gets an EntryGroup.
 ///
@@ -11424,7 +12303,7 @@ pub fn dataplex_projects_locations_entry_groups_get_execute(
 
 pub fn dataplex_projects_locations_entry_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsEntryGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1EntryGroup>, ApiError>,
@@ -11433,7 +12312,7 @@ pub fn dataplex_projects_locations_entry_groups_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_entry_groups_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_entry_groups_get_builder(client, &args.name)?;
     dataplex_projects_locations_entry_groups_get_execute(builder)
 }
 
@@ -11541,6 +12420,15 @@ pub fn dataplex_projects_locations_entry_groups_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -11553,8 +12441,7 @@ pub fn dataplex_projects_locations_entry_groups_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_entry_groups_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsEntryGroupsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -11563,8 +12450,8 @@ pub fn dataplex_projects_locations_entry_groups_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_entry_groups_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_entry_groups_get_iam_policy_execute(builder)
 }
@@ -11688,6 +12575,21 @@ pub fn dataplex_projects_locations_entry_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups
 /// Lists EntryGroup resources in a project and location.
 ///
@@ -11700,11 +12602,7 @@ pub fn dataplex_projects_locations_entry_groups_list_execute(
 
 pub fn dataplex_projects_locations_entry_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsEntryGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListEntryGroupsResponse>, ApiError>,
@@ -11714,7 +12612,12 @@ pub fn dataplex_projects_locations_entry_groups_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_entry_groups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_entry_groups_list_execute(builder)
 }
@@ -11832,6 +12735,19 @@ pub fn dataplex_projects_locations_entry_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1EntryGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
 /// Updates an EntryGroup.
 ///
@@ -11844,10 +12760,7 @@ pub fn dataplex_projects_locations_entry_groups_patch_execute(
 
 pub fn dataplex_projects_locations_entry_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1EntryGroup,
+    args: &DataplexProjectsLocationsEntryGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11858,10 +12771,10 @@ pub fn dataplex_projects_locations_entry_groups_patch(
 > {
     let builder = dataplex_projects_locations_entry_groups_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_entry_groups_patch_execute(builder)
 }
@@ -11961,6 +12874,15 @@ pub fn dataplex_projects_locations_entry_groups_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -11973,16 +12895,18 @@ pub fn dataplex_projects_locations_entry_groups_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_entry_groups_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsEntryGroupsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_entry_groups_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataplex_projects_locations_entry_groups_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataplex_projects_locations_entry_groups_set_iam_policy_execute(builder)
 }
 
@@ -12083,6 +13007,15 @@ pub fn dataplex_projects_locations_entry_groups_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -12095,8 +13028,7 @@ pub fn dataplex_projects_locations_entry_groups_test_iam_permissions_execute(
 
 pub fn dataplex_projects_locations_entry_groups_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsEntryGroupsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -12106,7 +13038,9 @@ pub fn dataplex_projects_locations_entry_groups_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_entry_groups_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_entry_groups_test_iam_permissions_execute(builder)
 }
@@ -12220,6 +13154,17 @@ pub fn dataplex_projects_locations_entry_groups_entries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_entries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsEntriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: entryId
+    pub entryId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1Entry,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
 /// Creates an Entry.
 ///
@@ -12232,9 +13177,7 @@ pub fn dataplex_projects_locations_entry_groups_entries_create_execute(
 
 pub fn dataplex_projects_locations_entry_groups_entries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    entryId: Option<&str>,
-    body: &GoogleCloudDataplexV1Entry,
+    args: &DataplexProjectsLocationsEntryGroupsEntriesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1Entry>, ApiError>,
@@ -12244,7 +13187,10 @@ pub fn dataplex_projects_locations_entry_groups_entries_create(
     ApiError,
 > {
     let builder = dataplex_projects_locations_entry_groups_entries_create_builder(
-        client, parent, entryId, body,
+        client,
+        &args.parent,
+        args.entryId.as_deref(),
+        &args.body,
     )?;
     dataplex_projects_locations_entry_groups_entries_create_execute(builder)
 }
@@ -12343,6 +13289,13 @@ pub fn dataplex_projects_locations_entry_groups_entries_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_entries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsEntriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
 /// Deletes an Entry.
 ///
@@ -12355,7 +13308,7 @@ pub fn dataplex_projects_locations_entry_groups_entries_delete_execute(
 
 pub fn dataplex_projects_locations_entry_groups_entries_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsEntryGroupsEntriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1Entry>, ApiError>,
@@ -12364,7 +13317,8 @@ pub fn dataplex_projects_locations_entry_groups_entries_delete(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_entry_groups_entries_delete_builder(client, name)?;
+    let builder =
+        dataplex_projects_locations_entry_groups_entries_delete_builder(client, &args.name)?;
     dataplex_projects_locations_entry_groups_entries_delete_execute(builder)
 }
 
@@ -12482,6 +13436,19 @@ pub fn dataplex_projects_locations_entry_groups_entries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_entries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsEntriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: aspectTypes
+    pub aspectTypes: Option<String>,
+    /// Query parameter: paths
+    pub paths: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
 /// Gets an Entry.
 ///
@@ -12494,10 +13461,7 @@ pub fn dataplex_projects_locations_entry_groups_entries_get_execute(
 
 pub fn dataplex_projects_locations_entry_groups_entries_get(
     client: &SimpleHttpClient,
-    name: &str,
-    aspectTypes: Option<&str>,
-    paths: Option<&str>,
-    view: Option<&str>,
+    args: &DataplexProjectsLocationsEntryGroupsEntriesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1Entry>, ApiError>,
@@ -12508,10 +13472,10 @@ pub fn dataplex_projects_locations_entry_groups_entries_get(
 > {
     let builder = dataplex_projects_locations_entry_groups_entries_get_builder(
         client,
-        name,
-        aspectTypes,
-        paths,
-        view,
+        &args.name,
+        args.aspectTypes.as_deref(),
+        args.paths.as_deref(),
+        args.view.as_deref(),
     )?;
     dataplex_projects_locations_entry_groups_entries_get_execute(builder)
 }
@@ -12630,6 +13594,19 @@ pub fn dataplex_projects_locations_entry_groups_entries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_entries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsEntriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
 /// Lists Entries within an EntryGroup.
 ///
@@ -12642,10 +13619,7 @@ pub fn dataplex_projects_locations_entry_groups_entries_list_execute(
 
 pub fn dataplex_projects_locations_entry_groups_entries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsEntryGroupsEntriesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListEntriesResponse>, ApiError>,
@@ -12655,7 +13629,11 @@ pub fn dataplex_projects_locations_entry_groups_entries_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_entry_groups_entries_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_entry_groups_entries_list_execute(builder)
 }
@@ -12781,6 +13759,23 @@ pub fn dataplex_projects_locations_entry_groups_entries_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_entries_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsEntriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: aspectKeys
+    pub aspectKeys: Option<String>,
+    /// Query parameter: deleteMissingAspects
+    pub deleteMissingAspects: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1Entry,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
 /// Updates an Entry.
 ///
@@ -12793,12 +13788,7 @@ pub fn dataplex_projects_locations_entry_groups_entries_patch_execute(
 
 pub fn dataplex_projects_locations_entry_groups_entries_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    aspectKeys: Option<&str>,
-    deleteMissingAspects: Option<bool>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDataplexV1Entry,
+    args: &DataplexProjectsLocationsEntryGroupsEntriesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1Entry>, ApiError>,
@@ -12809,12 +13799,12 @@ pub fn dataplex_projects_locations_entry_groups_entries_patch(
 > {
     let builder = dataplex_projects_locations_entry_groups_entries_patch_builder(
         client,
-        name,
-        allowMissing,
-        aspectKeys,
-        deleteMissingAspects,
-        updateMask,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.aspectKeys.as_deref(),
+        args.deleteMissingAspects,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dataplex_projects_locations_entry_groups_entries_patch_execute(builder)
 }
@@ -12928,6 +13918,17 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_entry_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsEntryLinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: entryLinkId
+    pub entryLinkId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1EntryLink,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entryLinks
 /// Creates an Entry Link.
 ///
@@ -12940,9 +13941,7 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_create_execute(
 
 pub fn dataplex_projects_locations_entry_groups_entry_links_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    entryLinkId: Option<&str>,
-    body: &GoogleCloudDataplexV1EntryLink,
+    args: &DataplexProjectsLocationsEntryGroupsEntryLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1EntryLink>, ApiError>,
@@ -12953,9 +13952,9 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_create(
 > {
     let builder = dataplex_projects_locations_entry_groups_entry_links_create_builder(
         client,
-        parent,
-        entryLinkId,
-        body,
+        &args.parent,
+        args.entryLinkId.as_deref(),
+        &args.body,
     )?;
     dataplex_projects_locations_entry_groups_entry_links_create_execute(builder)
 }
@@ -13054,6 +14053,13 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_entry_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsEntryLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entryLinks/{entryLinksId}
 /// Deletes an Entry Link.
 ///
@@ -13066,7 +14072,7 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_delete_execute(
 
 pub fn dataplex_projects_locations_entry_groups_entry_links_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsEntryGroupsEntryLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1EntryLink>, ApiError>,
@@ -13076,7 +14082,7 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_delete(
     ApiError,
 > {
     let builder =
-        dataplex_projects_locations_entry_groups_entry_links_delete_builder(client, name)?;
+        dataplex_projects_locations_entry_groups_entry_links_delete_builder(client, &args.name)?;
     dataplex_projects_locations_entry_groups_entry_links_delete_execute(builder)
 }
 
@@ -13174,6 +14180,13 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_entry_links_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsEntryLinksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entryLinks/{entryLinksId}
 /// Gets an Entry Link.
 ///
@@ -13186,7 +14199,7 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_get_execute(
 
 pub fn dataplex_projects_locations_entry_groups_entry_links_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsEntryGroupsEntryLinksGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1EntryLink>, ApiError>,
@@ -13195,7 +14208,8 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_entry_groups_entry_links_get_builder(client, name)?;
+    let builder =
+        dataplex_projects_locations_entry_groups_entry_links_get_builder(client, &args.name)?;
     dataplex_projects_locations_entry_groups_entry_links_get_execute(builder)
 }
 
@@ -13312,6 +14326,19 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_groups_entry_links_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryGroupsEntryLinksPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: aspectKeys
+    pub aspectKeys: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1EntryLink,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entryLinks/{entryLinksId}
 /// Updates an Entry Link.
 ///
@@ -13324,10 +14351,7 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_patch_execute(
 
 pub fn dataplex_projects_locations_entry_groups_entry_links_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    aspectKeys: Option<&str>,
-    body: &GoogleCloudDataplexV1EntryLink,
+    args: &DataplexProjectsLocationsEntryGroupsEntryLinksPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1EntryLink>, ApiError>,
@@ -13338,10 +14362,10 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_patch(
 > {
     let builder = dataplex_projects_locations_entry_groups_entry_links_patch_builder(
         client,
-        name,
-        allowMissing,
-        aspectKeys,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.aspectKeys.as_deref(),
+        &args.body,
     )?;
     dataplex_projects_locations_entry_groups_entry_links_patch_execute(builder)
 }
@@ -13450,6 +14474,15 @@ pub fn dataplex_projects_locations_entry_link_types_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_link_types_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryLinkTypesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryLinkTypes/{entryLinkTypesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -13462,8 +14495,7 @@ pub fn dataplex_projects_locations_entry_link_types_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_entry_link_types_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsEntryLinkTypesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -13472,8 +14504,8 @@ pub fn dataplex_projects_locations_entry_link_types_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_entry_link_types_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_entry_link_types_get_iam_policy_execute(builder)
 }
@@ -13573,6 +14605,15 @@ pub fn dataplex_projects_locations_entry_link_types_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_link_types_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryLinkTypesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryLinkTypes/{entryLinkTypesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -13585,8 +14626,7 @@ pub fn dataplex_projects_locations_entry_link_types_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_entry_link_types_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsEntryLinkTypesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -13594,7 +14634,9 @@ pub fn dataplex_projects_locations_entry_link_types_set_iam_policy(
     ApiError,
 > {
     let builder = dataplex_projects_locations_entry_link_types_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_entry_link_types_set_iam_policy_execute(builder)
 }
@@ -13696,6 +14738,15 @@ pub fn dataplex_projects_locations_entry_link_types_test_iam_permissions_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_link_types_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryLinkTypesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryLinkTypes/{entryLinkTypesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -13708,8 +14759,7 @@ pub fn dataplex_projects_locations_entry_link_types_test_iam_permissions_execute
 
 pub fn dataplex_projects_locations_entry_link_types_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsEntryLinkTypesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -13719,7 +14769,9 @@ pub fn dataplex_projects_locations_entry_link_types_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_entry_link_types_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_entry_link_types_test_iam_permissions_execute(builder)
 }
@@ -13837,6 +14889,19 @@ pub fn dataplex_projects_locations_entry_types_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_types_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryTypesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: entryTypeId
+    pub entryTypeId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1EntryType,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryTypes
 /// Creates an EntryType.
 ///
@@ -13849,10 +14914,7 @@ pub fn dataplex_projects_locations_entry_types_create_execute(
 
 pub fn dataplex_projects_locations_entry_types_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    entryTypeId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1EntryType,
+    args: &DataplexProjectsLocationsEntryTypesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -13863,10 +14925,10 @@ pub fn dataplex_projects_locations_entry_types_create(
 > {
     let builder = dataplex_projects_locations_entry_types_create_builder(
         client,
-        parent,
-        entryTypeId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.entryTypeId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_entry_types_create_execute(builder)
 }
@@ -13977,6 +15039,15 @@ pub fn dataplex_projects_locations_entry_types_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_types_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryTypesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryTypes/{entryTypesId}
 /// Deletes an EntryType.
 ///
@@ -13989,8 +15060,7 @@ pub fn dataplex_projects_locations_entry_types_delete_execute(
 
 pub fn dataplex_projects_locations_entry_types_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &DataplexProjectsLocationsEntryTypesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -13999,7 +15069,11 @@ pub fn dataplex_projects_locations_entry_types_delete(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_entry_types_delete_builder(client, name, etag)?;
+    let builder = dataplex_projects_locations_entry_types_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     dataplex_projects_locations_entry_types_delete_execute(builder)
 }
 
@@ -14097,6 +15171,13 @@ pub fn dataplex_projects_locations_entry_types_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryTypesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryTypes/{entryTypesId}
 /// Gets an EntryType.
 ///
@@ -14109,7 +15190,7 @@ pub fn dataplex_projects_locations_entry_types_get_execute(
 
 pub fn dataplex_projects_locations_entry_types_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsEntryTypesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1EntryType>, ApiError>,
@@ -14118,7 +15199,7 @@ pub fn dataplex_projects_locations_entry_types_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_entry_types_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_entry_types_get_builder(client, &args.name)?;
     dataplex_projects_locations_entry_types_get_execute(builder)
 }
 
@@ -14226,6 +15307,15 @@ pub fn dataplex_projects_locations_entry_types_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_types_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryTypesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryTypes/{entryTypesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -14238,8 +15328,7 @@ pub fn dataplex_projects_locations_entry_types_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_entry_types_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsEntryTypesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -14248,8 +15337,8 @@ pub fn dataplex_projects_locations_entry_types_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_entry_types_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_entry_types_get_iam_policy_execute(builder)
 }
@@ -14373,6 +15462,21 @@ pub fn dataplex_projects_locations_entry_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryTypes
 /// Lists EntryType resources in a project and location.
 ///
@@ -14385,11 +15489,7 @@ pub fn dataplex_projects_locations_entry_types_list_execute(
 
 pub fn dataplex_projects_locations_entry_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsEntryTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListEntryTypesResponse>, ApiError>,
@@ -14399,7 +15499,12 @@ pub fn dataplex_projects_locations_entry_types_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_entry_types_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_entry_types_list_execute(builder)
 }
@@ -14517,6 +15622,19 @@ pub fn dataplex_projects_locations_entry_types_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_types_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryTypesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1EntryType,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryTypes/{entryTypesId}
 /// Updates an EntryType.
 ///
@@ -14529,10 +15647,7 @@ pub fn dataplex_projects_locations_entry_types_patch_execute(
 
 pub fn dataplex_projects_locations_entry_types_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1EntryType,
+    args: &DataplexProjectsLocationsEntryTypesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -14543,10 +15658,10 @@ pub fn dataplex_projects_locations_entry_types_patch(
 > {
     let builder = dataplex_projects_locations_entry_types_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_entry_types_patch_execute(builder)
 }
@@ -14646,6 +15761,15 @@ pub fn dataplex_projects_locations_entry_types_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_types_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryTypesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryTypes/{entryTypesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -14658,16 +15782,18 @@ pub fn dataplex_projects_locations_entry_types_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_entry_types_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsEntryTypesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_entry_types_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataplex_projects_locations_entry_types_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataplex_projects_locations_entry_types_set_iam_policy_execute(builder)
 }
 
@@ -14768,6 +15894,15 @@ pub fn dataplex_projects_locations_entry_types_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_entry_types_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsEntryTypesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryTypes/{entryTypesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -14780,8 +15915,7 @@ pub fn dataplex_projects_locations_entry_types_test_iam_permissions_execute(
 
 pub fn dataplex_projects_locations_entry_types_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsEntryTypesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -14791,7 +15925,9 @@ pub fn dataplex_projects_locations_entry_types_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_entry_types_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_entry_types_test_iam_permissions_execute(builder)
 }
@@ -14909,6 +16045,19 @@ pub fn dataplex_projects_locations_glossaries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: glossaryId
+    pub glossaryId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1Glossary,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries
 /// Creates a new Glossary resource.
 ///
@@ -14921,10 +16070,7 @@ pub fn dataplex_projects_locations_glossaries_create_execute(
 
 pub fn dataplex_projects_locations_glossaries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    glossaryId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1Glossary,
+    args: &DataplexProjectsLocationsGlossariesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -14935,10 +16081,10 @@ pub fn dataplex_projects_locations_glossaries_create(
 > {
     let builder = dataplex_projects_locations_glossaries_create_builder(
         client,
-        parent,
-        glossaryId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.glossaryId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_glossaries_create_execute(builder)
 }
@@ -15049,6 +16195,15 @@ pub fn dataplex_projects_locations_glossaries_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
 /// Deletes a Glossary resource. All the categories and terms within the Glossary must be deleted before the Glossary can be deleted.
 ///
@@ -15061,8 +16216,7 @@ pub fn dataplex_projects_locations_glossaries_delete_execute(
 
 pub fn dataplex_projects_locations_glossaries_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &DataplexProjectsLocationsGlossariesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -15071,7 +16225,11 @@ pub fn dataplex_projects_locations_glossaries_delete(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_glossaries_delete_builder(client, name, etag)?;
+    let builder = dataplex_projects_locations_glossaries_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     dataplex_projects_locations_glossaries_delete_execute(builder)
 }
 
@@ -15169,6 +16327,13 @@ pub fn dataplex_projects_locations_glossaries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
 /// Gets a Glossary resource.
 ///
@@ -15181,7 +16346,7 @@ pub fn dataplex_projects_locations_glossaries_get_execute(
 
 pub fn dataplex_projects_locations_glossaries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsGlossariesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1Glossary>, ApiError>,
@@ -15190,7 +16355,7 @@ pub fn dataplex_projects_locations_glossaries_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_glossaries_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_glossaries_get_builder(client, &args.name)?;
     dataplex_projects_locations_glossaries_get_execute(builder)
 }
 
@@ -15298,6 +16463,15 @@ pub fn dataplex_projects_locations_glossaries_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -15310,8 +16484,7 @@ pub fn dataplex_projects_locations_glossaries_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_glossaries_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsGlossariesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -15320,8 +16493,8 @@ pub fn dataplex_projects_locations_glossaries_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_glossaries_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_glossaries_get_iam_policy_execute(builder)
 }
@@ -15445,6 +16618,21 @@ pub fn dataplex_projects_locations_glossaries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries
 /// Lists Glossary resources in a project and location.
 ///
@@ -15457,11 +16645,7 @@ pub fn dataplex_projects_locations_glossaries_list_execute(
 
 pub fn dataplex_projects_locations_glossaries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsGlossariesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListGlossariesResponse>, ApiError>,
@@ -15471,7 +16655,12 @@ pub fn dataplex_projects_locations_glossaries_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_glossaries_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_glossaries_list_execute(builder)
 }
@@ -15589,6 +16778,19 @@ pub fn dataplex_projects_locations_glossaries_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1Glossary,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
 /// Updates a Glossary resource.
 ///
@@ -15601,10 +16803,7 @@ pub fn dataplex_projects_locations_glossaries_patch_execute(
 
 pub fn dataplex_projects_locations_glossaries_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1Glossary,
+    args: &DataplexProjectsLocationsGlossariesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -15615,10 +16814,10 @@ pub fn dataplex_projects_locations_glossaries_patch(
 > {
     let builder = dataplex_projects_locations_glossaries_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_glossaries_patch_execute(builder)
 }
@@ -15718,6 +16917,15 @@ pub fn dataplex_projects_locations_glossaries_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -15730,16 +16938,18 @@ pub fn dataplex_projects_locations_glossaries_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_glossaries_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsGlossariesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_glossaries_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataplex_projects_locations_glossaries_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataplex_projects_locations_glossaries_set_iam_policy_execute(builder)
 }
 
@@ -15840,6 +17050,15 @@ pub fn dataplex_projects_locations_glossaries_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -15852,8 +17071,7 @@ pub fn dataplex_projects_locations_glossaries_test_iam_permissions_execute(
 
 pub fn dataplex_projects_locations_glossaries_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsGlossariesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -15863,7 +17081,9 @@ pub fn dataplex_projects_locations_glossaries_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_glossaries_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_glossaries_test_iam_permissions_execute(builder)
 }
@@ -15977,6 +17197,17 @@ pub fn dataplex_projects_locations_glossaries_categories_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_categories_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesCategoriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: categoryId
+    pub categoryId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1GlossaryCategory,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/categories
 /// Creates a new GlossaryCategory resource.
 ///
@@ -15989,9 +17220,7 @@ pub fn dataplex_projects_locations_glossaries_categories_create_execute(
 
 pub fn dataplex_projects_locations_glossaries_categories_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    categoryId: Option<&str>,
-    body: &GoogleCloudDataplexV1GlossaryCategory,
+    args: &DataplexProjectsLocationsGlossariesCategoriesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1GlossaryCategory>, ApiError>,
@@ -16001,7 +17230,10 @@ pub fn dataplex_projects_locations_glossaries_categories_create(
     ApiError,
 > {
     let builder = dataplex_projects_locations_glossaries_categories_create_builder(
-        client, parent, categoryId, body,
+        client,
+        &args.parent,
+        args.categoryId.as_deref(),
+        &args.body,
     )?;
     dataplex_projects_locations_glossaries_categories_create_execute(builder)
 }
@@ -16096,6 +17328,13 @@ pub fn dataplex_projects_locations_glossaries_categories_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_categories_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesCategoriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/categories/{categoriesId}
 /// Deletes a GlossaryCategory resource. All the GlossaryCategories and GlossaryTerms nested directly under the specified GlossaryCategory will be moved one level up to the parent in the hierarchy.
 ///
@@ -16108,12 +17347,13 @@ pub fn dataplex_projects_locations_glossaries_categories_delete_execute(
 
 pub fn dataplex_projects_locations_glossaries_categories_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsGlossariesCategoriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_glossaries_categories_delete_builder(client, name)?;
+    let builder =
+        dataplex_projects_locations_glossaries_categories_delete_builder(client, &args.name)?;
     dataplex_projects_locations_glossaries_categories_delete_execute(builder)
 }
 
@@ -16211,6 +17451,13 @@ pub fn dataplex_projects_locations_glossaries_categories_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_categories_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesCategoriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/categories/{categoriesId}
 /// Gets a GlossaryCategory resource.
 ///
@@ -16223,7 +17470,7 @@ pub fn dataplex_projects_locations_glossaries_categories_get_execute(
 
 pub fn dataplex_projects_locations_glossaries_categories_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsGlossariesCategoriesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1GlossaryCategory>, ApiError>,
@@ -16232,7 +17479,8 @@ pub fn dataplex_projects_locations_glossaries_categories_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_glossaries_categories_get_builder(client, name)?;
+    let builder =
+        dataplex_projects_locations_glossaries_categories_get_builder(client, &args.name)?;
     dataplex_projects_locations_glossaries_categories_get_execute(builder)
 }
 
@@ -16340,6 +17588,15 @@ pub fn dataplex_projects_locations_glossaries_categories_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_categories_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesCategoriesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/categories/{categoriesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -16352,8 +17609,7 @@ pub fn dataplex_projects_locations_glossaries_categories_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_glossaries_categories_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsGlossariesCategoriesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -16362,8 +17618,8 @@ pub fn dataplex_projects_locations_glossaries_categories_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_glossaries_categories_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_glossaries_categories_get_iam_policy_execute(builder)
 }
@@ -16487,6 +17743,21 @@ pub fn dataplex_projects_locations_glossaries_categories_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_categories_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesCategoriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/categories
 /// Lists GlossaryCategory resources in a Glossary.
 ///
@@ -16499,11 +17770,7 @@ pub fn dataplex_projects_locations_glossaries_categories_list_execute(
 
 pub fn dataplex_projects_locations_glossaries_categories_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsGlossariesCategoriesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListGlossaryCategoriesResponse>, ApiError>,
@@ -16513,7 +17780,12 @@ pub fn dataplex_projects_locations_glossaries_categories_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_glossaries_categories_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_glossaries_categories_list_execute(builder)
 }
@@ -16627,6 +17899,17 @@ pub fn dataplex_projects_locations_glossaries_categories_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_categories_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesCategoriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1GlossaryCategory,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/categories/{categoriesId}
 /// Updates a GlossaryCategory resource.
 ///
@@ -16639,9 +17922,7 @@ pub fn dataplex_projects_locations_glossaries_categories_patch_execute(
 
 pub fn dataplex_projects_locations_glossaries_categories_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDataplexV1GlossaryCategory,
+    args: &DataplexProjectsLocationsGlossariesCategoriesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1GlossaryCategory>, ApiError>,
@@ -16651,7 +17932,10 @@ pub fn dataplex_projects_locations_glossaries_categories_patch(
     ApiError,
 > {
     let builder = dataplex_projects_locations_glossaries_categories_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dataplex_projects_locations_glossaries_categories_patch_execute(builder)
 }
@@ -16751,6 +18035,15 @@ pub fn dataplex_projects_locations_glossaries_categories_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_categories_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesCategoriesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/categories/{categoriesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -16763,8 +18056,7 @@ pub fn dataplex_projects_locations_glossaries_categories_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_glossaries_categories_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsGlossariesCategoriesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -16772,7 +18064,9 @@ pub fn dataplex_projects_locations_glossaries_categories_set_iam_policy(
     ApiError,
 > {
     let builder = dataplex_projects_locations_glossaries_categories_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_glossaries_categories_set_iam_policy_execute(builder)
 }
@@ -16874,6 +18168,15 @@ pub fn dataplex_projects_locations_glossaries_categories_test_iam_permissions_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_categories_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesCategoriesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/categories/{categoriesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -16886,8 +18189,7 @@ pub fn dataplex_projects_locations_glossaries_categories_test_iam_permissions_ex
 
 pub fn dataplex_projects_locations_glossaries_categories_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsGlossariesCategoriesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -16897,7 +18199,9 @@ pub fn dataplex_projects_locations_glossaries_categories_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_glossaries_categories_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_glossaries_categories_test_iam_permissions_execute(builder)
 }
@@ -17011,6 +18315,17 @@ pub fn dataplex_projects_locations_glossaries_terms_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_terms_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesTermsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: termId
+    pub termId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1GlossaryTerm,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/terms
 /// Creates a new GlossaryTerm resource.
 ///
@@ -17023,9 +18338,7 @@ pub fn dataplex_projects_locations_glossaries_terms_create_execute(
 
 pub fn dataplex_projects_locations_glossaries_terms_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    termId: Option<&str>,
-    body: &GoogleCloudDataplexV1GlossaryTerm,
+    args: &DataplexProjectsLocationsGlossariesTermsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1GlossaryTerm>, ApiError>,
@@ -17034,8 +18347,12 @@ pub fn dataplex_projects_locations_glossaries_terms_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_glossaries_terms_create_builder(client, parent, termId, body)?;
+    let builder = dataplex_projects_locations_glossaries_terms_create_builder(
+        client,
+        &args.parent,
+        args.termId.as_deref(),
+        &args.body,
+    )?;
     dataplex_projects_locations_glossaries_terms_create_execute(builder)
 }
 
@@ -17129,6 +18446,13 @@ pub fn dataplex_projects_locations_glossaries_terms_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_terms_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesTermsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/terms/{termsId}
 /// Deletes a GlossaryTerm resource.
 ///
@@ -17141,12 +18465,12 @@ pub fn dataplex_projects_locations_glossaries_terms_delete_execute(
 
 pub fn dataplex_projects_locations_glossaries_terms_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsGlossariesTermsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_glossaries_terms_delete_builder(client, name)?;
+    let builder = dataplex_projects_locations_glossaries_terms_delete_builder(client, &args.name)?;
     dataplex_projects_locations_glossaries_terms_delete_execute(builder)
 }
 
@@ -17244,6 +18568,13 @@ pub fn dataplex_projects_locations_glossaries_terms_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_terms_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesTermsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/terms/{termsId}
 /// Gets a GlossaryTerm resource.
 ///
@@ -17256,7 +18587,7 @@ pub fn dataplex_projects_locations_glossaries_terms_get_execute(
 
 pub fn dataplex_projects_locations_glossaries_terms_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsGlossariesTermsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1GlossaryTerm>, ApiError>,
@@ -17265,7 +18596,7 @@ pub fn dataplex_projects_locations_glossaries_terms_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_glossaries_terms_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_glossaries_terms_get_builder(client, &args.name)?;
     dataplex_projects_locations_glossaries_terms_get_execute(builder)
 }
 
@@ -17373,6 +18704,15 @@ pub fn dataplex_projects_locations_glossaries_terms_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_terms_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesTermsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/terms/{termsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -17385,8 +18725,7 @@ pub fn dataplex_projects_locations_glossaries_terms_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_glossaries_terms_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsGlossariesTermsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -17395,8 +18734,8 @@ pub fn dataplex_projects_locations_glossaries_terms_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_glossaries_terms_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_glossaries_terms_get_iam_policy_execute(builder)
 }
@@ -17520,6 +18859,21 @@ pub fn dataplex_projects_locations_glossaries_terms_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_terms_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesTermsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/terms
 /// Lists GlossaryTerm resources in a Glossary.
 ///
@@ -17532,11 +18886,7 @@ pub fn dataplex_projects_locations_glossaries_terms_list_execute(
 
 pub fn dataplex_projects_locations_glossaries_terms_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsGlossariesTermsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListGlossaryTermsResponse>, ApiError>,
@@ -17546,7 +18896,12 @@ pub fn dataplex_projects_locations_glossaries_terms_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_glossaries_terms_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_glossaries_terms_list_execute(builder)
 }
@@ -17660,6 +19015,17 @@ pub fn dataplex_projects_locations_glossaries_terms_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_terms_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesTermsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1GlossaryTerm,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/terms/{termsId}
 /// Updates a GlossaryTerm resource.
 ///
@@ -17672,9 +19038,7 @@ pub fn dataplex_projects_locations_glossaries_terms_patch_execute(
 
 pub fn dataplex_projects_locations_glossaries_terms_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDataplexV1GlossaryTerm,
+    args: &DataplexProjectsLocationsGlossariesTermsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1GlossaryTerm>, ApiError>,
@@ -17683,8 +19047,12 @@ pub fn dataplex_projects_locations_glossaries_terms_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_glossaries_terms_patch_builder(client, name, updateMask, body)?;
+    let builder = dataplex_projects_locations_glossaries_terms_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     dataplex_projects_locations_glossaries_terms_patch_execute(builder)
 }
 
@@ -17783,6 +19151,15 @@ pub fn dataplex_projects_locations_glossaries_terms_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_terms_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesTermsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/terms/{termsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -17795,8 +19172,7 @@ pub fn dataplex_projects_locations_glossaries_terms_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_glossaries_terms_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsGlossariesTermsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -17804,7 +19180,9 @@ pub fn dataplex_projects_locations_glossaries_terms_set_iam_policy(
     ApiError,
 > {
     let builder = dataplex_projects_locations_glossaries_terms_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_glossaries_terms_set_iam_policy_execute(builder)
 }
@@ -17906,6 +19284,15 @@ pub fn dataplex_projects_locations_glossaries_terms_test_iam_permissions_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_glossaries_terms_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGlossariesTermsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/terms/{termsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -17918,8 +19305,7 @@ pub fn dataplex_projects_locations_glossaries_terms_test_iam_permissions_execute
 
 pub fn dataplex_projects_locations_glossaries_terms_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsGlossariesTermsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -17929,7 +19315,9 @@ pub fn dataplex_projects_locations_glossaries_terms_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_glossaries_terms_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_glossaries_terms_test_iam_permissions_execute(builder)
 }
@@ -18038,6 +19426,15 @@ pub fn dataplex_projects_locations_governance_rules_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_governance_rules_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGovernanceRulesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/governanceRules/{governanceRulesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -18050,8 +19447,7 @@ pub fn dataplex_projects_locations_governance_rules_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_governance_rules_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsGovernanceRulesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -18060,8 +19456,8 @@ pub fn dataplex_projects_locations_governance_rules_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_governance_rules_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_governance_rules_get_iam_policy_execute(builder)
 }
@@ -18161,6 +19557,15 @@ pub fn dataplex_projects_locations_governance_rules_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_governance_rules_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGovernanceRulesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/governanceRules/{governanceRulesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -18173,8 +19578,7 @@ pub fn dataplex_projects_locations_governance_rules_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_governance_rules_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsGovernanceRulesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -18182,7 +19586,9 @@ pub fn dataplex_projects_locations_governance_rules_set_iam_policy(
     ApiError,
 > {
     let builder = dataplex_projects_locations_governance_rules_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_governance_rules_set_iam_policy_execute(builder)
 }
@@ -18284,6 +19690,15 @@ pub fn dataplex_projects_locations_governance_rules_test_iam_permissions_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_governance_rules_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsGovernanceRulesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/governanceRules/{governanceRulesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -18296,8 +19711,7 @@ pub fn dataplex_projects_locations_governance_rules_test_iam_permissions_execute
 
 pub fn dataplex_projects_locations_governance_rules_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsGovernanceRulesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -18307,7 +19721,9 @@ pub fn dataplex_projects_locations_governance_rules_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_governance_rules_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_governance_rules_test_iam_permissions_execute(builder)
 }
@@ -18425,6 +19841,19 @@ pub fn dataplex_projects_locations_lakes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: lakeId
+    pub lakeId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1Lake,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes
 /// Creates a lake resource.
 ///
@@ -18437,10 +19866,7 @@ pub fn dataplex_projects_locations_lakes_create_execute(
 
 pub fn dataplex_projects_locations_lakes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    lakeId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1Lake,
+    args: &DataplexProjectsLocationsLakesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -18451,10 +19877,10 @@ pub fn dataplex_projects_locations_lakes_create(
 > {
     let builder = dataplex_projects_locations_lakes_create_builder(
         client,
-        parent,
-        lakeId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.lakeId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_create_execute(builder)
 }
@@ -18553,6 +19979,13 @@ pub fn dataplex_projects_locations_lakes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}
 /// Deletes a lake resource. All zones within the lake must be deleted before the lake can be deleted.
 ///
@@ -18565,7 +19998,7 @@ pub fn dataplex_projects_locations_lakes_delete_execute(
 
 pub fn dataplex_projects_locations_lakes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsLakesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -18574,7 +20007,7 @@ pub fn dataplex_projects_locations_lakes_delete(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_lakes_delete_builder(client, name)?;
+    let builder = dataplex_projects_locations_lakes_delete_builder(client, &args.name)?;
     dataplex_projects_locations_lakes_delete_execute(builder)
 }
 
@@ -18670,6 +20103,13 @@ pub fn dataplex_projects_locations_lakes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}
 /// Retrieves a lake resource.
 ///
@@ -18682,14 +20122,14 @@ pub fn dataplex_projects_locations_lakes_get_execute(
 
 pub fn dataplex_projects_locations_lakes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsLakesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudDataplexV1Lake>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_lakes_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_lakes_get_builder(client, &args.name)?;
     dataplex_projects_locations_lakes_get_execute(builder)
 }
 
@@ -18797,6 +20237,15 @@ pub fn dataplex_projects_locations_lakes_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -18809,8 +20258,7 @@ pub fn dataplex_projects_locations_lakes_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_lakes_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsLakesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -18819,8 +20267,8 @@ pub fn dataplex_projects_locations_lakes_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_lakes_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_lakes_get_iam_policy_execute(builder)
 }
@@ -18943,6 +20391,21 @@ pub fn dataplex_projects_locations_lakes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes
 /// Lists lake resources in a project and location.
 ///
@@ -18955,11 +20418,7 @@ pub fn dataplex_projects_locations_lakes_list_execute(
 
 pub fn dataplex_projects_locations_lakes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsLakesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListLakesResponse>, ApiError>,
@@ -18969,7 +20428,12 @@ pub fn dataplex_projects_locations_lakes_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_lakes_list_execute(builder)
 }
@@ -19087,6 +20551,19 @@ pub fn dataplex_projects_locations_lakes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1Lake,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}
 /// Updates a lake resource.
 ///
@@ -19099,10 +20576,7 @@ pub fn dataplex_projects_locations_lakes_patch_execute(
 
 pub fn dataplex_projects_locations_lakes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1Lake,
+    args: &DataplexProjectsLocationsLakesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -19113,10 +20587,10 @@ pub fn dataplex_projects_locations_lakes_patch(
 > {
     let builder = dataplex_projects_locations_lakes_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_patch_execute(builder)
 }
@@ -19216,6 +20690,15 @@ pub fn dataplex_projects_locations_lakes_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -19228,15 +20711,18 @@ pub fn dataplex_projects_locations_lakes_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_lakes_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsLakesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_lakes_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataplex_projects_locations_lakes_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataplex_projects_locations_lakes_set_iam_policy_execute(builder)
 }
 
@@ -19337,6 +20823,15 @@ pub fn dataplex_projects_locations_lakes_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -19349,8 +20844,7 @@ pub fn dataplex_projects_locations_lakes_test_iam_permissions_execute(
 
 pub fn dataplex_projects_locations_lakes_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsLakesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -19359,8 +20853,11 @@ pub fn dataplex_projects_locations_lakes_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_lakes_test_iam_permissions_builder(client, resource, body)?;
+    let builder = dataplex_projects_locations_lakes_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataplex_projects_locations_lakes_test_iam_permissions_execute(builder)
 }
 
@@ -19474,6 +20971,17 @@ pub fn dataplex_projects_locations_lakes_actions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_actions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesActionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/actions
 /// Lists action resources in a lake.
 ///
@@ -19486,9 +20994,7 @@ pub fn dataplex_projects_locations_lakes_actions_list_execute(
 
 pub fn dataplex_projects_locations_lakes_actions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsLakesActionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListActionsResponse>, ApiError>,
@@ -19498,7 +21004,10 @@ pub fn dataplex_projects_locations_lakes_actions_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_actions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_lakes_actions_list_execute(builder)
 }
@@ -19607,6 +21116,15 @@ pub fn dataplex_projects_locations_lakes_environments_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_environments_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesEnvironmentsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/environments/{environmentsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -19619,8 +21137,7 @@ pub fn dataplex_projects_locations_lakes_environments_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_lakes_environments_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsLakesEnvironmentsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -19629,8 +21146,8 @@ pub fn dataplex_projects_locations_lakes_environments_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_lakes_environments_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_lakes_environments_get_iam_policy_execute(builder)
 }
@@ -19730,6 +21247,15 @@ pub fn dataplex_projects_locations_lakes_environments_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_environments_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesEnvironmentsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/environments/{environmentsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -19742,8 +21268,7 @@ pub fn dataplex_projects_locations_lakes_environments_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_lakes_environments_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsLakesEnvironmentsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -19751,7 +21276,9 @@ pub fn dataplex_projects_locations_lakes_environments_set_iam_policy(
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_environments_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_environments_set_iam_policy_execute(builder)
 }
@@ -19853,6 +21380,15 @@ pub fn dataplex_projects_locations_lakes_environments_test_iam_permissions_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_environments_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesEnvironmentsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/environments/{environmentsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -19865,8 +21401,7 @@ pub fn dataplex_projects_locations_lakes_environments_test_iam_permissions_execu
 
 pub fn dataplex_projects_locations_lakes_environments_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsLakesEnvironmentsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -19876,7 +21411,9 @@ pub fn dataplex_projects_locations_lakes_environments_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_environments_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_environments_test_iam_permissions_execute(builder)
 }
@@ -19994,6 +21531,19 @@ pub fn dataplex_projects_locations_lakes_tasks_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_tasks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesTasksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: taskId
+    pub taskId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1Task,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks
 /// Creates a task resource within a lake.
 ///
@@ -20006,10 +21556,7 @@ pub fn dataplex_projects_locations_lakes_tasks_create_execute(
 
 pub fn dataplex_projects_locations_lakes_tasks_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    taskId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1Task,
+    args: &DataplexProjectsLocationsLakesTasksCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -20020,10 +21567,10 @@ pub fn dataplex_projects_locations_lakes_tasks_create(
 > {
     let builder = dataplex_projects_locations_lakes_tasks_create_builder(
         client,
-        parent,
-        taskId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.taskId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_tasks_create_execute(builder)
 }
@@ -20122,6 +21669,13 @@ pub fn dataplex_projects_locations_lakes_tasks_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_tasks_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesTasksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}
 /// Delete the task resource.
 ///
@@ -20134,7 +21688,7 @@ pub fn dataplex_projects_locations_lakes_tasks_delete_execute(
 
 pub fn dataplex_projects_locations_lakes_tasks_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsLakesTasksDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -20143,7 +21697,7 @@ pub fn dataplex_projects_locations_lakes_tasks_delete(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_lakes_tasks_delete_builder(client, name)?;
+    let builder = dataplex_projects_locations_lakes_tasks_delete_builder(client, &args.name)?;
     dataplex_projects_locations_lakes_tasks_delete_execute(builder)
 }
 
@@ -20239,6 +21793,13 @@ pub fn dataplex_projects_locations_lakes_tasks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_tasks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesTasksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}
 /// Get task resource.
 ///
@@ -20251,14 +21812,14 @@ pub fn dataplex_projects_locations_lakes_tasks_get_execute(
 
 pub fn dataplex_projects_locations_lakes_tasks_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsLakesTasksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudDataplexV1Task>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_lakes_tasks_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_lakes_tasks_get_builder(client, &args.name)?;
     dataplex_projects_locations_lakes_tasks_get_execute(builder)
 }
 
@@ -20366,6 +21927,15 @@ pub fn dataplex_projects_locations_lakes_tasks_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_tasks_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesTasksGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -20378,8 +21948,7 @@ pub fn dataplex_projects_locations_lakes_tasks_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_lakes_tasks_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsLakesTasksGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -20388,8 +21957,8 @@ pub fn dataplex_projects_locations_lakes_tasks_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_lakes_tasks_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_lakes_tasks_get_iam_policy_execute(builder)
 }
@@ -20512,6 +22081,21 @@ pub fn dataplex_projects_locations_lakes_tasks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_tasks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesTasksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks
 /// Lists tasks under the given lake.
 ///
@@ -20524,11 +22108,7 @@ pub fn dataplex_projects_locations_lakes_tasks_list_execute(
 
 pub fn dataplex_projects_locations_lakes_tasks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsLakesTasksListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListTasksResponse>, ApiError>,
@@ -20538,7 +22118,12 @@ pub fn dataplex_projects_locations_lakes_tasks_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_tasks_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_lakes_tasks_list_execute(builder)
 }
@@ -20656,6 +22241,19 @@ pub fn dataplex_projects_locations_lakes_tasks_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_tasks_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesTasksPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1Task,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}
 /// Update the task resource.
 ///
@@ -20668,10 +22266,7 @@ pub fn dataplex_projects_locations_lakes_tasks_patch_execute(
 
 pub fn dataplex_projects_locations_lakes_tasks_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1Task,
+    args: &DataplexProjectsLocationsLakesTasksPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -20682,10 +22277,10 @@ pub fn dataplex_projects_locations_lakes_tasks_patch(
 > {
     let builder = dataplex_projects_locations_lakes_tasks_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_tasks_patch_execute(builder)
 }
@@ -20787,6 +22382,15 @@ pub fn dataplex_projects_locations_lakes_tasks_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_tasks_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesTasksRunArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1RunTaskRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}:run
 /// Run an on demand execution of a Task.
 ///
@@ -20799,8 +22403,7 @@ pub fn dataplex_projects_locations_lakes_tasks_run_execute(
 
 pub fn dataplex_projects_locations_lakes_tasks_run(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDataplexV1RunTaskRequest,
+    args: &DataplexProjectsLocationsLakesTasksRunArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1RunTaskResponse>, ApiError>,
@@ -20809,7 +22412,8 @@ pub fn dataplex_projects_locations_lakes_tasks_run(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_lakes_tasks_run_builder(client, name, body)?;
+    let builder =
+        dataplex_projects_locations_lakes_tasks_run_builder(client, &args.name, &args.body)?;
     dataplex_projects_locations_lakes_tasks_run_execute(builder)
 }
 
@@ -20908,6 +22512,15 @@ pub fn dataplex_projects_locations_lakes_tasks_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_tasks_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesTasksSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -20920,16 +22533,18 @@ pub fn dataplex_projects_locations_lakes_tasks_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_lakes_tasks_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsLakesTasksSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_lakes_tasks_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataplex_projects_locations_lakes_tasks_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataplex_projects_locations_lakes_tasks_set_iam_policy_execute(builder)
 }
 
@@ -21030,6 +22645,15 @@ pub fn dataplex_projects_locations_lakes_tasks_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_tasks_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesTasksTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -21042,8 +22666,7 @@ pub fn dataplex_projects_locations_lakes_tasks_test_iam_permissions_execute(
 
 pub fn dataplex_projects_locations_lakes_tasks_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsLakesTasksTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -21053,7 +22676,9 @@ pub fn dataplex_projects_locations_lakes_tasks_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_tasks_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_tasks_test_iam_permissions_execute(builder)
 }
@@ -21151,6 +22776,15 @@ pub fn dataplex_projects_locations_lakes_tasks_jobs_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_tasks_jobs_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesTasksJobsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1CancelJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}/jobs/{jobsId}:cancel
 /// Cancel jobs running for the task resource.
 ///
@@ -21163,13 +22797,14 @@ pub fn dataplex_projects_locations_lakes_tasks_jobs_cancel_execute(
 
 pub fn dataplex_projects_locations_lakes_tasks_jobs_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDataplexV1CancelJobRequest,
+    args: &DataplexProjectsLocationsLakesTasksJobsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_lakes_tasks_jobs_cancel_builder(client, name, body)?;
+    let builder = dataplex_projects_locations_lakes_tasks_jobs_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     dataplex_projects_locations_lakes_tasks_jobs_cancel_execute(builder)
 }
 
@@ -21265,6 +22900,13 @@ pub fn dataplex_projects_locations_lakes_tasks_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_tasks_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesTasksJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}/jobs/{jobsId}
 /// Get job resource.
 ///
@@ -21277,14 +22919,14 @@ pub fn dataplex_projects_locations_lakes_tasks_jobs_get_execute(
 
 pub fn dataplex_projects_locations_lakes_tasks_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsLakesTasksJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudDataplexV1Job>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_lakes_tasks_jobs_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_lakes_tasks_jobs_get_builder(client, &args.name)?;
     dataplex_projects_locations_lakes_tasks_jobs_get_execute(builder)
 }
 
@@ -21398,6 +23040,17 @@ pub fn dataplex_projects_locations_lakes_tasks_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_tasks_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesTasksJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}/jobs
 /// Lists Jobs under the given task.
 ///
@@ -21410,9 +23063,7 @@ pub fn dataplex_projects_locations_lakes_tasks_jobs_list_execute(
 
 pub fn dataplex_projects_locations_lakes_tasks_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsLakesTasksJobsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListJobsResponse>, ApiError>,
@@ -21422,7 +23073,10 @@ pub fn dataplex_projects_locations_lakes_tasks_jobs_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_tasks_jobs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_lakes_tasks_jobs_list_execute(builder)
 }
@@ -21540,6 +23194,19 @@ pub fn dataplex_projects_locations_lakes_zones_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Query parameter: zoneId
+    pub zoneId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1Zone,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones
 /// Creates a zone resource within a lake.
 ///
@@ -21552,10 +23219,7 @@ pub fn dataplex_projects_locations_lakes_zones_create_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    validateOnly: Option<bool>,
-    zoneId: Option<&str>,
-    body: &GoogleCloudDataplexV1Zone,
+    args: &DataplexProjectsLocationsLakesZonesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -21566,10 +23230,10 @@ pub fn dataplex_projects_locations_lakes_zones_create(
 > {
     let builder = dataplex_projects_locations_lakes_zones_create_builder(
         client,
-        parent,
-        validateOnly,
-        zoneId,
-        body,
+        &args.parent,
+        args.validateOnly,
+        args.zoneId.as_deref(),
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_zones_create_execute(builder)
 }
@@ -21668,6 +23332,13 @@ pub fn dataplex_projects_locations_lakes_zones_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}
 /// Deletes a zone resource. All assets within a zone must be deleted before the zone can be deleted.
 ///
@@ -21680,7 +23351,7 @@ pub fn dataplex_projects_locations_lakes_zones_delete_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsLakesZonesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -21689,7 +23360,7 @@ pub fn dataplex_projects_locations_lakes_zones_delete(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_lakes_zones_delete_builder(client, name)?;
+    let builder = dataplex_projects_locations_lakes_zones_delete_builder(client, &args.name)?;
     dataplex_projects_locations_lakes_zones_delete_execute(builder)
 }
 
@@ -21785,6 +23456,13 @@ pub fn dataplex_projects_locations_lakes_zones_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}
 /// Retrieves a zone resource.
 ///
@@ -21797,14 +23475,14 @@ pub fn dataplex_projects_locations_lakes_zones_get_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsLakesZonesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudDataplexV1Zone>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_lakes_zones_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_lakes_zones_get_builder(client, &args.name)?;
     dataplex_projects_locations_lakes_zones_get_execute(builder)
 }
 
@@ -21912,6 +23590,15 @@ pub fn dataplex_projects_locations_lakes_zones_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -21924,8 +23611,7 @@ pub fn dataplex_projects_locations_lakes_zones_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsLakesZonesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -21934,8 +23620,8 @@ pub fn dataplex_projects_locations_lakes_zones_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_lakes_zones_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_lakes_zones_get_iam_policy_execute(builder)
 }
@@ -22058,6 +23744,21 @@ pub fn dataplex_projects_locations_lakes_zones_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones
 /// Lists zone resources in a lake.
 ///
@@ -22070,11 +23771,7 @@ pub fn dataplex_projects_locations_lakes_zones_list_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsLakesZonesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListZonesResponse>, ApiError>,
@@ -22084,7 +23781,12 @@ pub fn dataplex_projects_locations_lakes_zones_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_zones_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_lakes_zones_list_execute(builder)
 }
@@ -22202,6 +23904,19 @@ pub fn dataplex_projects_locations_lakes_zones_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1Zone,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}
 /// Updates a zone resource.
 ///
@@ -22214,10 +23929,7 @@ pub fn dataplex_projects_locations_lakes_zones_patch_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1Zone,
+    args: &DataplexProjectsLocationsLakesZonesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -22228,10 +23940,10 @@ pub fn dataplex_projects_locations_lakes_zones_patch(
 > {
     let builder = dataplex_projects_locations_lakes_zones_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_zones_patch_execute(builder)
 }
@@ -22331,6 +24043,15 @@ pub fn dataplex_projects_locations_lakes_zones_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -22343,16 +24064,18 @@ pub fn dataplex_projects_locations_lakes_zones_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsLakesZonesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_lakes_zones_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataplex_projects_locations_lakes_zones_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataplex_projects_locations_lakes_zones_set_iam_policy_execute(builder)
 }
 
@@ -22453,6 +24176,15 @@ pub fn dataplex_projects_locations_lakes_zones_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -22465,8 +24197,7 @@ pub fn dataplex_projects_locations_lakes_zones_test_iam_permissions_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsLakesZonesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -22476,7 +24207,9 @@ pub fn dataplex_projects_locations_lakes_zones_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_zones_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_zones_test_iam_permissions_execute(builder)
 }
@@ -22591,6 +24324,17 @@ pub fn dataplex_projects_locations_lakes_zones_actions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_actions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesActionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/actions
 /// Lists action resources in a zone.
 ///
@@ -22603,9 +24347,7 @@ pub fn dataplex_projects_locations_lakes_zones_actions_list_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_actions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsLakesZonesActionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListActionsResponse>, ApiError>,
@@ -22615,7 +24357,10 @@ pub fn dataplex_projects_locations_lakes_zones_actions_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_zones_actions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_lakes_zones_actions_list_execute(builder)
 }
@@ -22733,6 +24478,19 @@ pub fn dataplex_projects_locations_lakes_zones_assets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_assets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesAssetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: assetId
+    pub assetId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1Asset,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets
 /// Creates an asset resource.
 ///
@@ -22745,10 +24503,7 @@ pub fn dataplex_projects_locations_lakes_zones_assets_create_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_assets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    assetId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1Asset,
+    args: &DataplexProjectsLocationsLakesZonesAssetsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -22759,10 +24514,10 @@ pub fn dataplex_projects_locations_lakes_zones_assets_create(
 > {
     let builder = dataplex_projects_locations_lakes_zones_assets_create_builder(
         client,
-        parent,
-        assetId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.assetId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_zones_assets_create_execute(builder)
 }
@@ -22861,6 +24616,13 @@ pub fn dataplex_projects_locations_lakes_zones_assets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_assets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesAssetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}
 /// Deletes an asset resource. The referenced storage resource is detached (default) or deleted based on the associated Lifecycle policy.
 ///
@@ -22873,7 +24635,7 @@ pub fn dataplex_projects_locations_lakes_zones_assets_delete_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_assets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsLakesZonesAssetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -22882,7 +24644,8 @@ pub fn dataplex_projects_locations_lakes_zones_assets_delete(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_lakes_zones_assets_delete_builder(client, name)?;
+    let builder =
+        dataplex_projects_locations_lakes_zones_assets_delete_builder(client, &args.name)?;
     dataplex_projects_locations_lakes_zones_assets_delete_execute(builder)
 }
 
@@ -22980,6 +24743,13 @@ pub fn dataplex_projects_locations_lakes_zones_assets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_assets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesAssetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}
 /// Retrieves an asset resource.
 ///
@@ -22992,7 +24762,7 @@ pub fn dataplex_projects_locations_lakes_zones_assets_get_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_assets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsLakesZonesAssetsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1Asset>, ApiError>,
@@ -23001,7 +24771,7 @@ pub fn dataplex_projects_locations_lakes_zones_assets_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_lakes_zones_assets_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_lakes_zones_assets_get_builder(client, &args.name)?;
     dataplex_projects_locations_lakes_zones_assets_get_execute(builder)
 }
 
@@ -23109,6 +24879,15 @@ pub fn dataplex_projects_locations_lakes_zones_assets_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_assets_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesAssetsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -23121,8 +24900,7 @@ pub fn dataplex_projects_locations_lakes_zones_assets_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_assets_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsLakesZonesAssetsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -23131,8 +24909,8 @@ pub fn dataplex_projects_locations_lakes_zones_assets_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_lakes_zones_assets_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_lakes_zones_assets_get_iam_policy_execute(builder)
 }
@@ -23256,6 +25034,21 @@ pub fn dataplex_projects_locations_lakes_zones_assets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_assets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesAssetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets
 /// Lists asset resources in a zone.
 ///
@@ -23268,11 +25061,7 @@ pub fn dataplex_projects_locations_lakes_zones_assets_list_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_assets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsLakesZonesAssetsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListAssetsResponse>, ApiError>,
@@ -23282,7 +25071,12 @@ pub fn dataplex_projects_locations_lakes_zones_assets_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_zones_assets_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_lakes_zones_assets_list_execute(builder)
 }
@@ -23400,6 +25194,19 @@ pub fn dataplex_projects_locations_lakes_zones_assets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_assets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesAssetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1Asset,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}
 /// Updates an asset resource.
 ///
@@ -23412,10 +25219,7 @@ pub fn dataplex_projects_locations_lakes_zones_assets_patch_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_assets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1Asset,
+    args: &DataplexProjectsLocationsLakesZonesAssetsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -23426,10 +25230,10 @@ pub fn dataplex_projects_locations_lakes_zones_assets_patch(
 > {
     let builder = dataplex_projects_locations_lakes_zones_assets_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_zones_assets_patch_execute(builder)
 }
@@ -23529,6 +25333,15 @@ pub fn dataplex_projects_locations_lakes_zones_assets_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_assets_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesAssetsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -23541,8 +25354,7 @@ pub fn dataplex_projects_locations_lakes_zones_assets_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_assets_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsLakesZonesAssetsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -23550,7 +25362,9 @@ pub fn dataplex_projects_locations_lakes_zones_assets_set_iam_policy(
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_zones_assets_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_zones_assets_set_iam_policy_execute(builder)
 }
@@ -23652,6 +25466,15 @@ pub fn dataplex_projects_locations_lakes_zones_assets_test_iam_permissions_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_assets_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesAssetsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -23664,8 +25487,7 @@ pub fn dataplex_projects_locations_lakes_zones_assets_test_iam_permissions_execu
 
 pub fn dataplex_projects_locations_lakes_zones_assets_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsLakesZonesAssetsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -23675,7 +25497,9 @@ pub fn dataplex_projects_locations_lakes_zones_assets_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_zones_assets_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_zones_assets_test_iam_permissions_execute(builder)
 }
@@ -23790,6 +25614,17 @@ pub fn dataplex_projects_locations_lakes_zones_assets_actions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_assets_actions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesAssetsActionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}/actions
 /// Lists action resources in an asset.
 ///
@@ -23802,9 +25637,7 @@ pub fn dataplex_projects_locations_lakes_zones_assets_actions_list_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_assets_actions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsLakesZonesAssetsActionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListActionsResponse>, ApiError>,
@@ -23814,7 +25647,10 @@ pub fn dataplex_projects_locations_lakes_zones_assets_actions_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_zones_assets_actions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_lakes_zones_assets_actions_list_execute(builder)
 }
@@ -23928,6 +25764,17 @@ pub fn dataplex_projects_locations_lakes_zones_entities_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_entities_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesEntitiesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1Entity,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities
 /// Create a metadata entity.
 ///
@@ -23940,9 +25787,7 @@ pub fn dataplex_projects_locations_lakes_zones_entities_create_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_entities_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1Entity,
+    args: &DataplexProjectsLocationsLakesZonesEntitiesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1Entity>, ApiError>,
@@ -23953,9 +25798,9 @@ pub fn dataplex_projects_locations_lakes_zones_entities_create(
 > {
     let builder = dataplex_projects_locations_lakes_zones_entities_create_builder(
         client,
-        parent,
-        validateOnly,
-        body,
+        &args.parent,
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_zones_entities_create_execute(builder)
 }
@@ -24062,6 +25907,15 @@ pub fn dataplex_projects_locations_lakes_zones_entities_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_entities_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesEntitiesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}
 /// Delete a metadata entity.
 ///
@@ -24074,14 +25928,16 @@ pub fn dataplex_projects_locations_lakes_zones_entities_delete_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_entities_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &DataplexProjectsLocationsLakesZonesEntitiesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_lakes_zones_entities_delete_builder(client, name, etag)?;
+    let builder = dataplex_projects_locations_lakes_zones_entities_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     dataplex_projects_locations_lakes_zones_entities_delete_execute(builder)
 }
 
@@ -24191,6 +26047,15 @@ pub fn dataplex_projects_locations_lakes_zones_entities_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_entities_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesEntitiesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}
 /// Get a metadata entity.
 ///
@@ -24203,8 +26068,7 @@ pub fn dataplex_projects_locations_lakes_zones_entities_get_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_entities_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &DataplexProjectsLocationsLakesZonesEntitiesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1Entity>, ApiError>,
@@ -24213,7 +26077,11 @@ pub fn dataplex_projects_locations_lakes_zones_entities_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_lakes_zones_entities_get_builder(client, name, view)?;
+    let builder = dataplex_projects_locations_lakes_zones_entities_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     dataplex_projects_locations_lakes_zones_entities_get_execute(builder)
 }
 
@@ -24335,6 +26203,21 @@ pub fn dataplex_projects_locations_lakes_zones_entities_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_entities_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesEntitiesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities
 /// List metadata entities in a zone.
 ///
@@ -24347,11 +26230,7 @@ pub fn dataplex_projects_locations_lakes_zones_entities_list_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_entities_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &DataplexProjectsLocationsLakesZonesEntitiesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListEntitiesResponse>, ApiError>,
@@ -24361,7 +26240,12 @@ pub fn dataplex_projects_locations_lakes_zones_entities_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_zones_entities_list_builder(
-        client, parent, filter, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     dataplex_projects_locations_lakes_zones_entities_list_execute(builder)
 }
@@ -24475,6 +26359,17 @@ pub fn dataplex_projects_locations_lakes_zones_entities_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_entities_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesEntitiesUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1Entity,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}
 /// Update a metadata entity. Only supports full resource update.
 ///
@@ -24487,9 +26382,7 @@ pub fn dataplex_projects_locations_lakes_zones_entities_update_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_entities_update(
     client: &SimpleHttpClient,
-    name: &str,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1Entity,
+    args: &DataplexProjectsLocationsLakesZonesEntitiesUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1Entity>, ApiError>,
@@ -24500,9 +26393,9 @@ pub fn dataplex_projects_locations_lakes_zones_entities_update(
 > {
     let builder = dataplex_projects_locations_lakes_zones_entities_update_builder(
         client,
-        name,
-        validateOnly,
-        body,
+        &args.name,
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_zones_entities_update_execute(builder)
 }
@@ -24616,6 +26509,17 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_create_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_entities_partitions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesEntitiesPartitionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1Partition,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}/partitions
 /// Create a metadata partition.
 ///
@@ -24628,9 +26532,7 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_create_execut
 
 pub fn dataplex_projects_locations_lakes_zones_entities_partitions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1Partition,
+    args: &DataplexProjectsLocationsLakesZonesEntitiesPartitionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1Partition>, ApiError>,
@@ -24641,9 +26543,9 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_create(
 > {
     let builder = dataplex_projects_locations_lakes_zones_entities_partitions_create_builder(
         client,
-        parent,
-        validateOnly,
-        body,
+        &args.parent,
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_lakes_zones_entities_partitions_create_execute(builder)
 }
@@ -24750,6 +26652,15 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_delete_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_entities_partitions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesEntitiesPartitionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}/partitions/{partitionsId}
 /// Delete a metadata partition.
 ///
@@ -24762,14 +26673,15 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_delete_execut
 
 pub fn dataplex_projects_locations_lakes_zones_entities_partitions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &DataplexProjectsLocationsLakesZonesEntitiesPartitionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_zones_entities_partitions_delete_builder(
-        client, name, etag,
+        client,
+        &args.name,
+        args.etag.as_deref(),
     )?;
     dataplex_projects_locations_lakes_zones_entities_partitions_delete_execute(builder)
 }
@@ -24868,6 +26780,13 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_entities_partitions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesEntitiesPartitionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}/partitions/{partitionsId}
 /// Get a metadata partition of an entity.
 ///
@@ -24880,7 +26799,7 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_get_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_entities_partitions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsLakesZonesEntitiesPartitionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1Partition>, ApiError>,
@@ -24889,8 +26808,9 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_lakes_zones_entities_partitions_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_lakes_zones_entities_partitions_get_builder(
+        client, &args.name,
+    )?;
     dataplex_projects_locations_lakes_zones_entities_partitions_get_execute(builder)
 }
 
@@ -25009,6 +26929,19 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_lakes_zones_entities_partitions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsLakesZonesEntitiesPartitionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}/partitions
 /// List metadata partitions of an entity.
 ///
@@ -25021,10 +26954,7 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_list_execute(
 
 pub fn dataplex_projects_locations_lakes_zones_entities_partitions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsLakesZonesEntitiesPartitionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListPartitionsResponse>, ApiError>,
@@ -25034,7 +26964,11 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_lakes_zones_entities_partitions_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_lakes_zones_entities_partitions_list_execute(builder)
 }
@@ -25152,6 +27086,19 @@ pub fn dataplex_projects_locations_metadata_feeds_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_metadata_feeds_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsMetadataFeedsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: metadataFeedId
+    pub metadataFeedId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1MetadataFeed,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataFeeds
 /// Creates a MetadataFeed.
 ///
@@ -25164,10 +27111,7 @@ pub fn dataplex_projects_locations_metadata_feeds_create_execute(
 
 pub fn dataplex_projects_locations_metadata_feeds_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    metadataFeedId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1MetadataFeed,
+    args: &DataplexProjectsLocationsMetadataFeedsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -25178,10 +27122,10 @@ pub fn dataplex_projects_locations_metadata_feeds_create(
 > {
     let builder = dataplex_projects_locations_metadata_feeds_create_builder(
         client,
-        parent,
-        metadataFeedId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.metadataFeedId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_metadata_feeds_create_execute(builder)
 }
@@ -25280,6 +27224,13 @@ pub fn dataplex_projects_locations_metadata_feeds_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_metadata_feeds_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsMetadataFeedsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataFeeds/{metadataFeedsId}
 /// Deletes a MetadataFeed.
 ///
@@ -25292,7 +27243,7 @@ pub fn dataplex_projects_locations_metadata_feeds_delete_execute(
 
 pub fn dataplex_projects_locations_metadata_feeds_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsMetadataFeedsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -25301,7 +27252,7 @@ pub fn dataplex_projects_locations_metadata_feeds_delete(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_metadata_feeds_delete_builder(client, name)?;
+    let builder = dataplex_projects_locations_metadata_feeds_delete_builder(client, &args.name)?;
     dataplex_projects_locations_metadata_feeds_delete_execute(builder)
 }
 
@@ -25399,6 +27350,13 @@ pub fn dataplex_projects_locations_metadata_feeds_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_metadata_feeds_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsMetadataFeedsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataFeeds/{metadataFeedsId}
 /// Gets a MetadataFeed.
 ///
@@ -25411,7 +27369,7 @@ pub fn dataplex_projects_locations_metadata_feeds_get_execute(
 
 pub fn dataplex_projects_locations_metadata_feeds_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsMetadataFeedsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1MetadataFeed>, ApiError>,
@@ -25420,7 +27378,7 @@ pub fn dataplex_projects_locations_metadata_feeds_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_metadata_feeds_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_metadata_feeds_get_builder(client, &args.name)?;
     dataplex_projects_locations_metadata_feeds_get_execute(builder)
 }
 
@@ -25543,6 +27501,21 @@ pub fn dataplex_projects_locations_metadata_feeds_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_metadata_feeds_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsMetadataFeedsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataFeeds
 /// Retrieve a list of MetadataFeeds.
 ///
@@ -25555,11 +27528,7 @@ pub fn dataplex_projects_locations_metadata_feeds_list_execute(
 
 pub fn dataplex_projects_locations_metadata_feeds_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsMetadataFeedsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListMetadataFeedsResponse>, ApiError>,
@@ -25569,7 +27538,12 @@ pub fn dataplex_projects_locations_metadata_feeds_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_metadata_feeds_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_metadata_feeds_list_execute(builder)
 }
@@ -25687,6 +27661,19 @@ pub fn dataplex_projects_locations_metadata_feeds_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_metadata_feeds_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsMetadataFeedsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1MetadataFeed,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataFeeds/{metadataFeedsId}
 /// Updates a MetadataFeed.
 ///
@@ -25699,10 +27686,7 @@ pub fn dataplex_projects_locations_metadata_feeds_patch_execute(
 
 pub fn dataplex_projects_locations_metadata_feeds_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1MetadataFeed,
+    args: &DataplexProjectsLocationsMetadataFeedsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -25713,10 +27697,10 @@ pub fn dataplex_projects_locations_metadata_feeds_patch(
 > {
     let builder = dataplex_projects_locations_metadata_feeds_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_metadata_feeds_patch_execute(builder)
 }
@@ -25814,6 +27798,15 @@ pub fn dataplex_projects_locations_metadata_jobs_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_metadata_jobs_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsMetadataJobsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1CancelMetadataJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataJobs/{metadataJobsId}:cancel
 /// Cancels a metadata job.If you cancel a metadata import job that is in progress, the changes in the job might be partially applied. We recommend that you reset the state of the entry groups in your project by running another metadata job that reverts the changes from the canceled job.
 ///
@@ -25826,13 +27819,13 @@ pub fn dataplex_projects_locations_metadata_jobs_cancel_execute(
 
 pub fn dataplex_projects_locations_metadata_jobs_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDataplexV1CancelMetadataJobRequest,
+    args: &DataplexProjectsLocationsMetadataJobsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_metadata_jobs_cancel_builder(client, name, body)?;
+    let builder =
+        dataplex_projects_locations_metadata_jobs_cancel_builder(client, &args.name, &args.body)?;
     dataplex_projects_locations_metadata_jobs_cancel_execute(builder)
 }
 
@@ -25949,6 +27942,19 @@ pub fn dataplex_projects_locations_metadata_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_metadata_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsMetadataJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: metadataJobId
+    pub metadataJobId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDataplexV1MetadataJob,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataJobs
 /// Creates a metadata job. For example, use a metadata job to import metadata from a third-party system into Dataplex Universal Catalog.
 ///
@@ -25961,10 +27967,7 @@ pub fn dataplex_projects_locations_metadata_jobs_create_execute(
 
 pub fn dataplex_projects_locations_metadata_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    metadataJobId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudDataplexV1MetadataJob,
+    args: &DataplexProjectsLocationsMetadataJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -25975,10 +27978,10 @@ pub fn dataplex_projects_locations_metadata_jobs_create(
 > {
     let builder = dataplex_projects_locations_metadata_jobs_create_builder(
         client,
-        parent,
-        metadataJobId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.metadataJobId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     dataplex_projects_locations_metadata_jobs_create_execute(builder)
 }
@@ -26077,6 +28080,13 @@ pub fn dataplex_projects_locations_metadata_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_metadata_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsMetadataJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataJobs/{metadataJobsId}
 /// Gets a metadata job.
 ///
@@ -26089,7 +28099,7 @@ pub fn dataplex_projects_locations_metadata_jobs_get_execute(
 
 pub fn dataplex_projects_locations_metadata_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsMetadataJobsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1MetadataJob>, ApiError>,
@@ -26098,7 +28108,7 @@ pub fn dataplex_projects_locations_metadata_jobs_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_metadata_jobs_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_metadata_jobs_get_builder(client, &args.name)?;
     dataplex_projects_locations_metadata_jobs_get_execute(builder)
 }
 
@@ -26221,6 +28231,21 @@ pub fn dataplex_projects_locations_metadata_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_metadata_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsMetadataJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataJobs
 /// Lists metadata jobs.
 ///
@@ -26233,11 +28258,7 @@ pub fn dataplex_projects_locations_metadata_jobs_list_execute(
 
 pub fn dataplex_projects_locations_metadata_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataplexProjectsLocationsMetadataJobsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDataplexV1ListMetadataJobsResponse>, ApiError>,
@@ -26247,7 +28268,12 @@ pub fn dataplex_projects_locations_metadata_jobs_list(
     ApiError,
 > {
     let builder = dataplex_projects_locations_metadata_jobs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataplex_projects_locations_metadata_jobs_list_execute(builder)
 }
@@ -26345,6 +28371,15 @@ pub fn dataplex_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -26357,13 +28392,13 @@ pub fn dataplex_projects_locations_operations_cancel_execute(
 
 pub fn dataplex_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &DataplexProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        dataplex_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     dataplex_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -26457,6 +28492,13 @@ pub fn dataplex_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -26469,12 +28511,12 @@ pub fn dataplex_projects_locations_operations_delete_execute(
 
 pub fn dataplex_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_operations_delete_builder(client, name)?;
+    let builder = dataplex_projects_locations_operations_delete_builder(client, &args.name)?;
     dataplex_projects_locations_operations_delete_execute(builder)
 }
 
@@ -26572,6 +28614,13 @@ pub fn dataplex_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -26584,7 +28633,7 @@ pub fn dataplex_projects_locations_operations_get_execute(
 
 pub fn dataplex_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataplexProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -26593,7 +28642,7 @@ pub fn dataplex_projects_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = dataplex_projects_locations_operations_get_builder(client, name)?;
+    let builder = dataplex_projects_locations_operations_get_builder(client, &args.name)?;
     dataplex_projects_locations_operations_get_execute(builder)
 }
 
@@ -26716,6 +28765,21 @@ pub fn dataplex_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -26728,11 +28792,7 @@ pub fn dataplex_projects_locations_operations_list_execute(
 
 pub fn dataplex_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DataplexProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -26743,11 +28803,11 @@ pub fn dataplex_projects_locations_operations_list(
 > {
     let builder = dataplex_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     dataplex_projects_locations_operations_list_execute(builder)
 }
@@ -26856,6 +28916,15 @@ pub fn dataplex_projects_locations_policy_intents_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_policy_intents_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsPolicyIntentsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/policyIntents/{policyIntentsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -26868,8 +28937,7 @@ pub fn dataplex_projects_locations_policy_intents_get_iam_policy_execute(
 
 pub fn dataplex_projects_locations_policy_intents_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataplexProjectsLocationsPolicyIntentsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -26878,8 +28946,8 @@ pub fn dataplex_projects_locations_policy_intents_get_iam_policy(
 > {
     let builder = dataplex_projects_locations_policy_intents_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataplex_projects_locations_policy_intents_get_iam_policy_execute(builder)
 }
@@ -26979,6 +29047,15 @@ pub fn dataplex_projects_locations_policy_intents_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_policy_intents_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsPolicyIntentsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/policyIntents/{policyIntentsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -26991,16 +29068,18 @@ pub fn dataplex_projects_locations_policy_intents_set_iam_policy_execute(
 
 pub fn dataplex_projects_locations_policy_intents_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DataplexProjectsLocationsPolicyIntentsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataplex_projects_locations_policy_intents_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataplex_projects_locations_policy_intents_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataplex_projects_locations_policy_intents_set_iam_policy_execute(builder)
 }
 
@@ -27101,6 +29180,15 @@ pub fn dataplex_projects_locations_policy_intents_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataplex_projects_locations_policy_intents_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataplexProjectsLocationsPolicyIntentsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/policyIntents/{policyIntentsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -27113,8 +29201,7 @@ pub fn dataplex_projects_locations_policy_intents_test_iam_permissions_execute(
 
 pub fn dataplex_projects_locations_policy_intents_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DataplexProjectsLocationsPolicyIntentsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -27124,7 +29211,9 @@ pub fn dataplex_projects_locations_policy_intents_test_iam_permissions(
     ApiError,
 > {
     let builder = dataplex_projects_locations_policy_intents_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataplex_projects_locations_policy_intents_test_iam_permissions_execute(builder)
 }

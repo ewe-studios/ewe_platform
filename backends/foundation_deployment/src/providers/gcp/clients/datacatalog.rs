@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/catalog:search
 /// Searches Data Catalog for multiple resources like entries and tags that match a query. This is a [Custom Method] (<https://cloud.google.`com/apis/design/custom_methods`>) that doesn't return all information on a resource, only its ID and high level fields. To get more information, you can subsequently call specific get methods. Note: Data Catalog search queries don't guarantee full recall. Results that match your query might not be returned, even in subsequent result pages. Additionally, returned (and not returned) results can vary if you repeat search queries. For more information, see [Data Catalog search syntax] (<https://cloud.google.`com/data-catalog/docs/how-to/search-reference`>).
@@ -110,6 +112,13 @@ pub fn datacatalog_catalog_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_catalog_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogCatalogSearchArgs {
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1SearchCatalogRequest,
+}
+
 /// GET v1/catalog:search
 /// Searches Data Catalog for multiple resources like entries and tags that match a query. This is a [Custom Method] (<https://cloud.google.`com/apis/design/custom_methods`>) that doesn't return all information on a resource, only its ID and high level fields. To get more information, you can subsequently call specific get methods. Note: Data Catalog search queries don't guarantee full recall. Results that match your query might not be returned, even in subsequent result pages. Additionally, returned (and not returned) results can vary if you repeat search queries. For more information, see [Data Catalog search syntax] (<https://cloud.google.`com/data-catalog/docs/how-to/search-reference`>).
 ///
@@ -122,7 +131,7 @@ pub fn datacatalog_catalog_search_execute(
 
 pub fn datacatalog_catalog_search(
     client: &SimpleHttpClient,
-    body: &GoogleCloudDatacatalogV1SearchCatalogRequest,
+    args: &DatacatalogCatalogSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1SearchCatalogResponse>, ApiError>,
@@ -131,7 +140,7 @@ pub fn datacatalog_catalog_search(
         + 'static,
     ApiError,
 > {
-    let builder = datacatalog_catalog_search_builder(client, body)?;
+    let builder = datacatalog_catalog_search_builder(client, &args.body)?;
     datacatalog_catalog_search_execute(builder)
 }
 
@@ -253,6 +262,21 @@ pub fn datacatalog_entries_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_entries_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogEntriesLookupArgs {
+    /// Query parameter: fullyQualifiedName
+    pub fullyQualifiedName: Option<String>,
+    /// Query parameter: linkedResource
+    pub linkedResource: Option<String>,
+    /// Query parameter: location
+    pub location: Option<String>,
+    /// Query parameter: project
+    pub project: Option<String>,
+    /// Query parameter: sqlResource
+    pub sqlResource: Option<String>,
+}
+
 /// GET v1/entries:lookup
 /// Gets an entry by its target resource name. The resource name comes from the source Google Cloud Platform service.
 ///
@@ -265,11 +289,7 @@ pub fn datacatalog_entries_lookup_execute(
 
 pub fn datacatalog_entries_lookup(
     client: &SimpleHttpClient,
-    fullyQualifiedName: Option<&str>,
-    linkedResource: Option<&str>,
-    location: Option<&str>,
-    project: Option<&str>,
-    sqlResource: Option<&str>,
+    args: &DatacatalogEntriesLookupArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1Entry>, ApiError>,
@@ -280,11 +300,11 @@ pub fn datacatalog_entries_lookup(
 > {
     let builder = datacatalog_entries_lookup_builder(
         client,
-        fullyQualifiedName,
-        linkedResource,
-        location,
-        project,
-        sqlResource,
+        args.fullyQualifiedName.as_deref(),
+        args.linkedResource.as_deref(),
+        args.location.as_deref(),
+        args.project.as_deref(),
+        args.sqlResource.as_deref(),
     )?;
     datacatalog_entries_lookup_execute(builder)
 }
@@ -384,6 +404,13 @@ pub fn datacatalog_organizations_locations_retrieve_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_organizations_locations_retrieve_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogOrganizationsLocationsRetrieveConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}:retrieveConfig
 /// Retrieves the configuration related to the migration from Data Catalog to Dataplex Universal Catalog for a specific organization, including all the projects under it which have a separate configuration set.
 ///
@@ -396,7 +423,7 @@ pub fn datacatalog_organizations_locations_retrieve_config_execute(
 
 pub fn datacatalog_organizations_locations_retrieve_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatacatalogOrganizationsLocationsRetrieveConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1OrganizationConfig>, ApiError>,
@@ -405,7 +432,7 @@ pub fn datacatalog_organizations_locations_retrieve_config(
         + 'static,
     ApiError,
 > {
-    let builder = datacatalog_organizations_locations_retrieve_config_builder(client, name)?;
+    let builder = datacatalog_organizations_locations_retrieve_config_builder(client, &args.name)?;
     datacatalog_organizations_locations_retrieve_config_execute(builder)
 }
 
@@ -504,6 +531,13 @@ pub fn datacatalog_organizations_locations_retrieve_effective_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_organizations_locations_retrieve_effective_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogOrganizationsLocationsRetrieveEffectiveConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}:retrieveEffectiveConfig
 /// Retrieves the effective configuration related to the migration from Data Catalog to Dataplex Universal Catalog for a specific organization or project. If there is no specific configuration set for the resource, the setting is checked hierarchicahlly through the ancestors of the resource, starting from the resource itself.
 ///
@@ -516,7 +550,7 @@ pub fn datacatalog_organizations_locations_retrieve_effective_config_execute(
 
 pub fn datacatalog_organizations_locations_retrieve_effective_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatacatalogOrganizationsLocationsRetrieveEffectiveConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1MigrationConfig>, ApiError>,
@@ -526,7 +560,7 @@ pub fn datacatalog_organizations_locations_retrieve_effective_config(
     ApiError,
 > {
     let builder =
-        datacatalog_organizations_locations_retrieve_effective_config_builder(client, name)?;
+        datacatalog_organizations_locations_retrieve_effective_config_builder(client, &args.name)?;
     datacatalog_organizations_locations_retrieve_effective_config_execute(builder)
 }
 
@@ -628,6 +662,15 @@ pub fn datacatalog_organizations_locations_set_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_organizations_locations_set_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogOrganizationsLocationsSetConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1SetConfigRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}:setConfig
 /// Sets the configuration related to the migration to Dataplex Universal Catalog for an organization or project.
 ///
@@ -640,8 +683,7 @@ pub fn datacatalog_organizations_locations_set_config_execute(
 
 pub fn datacatalog_organizations_locations_set_config(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatacatalogV1SetConfigRequest,
+    args: &DatacatalogOrganizationsLocationsSetConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1MigrationConfig>, ApiError>,
@@ -650,7 +692,8 @@ pub fn datacatalog_organizations_locations_set_config(
         + 'static,
     ApiError,
 > {
-    let builder = datacatalog_organizations_locations_set_config_builder(client, name, body)?;
+    let builder =
+        datacatalog_organizations_locations_set_config_builder(client, &args.name, &args.body)?;
     datacatalog_organizations_locations_set_config_execute(builder)
 }
 
@@ -749,6 +792,13 @@ pub fn datacatalog_projects_locations_retrieve_effective_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_retrieve_effective_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsRetrieveEffectiveConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:retrieveEffectiveConfig
 /// Retrieves the effective configuration related to the migration from Data Catalog to Dataplex Universal Catalog for a specific organization or project. If there is no specific configuration set for the resource, the setting is checked hierarchicahlly through the ancestors of the resource, starting from the resource itself.
 ///
@@ -761,7 +811,7 @@ pub fn datacatalog_projects_locations_retrieve_effective_config_execute(
 
 pub fn datacatalog_projects_locations_retrieve_effective_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatacatalogProjectsLocationsRetrieveEffectiveConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1MigrationConfig>, ApiError>,
@@ -770,7 +820,8 @@ pub fn datacatalog_projects_locations_retrieve_effective_config(
         + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_retrieve_effective_config_builder(client, name)?;
+    let builder =
+        datacatalog_projects_locations_retrieve_effective_config_builder(client, &args.name)?;
     datacatalog_projects_locations_retrieve_effective_config_execute(builder)
 }
 
@@ -872,6 +923,15 @@ pub fn datacatalog_projects_locations_set_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_set_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsSetConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1SetConfigRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:setConfig
 /// Sets the configuration related to the migration to Dataplex Universal Catalog for an organization or project.
 ///
@@ -884,8 +944,7 @@ pub fn datacatalog_projects_locations_set_config_execute(
 
 pub fn datacatalog_projects_locations_set_config(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatacatalogV1SetConfigRequest,
+    args: &DatacatalogProjectsLocationsSetConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1MigrationConfig>, ApiError>,
@@ -894,7 +953,8 @@ pub fn datacatalog_projects_locations_set_config(
         + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_set_config_builder(client, name, body)?;
+    let builder =
+        datacatalog_projects_locations_set_config_builder(client, &args.name, &args.body)?;
     datacatalog_projects_locations_set_config_execute(builder)
 }
 
@@ -1007,6 +1067,17 @@ pub fn datacatalog_projects_locations_entry_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: entryGroupId
+    pub entryGroupId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1EntryGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups
 /// Creates an entry group. An entry group contains logically related entries together with [Cloud Identity and Access Management](/data-`catalog/docs/concepts/iam`) policies. These policies specify users who can create, edit, and view entries within entry groups. Data Catalog automatically creates entry groups with names that start with the @ symbol for the following resources: * BigQuery entries (@bigquery) * P`ub/Sub` topics (@pubsub) * Dataproc Metastore services (@dataproc_metastore_{SERVICE_NAME_HASH}) You can create your own entry groups for Cloud Storage fileset entries and custom entries together with the corresponding IAM policies. User-created entry groups can't contain the @ symbol, it is reserved for automatically created groups. Entry groups, like entries, can be searched. A maximum of 10,000 entry groups may be created per organization across all locations. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
@@ -1019,9 +1090,7 @@ pub fn datacatalog_projects_locations_entry_groups_create_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    entryGroupId: Option<&str>,
-    body: &GoogleCloudDatacatalogV1EntryGroup,
+    args: &DatacatalogProjectsLocationsEntryGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1EntryGroup>, ApiError>,
@@ -1032,9 +1101,9 @@ pub fn datacatalog_projects_locations_entry_groups_create(
 > {
     let builder = datacatalog_projects_locations_entry_groups_create_builder(
         client,
-        parent,
-        entryGroupId,
-        body,
+        &args.parent,
+        args.entryGroupId.as_deref(),
+        &args.body,
     )?;
     datacatalog_projects_locations_entry_groups_create_execute(builder)
 }
@@ -1141,6 +1210,15 @@ pub fn datacatalog_projects_locations_entry_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
 /// Deletes an entry group. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
@@ -1153,13 +1231,13 @@ pub fn datacatalog_projects_locations_entry_groups_delete_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &DatacatalogProjectsLocationsEntryGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_entry_groups_delete_builder(client, name, force)?;
+    let builder =
+        datacatalog_projects_locations_entry_groups_delete_builder(client, &args.name, args.force)?;
     datacatalog_projects_locations_entry_groups_delete_execute(builder)
 }
 
@@ -1269,6 +1347,15 @@ pub fn datacatalog_projects_locations_entry_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
 /// Gets an entry group.
 ///
@@ -1281,8 +1368,7 @@ pub fn datacatalog_projects_locations_entry_groups_get_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
-    readMask: Option<&str>,
+    args: &DatacatalogProjectsLocationsEntryGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1EntryGroup>, ApiError>,
@@ -1291,7 +1377,11 @@ pub fn datacatalog_projects_locations_entry_groups_get(
         + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_entry_groups_get_builder(client, name, readMask)?;
+    let builder = datacatalog_projects_locations_entry_groups_get_builder(
+        client,
+        &args.name,
+        args.readMask.as_deref(),
+    )?;
     datacatalog_projects_locations_entry_groups_get_execute(builder)
 }
 
@@ -1388,6 +1478,15 @@ pub fn datacatalog_projects_locations_entry_groups_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:getIamPolicy
 /// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
 ///
@@ -1400,14 +1499,16 @@ pub fn datacatalog_projects_locations_entry_groups_get_iam_policy_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &DatacatalogProjectsLocationsEntryGroupsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datacatalog_projects_locations_entry_groups_get_iam_policy_builder(client, resource, body)?;
+    let builder = datacatalog_projects_locations_entry_groups_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     datacatalog_projects_locations_entry_groups_get_iam_policy_execute(builder)
 }
 
@@ -1522,6 +1623,17 @@ pub fn datacatalog_projects_locations_entry_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups
 /// Lists entry groups.
 ///
@@ -1534,9 +1646,7 @@ pub fn datacatalog_projects_locations_entry_groups_list_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatacatalogProjectsLocationsEntryGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1ListEntryGroupsResponse>, ApiError>,
@@ -1546,7 +1656,10 @@ pub fn datacatalog_projects_locations_entry_groups_list(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_entry_groups_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datacatalog_projects_locations_entry_groups_list_execute(builder)
 }
@@ -1660,6 +1773,17 @@ pub fn datacatalog_projects_locations_entry_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1EntryGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
 /// Updates an entry group. You must enable the Data Catalog API in the project identified by the entry_group.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
@@ -1672,9 +1796,7 @@ pub fn datacatalog_projects_locations_entry_groups_patch_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDatacatalogV1EntryGroup,
+    args: &DatacatalogProjectsLocationsEntryGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1EntryGroup>, ApiError>,
@@ -1683,8 +1805,12 @@ pub fn datacatalog_projects_locations_entry_groups_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datacatalog_projects_locations_entry_groups_patch_builder(client, name, updateMask, body)?;
+    let builder = datacatalog_projects_locations_entry_groups_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     datacatalog_projects_locations_entry_groups_patch_execute(builder)
 }
 
@@ -1781,6 +1907,15 @@ pub fn datacatalog_projects_locations_entry_groups_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:setIamPolicy
 /// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
 ///
@@ -1793,14 +1928,16 @@ pub fn datacatalog_projects_locations_entry_groups_set_iam_policy_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DatacatalogProjectsLocationsEntryGroupsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datacatalog_projects_locations_entry_groups_set_iam_policy_builder(client, resource, body)?;
+    let builder = datacatalog_projects_locations_entry_groups_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     datacatalog_projects_locations_entry_groups_set_iam_policy_execute(builder)
 }
 
@@ -1901,6 +2038,15 @@ pub fn datacatalog_projects_locations_entry_groups_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:testIamPermissions
 /// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
 ///
@@ -1913,8 +2059,7 @@ pub fn datacatalog_projects_locations_entry_groups_test_iam_permissions_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DatacatalogProjectsLocationsEntryGroupsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1924,7 +2069,9 @@ pub fn datacatalog_projects_locations_entry_groups_test_iam_permissions(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_entry_groups_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     datacatalog_projects_locations_entry_groups_test_iam_permissions_execute(builder)
 }
@@ -2038,6 +2185,17 @@ pub fn datacatalog_projects_locations_entry_groups_entries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: entryId
+    pub entryId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1Entry,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
 /// Creates an entry. You can create entries only with 'FILESET', 'CLUSTER', 'DATA_STREAM', or custom types. Data Catalog automatically creates entries with other types during metadata ingestion from integrated systems. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>). An entry group can have a maximum of 100,000 entries.
 ///
@@ -2050,9 +2208,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_create_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_entries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    entryId: Option<&str>,
-    body: &GoogleCloudDatacatalogV1Entry,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1Entry>, ApiError>,
@@ -2062,7 +2218,10 @@ pub fn datacatalog_projects_locations_entry_groups_entries_create(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_entry_groups_entries_create_builder(
-        client, parent, entryId, body,
+        client,
+        &args.parent,
+        args.entryId.as_deref(),
+        &args.body,
     )?;
     datacatalog_projects_locations_entry_groups_entries_create_execute(builder)
 }
@@ -2157,6 +2316,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
 /// Deletes an existing entry. You can delete only the entries created by the CreateEntry method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
@@ -2169,12 +2335,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_delete_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_entries_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_entry_groups_entries_delete_builder(client, name)?;
+    let builder =
+        datacatalog_projects_locations_entry_groups_entries_delete_builder(client, &args.name)?;
     datacatalog_projects_locations_entry_groups_entries_delete_execute(builder)
 }
 
@@ -2272,6 +2439,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
 /// Gets an entry.
 ///
@@ -2284,7 +2458,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_get_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_entries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1Entry>, ApiError>,
@@ -2293,7 +2467,8 @@ pub fn datacatalog_projects_locations_entry_groups_entries_get(
         + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_entry_groups_entries_get_builder(client, name)?;
+    let builder =
+        datacatalog_projects_locations_entry_groups_entries_get_builder(client, &args.name)?;
     datacatalog_projects_locations_entry_groups_entries_get_execute(builder)
 }
 
@@ -2390,6 +2565,15 @@ pub fn datacatalog_projects_locations_entry_groups_entries_get_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:getIamPolicy
 /// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
 ///
@@ -2402,14 +2586,15 @@ pub fn datacatalog_projects_locations_entry_groups_entries_get_iam_policy_execut
 
 pub fn datacatalog_projects_locations_entry_groups_entries_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datacatalog_projects_locations_entry_groups_entries_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     datacatalog_projects_locations_entry_groups_entries_get_iam_policy_execute(builder)
 }
@@ -2507,6 +2692,15 @@ pub fn datacatalog_projects_locations_entry_groups_entries_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1ImportEntriesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries:import
 /// Imports entries from a source, such as data previously dumped into a Cloud Storage bucket, into Data Catalog. Import of entries is a sync operation that reconciles the state of the third-party system with the Data Catalog. ImportEntries accepts source data snapshots of a third-party system. Snapshot should be delivered as a .wire or base65-encoded .txt file containing a sequence of Protocol Buffer messages of DumpItem type. ImportEntries returns a long-running operation resource that can be queried with Operations.GetOperation to return ImportEntriesMetadata and an ImportEntriesResponse message.
 ///
@@ -2519,14 +2713,16 @@ pub fn datacatalog_projects_locations_entry_groups_entries_import_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_entries_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatacatalogV1ImportEntriesRequest,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datacatalog_projects_locations_entry_groups_entries_import_builder(client, parent, body)?;
+    let builder = datacatalog_projects_locations_entry_groups_entries_import_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     datacatalog_projects_locations_entry_groups_entries_import_execute(builder)
 }
 
@@ -2645,6 +2841,19 @@ pub fn datacatalog_projects_locations_entry_groups_entries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
 /// Lists entries. Note: Currently, this method can list only custom entries. To get a list of both custom and automatically created entries, use SearchCatalog.
 ///
@@ -2657,10 +2866,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_list_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_entries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1ListEntriesResponse>, ApiError>,
@@ -2670,7 +2876,11 @@ pub fn datacatalog_projects_locations_entry_groups_entries_list(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_entry_groups_entries_list_builder(
-        client, parent, pageSize, pageToken, readMask,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
     )?;
     datacatalog_projects_locations_entry_groups_entries_list_execute(builder)
 }
@@ -2772,6 +2982,15 @@ pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryContactsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1ModifyEntryContactsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:modifyEntryContacts
 /// Modifies contacts, part of the business context of an Entry. To call this method, you must have the datacatalog.entries.`updateContacts` IAM permission on the corresponding project.
 ///
@@ -2784,8 +3003,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts
 
 pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatacatalogV1ModifyEntryContactsRequest,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryContactsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1Contacts>, ApiError>,
@@ -2796,7 +3014,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts
 > {
     let builder =
         datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_execute(builder)
 }
@@ -2898,6 +3116,15 @@ pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_overview
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_modify_entry_overview`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryOverviewArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1ModifyEntryOverviewRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:modifyEntryOverview
 /// Modifies entry overview, part of the business context of an Entry. To call this method, you must have the datacatalog.entries.`updateOverview` IAM permission on the corresponding project.
 ///
@@ -2910,8 +3137,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_overview
 
 pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_overview(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatacatalogV1ModifyEntryOverviewRequest,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryOverviewArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1EntryOverview>, ApiError>,
@@ -2922,7 +3148,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_overview
 > {
     let builder =
         datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_execute(builder)
 }
@@ -3036,6 +3262,17 @@ pub fn datacatalog_projects_locations_entry_groups_entries_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1Entry,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
 /// Updates an existing entry. You must enable the Data Catalog API in the project identified by the entry.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
@@ -3048,9 +3285,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_patch_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_entries_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDatacatalogV1Entry,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1Entry>, ApiError>,
@@ -3060,7 +3295,10 @@ pub fn datacatalog_projects_locations_entry_groups_entries_patch(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_entry_groups_entries_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     datacatalog_projects_locations_entry_groups_entries_patch_execute(builder)
 }
@@ -3162,6 +3400,15 @@ pub fn datacatalog_projects_locations_entry_groups_entries_star_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_star`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesStarArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1StarEntryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:star
 /// Marks an Entry as starred by the current user. Starring information is private to each user.
 ///
@@ -3174,8 +3421,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_star_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_entries_star(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatacatalogV1StarEntryRequest,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesStarArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1StarEntryResponse>, ApiError>,
@@ -3184,8 +3430,9 @@ pub fn datacatalog_projects_locations_entry_groups_entries_star(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datacatalog_projects_locations_entry_groups_entries_star_builder(client, name, body)?;
+    let builder = datacatalog_projects_locations_entry_groups_entries_star_builder(
+        client, &args.name, &args.body,
+    )?;
     datacatalog_projects_locations_entry_groups_entries_star_execute(builder)
 }
 
@@ -3286,6 +3533,15 @@ pub fn datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:testIamPermissions
 /// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
 ///
@@ -3298,8 +3554,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_
 
 pub fn datacatalog_projects_locations_entry_groups_entries_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3309,7 +3564,9 @@ pub fn datacatalog_projects_locations_entry_groups_entries_test_iam_permissions(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_execute(builder)
 }
@@ -3412,6 +3669,15 @@ pub fn datacatalog_projects_locations_entry_groups_entries_unstar_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_unstar`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesUnstarArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1UnstarEntryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:unstar
 /// Marks an Entry as NOT starred by the current user. Starring information is private to each user.
 ///
@@ -3424,8 +3690,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_unstar_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_entries_unstar(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatacatalogV1UnstarEntryRequest,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesUnstarArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1UnstarEntryResponse>, ApiError>,
@@ -3434,8 +3699,9 @@ pub fn datacatalog_projects_locations_entry_groups_entries_unstar(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datacatalog_projects_locations_entry_groups_entries_unstar_builder(client, name, body)?;
+    let builder = datacatalog_projects_locations_entry_groups_entries_unstar_builder(
+        client, &args.name, &args.body,
+    )?;
     datacatalog_projects_locations_entry_groups_entries_unstar_execute(builder)
 }
 
@@ -3536,6 +3802,15 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_tags_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesTagsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1Tag,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags
 /// Creates a tag and assigns it to: * An Entry if the method name is projects.locations.`entryGroups`.entries.tags.create. * Or EntryGroupif the method name is projects.locations.`entryGroups`.tags.create. Note: The project identified by the parent parameter for the [tag] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.`entryGroups`.entries.`tags/create`#path-parameters>) and the [tag template] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.tagT`emplates/create`#path-parameters>) used to create the tag must be in the same organization.
 ///
@@ -3548,8 +3823,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_create_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_entries_tags_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatacatalogV1Tag,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1Tag>, ApiError>,
@@ -3559,7 +3833,9 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_create(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_entry_groups_entries_tags_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     datacatalog_projects_locations_entry_groups_entries_tags_create_execute(builder)
 }
@@ -3654,6 +3930,13 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_tags_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesTagsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}
 /// Deletes a tag.
 ///
@@ -3666,13 +3949,14 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_delete_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_entries_tags_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datacatalog_projects_locations_entry_groups_entries_tags_delete_builder(client, name)?;
+    let builder = datacatalog_projects_locations_entry_groups_entries_tags_delete_builder(
+        client, &args.name,
+    )?;
     datacatalog_projects_locations_entry_groups_entries_tags_delete_execute(builder)
 }
 
@@ -3786,6 +4070,17 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_tags_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesTagsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags
 /// Lists tags assigned to an Entry. The columns in the response are lowercased.
 ///
@@ -3798,9 +4093,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_list_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_entries_tags_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1ListTagsResponse>, ApiError>,
@@ -3810,7 +4103,10 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_list(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_entry_groups_entries_tags_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datacatalog_projects_locations_entry_groups_entries_tags_list_execute(builder)
 }
@@ -3924,6 +4220,17 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_tags_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesTagsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1Tag,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}
 /// Updates an existing tag.
 ///
@@ -3936,9 +4243,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_patch_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_entries_tags_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDatacatalogV1Tag,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1Tag>, ApiError>,
@@ -3948,7 +4253,10 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_patch(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_entry_groups_entries_tags_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     datacatalog_projects_locations_entry_groups_entries_tags_patch_execute(builder)
 }
@@ -4046,6 +4354,15 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_reconcile_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_tags_reconcile`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesTagsReconcileArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1ReconcileTagsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags:reconcile
 /// ReconcileTags creates or updates a list of tags on the entry. If the ReconcileTagsRequest.force_delete_missing parameter is set, the operation deletes tags not included in the input tag list. ReconcileTags returns a long-running operation resource that can be queried with Operations.GetOperation to return ReconcileTagsMetadata and a ReconcileTagsResponse message. Note: SearchCatalog might return stale search results for up to 24 hours after the ReconcileTags operation completes.
 ///
@@ -4058,14 +4375,15 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_reconcile_execut
 
 pub fn datacatalog_projects_locations_entry_groups_entries_tags_reconcile(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatacatalogV1ReconcileTagsRequest,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsReconcileArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datacatalog_projects_locations_entry_groups_entries_tags_reconcile_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     datacatalog_projects_locations_entry_groups_entries_tags_reconcile_execute(builder)
 }
@@ -4167,6 +4485,15 @@ pub fn datacatalog_projects_locations_entry_groups_tags_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_tags_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsTagsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1Tag,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags
 /// Creates a tag and assigns it to: * An Entry if the method name is projects.locations.`entryGroups`.entries.tags.create. * Or EntryGroupif the method name is projects.locations.`entryGroups`.tags.create. Note: The project identified by the parent parameter for the [tag] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.`entryGroups`.entries.`tags/create`#path-parameters>) and the [tag template] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.tagT`emplates/create`#path-parameters>) used to create the tag must be in the same organization.
 ///
@@ -4179,8 +4506,7 @@ pub fn datacatalog_projects_locations_entry_groups_tags_create_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_tags_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatacatalogV1Tag,
+    args: &DatacatalogProjectsLocationsEntryGroupsTagsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1Tag>, ApiError>,
@@ -4189,8 +4515,11 @@ pub fn datacatalog_projects_locations_entry_groups_tags_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datacatalog_projects_locations_entry_groups_tags_create_builder(client, parent, body)?;
+    let builder = datacatalog_projects_locations_entry_groups_tags_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     datacatalog_projects_locations_entry_groups_tags_create_execute(builder)
 }
 
@@ -4284,6 +4613,13 @@ pub fn datacatalog_projects_locations_entry_groups_tags_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_tags_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsTagsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags/{tagsId}
 /// Deletes a tag.
 ///
@@ -4296,12 +4632,13 @@ pub fn datacatalog_projects_locations_entry_groups_tags_delete_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_tags_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatacatalogProjectsLocationsEntryGroupsTagsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_entry_groups_tags_delete_builder(client, name)?;
+    let builder =
+        datacatalog_projects_locations_entry_groups_tags_delete_builder(client, &args.name)?;
     datacatalog_projects_locations_entry_groups_tags_delete_execute(builder)
 }
 
@@ -4415,6 +4752,17 @@ pub fn datacatalog_projects_locations_entry_groups_tags_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_tags_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsTagsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags
 /// Lists tags assigned to an Entry. The columns in the response are lowercased.
 ///
@@ -4427,9 +4775,7 @@ pub fn datacatalog_projects_locations_entry_groups_tags_list_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_tags_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatacatalogProjectsLocationsEntryGroupsTagsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1ListTagsResponse>, ApiError>,
@@ -4439,7 +4785,10 @@ pub fn datacatalog_projects_locations_entry_groups_tags_list(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_entry_groups_tags_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datacatalog_projects_locations_entry_groups_tags_list_execute(builder)
 }
@@ -4553,6 +4902,17 @@ pub fn datacatalog_projects_locations_entry_groups_tags_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_entry_groups_tags_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsTagsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1Tag,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags/{tagsId}
 /// Updates an existing tag.
 ///
@@ -4565,9 +4925,7 @@ pub fn datacatalog_projects_locations_entry_groups_tags_patch_execute(
 
 pub fn datacatalog_projects_locations_entry_groups_tags_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDatacatalogV1Tag,
+    args: &DatacatalogProjectsLocationsEntryGroupsTagsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1Tag>, ApiError>,
@@ -4577,7 +4935,10 @@ pub fn datacatalog_projects_locations_entry_groups_tags_patch(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_entry_groups_tags_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     datacatalog_projects_locations_entry_groups_tags_patch_execute(builder)
 }
@@ -4672,6 +5033,13 @@ pub fn datacatalog_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -4684,12 +5052,12 @@ pub fn datacatalog_projects_locations_operations_cancel_execute(
 
 pub fn datacatalog_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatacatalogProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_operations_cancel_builder(client, name)?;
+    let builder = datacatalog_projects_locations_operations_cancel_builder(client, &args.name)?;
     datacatalog_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -4783,6 +5151,13 @@ pub fn datacatalog_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -4795,12 +5170,12 @@ pub fn datacatalog_projects_locations_operations_delete_execute(
 
 pub fn datacatalog_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatacatalogProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_operations_delete_builder(client, name)?;
+    let builder = datacatalog_projects_locations_operations_delete_builder(client, &args.name)?;
     datacatalog_projects_locations_operations_delete_execute(builder)
 }
 
@@ -4894,6 +5269,13 @@ pub fn datacatalog_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -4906,12 +5288,12 @@ pub fn datacatalog_projects_locations_operations_get_execute(
 
 pub fn datacatalog_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatacatalogProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_operations_get_builder(client, name)?;
+    let builder = datacatalog_projects_locations_operations_get_builder(client, &args.name)?;
     datacatalog_projects_locations_operations_get_execute(builder)
 }
 
@@ -5031,6 +5413,21 @@ pub fn datacatalog_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -5043,11 +5440,7 @@ pub fn datacatalog_projects_locations_operations_list_execute(
 
 pub fn datacatalog_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DatacatalogProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5056,11 +5449,11 @@ pub fn datacatalog_projects_locations_operations_list(
 > {
     let builder = datacatalog_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     datacatalog_projects_locations_operations_list_execute(builder)
 }
@@ -5174,6 +5567,17 @@ pub fn datacatalog_projects_locations_tag_templates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_tag_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: tagTemplateId
+    pub tagTemplateId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1TagTemplate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tagTemplates
 /// Creates a tag template. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project] (<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
@@ -5186,9 +5590,7 @@ pub fn datacatalog_projects_locations_tag_templates_create_execute(
 
 pub fn datacatalog_projects_locations_tag_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    tagTemplateId: Option<&str>,
-    body: &GoogleCloudDatacatalogV1TagTemplate,
+    args: &DatacatalogProjectsLocationsTagTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplate>, ApiError>,
@@ -5199,9 +5601,9 @@ pub fn datacatalog_projects_locations_tag_templates_create(
 > {
     let builder = datacatalog_projects_locations_tag_templates_create_builder(
         client,
-        parent,
-        tagTemplateId,
-        body,
+        &args.parent,
+        args.tagTemplateId.as_deref(),
+        &args.body,
     )?;
     datacatalog_projects_locations_tag_templates_create_execute(builder)
 }
@@ -5308,6 +5710,15 @@ pub fn datacatalog_projects_locations_tag_templates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_tag_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
 /// Deletes a tag template and all tags that use it. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
@@ -5320,13 +5731,14 @@ pub fn datacatalog_projects_locations_tag_templates_delete_execute(
 
 pub fn datacatalog_projects_locations_tag_templates_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &DatacatalogProjectsLocationsTagTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_tag_templates_delete_builder(client, name, force)?;
+    let builder = datacatalog_projects_locations_tag_templates_delete_builder(
+        client, &args.name, args.force,
+    )?;
     datacatalog_projects_locations_tag_templates_delete_execute(builder)
 }
 
@@ -5424,6 +5836,13 @@ pub fn datacatalog_projects_locations_tag_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_tag_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
 /// Gets a tag template.
 ///
@@ -5436,7 +5855,7 @@ pub fn datacatalog_projects_locations_tag_templates_get_execute(
 
 pub fn datacatalog_projects_locations_tag_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatacatalogProjectsLocationsTagTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplate>, ApiError>,
@@ -5445,7 +5864,7 @@ pub fn datacatalog_projects_locations_tag_templates_get(
         + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_tag_templates_get_builder(client, name)?;
+    let builder = datacatalog_projects_locations_tag_templates_get_builder(client, &args.name)?;
     datacatalog_projects_locations_tag_templates_get_execute(builder)
 }
 
@@ -5542,6 +5961,15 @@ pub fn datacatalog_projects_locations_tag_templates_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_tag_templates_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:getIamPolicy
 /// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
 ///
@@ -5554,14 +5982,15 @@ pub fn datacatalog_projects_locations_tag_templates_get_iam_policy_execute(
 
 pub fn datacatalog_projects_locations_tag_templates_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &DatacatalogProjectsLocationsTagTemplatesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datacatalog_projects_locations_tag_templates_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     datacatalog_projects_locations_tag_templates_get_iam_policy_execute(builder)
 }
@@ -5675,6 +6104,17 @@ pub fn datacatalog_projects_locations_tag_templates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_tag_templates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1TagTemplate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
 /// Updates a tag template. You can't update template fields with this method. These fields are separate resources with their own create, update, and delete methods. You must enable the Data Catalog API in the project identified by the tag_template.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
@@ -5687,9 +6127,7 @@ pub fn datacatalog_projects_locations_tag_templates_patch_execute(
 
 pub fn datacatalog_projects_locations_tag_templates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDatacatalogV1TagTemplate,
+    args: &DatacatalogProjectsLocationsTagTemplatesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplate>, ApiError>,
@@ -5698,8 +6136,12 @@ pub fn datacatalog_projects_locations_tag_templates_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datacatalog_projects_locations_tag_templates_patch_builder(client, name, updateMask, body)?;
+    let builder = datacatalog_projects_locations_tag_templates_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     datacatalog_projects_locations_tag_templates_patch_execute(builder)
 }
 
@@ -5796,6 +6238,15 @@ pub fn datacatalog_projects_locations_tag_templates_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_tag_templates_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:setIamPolicy
 /// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
 ///
@@ -5808,14 +6259,15 @@ pub fn datacatalog_projects_locations_tag_templates_set_iam_policy_execute(
 
 pub fn datacatalog_projects_locations_tag_templates_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DatacatalogProjectsLocationsTagTemplatesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datacatalog_projects_locations_tag_templates_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     datacatalog_projects_locations_tag_templates_set_iam_policy_execute(builder)
 }
@@ -5917,6 +6369,15 @@ pub fn datacatalog_projects_locations_tag_templates_test_iam_permissions_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_tag_templates_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:testIamPermissions
 /// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
 ///
@@ -5929,8 +6390,7 @@ pub fn datacatalog_projects_locations_tag_templates_test_iam_permissions_execute
 
 pub fn datacatalog_projects_locations_tag_templates_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DatacatalogProjectsLocationsTagTemplatesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -5940,7 +6400,9 @@ pub fn datacatalog_projects_locations_tag_templates_test_iam_permissions(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_tag_templates_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     datacatalog_projects_locations_tag_templates_test_iam_permissions_execute(builder)
 }
@@ -6054,6 +6516,17 @@ pub fn datacatalog_projects_locations_tag_templates_fields_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_tag_templates_fields_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesFieldsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: tagTemplateFieldId
+    pub tagTemplateFieldId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1TagTemplateField,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields
 /// Creates a field in a tag template. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
@@ -6066,9 +6539,7 @@ pub fn datacatalog_projects_locations_tag_templates_fields_create_execute(
 
 pub fn datacatalog_projects_locations_tag_templates_fields_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    tagTemplateFieldId: Option<&str>,
-    body: &GoogleCloudDatacatalogV1TagTemplateField,
+    args: &DatacatalogProjectsLocationsTagTemplatesFieldsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplateField>, ApiError>,
@@ -6079,9 +6550,9 @@ pub fn datacatalog_projects_locations_tag_templates_fields_create(
 > {
     let builder = datacatalog_projects_locations_tag_templates_fields_create_builder(
         client,
-        parent,
-        tagTemplateFieldId,
-        body,
+        &args.parent,
+        args.tagTemplateFieldId.as_deref(),
+        &args.body,
     )?;
     datacatalog_projects_locations_tag_templates_fields_create_execute(builder)
 }
@@ -6188,6 +6659,15 @@ pub fn datacatalog_projects_locations_tag_templates_fields_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_tag_templates_fields_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesFieldsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}
 /// Deletes a field in a tag template and all uses of this field from the tags based on this template. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
@@ -6200,14 +6680,14 @@ pub fn datacatalog_projects_locations_tag_templates_fields_delete_execute(
 
 pub fn datacatalog_projects_locations_tag_templates_fields_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &DatacatalogProjectsLocationsTagTemplatesFieldsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datacatalog_projects_locations_tag_templates_fields_delete_builder(client, name, force)?;
+    let builder = datacatalog_projects_locations_tag_templates_fields_delete_builder(
+        client, &args.name, args.force,
+    )?;
     datacatalog_projects_locations_tag_templates_fields_delete_execute(builder)
 }
 
@@ -6320,6 +6800,17 @@ pub fn datacatalog_projects_locations_tag_templates_fields_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_tag_templates_fields_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesFieldsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1TagTemplateField,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}
 /// Updates a field in a tag template. You can't update the field type with this method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
@@ -6332,9 +6823,7 @@ pub fn datacatalog_projects_locations_tag_templates_fields_patch_execute(
 
 pub fn datacatalog_projects_locations_tag_templates_fields_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDatacatalogV1TagTemplateField,
+    args: &DatacatalogProjectsLocationsTagTemplatesFieldsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplateField>, ApiError>,
@@ -6344,7 +6833,10 @@ pub fn datacatalog_projects_locations_tag_templates_fields_patch(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_tag_templates_fields_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     datacatalog_projects_locations_tag_templates_fields_patch_execute(builder)
 }
@@ -6446,6 +6938,15 @@ pub fn datacatalog_projects_locations_tag_templates_fields_rename_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_tag_templates_fields_rename`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesFieldsRenameArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1RenameTagTemplateFieldRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}:rename
 /// Renames a field in a tag template. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project] (<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
 ///
@@ -6458,8 +6959,7 @@ pub fn datacatalog_projects_locations_tag_templates_fields_rename_execute(
 
 pub fn datacatalog_projects_locations_tag_templates_fields_rename(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatacatalogV1RenameTagTemplateFieldRequest,
+    args: &DatacatalogProjectsLocationsTagTemplatesFieldsRenameArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplateField>, ApiError>,
@@ -6468,8 +6968,9 @@ pub fn datacatalog_projects_locations_tag_templates_fields_rename(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datacatalog_projects_locations_tag_templates_fields_rename_builder(client, name, body)?;
+    let builder = datacatalog_projects_locations_tag_templates_fields_rename_builder(
+        client, &args.name, &args.body,
+    )?;
     datacatalog_projects_locations_tag_templates_fields_rename_execute(builder)
 }
 
@@ -6570,6 +7071,15 @@ pub fn datacatalog_projects_locations_tag_templates_fields_enum_values_rename_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_tag_templates_fields_enum_values_rename`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesFieldsEnumValuesRenameArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1RenameTagTemplateFieldEnumValueRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}/enumValues/{enumValuesId}:rename
 /// Renames an enum value in a tag template. Within a single enum field, enum values must be unique.
 ///
@@ -6582,8 +7092,7 @@ pub fn datacatalog_projects_locations_tag_templates_fields_enum_values_rename_ex
 
 pub fn datacatalog_projects_locations_tag_templates_fields_enum_values_rename(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatacatalogV1RenameTagTemplateFieldEnumValueRequest,
+    args: &DatacatalogProjectsLocationsTagTemplatesFieldsEnumValuesRenameArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplateField>, ApiError>,
@@ -6593,7 +7102,7 @@ pub fn datacatalog_projects_locations_tag_templates_fields_enum_values_rename(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_tag_templates_fields_enum_values_rename_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     datacatalog_projects_locations_tag_templates_fields_enum_values_rename_execute(builder)
 }
@@ -6695,6 +7204,15 @@ pub fn datacatalog_projects_locations_taxonomies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1Taxonomy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies
 /// Creates a taxonomy in a specified project. The taxonomy is initially empty, that is, it doesn't contain policy tags.
 ///
@@ -6707,8 +7225,7 @@ pub fn datacatalog_projects_locations_taxonomies_create_execute(
 
 pub fn datacatalog_projects_locations_taxonomies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatacatalogV1Taxonomy,
+    args: &DatacatalogProjectsLocationsTaxonomiesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1Taxonomy>, ApiError>,
@@ -6717,7 +7234,8 @@ pub fn datacatalog_projects_locations_taxonomies_create(
         + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_taxonomies_create_builder(client, parent, body)?;
+    let builder =
+        datacatalog_projects_locations_taxonomies_create_builder(client, &args.parent, &args.body)?;
     datacatalog_projects_locations_taxonomies_create_execute(builder)
 }
 
@@ -6811,6 +7329,13 @@ pub fn datacatalog_projects_locations_taxonomies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}
 /// Deletes a taxonomy, including all policy tags in this taxonomy, their associated policies, and the policy tags references from BigQuery columns.
 ///
@@ -6823,12 +7348,12 @@ pub fn datacatalog_projects_locations_taxonomies_delete_execute(
 
 pub fn datacatalog_projects_locations_taxonomies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatacatalogProjectsLocationsTaxonomiesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_taxonomies_delete_builder(client, name)?;
+    let builder = datacatalog_projects_locations_taxonomies_delete_builder(client, &args.name)?;
     datacatalog_projects_locations_taxonomies_delete_execute(builder)
 }
 
@@ -6943,6 +7468,17 @@ pub fn datacatalog_projects_locations_taxonomies_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesExportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: serializedTaxonomies
+    pub serializedTaxonomies: Option<bool>,
+    /// Query parameter: taxonomies
+    pub taxonomies: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies:export
 /// Exports taxonomies in the requested type and returns them, including their policy tags. The requested taxonomies must belong to the same project. This method generates SerializedTaxonomy protocol buffers with nested policy tags that can be used as input for ImportTaxonomies calls.
 ///
@@ -6955,9 +7491,7 @@ pub fn datacatalog_projects_locations_taxonomies_export_execute(
 
 pub fn datacatalog_projects_locations_taxonomies_export(
     client: &SimpleHttpClient,
-    parent: &str,
-    serializedTaxonomies: Option<bool>,
-    taxonomies: Option<&str>,
+    args: &DatacatalogProjectsLocationsTaxonomiesExportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1ExportTaxonomiesResponse>, ApiError>,
@@ -6968,9 +7502,9 @@ pub fn datacatalog_projects_locations_taxonomies_export(
 > {
     let builder = datacatalog_projects_locations_taxonomies_export_builder(
         client,
-        parent,
-        serializedTaxonomies,
-        taxonomies,
+        &args.parent,
+        args.serializedTaxonomies,
+        args.taxonomies.as_deref(),
     )?;
     datacatalog_projects_locations_taxonomies_export_execute(builder)
 }
@@ -7069,6 +7603,13 @@ pub fn datacatalog_projects_locations_taxonomies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}
 /// Gets a taxonomy.
 ///
@@ -7081,7 +7622,7 @@ pub fn datacatalog_projects_locations_taxonomies_get_execute(
 
 pub fn datacatalog_projects_locations_taxonomies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatacatalogProjectsLocationsTaxonomiesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1Taxonomy>, ApiError>,
@@ -7090,7 +7631,7 @@ pub fn datacatalog_projects_locations_taxonomies_get(
         + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_taxonomies_get_builder(client, name)?;
+    let builder = datacatalog_projects_locations_taxonomies_get_builder(client, &args.name)?;
     datacatalog_projects_locations_taxonomies_get_execute(builder)
 }
 
@@ -7187,6 +7728,15 @@ pub fn datacatalog_projects_locations_taxonomies_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:getIamPolicy
 /// Gets the IAM policy for a policy tag or a taxonomy.
 ///
@@ -7199,14 +7749,16 @@ pub fn datacatalog_projects_locations_taxonomies_get_iam_policy_execute(
 
 pub fn datacatalog_projects_locations_taxonomies_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &DatacatalogProjectsLocationsTaxonomiesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datacatalog_projects_locations_taxonomies_get_iam_policy_builder(client, resource, body)?;
+    let builder = datacatalog_projects_locations_taxonomies_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     datacatalog_projects_locations_taxonomies_get_iam_policy_execute(builder)
 }
 
@@ -7308,6 +7860,15 @@ pub fn datacatalog_projects_locations_taxonomies_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1ImportTaxonomiesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies:import
 /// Creates new taxonomies (including their policy tags) in a given project by importing from inlined or cross-regional sources. For a cross-regional source, new taxonomies are created by copying from a source in another region. For an inlined source, taxonomies and policy tags are created in bulk using nested protocol buffer structures.
 ///
@@ -7320,8 +7881,7 @@ pub fn datacatalog_projects_locations_taxonomies_import_execute(
 
 pub fn datacatalog_projects_locations_taxonomies_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatacatalogV1ImportTaxonomiesRequest,
+    args: &DatacatalogProjectsLocationsTaxonomiesImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1ImportTaxonomiesResponse>, ApiError>,
@@ -7330,7 +7890,8 @@ pub fn datacatalog_projects_locations_taxonomies_import(
         + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_taxonomies_import_builder(client, parent, body)?;
+    let builder =
+        datacatalog_projects_locations_taxonomies_import_builder(client, &args.parent, &args.body)?;
     datacatalog_projects_locations_taxonomies_import_execute(builder)
 }
 
@@ -7449,6 +8010,19 @@ pub fn datacatalog_projects_locations_taxonomies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies
 /// Lists all taxonomies in a project in a particular location that you have a permission to view.
 ///
@@ -7461,10 +8035,7 @@ pub fn datacatalog_projects_locations_taxonomies_list_execute(
 
 pub fn datacatalog_projects_locations_taxonomies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatacatalogProjectsLocationsTaxonomiesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1ListTaxonomiesResponse>, ApiError>,
@@ -7474,7 +8045,11 @@ pub fn datacatalog_projects_locations_taxonomies_list(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_taxonomies_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datacatalog_projects_locations_taxonomies_list_execute(builder)
 }
@@ -7588,6 +8163,17 @@ pub fn datacatalog_projects_locations_taxonomies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1Taxonomy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}
 /// Updates a taxonomy, including its display name, description, and activated policy types.
 ///
@@ -7600,9 +8186,7 @@ pub fn datacatalog_projects_locations_taxonomies_patch_execute(
 
 pub fn datacatalog_projects_locations_taxonomies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDatacatalogV1Taxonomy,
+    args: &DatacatalogProjectsLocationsTaxonomiesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1Taxonomy>, ApiError>,
@@ -7611,8 +8195,12 @@ pub fn datacatalog_projects_locations_taxonomies_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datacatalog_projects_locations_taxonomies_patch_builder(client, name, updateMask, body)?;
+    let builder = datacatalog_projects_locations_taxonomies_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     datacatalog_projects_locations_taxonomies_patch_execute(builder)
 }
 
@@ -7713,6 +8301,15 @@ pub fn datacatalog_projects_locations_taxonomies_replace_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_replace`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesReplaceArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1ReplaceTaxonomyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:replace
 /// Replaces (updates) a taxonomy and all its policy tags. The taxonomy and its entire hierarchy of policy tags must be represented literally by SerializedTaxonomy and the nested SerializedPolicyTag messages. This operation automatically does the following: - Deletes the existing policy tags that are missing from the SerializedPolicyTag. - Creates policy tags that don't have resource names. They are considered new. - Updates policy tags with valid resources names accordingly.
 ///
@@ -7725,8 +8322,7 @@ pub fn datacatalog_projects_locations_taxonomies_replace_execute(
 
 pub fn datacatalog_projects_locations_taxonomies_replace(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatacatalogV1ReplaceTaxonomyRequest,
+    args: &DatacatalogProjectsLocationsTaxonomiesReplaceArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1Taxonomy>, ApiError>,
@@ -7735,7 +8331,8 @@ pub fn datacatalog_projects_locations_taxonomies_replace(
         + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_taxonomies_replace_builder(client, name, body)?;
+    let builder =
+        datacatalog_projects_locations_taxonomies_replace_builder(client, &args.name, &args.body)?;
     datacatalog_projects_locations_taxonomies_replace_execute(builder)
 }
 
@@ -7832,6 +8429,15 @@ pub fn datacatalog_projects_locations_taxonomies_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:setIamPolicy
 /// Sets the IAM policy for a policy tag or a taxonomy.
 ///
@@ -7844,14 +8450,16 @@ pub fn datacatalog_projects_locations_taxonomies_set_iam_policy_execute(
 
 pub fn datacatalog_projects_locations_taxonomies_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DatacatalogProjectsLocationsTaxonomiesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datacatalog_projects_locations_taxonomies_set_iam_policy_builder(client, resource, body)?;
+    let builder = datacatalog_projects_locations_taxonomies_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     datacatalog_projects_locations_taxonomies_set_iam_policy_execute(builder)
 }
 
@@ -7952,6 +8560,15 @@ pub fn datacatalog_projects_locations_taxonomies_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:testIamPermissions
 /// Returns your permissions on a specified policy tag or taxonomy.
 ///
@@ -7964,8 +8581,7 @@ pub fn datacatalog_projects_locations_taxonomies_test_iam_permissions_execute(
 
 pub fn datacatalog_projects_locations_taxonomies_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DatacatalogProjectsLocationsTaxonomiesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -7975,7 +8591,9 @@ pub fn datacatalog_projects_locations_taxonomies_test_iam_permissions(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_taxonomies_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     datacatalog_projects_locations_taxonomies_test_iam_permissions_execute(builder)
 }
@@ -8077,6 +8695,15 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_policy_tags_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1PolicyTag,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags
 /// Creates a policy tag in a taxonomy.
 ///
@@ -8089,8 +8716,7 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_create_execute(
 
 pub fn datacatalog_projects_locations_taxonomies_policy_tags_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatacatalogV1PolicyTag,
+    args: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1PolicyTag>, ApiError>,
@@ -8099,8 +8725,11 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datacatalog_projects_locations_taxonomies_policy_tags_create_builder(client, parent, body)?;
+    let builder = datacatalog_projects_locations_taxonomies_policy_tags_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     datacatalog_projects_locations_taxonomies_policy_tags_create_execute(builder)
 }
 
@@ -8194,6 +8823,13 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_policy_tags_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}
 /// Deletes a policy tag together with the following: * All of its descendant policy tags, if any * Policies associated with the policy tag and its descendants * References from BigQuery table schema of the policy tag and its descendants
 ///
@@ -8206,13 +8842,13 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_delete_execute(
 
 pub fn datacatalog_projects_locations_taxonomies_policy_tags_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        datacatalog_projects_locations_taxonomies_policy_tags_delete_builder(client, name)?;
+        datacatalog_projects_locations_taxonomies_policy_tags_delete_builder(client, &args.name)?;
     datacatalog_projects_locations_taxonomies_policy_tags_delete_execute(builder)
 }
 
@@ -8310,6 +8946,13 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_policy_tags_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}
 /// Gets a policy tag.
 ///
@@ -8322,7 +8965,7 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_execute(
 
 pub fn datacatalog_projects_locations_taxonomies_policy_tags_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1PolicyTag>, ApiError>,
@@ -8331,7 +8974,8 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_get(
         + 'static,
     ApiError,
 > {
-    let builder = datacatalog_projects_locations_taxonomies_policy_tags_get_builder(client, name)?;
+    let builder =
+        datacatalog_projects_locations_taxonomies_policy_tags_get_builder(client, &args.name)?;
     datacatalog_projects_locations_taxonomies_policy_tags_get_execute(builder)
 }
 
@@ -8428,6 +9072,15 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:getIamPolicy
 /// Gets the IAM policy for a policy tag or a taxonomy.
 ///
@@ -8440,14 +9093,15 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_exec
 
 pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_execute(builder)
 }
@@ -8563,6 +9217,17 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_policy_tags_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags
 /// Lists all policy tags in a taxonomy.
 ///
@@ -8575,9 +9240,7 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_list_execute(
 
 pub fn datacatalog_projects_locations_taxonomies_policy_tags_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1ListPolicyTagsResponse>, ApiError>,
@@ -8587,7 +9250,10 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_list(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_taxonomies_policy_tags_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datacatalog_projects_locations_taxonomies_policy_tags_list_execute(builder)
 }
@@ -8701,6 +9367,17 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_policy_tags_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogV1PolicyTag,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}
 /// Updates a policy tag, including its display name, description, and parent policy tag.
 ///
@@ -8713,9 +9390,7 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_patch_execute(
 
 pub fn datacatalog_projects_locations_taxonomies_policy_tags_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDatacatalogV1PolicyTag,
+    args: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1PolicyTag>, ApiError>,
@@ -8725,7 +9400,10 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_patch(
     ApiError,
 > {
     let builder = datacatalog_projects_locations_taxonomies_policy_tags_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     datacatalog_projects_locations_taxonomies_policy_tags_patch_execute(builder)
 }
@@ -8823,6 +9501,15 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:setIamPolicy
 /// Sets the IAM policy for a policy tag or a taxonomy.
 ///
@@ -8835,14 +9522,15 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_exec
 
 pub fn datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_execute(builder)
 }
@@ -8944,6 +9632,15 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permission
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:testIamPermissions
 /// Returns your permissions on a specified policy tag or taxonomy.
 ///
@@ -8956,8 +9653,7 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permission
 
 pub fn datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -8968,7 +9664,9 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permission
 > {
     let builder =
         datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_execute(builder)
 }

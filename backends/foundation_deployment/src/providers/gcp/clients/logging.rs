@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/billingAccounts/{billingAccountsId}/cmekSettings
 /// Gets the Logging CMEK settings for the given resource.Note: CMEK for the Log Router can be configured for Google Cloud projects, folders, organizations, and billing accounts. Once configured for an organization, it applies to all projects and folders in the Google Cloud organization.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
@@ -108,6 +110,13 @@ pub fn logging_billing_accounts_get_cmek_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_get_cmek_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsGetCmekSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/cmekSettings
 /// Gets the Logging CMEK settings for the given resource.Note: CMEK for the Log Router can be configured for Google Cloud projects, folders, organizations, and billing accounts. Once configured for an organization, it applies to all projects and folders in the Google Cloud organization.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
 ///
@@ -120,14 +129,14 @@ pub fn logging_billing_accounts_get_cmek_settings_execute(
 
 pub fn logging_billing_accounts_get_cmek_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingBillingAccountsGetCmekSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CmekSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_get_cmek_settings_builder(client, name)?;
+    let builder = logging_billing_accounts_get_cmek_settings_builder(client, &args.name)?;
     logging_billing_accounts_get_cmek_settings_execute(builder)
 }
 
@@ -221,6 +230,13 @@ pub fn logging_billing_accounts_get_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_get_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsGetSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/settings
 /// Gets the settings for the given resource.Note: Settings can be retrieved for Google Cloud projects, folders, organizations, and billing accounts.See View default resource settings for Logging (<https://docs.cloud.google.`com/logging/docs/default-settings`#view-org-settings>) for more information.
 ///
@@ -233,12 +249,12 @@ pub fn logging_billing_accounts_get_settings_execute(
 
 pub fn logging_billing_accounts_get_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingBillingAccountsGetSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_get_settings_builder(client, name)?;
+    let builder = logging_billing_accounts_get_settings_builder(client, &args.name)?;
     logging_billing_accounts_get_settings_execute(builder)
 }
 
@@ -337,6 +353,15 @@ pub fn logging_billing_accounts_exclusions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_exclusions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsExclusionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: LogExclusion,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/exclusions
 /// Creates a new exclusion in the _Default sink in a specified parent resource. Only log entries belonging to that resource can be excluded. You can have up to 10 exclusions in a resource.
 ///
@@ -349,15 +374,15 @@ pub fn logging_billing_accounts_exclusions_create_execute(
 
 pub fn logging_billing_accounts_exclusions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &LogExclusion,
+    args: &LoggingBillingAccountsExclusionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogExclusion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_exclusions_create_builder(client, parent, body)?;
+    let builder =
+        logging_billing_accounts_exclusions_create_builder(client, &args.parent, &args.body)?;
     logging_billing_accounts_exclusions_create_execute(builder)
 }
 
@@ -451,6 +476,13 @@ pub fn logging_billing_accounts_exclusions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_exclusions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsExclusionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/exclusions/{exclusionsId}
 /// Deletes an exclusion in the _Default sink.
 ///
@@ -463,12 +495,12 @@ pub fn logging_billing_accounts_exclusions_delete_execute(
 
 pub fn logging_billing_accounts_exclusions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingBillingAccountsExclusionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_exclusions_delete_builder(client, name)?;
+    let builder = logging_billing_accounts_exclusions_delete_builder(client, &args.name)?;
     logging_billing_accounts_exclusions_delete_execute(builder)
 }
 
@@ -564,6 +596,13 @@ pub fn logging_billing_accounts_exclusions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_exclusions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsExclusionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/exclusions/{exclusionsId}
 /// Gets the description of an exclusion in the _Default sink.
 ///
@@ -576,14 +615,14 @@ pub fn logging_billing_accounts_exclusions_get_execute(
 
 pub fn logging_billing_accounts_exclusions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingBillingAccountsExclusionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogExclusion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_exclusions_get_builder(client, name)?;
+    let builder = logging_billing_accounts_exclusions_get_builder(client, &args.name)?;
     logging_billing_accounts_exclusions_get_execute(builder)
 }
 
@@ -695,6 +734,17 @@ pub fn logging_billing_accounts_exclusions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_exclusions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsExclusionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/exclusions
 /// Lists all the exclusions on the _Default sink in a parent resource.
 ///
@@ -707,17 +757,19 @@ pub fn logging_billing_accounts_exclusions_list_execute(
 
 pub fn logging_billing_accounts_exclusions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingBillingAccountsExclusionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListExclusionsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_billing_accounts_exclusions_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_billing_accounts_exclusions_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_billing_accounts_exclusions_list_execute(builder)
 }
 
@@ -828,6 +880,17 @@ pub fn logging_billing_accounts_exclusions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_exclusions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsExclusionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogExclusion,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/exclusions/{exclusionsId}
 /// Changes one or more properties of an existing exclusion in the _Default sink.
 ///
@@ -840,17 +903,19 @@ pub fn logging_billing_accounts_exclusions_patch_execute(
 
 pub fn logging_billing_accounts_exclusions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogExclusion,
+    args: &LoggingBillingAccountsExclusionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogExclusion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_billing_accounts_exclusions_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_billing_accounts_exclusions_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_billing_accounts_exclusions_patch_execute(builder)
 }
 
@@ -944,6 +1009,13 @@ pub fn logging_billing_accounts_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -956,12 +1028,12 @@ pub fn logging_billing_accounts_locations_get_execute(
 
 pub fn logging_billing_accounts_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingBillingAccountsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_locations_get_builder(client, name)?;
+    let builder = logging_billing_accounts_locations_get_builder(client, &args.name)?;
     logging_billing_accounts_locations_get_execute(builder)
 }
 
@@ -1081,6 +1153,21 @@ pub fn logging_billing_accounts_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations
 /// Lists information about the supported locations for this service.This method lists locations based on the resource scope provided in the ListLocationsRequest.name field: Global locations: If name is empty, the method lists the public locations available to all projects. Project-specific locations: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project.For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -1093,11 +1180,7 @@ pub fn logging_billing_accounts_locations_list_execute(
 
 pub fn logging_billing_accounts_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingBillingAccountsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1106,11 +1189,11 @@ pub fn logging_billing_accounts_locations_list(
 > {
     let builder = logging_billing_accounts_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_billing_accounts_locations_list_execute(builder)
 }
@@ -1220,6 +1303,17 @@ pub fn logging_billing_accounts_locations_buckets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: bucketId
+    pub bucketId: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets
 /// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -1232,15 +1326,17 @@ pub fn logging_billing_accounts_locations_buckets_create_execute(
 
 pub fn logging_billing_accounts_locations_buckets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    bucketId: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingBillingAccountsLocationsBucketsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogBucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_billing_accounts_locations_buckets_create_builder(client, parent, bucketId, body)?;
+    let builder = logging_billing_accounts_locations_buckets_create_builder(
+        client,
+        &args.parent,
+        args.bucketId.as_deref(),
+        &args.body,
+    )?;
     logging_billing_accounts_locations_buckets_create_execute(builder)
 }
 
@@ -1349,6 +1445,17 @@ pub fn logging_billing_accounts_locations_buckets_create_async_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_create_async`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsCreateAsyncArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: bucketId
+    pub bucketId: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets:createAsync
 /// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -1361,15 +1468,16 @@ pub fn logging_billing_accounts_locations_buckets_create_async_execute(
 
 pub fn logging_billing_accounts_locations_buckets_create_async(
     client: &SimpleHttpClient,
-    parent: &str,
-    bucketId: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingBillingAccountsLocationsBucketsCreateAsyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_billing_accounts_locations_buckets_create_async_builder(
-        client, parent, bucketId, body,
+        client,
+        &args.parent,
+        args.bucketId.as_deref(),
+        &args.body,
     )?;
     logging_billing_accounts_locations_buckets_create_async_execute(builder)
 }
@@ -1464,6 +1572,13 @@ pub fn logging_billing_accounts_locations_buckets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}
 /// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
@@ -1476,12 +1591,12 @@ pub fn logging_billing_accounts_locations_buckets_delete_execute(
 
 pub fn logging_billing_accounts_locations_buckets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingBillingAccountsLocationsBucketsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_locations_buckets_delete_builder(client, name)?;
+    let builder = logging_billing_accounts_locations_buckets_delete_builder(client, &args.name)?;
     logging_billing_accounts_locations_buckets_delete_execute(builder)
 }
 
@@ -1575,6 +1690,13 @@ pub fn logging_billing_accounts_locations_buckets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}
 /// Gets a log bucket.
 ///
@@ -1587,12 +1709,12 @@ pub fn logging_billing_accounts_locations_buckets_get_execute(
 
 pub fn logging_billing_accounts_locations_buckets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingBillingAccountsLocationsBucketsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogBucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_locations_buckets_get_builder(client, name)?;
+    let builder = logging_billing_accounts_locations_buckets_get_builder(client, &args.name)?;
     logging_billing_accounts_locations_buckets_get_execute(builder)
 }
 
@@ -1704,6 +1826,17 @@ pub fn logging_billing_accounts_locations_buckets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets
 /// Lists log buckets.
 ///
@@ -1716,9 +1849,7 @@ pub fn logging_billing_accounts_locations_buckets_list_execute(
 
 pub fn logging_billing_accounts_locations_buckets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingBillingAccountsLocationsBucketsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBucketsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1726,7 +1857,10 @@ pub fn logging_billing_accounts_locations_buckets_list(
     ApiError,
 > {
     let builder = logging_billing_accounts_locations_buckets_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_billing_accounts_locations_buckets_list_execute(builder)
 }
@@ -1836,6 +1970,17 @@ pub fn logging_billing_accounts_locations_buckets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}
 /// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -1848,15 +1993,17 @@ pub fn logging_billing_accounts_locations_buckets_patch_execute(
 
 pub fn logging_billing_accounts_locations_buckets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingBillingAccountsLocationsBucketsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogBucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_billing_accounts_locations_buckets_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_billing_accounts_locations_buckets_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_billing_accounts_locations_buckets_patch_execute(builder)
 }
 
@@ -1953,6 +2100,15 @@ pub fn logging_billing_accounts_locations_buckets_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsUndeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UndeleteBucketRequest,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}:undelete
 /// Undeletes a log bucket. A bucket that has been deleted can be undeleted within the grace period of 7 days.
 ///
@@ -1965,13 +2121,14 @@ pub fn logging_billing_accounts_locations_buckets_undelete_execute(
 
 pub fn logging_billing_accounts_locations_buckets_undelete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UndeleteBucketRequest,
+    args: &LoggingBillingAccountsLocationsBucketsUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_locations_buckets_undelete_builder(client, name, body)?;
+    let builder = logging_billing_accounts_locations_buckets_undelete_builder(
+        client, &args.name, &args.body,
+    )?;
     logging_billing_accounts_locations_buckets_undelete_execute(builder)
 }
 
@@ -2080,6 +2237,17 @@ pub fn logging_billing_accounts_locations_buckets_update_async_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_update_async`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsUpdateAsyncArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
 /// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -2092,15 +2260,16 @@ pub fn logging_billing_accounts_locations_buckets_update_async_execute(
 
 pub fn logging_billing_accounts_locations_buckets_update_async(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingBillingAccountsLocationsBucketsUpdateAsyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_billing_accounts_locations_buckets_update_async_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     logging_billing_accounts_locations_buckets_update_async_execute(builder)
 }
@@ -2210,6 +2379,17 @@ pub fn logging_billing_accounts_locations_buckets_links_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsLinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: linkId
+    pub linkId: Option<String>,
+    /// Request body.
+    pub body: Link,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}/links
 /// Asynchronously creates a linked dataset in BigQuery which makes it possible to use BigQuery to read the logs stored in the log bucket. A log bucket may currently only contain one link.
 ///
@@ -2222,15 +2402,16 @@ pub fn logging_billing_accounts_locations_buckets_links_create_execute(
 
 pub fn logging_billing_accounts_locations_buckets_links_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    linkId: Option<&str>,
-    body: &Link,
+    args: &LoggingBillingAccountsLocationsBucketsLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_billing_accounts_locations_buckets_links_create_builder(
-        client, parent, linkId, body,
+        client,
+        &args.parent,
+        args.linkId.as_deref(),
+        &args.body,
     )?;
     logging_billing_accounts_locations_buckets_links_create_execute(builder)
 }
@@ -2325,6 +2506,13 @@ pub fn logging_billing_accounts_locations_buckets_links_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}
 /// Deletes a link. This will also delete the corresponding BigQuery linked dataset.
 ///
@@ -2337,12 +2525,13 @@ pub fn logging_billing_accounts_locations_buckets_links_delete_execute(
 
 pub fn logging_billing_accounts_locations_buckets_links_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingBillingAccountsLocationsBucketsLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_locations_buckets_links_delete_builder(client, name)?;
+    let builder =
+        logging_billing_accounts_locations_buckets_links_delete_builder(client, &args.name)?;
     logging_billing_accounts_locations_buckets_links_delete_execute(builder)
 }
 
@@ -2436,6 +2625,13 @@ pub fn logging_billing_accounts_locations_buckets_links_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_links_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsLinksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}
 /// Gets a link.
 ///
@@ -2448,12 +2644,12 @@ pub fn logging_billing_accounts_locations_buckets_links_get_execute(
 
 pub fn logging_billing_accounts_locations_buckets_links_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingBillingAccountsLocationsBucketsLinksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Link>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_locations_buckets_links_get_builder(client, name)?;
+    let builder = logging_billing_accounts_locations_buckets_links_get_builder(client, &args.name)?;
     logging_billing_accounts_locations_buckets_links_get_execute(builder)
 }
 
@@ -2565,6 +2761,17 @@ pub fn logging_billing_accounts_locations_buckets_links_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsLinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}/links
 /// Lists links.
 ///
@@ -2577,9 +2784,7 @@ pub fn logging_billing_accounts_locations_buckets_links_list_execute(
 
 pub fn logging_billing_accounts_locations_buckets_links_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingBillingAccountsLocationsBucketsLinksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLinksResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2587,7 +2792,10 @@ pub fn logging_billing_accounts_locations_buckets_links_list(
     ApiError,
 > {
     let builder = logging_billing_accounts_locations_buckets_links_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_billing_accounts_locations_buckets_links_list_execute(builder)
 }
@@ -2697,6 +2905,17 @@ pub fn logging_billing_accounts_locations_buckets_views_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_views_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsViewsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: viewId
+    pub viewId: Option<String>,
+    /// Request body.
+    pub body: LogView,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}/views
 /// Creates a view over log entries in a log bucket. A bucket may contain a maximum of 30 views.
 ///
@@ -2709,15 +2928,16 @@ pub fn logging_billing_accounts_locations_buckets_views_create_execute(
 
 pub fn logging_billing_accounts_locations_buckets_views_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    viewId: Option<&str>,
-    body: &LogView,
+    args: &LoggingBillingAccountsLocationsBucketsViewsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogView>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_billing_accounts_locations_buckets_views_create_builder(
-        client, parent, viewId, body,
+        client,
+        &args.parent,
+        args.viewId.as_deref(),
+        &args.body,
     )?;
     logging_billing_accounts_locations_buckets_views_create_execute(builder)
 }
@@ -2812,6 +3032,13 @@ pub fn logging_billing_accounts_locations_buckets_views_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_views_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsViewsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
 /// Deletes a view on a log bucket. If an UNAVAILABLE error is returned, this indicates that system is not in a state where it can delete the view. If this occurs, please try again in a few minutes.
 ///
@@ -2824,12 +3051,13 @@ pub fn logging_billing_accounts_locations_buckets_views_delete_execute(
 
 pub fn logging_billing_accounts_locations_buckets_views_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingBillingAccountsLocationsBucketsViewsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_locations_buckets_views_delete_builder(client, name)?;
+    let builder =
+        logging_billing_accounts_locations_buckets_views_delete_builder(client, &args.name)?;
     logging_billing_accounts_locations_buckets_views_delete_execute(builder)
 }
 
@@ -2923,6 +3151,13 @@ pub fn logging_billing_accounts_locations_buckets_views_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
 /// Gets a view on a log bucket.
 ///
@@ -2935,12 +3170,12 @@ pub fn logging_billing_accounts_locations_buckets_views_get_execute(
 
 pub fn logging_billing_accounts_locations_buckets_views_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingBillingAccountsLocationsBucketsViewsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogView>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_locations_buckets_views_get_builder(client, name)?;
+    let builder = logging_billing_accounts_locations_buckets_views_get_builder(client, &args.name)?;
     logging_billing_accounts_locations_buckets_views_get_execute(builder)
 }
 
@@ -3052,6 +3287,17 @@ pub fn logging_billing_accounts_locations_buckets_views_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}/views
 /// Lists views on a log bucket.
 ///
@@ -3064,9 +3310,7 @@ pub fn logging_billing_accounts_locations_buckets_views_list_execute(
 
 pub fn logging_billing_accounts_locations_buckets_views_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingBillingAccountsLocationsBucketsViewsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListViewsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3074,7 +3318,10 @@ pub fn logging_billing_accounts_locations_buckets_views_list(
     ApiError,
 > {
     let builder = logging_billing_accounts_locations_buckets_views_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_billing_accounts_locations_buckets_views_list_execute(builder)
 }
@@ -3184,6 +3431,17 @@ pub fn logging_billing_accounts_locations_buckets_views_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_views_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsViewsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogView,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
 /// Updates a view on a log bucket. This method replaces the value of the filter field from the existing view with the corresponding value from the new view. If an UNAVAILABLE error is returned, this indicates that system is not in a state where it can update the view. If this occurs, please try again in a few minutes.
 ///
@@ -3196,15 +3454,16 @@ pub fn logging_billing_accounts_locations_buckets_views_patch_execute(
 
 pub fn logging_billing_accounts_locations_buckets_views_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogView,
+    args: &LoggingBillingAccountsLocationsBucketsViewsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogView>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_billing_accounts_locations_buckets_views_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     logging_billing_accounts_locations_buckets_views_patch_execute(builder)
 }
@@ -3321,6 +3580,19 @@ pub fn logging_billing_accounts_locations_buckets_views_logs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_buckets_views_logs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsBucketsViewsLogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resourceNames
+    pub resourceNames: Option<String>,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}/logs
 /// Lists the logs in projects, organizations, folders, or billing accounts. Only logs that have entries are listed.
 ///
@@ -3333,10 +3605,7 @@ pub fn logging_billing_accounts_locations_buckets_views_logs_list_execute(
 
 pub fn logging_billing_accounts_locations_buckets_views_logs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    resourceNames: Option<&str>,
+    args: &LoggingBillingAccountsLocationsBucketsViewsLogsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLogsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3345,10 +3614,10 @@ pub fn logging_billing_accounts_locations_buckets_views_logs_list(
 > {
     let builder = logging_billing_accounts_locations_buckets_views_logs_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        resourceNames,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.resourceNames.as_deref(),
     )?;
     logging_billing_accounts_locations_buckets_views_logs_list_execute(builder)
 }
@@ -3446,6 +3715,15 @@ pub fn logging_billing_accounts_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -3458,13 +3736,14 @@ pub fn logging_billing_accounts_locations_operations_cancel_execute(
 
 pub fn logging_billing_accounts_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &LoggingBillingAccountsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_locations_operations_cancel_builder(client, name, body)?;
+    let builder = logging_billing_accounts_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     logging_billing_accounts_locations_operations_cancel_execute(builder)
 }
 
@@ -3558,6 +3837,13 @@ pub fn logging_billing_accounts_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -3570,12 +3856,12 @@ pub fn logging_billing_accounts_locations_operations_get_execute(
 
 pub fn logging_billing_accounts_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingBillingAccountsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_locations_operations_get_builder(client, name)?;
+    let builder = logging_billing_accounts_locations_operations_get_builder(client, &args.name)?;
     logging_billing_accounts_locations_operations_get_execute(builder)
 }
 
@@ -3695,6 +3981,21 @@ pub fn logging_billing_accounts_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -3707,11 +4008,7 @@ pub fn logging_billing_accounts_locations_operations_list_execute(
 
 pub fn logging_billing_accounts_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &LoggingBillingAccountsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3720,11 +4017,11 @@ pub fn logging_billing_accounts_locations_operations_list(
 > {
     let builder = logging_billing_accounts_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     logging_billing_accounts_locations_operations_list_execute(builder)
 }
@@ -3841,6 +4138,19 @@ pub fn logging_billing_accounts_locations_recent_queries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_recent_queries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsRecentQueriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/recentQueries
 /// Lists the RecentQueries that were created by the user making the request.
 ///
@@ -3853,10 +4163,7 @@ pub fn logging_billing_accounts_locations_recent_queries_list_execute(
 
 pub fn logging_billing_accounts_locations_recent_queries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingBillingAccountsLocationsRecentQueriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRecentQueriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3864,7 +4171,11 @@ pub fn logging_billing_accounts_locations_recent_queries_list(
     ApiError,
 > {
     let builder = logging_billing_accounts_locations_recent_queries_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_billing_accounts_locations_recent_queries_list_execute(builder)
 }
@@ -3974,6 +4285,17 @@ pub fn logging_billing_accounts_locations_saved_queries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_saved_queries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsSavedQueriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: savedQueryId
+    pub savedQueryId: Option<String>,
+    /// Request body.
+    pub body: SavedQuery,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/savedQueries
 /// Creates a new SavedQuery for the user making the request.
 ///
@@ -3986,18 +4308,16 @@ pub fn logging_billing_accounts_locations_saved_queries_create_execute(
 
 pub fn logging_billing_accounts_locations_saved_queries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    savedQueryId: Option<&str>,
-    body: &SavedQuery,
+    args: &LoggingBillingAccountsLocationsSavedQueriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_billing_accounts_locations_saved_queries_create_builder(
         client,
-        parent,
-        savedQueryId,
-        body,
+        &args.parent,
+        args.savedQueryId.as_deref(),
+        &args.body,
     )?;
     logging_billing_accounts_locations_saved_queries_create_execute(builder)
 }
@@ -4092,6 +4412,13 @@ pub fn logging_billing_accounts_locations_saved_queries_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_saved_queries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsSavedQueriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/savedQueries/{savedQueriesId}
 /// Deletes an existing SavedQuery that was created by the user making the request.
 ///
@@ -4104,12 +4431,13 @@ pub fn logging_billing_accounts_locations_saved_queries_delete_execute(
 
 pub fn logging_billing_accounts_locations_saved_queries_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingBillingAccountsLocationsSavedQueriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_locations_saved_queries_delete_builder(client, name)?;
+    let builder =
+        logging_billing_accounts_locations_saved_queries_delete_builder(client, &args.name)?;
     logging_billing_accounts_locations_saved_queries_delete_execute(builder)
 }
 
@@ -4203,6 +4531,13 @@ pub fn logging_billing_accounts_locations_saved_queries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_saved_queries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsSavedQueriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/savedQueries/{savedQueriesId}
 /// Returns all data associated with the requested query.
 ///
@@ -4215,12 +4550,12 @@ pub fn logging_billing_accounts_locations_saved_queries_get_execute(
 
 pub fn logging_billing_accounts_locations_saved_queries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingBillingAccountsLocationsSavedQueriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_locations_saved_queries_get_builder(client, name)?;
+    let builder = logging_billing_accounts_locations_saved_queries_get_builder(client, &args.name)?;
     logging_billing_accounts_locations_saved_queries_get_execute(builder)
 }
 
@@ -4336,6 +4671,19 @@ pub fn logging_billing_accounts_locations_saved_queries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_saved_queries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsSavedQueriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/savedQueries
 /// Lists the SavedQueries that were created by the user making the request.
 ///
@@ -4348,10 +4696,7 @@ pub fn logging_billing_accounts_locations_saved_queries_list_execute(
 
 pub fn logging_billing_accounts_locations_saved_queries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingBillingAccountsLocationsSavedQueriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSavedQueriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4359,7 +4704,11 @@ pub fn logging_billing_accounts_locations_saved_queries_list(
     ApiError,
 > {
     let builder = logging_billing_accounts_locations_saved_queries_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_billing_accounts_locations_saved_queries_list_execute(builder)
 }
@@ -4469,6 +4818,17 @@ pub fn logging_billing_accounts_locations_saved_queries_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_locations_saved_queries_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLocationsSavedQueriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SavedQuery,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/savedQueries/{savedQueriesId}
 /// Updates an existing SavedQuery.
 ///
@@ -4481,15 +4841,16 @@ pub fn logging_billing_accounts_locations_saved_queries_patch_execute(
 
 pub fn logging_billing_accounts_locations_saved_queries_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SavedQuery,
+    args: &LoggingBillingAccountsLocationsSavedQueriesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_billing_accounts_locations_saved_queries_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     logging_billing_accounts_locations_saved_queries_patch_execute(builder)
 }
@@ -4584,6 +4945,13 @@ pub fn logging_billing_accounts_logs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_logs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLogsDeleteArgs {
+    /// Path parameter: logName
+    pub logName: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/logs/{logsId}
 /// Deletes all the log entries in a log for the global _Default Log Bucket. The log reappears if it receives new entries. Log entries written shortly before the delete operation might not be deleted. Entries received after the delete operation with a timestamp before the operation will be deleted.
 ///
@@ -4596,12 +4964,12 @@ pub fn logging_billing_accounts_logs_delete_execute(
 
 pub fn logging_billing_accounts_logs_delete(
     client: &SimpleHttpClient,
-    logName: &str,
+    args: &LoggingBillingAccountsLogsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_logs_delete_builder(client, logName)?;
+    let builder = logging_billing_accounts_logs_delete_builder(client, &args.logName)?;
     logging_billing_accounts_logs_delete_execute(builder)
 }
 
@@ -4717,6 +5085,19 @@ pub fn logging_billing_accounts_logs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_logs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsLogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resourceNames
+    pub resourceNames: Option<String>,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/logs
 /// Lists the logs in projects, organizations, folders, or billing accounts. Only logs that have entries are listed.
 ///
@@ -4729,10 +5110,7 @@ pub fn logging_billing_accounts_logs_list_execute(
 
 pub fn logging_billing_accounts_logs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    resourceNames: Option<&str>,
+    args: &LoggingBillingAccountsLogsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLogsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4741,10 +5119,10 @@ pub fn logging_billing_accounts_logs_list(
 > {
     let builder = logging_billing_accounts_logs_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        resourceNames,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.resourceNames.as_deref(),
     )?;
     logging_billing_accounts_logs_list_execute(builder)
 }
@@ -4858,6 +5236,19 @@ pub fn logging_billing_accounts_sinks_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_sinks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsSinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: customWriterIdentity
+    pub customWriterIdentity: Option<String>,
+    /// Query parameter: uniqueWriterIdentity
+    pub uniqueWriterIdentity: Option<bool>,
+    /// Request body.
+    pub body: LogSink,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/sinks
 /// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
@@ -4870,20 +5261,17 @@ pub fn logging_billing_accounts_sinks_create_execute(
 
 pub fn logging_billing_accounts_sinks_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    customWriterIdentity: Option<&str>,
-    uniqueWriterIdentity: Option<bool>,
-    body: &LogSink,
+    args: &LoggingBillingAccountsSinksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_billing_accounts_sinks_create_builder(
         client,
-        parent,
-        customWriterIdentity,
-        uniqueWriterIdentity,
-        body,
+        &args.parent,
+        args.customWriterIdentity.as_deref(),
+        args.uniqueWriterIdentity,
+        &args.body,
     )?;
     logging_billing_accounts_sinks_create_execute(builder)
 }
@@ -4978,6 +5366,13 @@ pub fn logging_billing_accounts_sinks_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_sinks_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsSinksDeleteArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/sinks/{sinksId}
 /// Deletes a sink. If the sink has a unique writer_identity, then that service account is also deleted.
 ///
@@ -4990,12 +5385,12 @@ pub fn logging_billing_accounts_sinks_delete_execute(
 
 pub fn logging_billing_accounts_sinks_delete(
     client: &SimpleHttpClient,
-    sinkName: &str,
+    args: &LoggingBillingAccountsSinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_sinks_delete_builder(client, sinkName)?;
+    let builder = logging_billing_accounts_sinks_delete_builder(client, &args.sinkName)?;
     logging_billing_accounts_sinks_delete_execute(builder)
 }
 
@@ -5089,6 +5484,13 @@ pub fn logging_billing_accounts_sinks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_sinks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsSinksGetArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/sinks/{sinksId}
 /// Gets a sink.
 ///
@@ -5101,12 +5503,12 @@ pub fn logging_billing_accounts_sinks_get_execute(
 
 pub fn logging_billing_accounts_sinks_get(
     client: &SimpleHttpClient,
-    sinkName: &str,
+    args: &LoggingBillingAccountsSinksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_sinks_get_builder(client, sinkName)?;
+    let builder = logging_billing_accounts_sinks_get_builder(client, &args.sinkName)?;
     logging_billing_accounts_sinks_get_execute(builder)
 }
 
@@ -5222,6 +5624,19 @@ pub fn logging_billing_accounts_sinks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_sinks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsSinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/sinks
 /// Lists sinks.
 ///
@@ -5234,18 +5649,20 @@ pub fn logging_billing_accounts_sinks_list_execute(
 
 pub fn logging_billing_accounts_sinks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingBillingAccountsSinksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSinksResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_billing_accounts_sinks_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = logging_billing_accounts_sinks_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_billing_accounts_sinks_list_execute(builder)
 }
 
@@ -5362,6 +5779,21 @@ pub fn logging_billing_accounts_sinks_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_sinks_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsSinksPatchArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+    /// Query parameter: customWriterIdentity
+    pub customWriterIdentity: Option<String>,
+    /// Query parameter: uniqueWriterIdentity
+    pub uniqueWriterIdentity: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogSink,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/sinks/{sinksId}
 /// Updates a sink. This method replaces the values of the destination and filter fields of the existing sink with the corresponding values from the new sink.The updated sink might also have a new writer_identity; see the unique_writer_identity field.
 ///
@@ -5374,22 +5806,18 @@ pub fn logging_billing_accounts_sinks_patch_execute(
 
 pub fn logging_billing_accounts_sinks_patch(
     client: &SimpleHttpClient,
-    sinkName: &str,
-    customWriterIdentity: Option<&str>,
-    uniqueWriterIdentity: Option<bool>,
-    updateMask: Option<&str>,
-    body: &LogSink,
+    args: &LoggingBillingAccountsSinksPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_billing_accounts_sinks_patch_builder(
         client,
-        sinkName,
-        customWriterIdentity,
-        uniqueWriterIdentity,
-        updateMask,
-        body,
+        &args.sinkName,
+        args.customWriterIdentity.as_deref(),
+        args.uniqueWriterIdentity,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     logging_billing_accounts_sinks_patch_execute(builder)
 }
@@ -5507,6 +5935,21 @@ pub fn logging_billing_accounts_sinks_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_billing_accounts_sinks_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingBillingAccountsSinksUpdateArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+    /// Query parameter: customWriterIdentity
+    pub customWriterIdentity: Option<String>,
+    /// Query parameter: uniqueWriterIdentity
+    pub uniqueWriterIdentity: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogSink,
+}
+
 /// GET v2/billingAccounts/{billingAccountsId}/sinks/{sinksId}
 /// Updates a sink. This method replaces the values of the destination and filter fields of the existing sink with the corresponding values from the new sink.The updated sink might also have a new writer_identity; see the unique_writer_identity field.
 ///
@@ -5519,22 +5962,18 @@ pub fn logging_billing_accounts_sinks_update_execute(
 
 pub fn logging_billing_accounts_sinks_update(
     client: &SimpleHttpClient,
-    sinkName: &str,
-    customWriterIdentity: Option<&str>,
-    uniqueWriterIdentity: Option<bool>,
-    updateMask: Option<&str>,
-    body: &LogSink,
+    args: &LoggingBillingAccountsSinksUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_billing_accounts_sinks_update_builder(
         client,
-        sinkName,
-        customWriterIdentity,
-        uniqueWriterIdentity,
-        updateMask,
-        body,
+        &args.sinkName,
+        args.customWriterIdentity.as_deref(),
+        args.uniqueWriterIdentity,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     logging_billing_accounts_sinks_update_execute(builder)
 }
@@ -5628,6 +6067,13 @@ pub fn logging_entries_copy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_entries_copy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingEntriesCopyArgs {
+    /// Request body.
+    pub body: CopyLogEntriesRequest,
+}
+
 /// GET v2/entries:copy
 /// Copies a set of log entries from a log bucket to a Cloud Storage bucket.
 ///
@@ -5640,12 +6086,12 @@ pub fn logging_entries_copy_execute(
 
 pub fn logging_entries_copy(
     client: &SimpleHttpClient,
-    body: &CopyLogEntriesRequest,
+    args: &LoggingEntriesCopyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_entries_copy_builder(client, body)?;
+    let builder = logging_entries_copy_builder(client, &args.body)?;
     logging_entries_copy_execute(builder)
 }
 
@@ -5740,6 +6186,13 @@ pub fn logging_entries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_entries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingEntriesListArgs {
+    /// Request body.
+    pub body: ListLogEntriesRequest,
+}
+
 /// GET v2/entries:list
 /// Lists log entries. Use this method to retrieve log entries that originated from a `project/folder/organization/billing` account. For ways to export log entries, see Routing overview (<https://docs.cloud.google.`com/logging/docs/routing/overview`>).
 ///
@@ -5752,14 +6205,14 @@ pub fn logging_entries_list_execute(
 
 pub fn logging_entries_list(
     client: &SimpleHttpClient,
-    body: &ListLogEntriesRequest,
+    args: &LoggingEntriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLogEntriesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_entries_list_builder(client, body)?;
+    let builder = logging_entries_list_builder(client, &args.body)?;
     logging_entries_list_execute(builder)
 }
 
@@ -5854,6 +6307,13 @@ pub fn logging_entries_tail_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_entries_tail`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingEntriesTailArgs {
+    /// Request body.
+    pub body: TailLogEntriesRequest,
+}
+
 /// GET v2/entries:tail
 /// Streaming read of log entries as they are received. Until the stream is terminated, it will continue reading logs.
 ///
@@ -5866,14 +6326,14 @@ pub fn logging_entries_tail_execute(
 
 pub fn logging_entries_tail(
     client: &SimpleHttpClient,
-    body: &TailLogEntriesRequest,
+    args: &LoggingEntriesTailArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TailLogEntriesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_entries_tail_builder(client, body)?;
+    let builder = logging_entries_tail_builder(client, &args.body)?;
     logging_entries_tail_execute(builder)
 }
 
@@ -5968,6 +6428,13 @@ pub fn logging_entries_write_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_entries_write`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingEntriesWriteArgs {
+    /// Request body.
+    pub body: WriteLogEntriesRequest,
+}
+
 /// GET v2/entries:write
 /// Writes log entries to Logging. This API method is the only way to send log entries to Logging. This method is used, directly or indirectly, by the Logging agent (fluentd) and all logging libraries configured to use Logging. A single request may contain log entries for a maximum of 1000 different resource names (projects, organizations, billing accounts or folders), where the resource name for a log entry is determined from its `logName` field.
 ///
@@ -5980,14 +6447,14 @@ pub fn logging_entries_write_execute(
 
 pub fn logging_entries_write(
     client: &SimpleHttpClient,
-    body: &WriteLogEntriesRequest,
+    args: &LoggingEntriesWriteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WriteLogEntriesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_entries_write_builder(client, body)?;
+    let builder = logging_entries_write_builder(client, &args.body)?;
     logging_entries_write_execute(builder)
 }
 
@@ -6083,6 +6550,15 @@ pub fn logging_exclusions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_exclusions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingExclusionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: LogExclusion,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/exclusions
 /// Creates a new exclusion in the _Default sink in a specified parent resource. Only log entries belonging to that resource can be excluded. You can have up to 10 exclusions in a resource.
 ///
@@ -6095,15 +6571,14 @@ pub fn logging_exclusions_create_execute(
 
 pub fn logging_exclusions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &LogExclusion,
+    args: &LoggingExclusionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogExclusion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_exclusions_create_builder(client, parent, body)?;
+    let builder = logging_exclusions_create_builder(client, &args.parent, &args.body)?;
     logging_exclusions_create_execute(builder)
 }
 
@@ -6197,6 +6672,13 @@ pub fn logging_exclusions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_exclusions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingExclusionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/exclusions/{exclusionsId}
 /// Deletes an exclusion in the _Default sink.
 ///
@@ -6209,12 +6691,12 @@ pub fn logging_exclusions_delete_execute(
 
 pub fn logging_exclusions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingExclusionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_exclusions_delete_builder(client, name)?;
+    let builder = logging_exclusions_delete_builder(client, &args.name)?;
     logging_exclusions_delete_execute(builder)
 }
 
@@ -6310,6 +6792,13 @@ pub fn logging_exclusions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_exclusions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingExclusionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/exclusions/{exclusionsId}
 /// Gets the description of an exclusion in the _Default sink.
 ///
@@ -6322,14 +6811,14 @@ pub fn logging_exclusions_get_execute(
 
 pub fn logging_exclusions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingExclusionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogExclusion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_exclusions_get_builder(client, name)?;
+    let builder = logging_exclusions_get_builder(client, &args.name)?;
     logging_exclusions_get_execute(builder)
 }
 
@@ -6438,6 +6927,17 @@ pub fn logging_exclusions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_exclusions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingExclusionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/exclusions
 /// Lists all the exclusions on the _Default sink in a parent resource.
 ///
@@ -6450,16 +6950,19 @@ pub fn logging_exclusions_list_execute(
 
 pub fn logging_exclusions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingExclusionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListExclusionsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_exclusions_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_exclusions_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_exclusions_list_execute(builder)
 }
 
@@ -6570,6 +7073,17 @@ pub fn logging_exclusions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_exclusions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingExclusionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogExclusion,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/exclusions/{exclusionsId}
 /// Changes one or more properties of an existing exclusion in the _Default sink.
 ///
@@ -6582,16 +7096,19 @@ pub fn logging_exclusions_patch_execute(
 
 pub fn logging_exclusions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogExclusion,
+    args: &LoggingExclusionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogExclusion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_exclusions_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_exclusions_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_exclusions_patch_execute(builder)
 }
 
@@ -6687,6 +7204,13 @@ pub fn logging_folders_get_cmek_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_get_cmek_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersGetCmekSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/cmekSettings
 /// Gets the Logging CMEK settings for the given resource.Note: CMEK for the Log Router can be configured for Google Cloud projects, folders, organizations, and billing accounts. Once configured for an organization, it applies to all projects and folders in the Google Cloud organization.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
 ///
@@ -6699,14 +7223,14 @@ pub fn logging_folders_get_cmek_settings_execute(
 
 pub fn logging_folders_get_cmek_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingFoldersGetCmekSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CmekSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_folders_get_cmek_settings_builder(client, name)?;
+    let builder = logging_folders_get_cmek_settings_builder(client, &args.name)?;
     logging_folders_get_cmek_settings_execute(builder)
 }
 
@@ -6800,6 +7324,13 @@ pub fn logging_folders_get_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_get_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersGetSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/settings
 /// Gets the settings for the given resource.Note: Settings can be retrieved for Google Cloud projects, folders, organizations, and billing accounts.See View default resource settings for Logging (<https://docs.cloud.google.`com/logging/docs/default-settings`#view-org-settings>) for more information.
 ///
@@ -6812,12 +7343,12 @@ pub fn logging_folders_get_settings_execute(
 
 pub fn logging_folders_get_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingFoldersGetSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_get_settings_builder(client, name)?;
+    let builder = logging_folders_get_settings_builder(client, &args.name)?;
     logging_folders_get_settings_execute(builder)
 }
 
@@ -6926,6 +7457,17 @@ pub fn logging_folders_update_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_update_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersUpdateSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Settings,
+}
+
 /// GET v2/folders/{foldersId}/settings
 /// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn't supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
 ///
@@ -6938,14 +7480,17 @@ pub fn logging_folders_update_settings_execute(
 
 pub fn logging_folders_update_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Settings,
+    args: &LoggingFoldersUpdateSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_update_settings_builder(client, name, updateMask, body)?;
+    let builder = logging_folders_update_settings_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_folders_update_settings_execute(builder)
 }
 
@@ -7044,6 +7589,15 @@ pub fn logging_folders_exclusions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_exclusions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersExclusionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: LogExclusion,
+}
+
 /// GET v2/folders/{foldersId}/exclusions
 /// Creates a new exclusion in the _Default sink in a specified parent resource. Only log entries belonging to that resource can be excluded. You can have up to 10 exclusions in a resource.
 ///
@@ -7056,15 +7610,14 @@ pub fn logging_folders_exclusions_create_execute(
 
 pub fn logging_folders_exclusions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &LogExclusion,
+    args: &LoggingFoldersExclusionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogExclusion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_folders_exclusions_create_builder(client, parent, body)?;
+    let builder = logging_folders_exclusions_create_builder(client, &args.parent, &args.body)?;
     logging_folders_exclusions_create_execute(builder)
 }
 
@@ -7158,6 +7711,13 @@ pub fn logging_folders_exclusions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_exclusions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersExclusionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/exclusions/{exclusionsId}
 /// Deletes an exclusion in the _Default sink.
 ///
@@ -7170,12 +7730,12 @@ pub fn logging_folders_exclusions_delete_execute(
 
 pub fn logging_folders_exclusions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingFoldersExclusionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_exclusions_delete_builder(client, name)?;
+    let builder = logging_folders_exclusions_delete_builder(client, &args.name)?;
     logging_folders_exclusions_delete_execute(builder)
 }
 
@@ -7271,6 +7831,13 @@ pub fn logging_folders_exclusions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_exclusions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersExclusionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/exclusions/{exclusionsId}
 /// Gets the description of an exclusion in the _Default sink.
 ///
@@ -7283,14 +7850,14 @@ pub fn logging_folders_exclusions_get_execute(
 
 pub fn logging_folders_exclusions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingFoldersExclusionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogExclusion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_folders_exclusions_get_builder(client, name)?;
+    let builder = logging_folders_exclusions_get_builder(client, &args.name)?;
     logging_folders_exclusions_get_execute(builder)
 }
 
@@ -7402,6 +7969,17 @@ pub fn logging_folders_exclusions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_exclusions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersExclusionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/folders/{foldersId}/exclusions
 /// Lists all the exclusions on the _Default sink in a parent resource.
 ///
@@ -7414,16 +7992,19 @@ pub fn logging_folders_exclusions_list_execute(
 
 pub fn logging_folders_exclusions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingFoldersExclusionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListExclusionsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_folders_exclusions_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_folders_exclusions_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_folders_exclusions_list_execute(builder)
 }
 
@@ -7534,6 +8115,17 @@ pub fn logging_folders_exclusions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_exclusions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersExclusionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogExclusion,
+}
+
 /// GET v2/folders/{foldersId}/exclusions/{exclusionsId}
 /// Changes one or more properties of an existing exclusion in the _Default sink.
 ///
@@ -7546,16 +8138,19 @@ pub fn logging_folders_exclusions_patch_execute(
 
 pub fn logging_folders_exclusions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogExclusion,
+    args: &LoggingFoldersExclusionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogExclusion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_folders_exclusions_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_folders_exclusions_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_folders_exclusions_patch_execute(builder)
 }
 
@@ -7649,6 +8244,13 @@ pub fn logging_folders_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -7661,12 +8263,12 @@ pub fn logging_folders_locations_get_execute(
 
 pub fn logging_folders_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingFoldersLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_locations_get_builder(client, name)?;
+    let builder = logging_folders_locations_get_builder(client, &args.name)?;
     logging_folders_locations_get_execute(builder)
 }
 
@@ -7786,6 +8388,21 @@ pub fn logging_folders_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/folders/{foldersId}/locations
 /// Lists information about the supported locations for this service.This method lists locations based on the resource scope provided in the ListLocationsRequest.name field: Global locations: If name is empty, the method lists the public locations available to all projects. Project-specific locations: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project.For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -7798,11 +8415,7 @@ pub fn logging_folders_locations_list_execute(
 
 pub fn logging_folders_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingFoldersLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7811,11 +8424,11 @@ pub fn logging_folders_locations_list(
 > {
     let builder = logging_folders_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_folders_locations_list_execute(builder)
 }
@@ -7925,6 +8538,17 @@ pub fn logging_folders_locations_buckets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: bucketId
+    pub bucketId: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets
 /// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -7937,14 +8561,17 @@ pub fn logging_folders_locations_buckets_create_execute(
 
 pub fn logging_folders_locations_buckets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    bucketId: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingFoldersLocationsBucketsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogBucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_locations_buckets_create_builder(client, parent, bucketId, body)?;
+    let builder = logging_folders_locations_buckets_create_builder(
+        client,
+        &args.parent,
+        args.bucketId.as_deref(),
+        &args.body,
+    )?;
     logging_folders_locations_buckets_create_execute(builder)
 }
 
@@ -8053,6 +8680,17 @@ pub fn logging_folders_locations_buckets_create_async_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_create_async`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsCreateAsyncArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: bucketId
+    pub bucketId: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets:createAsync
 /// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -8065,15 +8703,17 @@ pub fn logging_folders_locations_buckets_create_async_execute(
 
 pub fn logging_folders_locations_buckets_create_async(
     client: &SimpleHttpClient,
-    parent: &str,
-    bucketId: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingFoldersLocationsBucketsCreateAsyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_locations_buckets_create_async_builder(client, parent, bucketId, body)?;
+    let builder = logging_folders_locations_buckets_create_async_builder(
+        client,
+        &args.parent,
+        args.bucketId.as_deref(),
+        &args.body,
+    )?;
     logging_folders_locations_buckets_create_async_execute(builder)
 }
 
@@ -8167,6 +8807,13 @@ pub fn logging_folders_locations_buckets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}
 /// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
@@ -8179,12 +8826,12 @@ pub fn logging_folders_locations_buckets_delete_execute(
 
 pub fn logging_folders_locations_buckets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingFoldersLocationsBucketsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_locations_buckets_delete_builder(client, name)?;
+    let builder = logging_folders_locations_buckets_delete_builder(client, &args.name)?;
     logging_folders_locations_buckets_delete_execute(builder)
 }
 
@@ -8278,6 +8925,13 @@ pub fn logging_folders_locations_buckets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}
 /// Gets a log bucket.
 ///
@@ -8290,12 +8944,12 @@ pub fn logging_folders_locations_buckets_get_execute(
 
 pub fn logging_folders_locations_buckets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingFoldersLocationsBucketsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogBucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_locations_buckets_get_builder(client, name)?;
+    let builder = logging_folders_locations_buckets_get_builder(client, &args.name)?;
     logging_folders_locations_buckets_get_execute(builder)
 }
 
@@ -8407,6 +9061,17 @@ pub fn logging_folders_locations_buckets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets
 /// Lists log buckets.
 ///
@@ -8419,17 +9084,19 @@ pub fn logging_folders_locations_buckets_list_execute(
 
 pub fn logging_folders_locations_buckets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingFoldersLocationsBucketsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBucketsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_locations_buckets_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_folders_locations_buckets_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_folders_locations_buckets_list_execute(builder)
 }
 
@@ -8538,6 +9205,17 @@ pub fn logging_folders_locations_buckets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}
 /// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -8550,14 +9228,17 @@ pub fn logging_folders_locations_buckets_patch_execute(
 
 pub fn logging_folders_locations_buckets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingFoldersLocationsBucketsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogBucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_locations_buckets_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_folders_locations_buckets_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_folders_locations_buckets_patch_execute(builder)
 }
 
@@ -8654,6 +9335,15 @@ pub fn logging_folders_locations_buckets_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsUndeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UndeleteBucketRequest,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}:undelete
 /// Undeletes a log bucket. A bucket that has been deleted can be undeleted within the grace period of 7 days.
 ///
@@ -8666,13 +9356,13 @@ pub fn logging_folders_locations_buckets_undelete_execute(
 
 pub fn logging_folders_locations_buckets_undelete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UndeleteBucketRequest,
+    args: &LoggingFoldersLocationsBucketsUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_locations_buckets_undelete_builder(client, name, body)?;
+    let builder =
+        logging_folders_locations_buckets_undelete_builder(client, &args.name, &args.body)?;
     logging_folders_locations_buckets_undelete_execute(builder)
 }
 
@@ -8781,6 +9471,17 @@ pub fn logging_folders_locations_buckets_update_async_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_update_async`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsUpdateAsyncArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
 /// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -8793,15 +9494,17 @@ pub fn logging_folders_locations_buckets_update_async_execute(
 
 pub fn logging_folders_locations_buckets_update_async(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingFoldersLocationsBucketsUpdateAsyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_locations_buckets_update_async_builder(client, name, updateMask, body)?;
+    let builder = logging_folders_locations_buckets_update_async_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_folders_locations_buckets_update_async_execute(builder)
 }
 
@@ -8910,6 +9613,17 @@ pub fn logging_folders_locations_buckets_links_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsLinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: linkId
+    pub linkId: Option<String>,
+    /// Request body.
+    pub body: Link,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/links
 /// Asynchronously creates a linked dataset in BigQuery which makes it possible to use BigQuery to read the logs stored in the log bucket. A log bucket may currently only contain one link.
 ///
@@ -8922,15 +9636,17 @@ pub fn logging_folders_locations_buckets_links_create_execute(
 
 pub fn logging_folders_locations_buckets_links_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    linkId: Option<&str>,
-    body: &Link,
+    args: &LoggingFoldersLocationsBucketsLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_locations_buckets_links_create_builder(client, parent, linkId, body)?;
+    let builder = logging_folders_locations_buckets_links_create_builder(
+        client,
+        &args.parent,
+        args.linkId.as_deref(),
+        &args.body,
+    )?;
     logging_folders_locations_buckets_links_create_execute(builder)
 }
 
@@ -9024,6 +9740,13 @@ pub fn logging_folders_locations_buckets_links_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}
 /// Deletes a link. This will also delete the corresponding BigQuery linked dataset.
 ///
@@ -9036,12 +9759,12 @@ pub fn logging_folders_locations_buckets_links_delete_execute(
 
 pub fn logging_folders_locations_buckets_links_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingFoldersLocationsBucketsLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_locations_buckets_links_delete_builder(client, name)?;
+    let builder = logging_folders_locations_buckets_links_delete_builder(client, &args.name)?;
     logging_folders_locations_buckets_links_delete_execute(builder)
 }
 
@@ -9135,6 +9858,13 @@ pub fn logging_folders_locations_buckets_links_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_links_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsLinksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}
 /// Gets a link.
 ///
@@ -9147,12 +9877,12 @@ pub fn logging_folders_locations_buckets_links_get_execute(
 
 pub fn logging_folders_locations_buckets_links_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingFoldersLocationsBucketsLinksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Link>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_locations_buckets_links_get_builder(client, name)?;
+    let builder = logging_folders_locations_buckets_links_get_builder(client, &args.name)?;
     logging_folders_locations_buckets_links_get_execute(builder)
 }
 
@@ -9264,6 +9994,17 @@ pub fn logging_folders_locations_buckets_links_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsLinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/links
 /// Lists links.
 ///
@@ -9276,17 +10017,19 @@ pub fn logging_folders_locations_buckets_links_list_execute(
 
 pub fn logging_folders_locations_buckets_links_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingFoldersLocationsBucketsLinksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLinksResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_locations_buckets_links_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_folders_locations_buckets_links_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_folders_locations_buckets_links_list_execute(builder)
 }
 
@@ -9395,6 +10138,17 @@ pub fn logging_folders_locations_buckets_views_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_views_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsViewsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: viewId
+    pub viewId: Option<String>,
+    /// Request body.
+    pub body: LogView,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/views
 /// Creates a view over log entries in a log bucket. A bucket may contain a maximum of 30 views.
 ///
@@ -9407,15 +10161,17 @@ pub fn logging_folders_locations_buckets_views_create_execute(
 
 pub fn logging_folders_locations_buckets_views_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    viewId: Option<&str>,
-    body: &LogView,
+    args: &LoggingFoldersLocationsBucketsViewsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogView>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_locations_buckets_views_create_builder(client, parent, viewId, body)?;
+    let builder = logging_folders_locations_buckets_views_create_builder(
+        client,
+        &args.parent,
+        args.viewId.as_deref(),
+        &args.body,
+    )?;
     logging_folders_locations_buckets_views_create_execute(builder)
 }
 
@@ -9509,6 +10265,13 @@ pub fn logging_folders_locations_buckets_views_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_views_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsViewsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
 /// Deletes a view on a log bucket. If an UNAVAILABLE error is returned, this indicates that system is not in a state where it can delete the view. If this occurs, please try again in a few minutes.
 ///
@@ -9521,12 +10284,12 @@ pub fn logging_folders_locations_buckets_views_delete_execute(
 
 pub fn logging_folders_locations_buckets_views_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingFoldersLocationsBucketsViewsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_locations_buckets_views_delete_builder(client, name)?;
+    let builder = logging_folders_locations_buckets_views_delete_builder(client, &args.name)?;
     logging_folders_locations_buckets_views_delete_execute(builder)
 }
 
@@ -9620,6 +10383,13 @@ pub fn logging_folders_locations_buckets_views_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
 /// Gets a view on a log bucket.
 ///
@@ -9632,12 +10402,12 @@ pub fn logging_folders_locations_buckets_views_get_execute(
 
 pub fn logging_folders_locations_buckets_views_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingFoldersLocationsBucketsViewsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogView>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_locations_buckets_views_get_builder(client, name)?;
+    let builder = logging_folders_locations_buckets_views_get_builder(client, &args.name)?;
     logging_folders_locations_buckets_views_get_execute(builder)
 }
 
@@ -9734,6 +10504,15 @@ pub fn logging_folders_locations_buckets_views_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_views_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsViewsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -9746,14 +10525,16 @@ pub fn logging_folders_locations_buckets_views_get_iam_policy_execute(
 
 pub fn logging_folders_locations_buckets_views_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &LoggingFoldersLocationsBucketsViewsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_locations_buckets_views_get_iam_policy_builder(client, resource, body)?;
+    let builder = logging_folders_locations_buckets_views_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     logging_folders_locations_buckets_views_get_iam_policy_execute(builder)
 }
 
@@ -9865,6 +10646,17 @@ pub fn logging_folders_locations_buckets_views_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/views
 /// Lists views on a log bucket.
 ///
@@ -9877,17 +10669,19 @@ pub fn logging_folders_locations_buckets_views_list_execute(
 
 pub fn logging_folders_locations_buckets_views_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingFoldersLocationsBucketsViewsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListViewsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_locations_buckets_views_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_folders_locations_buckets_views_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_folders_locations_buckets_views_list_execute(builder)
 }
 
@@ -9996,6 +10790,17 @@ pub fn logging_folders_locations_buckets_views_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_views_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsViewsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogView,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
 /// Updates a view on a log bucket. This method replaces the value of the filter field from the existing view with the corresponding value from the new view. If an UNAVAILABLE error is returned, this indicates that system is not in a state where it can update the view. If this occurs, please try again in a few minutes.
 ///
@@ -10008,15 +10813,17 @@ pub fn logging_folders_locations_buckets_views_patch_execute(
 
 pub fn logging_folders_locations_buckets_views_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogView,
+    args: &LoggingFoldersLocationsBucketsViewsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogView>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_locations_buckets_views_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_folders_locations_buckets_views_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_folders_locations_buckets_views_patch_execute(builder)
 }
 
@@ -10113,6 +10920,15 @@ pub fn logging_folders_locations_buckets_views_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_views_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsViewsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -10125,14 +10941,16 @@ pub fn logging_folders_locations_buckets_views_set_iam_policy_execute(
 
 pub fn logging_folders_locations_buckets_views_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &LoggingFoldersLocationsBucketsViewsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_locations_buckets_views_set_iam_policy_builder(client, resource, body)?;
+    let builder = logging_folders_locations_buckets_views_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     logging_folders_locations_buckets_views_set_iam_policy_execute(builder)
 }
 
@@ -10233,6 +11051,15 @@ pub fn logging_folders_locations_buckets_views_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_views_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsViewsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -10245,8 +11072,7 @@ pub fn logging_folders_locations_buckets_views_test_iam_permissions_execute(
 
 pub fn logging_folders_locations_buckets_views_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &LoggingFoldersLocationsBucketsViewsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -10256,7 +11082,9 @@ pub fn logging_folders_locations_buckets_views_test_iam_permissions(
     ApiError,
 > {
     let builder = logging_folders_locations_buckets_views_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     logging_folders_locations_buckets_views_test_iam_permissions_execute(builder)
 }
@@ -10373,6 +11201,19 @@ pub fn logging_folders_locations_buckets_views_logs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_buckets_views_logs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsBucketsViewsLogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resourceNames
+    pub resourceNames: Option<String>,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}/logs
 /// Lists the logs in projects, organizations, folders, or billing accounts. Only logs that have entries are listed.
 ///
@@ -10385,10 +11226,7 @@ pub fn logging_folders_locations_buckets_views_logs_list_execute(
 
 pub fn logging_folders_locations_buckets_views_logs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    resourceNames: Option<&str>,
+    args: &LoggingFoldersLocationsBucketsViewsLogsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLogsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -10397,10 +11235,10 @@ pub fn logging_folders_locations_buckets_views_logs_list(
 > {
     let builder = logging_folders_locations_buckets_views_logs_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        resourceNames,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.resourceNames.as_deref(),
     )?;
     logging_folders_locations_buckets_views_logs_list_execute(builder)
 }
@@ -10510,6 +11348,17 @@ pub fn logging_folders_locations_log_scopes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_log_scopes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsLogScopesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: logScopeId
+    pub logScopeId: Option<String>,
+    /// Request body.
+    pub body: LogScope,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/logScopes
 /// Creates a log scope.
 ///
@@ -10522,15 +11371,17 @@ pub fn logging_folders_locations_log_scopes_create_execute(
 
 pub fn logging_folders_locations_log_scopes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    logScopeId: Option<&str>,
-    body: &LogScope,
+    args: &LoggingFoldersLocationsLogScopesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogScope>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_locations_log_scopes_create_builder(client, parent, logScopeId, body)?;
+    let builder = logging_folders_locations_log_scopes_create_builder(
+        client,
+        &args.parent,
+        args.logScopeId.as_deref(),
+        &args.body,
+    )?;
     logging_folders_locations_log_scopes_create_execute(builder)
 }
 
@@ -10624,6 +11475,13 @@ pub fn logging_folders_locations_log_scopes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_log_scopes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsLogScopesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/logScopes/{logScopesId}
 /// Deletes a log scope.
 ///
@@ -10636,12 +11494,12 @@ pub fn logging_folders_locations_log_scopes_delete_execute(
 
 pub fn logging_folders_locations_log_scopes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingFoldersLocationsLogScopesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_locations_log_scopes_delete_builder(client, name)?;
+    let builder = logging_folders_locations_log_scopes_delete_builder(client, &args.name)?;
     logging_folders_locations_log_scopes_delete_execute(builder)
 }
 
@@ -10735,6 +11593,13 @@ pub fn logging_folders_locations_log_scopes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_log_scopes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsLogScopesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/logScopes/{logScopesId}
 /// Gets a log scope.
 ///
@@ -10747,12 +11612,12 @@ pub fn logging_folders_locations_log_scopes_get_execute(
 
 pub fn logging_folders_locations_log_scopes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingFoldersLocationsLogScopesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogScope>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_locations_log_scopes_get_builder(client, name)?;
+    let builder = logging_folders_locations_log_scopes_get_builder(client, &args.name)?;
     logging_folders_locations_log_scopes_get_execute(builder)
 }
 
@@ -10864,6 +11729,17 @@ pub fn logging_folders_locations_log_scopes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_log_scopes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsLogScopesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/logScopes
 /// Lists log scopes.
 ///
@@ -10876,17 +11752,19 @@ pub fn logging_folders_locations_log_scopes_list_execute(
 
 pub fn logging_folders_locations_log_scopes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingFoldersLocationsLogScopesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLogScopesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_locations_log_scopes_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_folders_locations_log_scopes_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_folders_locations_log_scopes_list_execute(builder)
 }
 
@@ -10995,6 +11873,17 @@ pub fn logging_folders_locations_log_scopes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_log_scopes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsLogScopesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogScope,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/logScopes/{logScopesId}
 /// Updates a log scope.
 ///
@@ -11007,15 +11896,17 @@ pub fn logging_folders_locations_log_scopes_patch_execute(
 
 pub fn logging_folders_locations_log_scopes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogScope,
+    args: &LoggingFoldersLocationsLogScopesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogScope>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_locations_log_scopes_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_folders_locations_log_scopes_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_folders_locations_log_scopes_patch_execute(builder)
 }
 
@@ -11112,6 +12003,15 @@ pub fn logging_folders_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -11124,13 +12024,13 @@ pub fn logging_folders_locations_operations_cancel_execute(
 
 pub fn logging_folders_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &LoggingFoldersLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        logging_folders_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     logging_folders_locations_operations_cancel_execute(builder)
 }
 
@@ -11224,6 +12124,13 @@ pub fn logging_folders_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -11236,12 +12143,12 @@ pub fn logging_folders_locations_operations_get_execute(
 
 pub fn logging_folders_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingFoldersLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_locations_operations_get_builder(client, name)?;
+    let builder = logging_folders_locations_operations_get_builder(client, &args.name)?;
     logging_folders_locations_operations_get_execute(builder)
 }
 
@@ -11361,6 +12268,21 @@ pub fn logging_folders_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -11373,11 +12295,7 @@ pub fn logging_folders_locations_operations_list_execute(
 
 pub fn logging_folders_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &LoggingFoldersLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -11386,11 +12304,11 @@ pub fn logging_folders_locations_operations_list(
 > {
     let builder = logging_folders_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     logging_folders_locations_operations_list_execute(builder)
 }
@@ -11507,6 +12425,19 @@ pub fn logging_folders_locations_recent_queries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_recent_queries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsRecentQueriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/recentQueries
 /// Lists the RecentQueries that were created by the user making the request.
 ///
@@ -11519,10 +12450,7 @@ pub fn logging_folders_locations_recent_queries_list_execute(
 
 pub fn logging_folders_locations_recent_queries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingFoldersLocationsRecentQueriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRecentQueriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -11530,7 +12458,11 @@ pub fn logging_folders_locations_recent_queries_list(
     ApiError,
 > {
     let builder = logging_folders_locations_recent_queries_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_folders_locations_recent_queries_list_execute(builder)
 }
@@ -11640,6 +12572,17 @@ pub fn logging_folders_locations_saved_queries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_saved_queries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsSavedQueriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: savedQueryId
+    pub savedQueryId: Option<String>,
+    /// Request body.
+    pub body: SavedQuery,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/savedQueries
 /// Creates a new SavedQuery for the user making the request.
 ///
@@ -11652,15 +12595,17 @@ pub fn logging_folders_locations_saved_queries_create_execute(
 
 pub fn logging_folders_locations_saved_queries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    savedQueryId: Option<&str>,
-    body: &SavedQuery,
+    args: &LoggingFoldersLocationsSavedQueriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_locations_saved_queries_create_builder(client, parent, savedQueryId, body)?;
+    let builder = logging_folders_locations_saved_queries_create_builder(
+        client,
+        &args.parent,
+        args.savedQueryId.as_deref(),
+        &args.body,
+    )?;
     logging_folders_locations_saved_queries_create_execute(builder)
 }
 
@@ -11754,6 +12699,13 @@ pub fn logging_folders_locations_saved_queries_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_saved_queries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsSavedQueriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/savedQueries/{savedQueriesId}
 /// Deletes an existing SavedQuery that was created by the user making the request.
 ///
@@ -11766,12 +12718,12 @@ pub fn logging_folders_locations_saved_queries_delete_execute(
 
 pub fn logging_folders_locations_saved_queries_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingFoldersLocationsSavedQueriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_locations_saved_queries_delete_builder(client, name)?;
+    let builder = logging_folders_locations_saved_queries_delete_builder(client, &args.name)?;
     logging_folders_locations_saved_queries_delete_execute(builder)
 }
 
@@ -11865,6 +12817,13 @@ pub fn logging_folders_locations_saved_queries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_saved_queries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsSavedQueriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/savedQueries/{savedQueriesId}
 /// Returns all data associated with the requested query.
 ///
@@ -11877,12 +12836,12 @@ pub fn logging_folders_locations_saved_queries_get_execute(
 
 pub fn logging_folders_locations_saved_queries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingFoldersLocationsSavedQueriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_locations_saved_queries_get_builder(client, name)?;
+    let builder = logging_folders_locations_saved_queries_get_builder(client, &args.name)?;
     logging_folders_locations_saved_queries_get_execute(builder)
 }
 
@@ -11998,6 +12957,19 @@ pub fn logging_folders_locations_saved_queries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_saved_queries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsSavedQueriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/savedQueries
 /// Lists the SavedQueries that were created by the user making the request.
 ///
@@ -12010,10 +12982,7 @@ pub fn logging_folders_locations_saved_queries_list_execute(
 
 pub fn logging_folders_locations_saved_queries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingFoldersLocationsSavedQueriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSavedQueriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -12021,7 +12990,11 @@ pub fn logging_folders_locations_saved_queries_list(
     ApiError,
 > {
     let builder = logging_folders_locations_saved_queries_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_folders_locations_saved_queries_list_execute(builder)
 }
@@ -12131,6 +13104,17 @@ pub fn logging_folders_locations_saved_queries_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_locations_saved_queries_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLocationsSavedQueriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SavedQuery,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/savedQueries/{savedQueriesId}
 /// Updates an existing SavedQuery.
 ///
@@ -12143,15 +13127,17 @@ pub fn logging_folders_locations_saved_queries_patch_execute(
 
 pub fn logging_folders_locations_saved_queries_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SavedQuery,
+    args: &LoggingFoldersLocationsSavedQueriesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_locations_saved_queries_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_folders_locations_saved_queries_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_folders_locations_saved_queries_patch_execute(builder)
 }
 
@@ -12245,6 +13231,13 @@ pub fn logging_folders_logs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_logs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLogsDeleteArgs {
+    /// Path parameter: logName
+    pub logName: String,
+}
+
 /// GET v2/folders/{foldersId}/logs/{logsId}
 /// Deletes all the log entries in a log for the global _Default Log Bucket. The log reappears if it receives new entries. Log entries written shortly before the delete operation might not be deleted. Entries received after the delete operation with a timestamp before the operation will be deleted.
 ///
@@ -12257,12 +13250,12 @@ pub fn logging_folders_logs_delete_execute(
 
 pub fn logging_folders_logs_delete(
     client: &SimpleHttpClient,
-    logName: &str,
+    args: &LoggingFoldersLogsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_logs_delete_builder(client, logName)?;
+    let builder = logging_folders_logs_delete_builder(client, &args.logName)?;
     logging_folders_logs_delete_execute(builder)
 }
 
@@ -12375,6 +13368,19 @@ pub fn logging_folders_logs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_logs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersLogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resourceNames
+    pub resourceNames: Option<String>,
+}
+
 /// GET v2/folders/{foldersId}/logs
 /// Lists the logs in projects, organizations, folders, or billing accounts. Only logs that have entries are listed.
 ///
@@ -12387,18 +13393,20 @@ pub fn logging_folders_logs_list_execute(
 
 pub fn logging_folders_logs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    resourceNames: Option<&str>,
+    args: &LoggingFoldersLogsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLogsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_logs_list_builder(client, parent, pageSize, pageToken, resourceNames)?;
+    let builder = logging_folders_logs_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.resourceNames.as_deref(),
+    )?;
     logging_folders_logs_list_execute(builder)
 }
 
@@ -12508,6 +13516,19 @@ pub fn logging_folders_sinks_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_sinks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersSinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: customWriterIdentity
+    pub customWriterIdentity: Option<String>,
+    /// Query parameter: uniqueWriterIdentity
+    pub uniqueWriterIdentity: Option<bool>,
+    /// Request body.
+    pub body: LogSink,
+}
+
 /// GET v2/folders/{foldersId}/sinks
 /// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
@@ -12520,20 +13541,17 @@ pub fn logging_folders_sinks_create_execute(
 
 pub fn logging_folders_sinks_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    customWriterIdentity: Option<&str>,
-    uniqueWriterIdentity: Option<bool>,
-    body: &LogSink,
+    args: &LoggingFoldersSinksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_folders_sinks_create_builder(
         client,
-        parent,
-        customWriterIdentity,
-        uniqueWriterIdentity,
-        body,
+        &args.parent,
+        args.customWriterIdentity.as_deref(),
+        args.uniqueWriterIdentity,
+        &args.body,
     )?;
     logging_folders_sinks_create_execute(builder)
 }
@@ -12628,6 +13646,13 @@ pub fn logging_folders_sinks_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_sinks_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersSinksDeleteArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+}
+
 /// GET v2/folders/{foldersId}/sinks/{sinksId}
 /// Deletes a sink. If the sink has a unique writer_identity, then that service account is also deleted.
 ///
@@ -12640,12 +13665,12 @@ pub fn logging_folders_sinks_delete_execute(
 
 pub fn logging_folders_sinks_delete(
     client: &SimpleHttpClient,
-    sinkName: &str,
+    args: &LoggingFoldersSinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_sinks_delete_builder(client, sinkName)?;
+    let builder = logging_folders_sinks_delete_builder(client, &args.sinkName)?;
     logging_folders_sinks_delete_execute(builder)
 }
 
@@ -12739,6 +13764,13 @@ pub fn logging_folders_sinks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_sinks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersSinksGetArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+}
+
 /// GET v2/folders/{foldersId}/sinks/{sinksId}
 /// Gets a sink.
 ///
@@ -12751,12 +13783,12 @@ pub fn logging_folders_sinks_get_execute(
 
 pub fn logging_folders_sinks_get(
     client: &SimpleHttpClient,
-    sinkName: &str,
+    args: &LoggingFoldersSinksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_sinks_get_builder(client, sinkName)?;
+    let builder = logging_folders_sinks_get_builder(client, &args.sinkName)?;
     logging_folders_sinks_get_execute(builder)
 }
 
@@ -12869,6 +13901,19 @@ pub fn logging_folders_sinks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_sinks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersSinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/folders/{foldersId}/sinks
 /// Lists sinks.
 ///
@@ -12881,17 +13926,20 @@ pub fn logging_folders_sinks_list_execute(
 
 pub fn logging_folders_sinks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingFoldersSinksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSinksResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_folders_sinks_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = logging_folders_sinks_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_folders_sinks_list_execute(builder)
 }
 
@@ -13008,6 +14056,21 @@ pub fn logging_folders_sinks_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_sinks_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersSinksPatchArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+    /// Query parameter: customWriterIdentity
+    pub customWriterIdentity: Option<String>,
+    /// Query parameter: uniqueWriterIdentity
+    pub uniqueWriterIdentity: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogSink,
+}
+
 /// GET v2/folders/{foldersId}/sinks/{sinksId}
 /// Updates a sink. This method replaces the values of the destination and filter fields of the existing sink with the corresponding values from the new sink.The updated sink might also have a new writer_identity; see the unique_writer_identity field.
 ///
@@ -13020,22 +14083,18 @@ pub fn logging_folders_sinks_patch_execute(
 
 pub fn logging_folders_sinks_patch(
     client: &SimpleHttpClient,
-    sinkName: &str,
-    customWriterIdentity: Option<&str>,
-    uniqueWriterIdentity: Option<bool>,
-    updateMask: Option<&str>,
-    body: &LogSink,
+    args: &LoggingFoldersSinksPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_folders_sinks_patch_builder(
         client,
-        sinkName,
-        customWriterIdentity,
-        uniqueWriterIdentity,
-        updateMask,
-        body,
+        &args.sinkName,
+        args.customWriterIdentity.as_deref(),
+        args.uniqueWriterIdentity,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     logging_folders_sinks_patch_execute(builder)
 }
@@ -13153,6 +14212,21 @@ pub fn logging_folders_sinks_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_folders_sinks_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingFoldersSinksUpdateArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+    /// Query parameter: customWriterIdentity
+    pub customWriterIdentity: Option<String>,
+    /// Query parameter: uniqueWriterIdentity
+    pub uniqueWriterIdentity: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogSink,
+}
+
 /// GET v2/folders/{foldersId}/sinks/{sinksId}
 /// Updates a sink. This method replaces the values of the destination and filter fields of the existing sink with the corresponding values from the new sink.The updated sink might also have a new writer_identity; see the unique_writer_identity field.
 ///
@@ -13165,22 +14239,18 @@ pub fn logging_folders_sinks_update_execute(
 
 pub fn logging_folders_sinks_update(
     client: &SimpleHttpClient,
-    sinkName: &str,
-    customWriterIdentity: Option<&str>,
-    uniqueWriterIdentity: Option<bool>,
-    updateMask: Option<&str>,
-    body: &LogSink,
+    args: &LoggingFoldersSinksUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_folders_sinks_update_builder(
         client,
-        sinkName,
-        customWriterIdentity,
-        uniqueWriterIdentity,
-        updateMask,
-        body,
+        &args.sinkName,
+        args.customWriterIdentity.as_deref(),
+        args.uniqueWriterIdentity,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     logging_folders_sinks_update_execute(builder)
 }
@@ -13272,6 +14342,13 @@ pub fn logging_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -13284,12 +14361,12 @@ pub fn logging_locations_get_execute(
 
 pub fn logging_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_get_builder(client, name)?;
+    let builder = logging_locations_get_builder(client, &args.name)?;
     logging_locations_get_execute(builder)
 }
 
@@ -13406,6 +14483,21 @@ pub fn logging_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations
 /// Lists information about the supported locations for this service.This method lists locations based on the resource scope provided in the ListLocationsRequest.name field: Global locations: If name is empty, the method lists the public locations available to all projects. Project-specific locations: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project.For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -13418,11 +14510,7 @@ pub fn logging_locations_list_execute(
 
 pub fn logging_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -13431,11 +14519,11 @@ pub fn logging_locations_list(
 > {
     let builder = logging_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_locations_list_execute(builder)
 }
@@ -13545,6 +14633,17 @@ pub fn logging_locations_buckets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: bucketId
+    pub bucketId: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets
 /// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -13557,14 +14656,17 @@ pub fn logging_locations_buckets_create_execute(
 
 pub fn logging_locations_buckets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    bucketId: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingLocationsBucketsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogBucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_create_builder(client, parent, bucketId, body)?;
+    let builder = logging_locations_buckets_create_builder(
+        client,
+        &args.parent,
+        args.bucketId.as_deref(),
+        &args.body,
+    )?;
     logging_locations_buckets_create_execute(builder)
 }
 
@@ -13673,6 +14775,17 @@ pub fn logging_locations_buckets_create_async_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_create_async`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsCreateAsyncArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: bucketId
+    pub bucketId: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets:createAsync
 /// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -13685,14 +14798,17 @@ pub fn logging_locations_buckets_create_async_execute(
 
 pub fn logging_locations_buckets_create_async(
     client: &SimpleHttpClient,
-    parent: &str,
-    bucketId: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingLocationsBucketsCreateAsyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_create_async_builder(client, parent, bucketId, body)?;
+    let builder = logging_locations_buckets_create_async_builder(
+        client,
+        &args.parent,
+        args.bucketId.as_deref(),
+        &args.body,
+    )?;
     logging_locations_buckets_create_async_execute(builder)
 }
 
@@ -13786,6 +14902,13 @@ pub fn logging_locations_buckets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}
 /// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
@@ -13798,12 +14921,12 @@ pub fn logging_locations_buckets_delete_execute(
 
 pub fn logging_locations_buckets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingLocationsBucketsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_delete_builder(client, name)?;
+    let builder = logging_locations_buckets_delete_builder(client, &args.name)?;
     logging_locations_buckets_delete_execute(builder)
 }
 
@@ -13897,6 +15020,13 @@ pub fn logging_locations_buckets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}
 /// Gets a log bucket.
 ///
@@ -13909,12 +15039,12 @@ pub fn logging_locations_buckets_get_execute(
 
 pub fn logging_locations_buckets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingLocationsBucketsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogBucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_get_builder(client, name)?;
+    let builder = logging_locations_buckets_get_builder(client, &args.name)?;
     logging_locations_buckets_get_execute(builder)
 }
 
@@ -14026,6 +15156,17 @@ pub fn logging_locations_buckets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets
 /// Lists log buckets.
 ///
@@ -14038,16 +15179,19 @@ pub fn logging_locations_buckets_list_execute(
 
 pub fn logging_locations_buckets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingLocationsBucketsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBucketsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_locations_buckets_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_locations_buckets_list_execute(builder)
 }
 
@@ -14156,6 +15300,17 @@ pub fn logging_locations_buckets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}
 /// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -14168,14 +15323,17 @@ pub fn logging_locations_buckets_patch_execute(
 
 pub fn logging_locations_buckets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingLocationsBucketsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogBucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_locations_buckets_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_locations_buckets_patch_execute(builder)
 }
 
@@ -14272,6 +15430,15 @@ pub fn logging_locations_buckets_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsUndeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UndeleteBucketRequest,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}:undelete
 /// Undeletes a log bucket. A bucket that has been deleted can be undeleted within the grace period of 7 days.
 ///
@@ -14284,13 +15451,12 @@ pub fn logging_locations_buckets_undelete_execute(
 
 pub fn logging_locations_buckets_undelete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UndeleteBucketRequest,
+    args: &LoggingLocationsBucketsUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_undelete_builder(client, name, body)?;
+    let builder = logging_locations_buckets_undelete_builder(client, &args.name, &args.body)?;
     logging_locations_buckets_undelete_execute(builder)
 }
 
@@ -14399,6 +15565,17 @@ pub fn logging_locations_buckets_update_async_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_update_async`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsUpdateAsyncArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
 /// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -14411,14 +15588,17 @@ pub fn logging_locations_buckets_update_async_execute(
 
 pub fn logging_locations_buckets_update_async(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingLocationsBucketsUpdateAsyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_update_async_builder(client, name, updateMask, body)?;
+    let builder = logging_locations_buckets_update_async_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_locations_buckets_update_async_execute(builder)
 }
 
@@ -14527,6 +15707,17 @@ pub fn logging_locations_buckets_links_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsLinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: linkId
+    pub linkId: Option<String>,
+    /// Request body.
+    pub body: Link,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/links
 /// Asynchronously creates a linked dataset in BigQuery which makes it possible to use BigQuery to read the logs stored in the log bucket. A log bucket may currently only contain one link.
 ///
@@ -14539,14 +15730,17 @@ pub fn logging_locations_buckets_links_create_execute(
 
 pub fn logging_locations_buckets_links_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    linkId: Option<&str>,
-    body: &Link,
+    args: &LoggingLocationsBucketsLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_links_create_builder(client, parent, linkId, body)?;
+    let builder = logging_locations_buckets_links_create_builder(
+        client,
+        &args.parent,
+        args.linkId.as_deref(),
+        &args.body,
+    )?;
     logging_locations_buckets_links_create_execute(builder)
 }
 
@@ -14640,6 +15834,13 @@ pub fn logging_locations_buckets_links_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}
 /// Deletes a link. This will also delete the corresponding BigQuery linked dataset.
 ///
@@ -14652,12 +15853,12 @@ pub fn logging_locations_buckets_links_delete_execute(
 
 pub fn logging_locations_buckets_links_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingLocationsBucketsLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_links_delete_builder(client, name)?;
+    let builder = logging_locations_buckets_links_delete_builder(client, &args.name)?;
     logging_locations_buckets_links_delete_execute(builder)
 }
 
@@ -14751,6 +15952,13 @@ pub fn logging_locations_buckets_links_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_links_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsLinksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}
 /// Gets a link.
 ///
@@ -14763,12 +15971,12 @@ pub fn logging_locations_buckets_links_get_execute(
 
 pub fn logging_locations_buckets_links_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingLocationsBucketsLinksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Link>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_links_get_builder(client, name)?;
+    let builder = logging_locations_buckets_links_get_builder(client, &args.name)?;
     logging_locations_buckets_links_get_execute(builder)
 }
 
@@ -14880,6 +16088,17 @@ pub fn logging_locations_buckets_links_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsLinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/links
 /// Lists links.
 ///
@@ -14892,17 +16111,19 @@ pub fn logging_locations_buckets_links_list_execute(
 
 pub fn logging_locations_buckets_links_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingLocationsBucketsLinksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLinksResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_locations_buckets_links_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_locations_buckets_links_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_locations_buckets_links_list_execute(builder)
 }
 
@@ -15011,6 +16232,17 @@ pub fn logging_locations_buckets_views_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_views_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsViewsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: viewId
+    pub viewId: Option<String>,
+    /// Request body.
+    pub body: LogView,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views
 /// Creates a view over log entries in a log bucket. A bucket may contain a maximum of 30 views.
 ///
@@ -15023,14 +16255,17 @@ pub fn logging_locations_buckets_views_create_execute(
 
 pub fn logging_locations_buckets_views_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    viewId: Option<&str>,
-    body: &LogView,
+    args: &LoggingLocationsBucketsViewsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogView>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_views_create_builder(client, parent, viewId, body)?;
+    let builder = logging_locations_buckets_views_create_builder(
+        client,
+        &args.parent,
+        args.viewId.as_deref(),
+        &args.body,
+    )?;
     logging_locations_buckets_views_create_execute(builder)
 }
 
@@ -15124,6 +16359,13 @@ pub fn logging_locations_buckets_views_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_views_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsViewsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
 /// Deletes a view on a log bucket. If an UNAVAILABLE error is returned, this indicates that system is not in a state where it can delete the view. If this occurs, please try again in a few minutes.
 ///
@@ -15136,12 +16378,12 @@ pub fn logging_locations_buckets_views_delete_execute(
 
 pub fn logging_locations_buckets_views_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingLocationsBucketsViewsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_views_delete_builder(client, name)?;
+    let builder = logging_locations_buckets_views_delete_builder(client, &args.name)?;
     logging_locations_buckets_views_delete_execute(builder)
 }
 
@@ -15235,6 +16477,13 @@ pub fn logging_locations_buckets_views_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
 /// Gets a view on a log bucket.
 ///
@@ -15247,12 +16496,12 @@ pub fn logging_locations_buckets_views_get_execute(
 
 pub fn logging_locations_buckets_views_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingLocationsBucketsViewsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogView>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_views_get_builder(client, name)?;
+    let builder = logging_locations_buckets_views_get_builder(client, &args.name)?;
     logging_locations_buckets_views_get_execute(builder)
 }
 
@@ -15349,6 +16598,15 @@ pub fn logging_locations_buckets_views_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_views_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsViewsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -15361,13 +16619,13 @@ pub fn logging_locations_buckets_views_get_iam_policy_execute(
 
 pub fn logging_locations_buckets_views_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &LoggingLocationsBucketsViewsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_views_get_iam_policy_builder(client, resource, body)?;
+    let builder =
+        logging_locations_buckets_views_get_iam_policy_builder(client, &args.resource, &args.body)?;
     logging_locations_buckets_views_get_iam_policy_execute(builder)
 }
 
@@ -15479,6 +16737,17 @@ pub fn logging_locations_buckets_views_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views
 /// Lists views on a log bucket.
 ///
@@ -15491,17 +16760,19 @@ pub fn logging_locations_buckets_views_list_execute(
 
 pub fn logging_locations_buckets_views_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingLocationsBucketsViewsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListViewsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_locations_buckets_views_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_locations_buckets_views_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_locations_buckets_views_list_execute(builder)
 }
 
@@ -15610,6 +16881,17 @@ pub fn logging_locations_buckets_views_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_views_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsViewsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogView,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
 /// Updates a view on a log bucket. This method replaces the value of the filter field from the existing view with the corresponding value from the new view. If an UNAVAILABLE error is returned, this indicates that system is not in a state where it can update the view. If this occurs, please try again in a few minutes.
 ///
@@ -15622,14 +16904,17 @@ pub fn logging_locations_buckets_views_patch_execute(
 
 pub fn logging_locations_buckets_views_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogView,
+    args: &LoggingLocationsBucketsViewsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogView>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_views_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_locations_buckets_views_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_locations_buckets_views_patch_execute(builder)
 }
 
@@ -15726,6 +17011,15 @@ pub fn logging_locations_buckets_views_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_views_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsViewsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -15738,13 +17032,13 @@ pub fn logging_locations_buckets_views_set_iam_policy_execute(
 
 pub fn logging_locations_buckets_views_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &LoggingLocationsBucketsViewsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_buckets_views_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        logging_locations_buckets_views_set_iam_policy_builder(client, &args.resource, &args.body)?;
     logging_locations_buckets_views_set_iam_policy_execute(builder)
 }
 
@@ -15845,6 +17139,15 @@ pub fn logging_locations_buckets_views_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_buckets_views_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsBucketsViewsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -15857,8 +17160,7 @@ pub fn logging_locations_buckets_views_test_iam_permissions_execute(
 
 pub fn logging_locations_buckets_views_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &LoggingLocationsBucketsViewsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -15867,8 +17169,11 @@ pub fn logging_locations_buckets_views_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_locations_buckets_views_test_iam_permissions_builder(client, resource, body)?;
+    let builder = logging_locations_buckets_views_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     logging_locations_buckets_views_test_iam_permissions_execute(builder)
 }
 
@@ -15965,6 +17270,15 @@ pub fn logging_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -15977,13 +17291,12 @@ pub fn logging_locations_operations_cancel_execute(
 
 pub fn logging_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &LoggingLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_operations_cancel_builder(client, name, body)?;
+    let builder = logging_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     logging_locations_operations_cancel_execute(builder)
 }
 
@@ -16077,6 +17390,13 @@ pub fn logging_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -16089,12 +17409,12 @@ pub fn logging_locations_operations_get_execute(
 
 pub fn logging_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_locations_operations_get_builder(client, name)?;
+    let builder = logging_locations_operations_get_builder(client, &args.name)?;
     logging_locations_operations_get_execute(builder)
 }
 
@@ -16214,6 +17534,21 @@ pub fn logging_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -16226,11 +17561,7 @@ pub fn logging_locations_operations_list_execute(
 
 pub fn logging_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &LoggingLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -16239,11 +17570,11 @@ pub fn logging_locations_operations_list(
 > {
     let builder = logging_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     logging_locations_operations_list_execute(builder)
 }
@@ -16335,6 +17666,13 @@ pub fn logging_logs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_logs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLogsDeleteArgs {
+    /// Path parameter: logName
+    pub logName: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/logs/{logsId}
 /// Deletes all the log entries in a log for the global _Default Log Bucket. The log reappears if it receives new entries. Log entries written shortly before the delete operation might not be deleted. Entries received after the delete operation with a timestamp before the operation will be deleted.
 ///
@@ -16347,12 +17685,12 @@ pub fn logging_logs_delete_execute(
 
 pub fn logging_logs_delete(
     client: &SimpleHttpClient,
-    logName: &str,
+    args: &LoggingLogsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_logs_delete_builder(client, logName)?;
+    let builder = logging_logs_delete_builder(client, &args.logName)?;
     logging_logs_delete_execute(builder)
 }
 
@@ -16465,6 +17803,19 @@ pub fn logging_logs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_logs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingLogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resourceNames
+    pub resourceNames: Option<String>,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/logs
 /// Lists the logs in projects, organizations, folders, or billing accounts. Only logs that have entries are listed.
 ///
@@ -16477,17 +17828,20 @@ pub fn logging_logs_list_execute(
 
 pub fn logging_logs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    resourceNames: Option<&str>,
+    args: &LoggingLogsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLogsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_logs_list_builder(client, parent, pageSize, pageToken, resourceNames)?;
+    let builder = logging_logs_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.resourceNames.as_deref(),
+    )?;
     logging_logs_list_execute(builder)
 }
 
@@ -16597,6 +17951,15 @@ pub fn logging_monitored_resource_descriptors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_monitored_resource_descriptors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingMonitoredResourceDescriptorsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/monitoredResourceDescriptors
 /// Lists the descriptors for monitored resource types used by Logging.
 ///
@@ -16609,8 +17972,7 @@ pub fn logging_monitored_resource_descriptors_list_execute(
 
 pub fn logging_monitored_resource_descriptors_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingMonitoredResourceDescriptorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMonitoredResourceDescriptorsResponse>, ApiError>,
@@ -16619,7 +17981,11 @@ pub fn logging_monitored_resource_descriptors_list(
         + 'static,
     ApiError,
 > {
-    let builder = logging_monitored_resource_descriptors_list_builder(client, pageSize, pageToken)?;
+    let builder = logging_monitored_resource_descriptors_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_monitored_resource_descriptors_list_execute(builder)
 }
 
@@ -16715,6 +18081,13 @@ pub fn logging_organizations_get_cmek_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_get_cmek_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsGetCmekSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/cmekSettings
 /// Gets the Logging CMEK settings for the given resource.Note: CMEK for the Log Router can be configured for Google Cloud projects, folders, organizations, and billing accounts. Once configured for an organization, it applies to all projects and folders in the Google Cloud organization.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
 ///
@@ -16727,14 +18100,14 @@ pub fn logging_organizations_get_cmek_settings_execute(
 
 pub fn logging_organizations_get_cmek_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingOrganizationsGetCmekSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CmekSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_get_cmek_settings_builder(client, name)?;
+    let builder = logging_organizations_get_cmek_settings_builder(client, &args.name)?;
     logging_organizations_get_cmek_settings_execute(builder)
 }
 
@@ -16828,6 +18201,13 @@ pub fn logging_organizations_get_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_get_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsGetSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/settings
 /// Gets the settings for the given resource.Note: Settings can be retrieved for Google Cloud projects, folders, organizations, and billing accounts.See View default resource settings for Logging (<https://docs.cloud.google.`com/logging/docs/default-settings`#view-org-settings>) for more information.
 ///
@@ -16840,12 +18220,12 @@ pub fn logging_organizations_get_settings_execute(
 
 pub fn logging_organizations_get_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingOrganizationsGetSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_get_settings_builder(client, name)?;
+    let builder = logging_organizations_get_settings_builder(client, &args.name)?;
     logging_organizations_get_settings_execute(builder)
 }
 
@@ -16956,6 +18336,17 @@ pub fn logging_organizations_update_cmek_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_update_cmek_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsUpdateCmekSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CmekSettings,
+}
+
 /// GET v2/organizations/{organizationsId}/cmekSettings
 /// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
 ///
@@ -16968,17 +18359,19 @@ pub fn logging_organizations_update_cmek_settings_execute(
 
 pub fn logging_organizations_update_cmek_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &CmekSettings,
+    args: &LoggingOrganizationsUpdateCmekSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CmekSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_organizations_update_cmek_settings_builder(client, name, updateMask, body)?;
+    let builder = logging_organizations_update_cmek_settings_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_organizations_update_cmek_settings_execute(builder)
 }
 
@@ -17087,6 +18480,17 @@ pub fn logging_organizations_update_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_update_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsUpdateSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Settings,
+}
+
 /// GET v2/organizations/{organizationsId}/settings
 /// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn't supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
 ///
@@ -17099,14 +18503,17 @@ pub fn logging_organizations_update_settings_execute(
 
 pub fn logging_organizations_update_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Settings,
+    args: &LoggingOrganizationsUpdateSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_update_settings_builder(client, name, updateMask, body)?;
+    let builder = logging_organizations_update_settings_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_organizations_update_settings_execute(builder)
 }
 
@@ -17205,6 +18612,15 @@ pub fn logging_organizations_exclusions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_exclusions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsExclusionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: LogExclusion,
+}
+
 /// GET v2/organizations/{organizationsId}/exclusions
 /// Creates a new exclusion in the _Default sink in a specified parent resource. Only log entries belonging to that resource can be excluded. You can have up to 10 exclusions in a resource.
 ///
@@ -17217,15 +18633,15 @@ pub fn logging_organizations_exclusions_create_execute(
 
 pub fn logging_organizations_exclusions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &LogExclusion,
+    args: &LoggingOrganizationsExclusionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogExclusion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_exclusions_create_builder(client, parent, body)?;
+    let builder =
+        logging_organizations_exclusions_create_builder(client, &args.parent, &args.body)?;
     logging_organizations_exclusions_create_execute(builder)
 }
 
@@ -17319,6 +18735,13 @@ pub fn logging_organizations_exclusions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_exclusions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsExclusionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/exclusions/{exclusionsId}
 /// Deletes an exclusion in the _Default sink.
 ///
@@ -17331,12 +18754,12 @@ pub fn logging_organizations_exclusions_delete_execute(
 
 pub fn logging_organizations_exclusions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingOrganizationsExclusionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_exclusions_delete_builder(client, name)?;
+    let builder = logging_organizations_exclusions_delete_builder(client, &args.name)?;
     logging_organizations_exclusions_delete_execute(builder)
 }
 
@@ -17432,6 +18855,13 @@ pub fn logging_organizations_exclusions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_exclusions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsExclusionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/exclusions/{exclusionsId}
 /// Gets the description of an exclusion in the _Default sink.
 ///
@@ -17444,14 +18874,14 @@ pub fn logging_organizations_exclusions_get_execute(
 
 pub fn logging_organizations_exclusions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingOrganizationsExclusionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogExclusion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_exclusions_get_builder(client, name)?;
+    let builder = logging_organizations_exclusions_get_builder(client, &args.name)?;
     logging_organizations_exclusions_get_execute(builder)
 }
 
@@ -17563,6 +18993,17 @@ pub fn logging_organizations_exclusions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_exclusions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsExclusionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/exclusions
 /// Lists all the exclusions on the _Default sink in a parent resource.
 ///
@@ -17575,17 +19016,19 @@ pub fn logging_organizations_exclusions_list_execute(
 
 pub fn logging_organizations_exclusions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingOrganizationsExclusionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListExclusionsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_organizations_exclusions_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_organizations_exclusions_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_organizations_exclusions_list_execute(builder)
 }
 
@@ -17696,6 +19139,17 @@ pub fn logging_organizations_exclusions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_exclusions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsExclusionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogExclusion,
+}
+
 /// GET v2/organizations/{organizationsId}/exclusions/{exclusionsId}
 /// Changes one or more properties of an existing exclusion in the _Default sink.
 ///
@@ -17708,16 +19162,19 @@ pub fn logging_organizations_exclusions_patch_execute(
 
 pub fn logging_organizations_exclusions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogExclusion,
+    args: &LoggingOrganizationsExclusionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogExclusion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_exclusions_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_organizations_exclusions_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_organizations_exclusions_patch_execute(builder)
 }
 
@@ -17811,6 +19268,13 @@ pub fn logging_organizations_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -17823,12 +19287,12 @@ pub fn logging_organizations_locations_get_execute(
 
 pub fn logging_organizations_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingOrganizationsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_locations_get_builder(client, name)?;
+    let builder = logging_organizations_locations_get_builder(client, &args.name)?;
     logging_organizations_locations_get_execute(builder)
 }
 
@@ -17948,6 +19412,21 @@ pub fn logging_organizations_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations
 /// Lists information about the supported locations for this service.This method lists locations based on the resource scope provided in the ListLocationsRequest.name field: Global locations: If name is empty, the method lists the public locations available to all projects. Project-specific locations: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project.For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -17960,11 +19439,7 @@ pub fn logging_organizations_locations_list_execute(
 
 pub fn logging_organizations_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingOrganizationsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -17973,11 +19448,11 @@ pub fn logging_organizations_locations_list(
 > {
     let builder = logging_organizations_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_organizations_locations_list_execute(builder)
 }
@@ -18087,6 +19562,17 @@ pub fn logging_organizations_locations_buckets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: bucketId
+    pub bucketId: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets
 /// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -18099,15 +19585,17 @@ pub fn logging_organizations_locations_buckets_create_execute(
 
 pub fn logging_organizations_locations_buckets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    bucketId: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingOrganizationsLocationsBucketsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogBucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_organizations_locations_buckets_create_builder(client, parent, bucketId, body)?;
+    let builder = logging_organizations_locations_buckets_create_builder(
+        client,
+        &args.parent,
+        args.bucketId.as_deref(),
+        &args.body,
+    )?;
     logging_organizations_locations_buckets_create_execute(builder)
 }
 
@@ -18216,6 +19704,17 @@ pub fn logging_organizations_locations_buckets_create_async_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_create_async`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsCreateAsyncArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: bucketId
+    pub bucketId: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets:createAsync
 /// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -18228,15 +19727,16 @@ pub fn logging_organizations_locations_buckets_create_async_execute(
 
 pub fn logging_organizations_locations_buckets_create_async(
     client: &SimpleHttpClient,
-    parent: &str,
-    bucketId: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingOrganizationsLocationsBucketsCreateAsyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_organizations_locations_buckets_create_async_builder(
-        client, parent, bucketId, body,
+        client,
+        &args.parent,
+        args.bucketId.as_deref(),
+        &args.body,
     )?;
     logging_organizations_locations_buckets_create_async_execute(builder)
 }
@@ -18331,6 +19831,13 @@ pub fn logging_organizations_locations_buckets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}
 /// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
@@ -18343,12 +19850,12 @@ pub fn logging_organizations_locations_buckets_delete_execute(
 
 pub fn logging_organizations_locations_buckets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingOrganizationsLocationsBucketsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_locations_buckets_delete_builder(client, name)?;
+    let builder = logging_organizations_locations_buckets_delete_builder(client, &args.name)?;
     logging_organizations_locations_buckets_delete_execute(builder)
 }
 
@@ -18442,6 +19949,13 @@ pub fn logging_organizations_locations_buckets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}
 /// Gets a log bucket.
 ///
@@ -18454,12 +19968,12 @@ pub fn logging_organizations_locations_buckets_get_execute(
 
 pub fn logging_organizations_locations_buckets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingOrganizationsLocationsBucketsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogBucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_locations_buckets_get_builder(client, name)?;
+    let builder = logging_organizations_locations_buckets_get_builder(client, &args.name)?;
     logging_organizations_locations_buckets_get_execute(builder)
 }
 
@@ -18571,6 +20085,17 @@ pub fn logging_organizations_locations_buckets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets
 /// Lists log buckets.
 ///
@@ -18583,17 +20108,19 @@ pub fn logging_organizations_locations_buckets_list_execute(
 
 pub fn logging_organizations_locations_buckets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingOrganizationsLocationsBucketsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBucketsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_organizations_locations_buckets_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_organizations_locations_buckets_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_organizations_locations_buckets_list_execute(builder)
 }
 
@@ -18702,6 +20229,17 @@ pub fn logging_organizations_locations_buckets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}
 /// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -18714,15 +20252,17 @@ pub fn logging_organizations_locations_buckets_patch_execute(
 
 pub fn logging_organizations_locations_buckets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingOrganizationsLocationsBucketsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogBucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_organizations_locations_buckets_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_organizations_locations_buckets_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_organizations_locations_buckets_patch_execute(builder)
 }
 
@@ -18819,6 +20359,15 @@ pub fn logging_organizations_locations_buckets_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsUndeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UndeleteBucketRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}:undelete
 /// Undeletes a log bucket. A bucket that has been deleted can be undeleted within the grace period of 7 days.
 ///
@@ -18831,13 +20380,13 @@ pub fn logging_organizations_locations_buckets_undelete_execute(
 
 pub fn logging_organizations_locations_buckets_undelete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UndeleteBucketRequest,
+    args: &LoggingOrganizationsLocationsBucketsUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_locations_buckets_undelete_builder(client, name, body)?;
+    let builder =
+        logging_organizations_locations_buckets_undelete_builder(client, &args.name, &args.body)?;
     logging_organizations_locations_buckets_undelete_execute(builder)
 }
 
@@ -18946,6 +20495,17 @@ pub fn logging_organizations_locations_buckets_update_async_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_update_async`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsUpdateAsyncArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
 /// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -18958,15 +20518,16 @@ pub fn logging_organizations_locations_buckets_update_async_execute(
 
 pub fn logging_organizations_locations_buckets_update_async(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingOrganizationsLocationsBucketsUpdateAsyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_organizations_locations_buckets_update_async_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     logging_organizations_locations_buckets_update_async_execute(builder)
 }
@@ -19076,6 +20637,17 @@ pub fn logging_organizations_locations_buckets_links_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsLinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: linkId
+    pub linkId: Option<String>,
+    /// Request body.
+    pub body: Link,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/links
 /// Asynchronously creates a linked dataset in BigQuery which makes it possible to use BigQuery to read the logs stored in the log bucket. A log bucket may currently only contain one link.
 ///
@@ -19088,15 +20660,17 @@ pub fn logging_organizations_locations_buckets_links_create_execute(
 
 pub fn logging_organizations_locations_buckets_links_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    linkId: Option<&str>,
-    body: &Link,
+    args: &LoggingOrganizationsLocationsBucketsLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_organizations_locations_buckets_links_create_builder(client, parent, linkId, body)?;
+    let builder = logging_organizations_locations_buckets_links_create_builder(
+        client,
+        &args.parent,
+        args.linkId.as_deref(),
+        &args.body,
+    )?;
     logging_organizations_locations_buckets_links_create_execute(builder)
 }
 
@@ -19190,6 +20764,13 @@ pub fn logging_organizations_locations_buckets_links_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}
 /// Deletes a link. This will also delete the corresponding BigQuery linked dataset.
 ///
@@ -19202,12 +20783,12 @@ pub fn logging_organizations_locations_buckets_links_delete_execute(
 
 pub fn logging_organizations_locations_buckets_links_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingOrganizationsLocationsBucketsLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_locations_buckets_links_delete_builder(client, name)?;
+    let builder = logging_organizations_locations_buckets_links_delete_builder(client, &args.name)?;
     logging_organizations_locations_buckets_links_delete_execute(builder)
 }
 
@@ -19301,6 +20882,13 @@ pub fn logging_organizations_locations_buckets_links_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_links_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsLinksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}
 /// Gets a link.
 ///
@@ -19313,12 +20901,12 @@ pub fn logging_organizations_locations_buckets_links_get_execute(
 
 pub fn logging_organizations_locations_buckets_links_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingOrganizationsLocationsBucketsLinksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Link>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_locations_buckets_links_get_builder(client, name)?;
+    let builder = logging_organizations_locations_buckets_links_get_builder(client, &args.name)?;
     logging_organizations_locations_buckets_links_get_execute(builder)
 }
 
@@ -19430,6 +21018,17 @@ pub fn logging_organizations_locations_buckets_links_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsLinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/links
 /// Lists links.
 ///
@@ -19442,9 +21041,7 @@ pub fn logging_organizations_locations_buckets_links_list_execute(
 
 pub fn logging_organizations_locations_buckets_links_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingOrganizationsLocationsBucketsLinksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLinksResponse>, ApiError>, P = ApiPending>
         + Send
@@ -19452,7 +21049,10 @@ pub fn logging_organizations_locations_buckets_links_list(
     ApiError,
 > {
     let builder = logging_organizations_locations_buckets_links_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_organizations_locations_buckets_links_list_execute(builder)
 }
@@ -19562,6 +21162,17 @@ pub fn logging_organizations_locations_buckets_views_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_views_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsViewsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: viewId
+    pub viewId: Option<String>,
+    /// Request body.
+    pub body: LogView,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/views
 /// Creates a view over log entries in a log bucket. A bucket may contain a maximum of 30 views.
 ///
@@ -19574,15 +21185,17 @@ pub fn logging_organizations_locations_buckets_views_create_execute(
 
 pub fn logging_organizations_locations_buckets_views_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    viewId: Option<&str>,
-    body: &LogView,
+    args: &LoggingOrganizationsLocationsBucketsViewsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogView>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_organizations_locations_buckets_views_create_builder(client, parent, viewId, body)?;
+    let builder = logging_organizations_locations_buckets_views_create_builder(
+        client,
+        &args.parent,
+        args.viewId.as_deref(),
+        &args.body,
+    )?;
     logging_organizations_locations_buckets_views_create_execute(builder)
 }
 
@@ -19676,6 +21289,13 @@ pub fn logging_organizations_locations_buckets_views_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_views_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsViewsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
 /// Deletes a view on a log bucket. If an UNAVAILABLE error is returned, this indicates that system is not in a state where it can delete the view. If this occurs, please try again in a few minutes.
 ///
@@ -19688,12 +21308,12 @@ pub fn logging_organizations_locations_buckets_views_delete_execute(
 
 pub fn logging_organizations_locations_buckets_views_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingOrganizationsLocationsBucketsViewsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_locations_buckets_views_delete_builder(client, name)?;
+    let builder = logging_organizations_locations_buckets_views_delete_builder(client, &args.name)?;
     logging_organizations_locations_buckets_views_delete_execute(builder)
 }
 
@@ -19787,6 +21407,13 @@ pub fn logging_organizations_locations_buckets_views_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
 /// Gets a view on a log bucket.
 ///
@@ -19799,12 +21426,12 @@ pub fn logging_organizations_locations_buckets_views_get_execute(
 
 pub fn logging_organizations_locations_buckets_views_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingOrganizationsLocationsBucketsViewsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogView>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_locations_buckets_views_get_builder(client, name)?;
+    let builder = logging_organizations_locations_buckets_views_get_builder(client, &args.name)?;
     logging_organizations_locations_buckets_views_get_execute(builder)
 }
 
@@ -19901,6 +21528,15 @@ pub fn logging_organizations_locations_buckets_views_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_views_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsViewsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -19913,14 +21549,15 @@ pub fn logging_organizations_locations_buckets_views_get_iam_policy_execute(
 
 pub fn logging_organizations_locations_buckets_views_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &LoggingOrganizationsLocationsBucketsViewsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_organizations_locations_buckets_views_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     logging_organizations_locations_buckets_views_get_iam_policy_execute(builder)
 }
@@ -20033,6 +21670,17 @@ pub fn logging_organizations_locations_buckets_views_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/views
 /// Lists views on a log bucket.
 ///
@@ -20045,9 +21693,7 @@ pub fn logging_organizations_locations_buckets_views_list_execute(
 
 pub fn logging_organizations_locations_buckets_views_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingOrganizationsLocationsBucketsViewsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListViewsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -20055,7 +21701,10 @@ pub fn logging_organizations_locations_buckets_views_list(
     ApiError,
 > {
     let builder = logging_organizations_locations_buckets_views_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_organizations_locations_buckets_views_list_execute(builder)
 }
@@ -20165,6 +21814,17 @@ pub fn logging_organizations_locations_buckets_views_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_views_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsViewsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogView,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
 /// Updates a view on a log bucket. This method replaces the value of the filter field from the existing view with the corresponding value from the new view. If an UNAVAILABLE error is returned, this indicates that system is not in a state where it can update the view. If this occurs, please try again in a few minutes.
 ///
@@ -20177,15 +21837,16 @@ pub fn logging_organizations_locations_buckets_views_patch_execute(
 
 pub fn logging_organizations_locations_buckets_views_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogView,
+    args: &LoggingOrganizationsLocationsBucketsViewsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogView>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_organizations_locations_buckets_views_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     logging_organizations_locations_buckets_views_patch_execute(builder)
 }
@@ -20283,6 +21944,15 @@ pub fn logging_organizations_locations_buckets_views_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_views_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsViewsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -20295,14 +21965,15 @@ pub fn logging_organizations_locations_buckets_views_set_iam_policy_execute(
 
 pub fn logging_organizations_locations_buckets_views_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &LoggingOrganizationsLocationsBucketsViewsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_organizations_locations_buckets_views_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     logging_organizations_locations_buckets_views_set_iam_policy_execute(builder)
 }
@@ -20404,6 +22075,15 @@ pub fn logging_organizations_locations_buckets_views_test_iam_permissions_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_views_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsViewsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -20416,8 +22096,7 @@ pub fn logging_organizations_locations_buckets_views_test_iam_permissions_execut
 
 pub fn logging_organizations_locations_buckets_views_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &LoggingOrganizationsLocationsBucketsViewsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -20427,7 +22106,9 @@ pub fn logging_organizations_locations_buckets_views_test_iam_permissions(
     ApiError,
 > {
     let builder = logging_organizations_locations_buckets_views_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     logging_organizations_locations_buckets_views_test_iam_permissions_execute(builder)
 }
@@ -20544,6 +22225,19 @@ pub fn logging_organizations_locations_buckets_views_logs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_buckets_views_logs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsBucketsViewsLogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resourceNames
+    pub resourceNames: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}/logs
 /// Lists the logs in projects, organizations, folders, or billing accounts. Only logs that have entries are listed.
 ///
@@ -20556,10 +22250,7 @@ pub fn logging_organizations_locations_buckets_views_logs_list_execute(
 
 pub fn logging_organizations_locations_buckets_views_logs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    resourceNames: Option<&str>,
+    args: &LoggingOrganizationsLocationsBucketsViewsLogsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLogsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -20568,10 +22259,10 @@ pub fn logging_organizations_locations_buckets_views_logs_list(
 > {
     let builder = logging_organizations_locations_buckets_views_logs_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        resourceNames,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.resourceNames.as_deref(),
     )?;
     logging_organizations_locations_buckets_views_logs_list_execute(builder)
 }
@@ -20681,6 +22372,17 @@ pub fn logging_organizations_locations_log_scopes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_log_scopes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsLogScopesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: logScopeId
+    pub logScopeId: Option<String>,
+    /// Request body.
+    pub body: LogScope,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/logScopes
 /// Creates a log scope.
 ///
@@ -20693,15 +22395,16 @@ pub fn logging_organizations_locations_log_scopes_create_execute(
 
 pub fn logging_organizations_locations_log_scopes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    logScopeId: Option<&str>,
-    body: &LogScope,
+    args: &LoggingOrganizationsLocationsLogScopesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogScope>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_organizations_locations_log_scopes_create_builder(
-        client, parent, logScopeId, body,
+        client,
+        &args.parent,
+        args.logScopeId.as_deref(),
+        &args.body,
     )?;
     logging_organizations_locations_log_scopes_create_execute(builder)
 }
@@ -20796,6 +22499,13 @@ pub fn logging_organizations_locations_log_scopes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_log_scopes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsLogScopesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/logScopes/{logScopesId}
 /// Deletes a log scope.
 ///
@@ -20808,12 +22518,12 @@ pub fn logging_organizations_locations_log_scopes_delete_execute(
 
 pub fn logging_organizations_locations_log_scopes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingOrganizationsLocationsLogScopesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_locations_log_scopes_delete_builder(client, name)?;
+    let builder = logging_organizations_locations_log_scopes_delete_builder(client, &args.name)?;
     logging_organizations_locations_log_scopes_delete_execute(builder)
 }
 
@@ -20907,6 +22617,13 @@ pub fn logging_organizations_locations_log_scopes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_log_scopes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsLogScopesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/logScopes/{logScopesId}
 /// Gets a log scope.
 ///
@@ -20919,12 +22636,12 @@ pub fn logging_organizations_locations_log_scopes_get_execute(
 
 pub fn logging_organizations_locations_log_scopes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingOrganizationsLocationsLogScopesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogScope>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_locations_log_scopes_get_builder(client, name)?;
+    let builder = logging_organizations_locations_log_scopes_get_builder(client, &args.name)?;
     logging_organizations_locations_log_scopes_get_execute(builder)
 }
 
@@ -21036,6 +22753,17 @@ pub fn logging_organizations_locations_log_scopes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_log_scopes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsLogScopesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/logScopes
 /// Lists log scopes.
 ///
@@ -21048,9 +22776,7 @@ pub fn logging_organizations_locations_log_scopes_list_execute(
 
 pub fn logging_organizations_locations_log_scopes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingOrganizationsLocationsLogScopesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLogScopesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -21058,7 +22784,10 @@ pub fn logging_organizations_locations_log_scopes_list(
     ApiError,
 > {
     let builder = logging_organizations_locations_log_scopes_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_organizations_locations_log_scopes_list_execute(builder)
 }
@@ -21168,6 +22897,17 @@ pub fn logging_organizations_locations_log_scopes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_log_scopes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsLogScopesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogScope,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/logScopes/{logScopesId}
 /// Updates a log scope.
 ///
@@ -21180,15 +22920,17 @@ pub fn logging_organizations_locations_log_scopes_patch_execute(
 
 pub fn logging_organizations_locations_log_scopes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogScope,
+    args: &LoggingOrganizationsLocationsLogScopesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogScope>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_organizations_locations_log_scopes_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_organizations_locations_log_scopes_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_organizations_locations_log_scopes_patch_execute(builder)
 }
 
@@ -21285,6 +23027,15 @@ pub fn logging_organizations_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -21297,13 +23048,13 @@ pub fn logging_organizations_locations_operations_cancel_execute(
 
 pub fn logging_organizations_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &LoggingOrganizationsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        logging_organizations_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     logging_organizations_locations_operations_cancel_execute(builder)
 }
 
@@ -21397,6 +23148,13 @@ pub fn logging_organizations_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -21409,12 +23167,12 @@ pub fn logging_organizations_locations_operations_get_execute(
 
 pub fn logging_organizations_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingOrganizationsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_locations_operations_get_builder(client, name)?;
+    let builder = logging_organizations_locations_operations_get_builder(client, &args.name)?;
     logging_organizations_locations_operations_get_execute(builder)
 }
 
@@ -21534,6 +23292,21 @@ pub fn logging_organizations_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -21546,11 +23319,7 @@ pub fn logging_organizations_locations_operations_list_execute(
 
 pub fn logging_organizations_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &LoggingOrganizationsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -21559,11 +23328,11 @@ pub fn logging_organizations_locations_operations_list(
 > {
     let builder = logging_organizations_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     logging_organizations_locations_operations_list_execute(builder)
 }
@@ -21680,6 +23449,19 @@ pub fn logging_organizations_locations_recent_queries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_recent_queries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsRecentQueriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/recentQueries
 /// Lists the RecentQueries that were created by the user making the request.
 ///
@@ -21692,10 +23474,7 @@ pub fn logging_organizations_locations_recent_queries_list_execute(
 
 pub fn logging_organizations_locations_recent_queries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingOrganizationsLocationsRecentQueriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRecentQueriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -21703,7 +23482,11 @@ pub fn logging_organizations_locations_recent_queries_list(
     ApiError,
 > {
     let builder = logging_organizations_locations_recent_queries_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_organizations_locations_recent_queries_list_execute(builder)
 }
@@ -21813,6 +23596,17 @@ pub fn logging_organizations_locations_saved_queries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_saved_queries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsSavedQueriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: savedQueryId
+    pub savedQueryId: Option<String>,
+    /// Request body.
+    pub body: SavedQuery,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/savedQueries
 /// Creates a new SavedQuery for the user making the request.
 ///
@@ -21825,18 +23619,16 @@ pub fn logging_organizations_locations_saved_queries_create_execute(
 
 pub fn logging_organizations_locations_saved_queries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    savedQueryId: Option<&str>,
-    body: &SavedQuery,
+    args: &LoggingOrganizationsLocationsSavedQueriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_organizations_locations_saved_queries_create_builder(
         client,
-        parent,
-        savedQueryId,
-        body,
+        &args.parent,
+        args.savedQueryId.as_deref(),
+        &args.body,
     )?;
     logging_organizations_locations_saved_queries_create_execute(builder)
 }
@@ -21931,6 +23723,13 @@ pub fn logging_organizations_locations_saved_queries_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_saved_queries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsSavedQueriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/savedQueries/{savedQueriesId}
 /// Deletes an existing SavedQuery that was created by the user making the request.
 ///
@@ -21943,12 +23742,12 @@ pub fn logging_organizations_locations_saved_queries_delete_execute(
 
 pub fn logging_organizations_locations_saved_queries_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingOrganizationsLocationsSavedQueriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_locations_saved_queries_delete_builder(client, name)?;
+    let builder = logging_organizations_locations_saved_queries_delete_builder(client, &args.name)?;
     logging_organizations_locations_saved_queries_delete_execute(builder)
 }
 
@@ -22042,6 +23841,13 @@ pub fn logging_organizations_locations_saved_queries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_saved_queries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsSavedQueriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/savedQueries/{savedQueriesId}
 /// Returns all data associated with the requested query.
 ///
@@ -22054,12 +23860,12 @@ pub fn logging_organizations_locations_saved_queries_get_execute(
 
 pub fn logging_organizations_locations_saved_queries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingOrganizationsLocationsSavedQueriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_locations_saved_queries_get_builder(client, name)?;
+    let builder = logging_organizations_locations_saved_queries_get_builder(client, &args.name)?;
     logging_organizations_locations_saved_queries_get_execute(builder)
 }
 
@@ -22175,6 +23981,19 @@ pub fn logging_organizations_locations_saved_queries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_saved_queries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsSavedQueriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/savedQueries
 /// Lists the SavedQueries that were created by the user making the request.
 ///
@@ -22187,10 +24006,7 @@ pub fn logging_organizations_locations_saved_queries_list_execute(
 
 pub fn logging_organizations_locations_saved_queries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingOrganizationsLocationsSavedQueriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSavedQueriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -22198,7 +24014,11 @@ pub fn logging_organizations_locations_saved_queries_list(
     ApiError,
 > {
     let builder = logging_organizations_locations_saved_queries_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_organizations_locations_saved_queries_list_execute(builder)
 }
@@ -22308,6 +24128,17 @@ pub fn logging_organizations_locations_saved_queries_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_locations_saved_queries_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLocationsSavedQueriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SavedQuery,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/savedQueries/{savedQueriesId}
 /// Updates an existing SavedQuery.
 ///
@@ -22320,15 +24151,16 @@ pub fn logging_organizations_locations_saved_queries_patch_execute(
 
 pub fn logging_organizations_locations_saved_queries_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SavedQuery,
+    args: &LoggingOrganizationsLocationsSavedQueriesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_organizations_locations_saved_queries_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     logging_organizations_locations_saved_queries_patch_execute(builder)
 }
@@ -22423,6 +24255,13 @@ pub fn logging_organizations_logs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_logs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLogsDeleteArgs {
+    /// Path parameter: logName
+    pub logName: String,
+}
+
 /// GET v2/organizations/{organizationsId}/logs/{logsId}
 /// Deletes all the log entries in a log for the global _Default Log Bucket. The log reappears if it receives new entries. Log entries written shortly before the delete operation might not be deleted. Entries received after the delete operation with a timestamp before the operation will be deleted.
 ///
@@ -22435,12 +24274,12 @@ pub fn logging_organizations_logs_delete_execute(
 
 pub fn logging_organizations_logs_delete(
     client: &SimpleHttpClient,
-    logName: &str,
+    args: &LoggingOrganizationsLogsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_logs_delete_builder(client, logName)?;
+    let builder = logging_organizations_logs_delete_builder(client, &args.logName)?;
     logging_organizations_logs_delete_execute(builder)
 }
 
@@ -22556,6 +24395,19 @@ pub fn logging_organizations_logs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_logs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsLogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resourceNames
+    pub resourceNames: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/logs
 /// Lists the logs in projects, organizations, folders, or billing accounts. Only logs that have entries are listed.
 ///
@@ -22568,10 +24420,7 @@ pub fn logging_organizations_logs_list_execute(
 
 pub fn logging_organizations_logs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    resourceNames: Option<&str>,
+    args: &LoggingOrganizationsLogsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLogsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -22580,10 +24429,10 @@ pub fn logging_organizations_logs_list(
 > {
     let builder = logging_organizations_logs_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        resourceNames,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.resourceNames.as_deref(),
     )?;
     logging_organizations_logs_list_execute(builder)
 }
@@ -22697,6 +24546,19 @@ pub fn logging_organizations_sinks_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_sinks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsSinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: customWriterIdentity
+    pub customWriterIdentity: Option<String>,
+    /// Query parameter: uniqueWriterIdentity
+    pub uniqueWriterIdentity: Option<bool>,
+    /// Request body.
+    pub body: LogSink,
+}
+
 /// GET v2/organizations/{organizationsId}/sinks
 /// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
@@ -22709,20 +24571,17 @@ pub fn logging_organizations_sinks_create_execute(
 
 pub fn logging_organizations_sinks_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    customWriterIdentity: Option<&str>,
-    uniqueWriterIdentity: Option<bool>,
-    body: &LogSink,
+    args: &LoggingOrganizationsSinksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_organizations_sinks_create_builder(
         client,
-        parent,
-        customWriterIdentity,
-        uniqueWriterIdentity,
-        body,
+        &args.parent,
+        args.customWriterIdentity.as_deref(),
+        args.uniqueWriterIdentity,
+        &args.body,
     )?;
     logging_organizations_sinks_create_execute(builder)
 }
@@ -22817,6 +24676,13 @@ pub fn logging_organizations_sinks_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_sinks_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsSinksDeleteArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+}
+
 /// GET v2/organizations/{organizationsId}/sinks/{sinksId}
 /// Deletes a sink. If the sink has a unique writer_identity, then that service account is also deleted.
 ///
@@ -22829,12 +24695,12 @@ pub fn logging_organizations_sinks_delete_execute(
 
 pub fn logging_organizations_sinks_delete(
     client: &SimpleHttpClient,
-    sinkName: &str,
+    args: &LoggingOrganizationsSinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_sinks_delete_builder(client, sinkName)?;
+    let builder = logging_organizations_sinks_delete_builder(client, &args.sinkName)?;
     logging_organizations_sinks_delete_execute(builder)
 }
 
@@ -22928,6 +24794,13 @@ pub fn logging_organizations_sinks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_sinks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsSinksGetArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+}
+
 /// GET v2/organizations/{organizationsId}/sinks/{sinksId}
 /// Gets a sink.
 ///
@@ -22940,12 +24813,12 @@ pub fn logging_organizations_sinks_get_execute(
 
 pub fn logging_organizations_sinks_get(
     client: &SimpleHttpClient,
-    sinkName: &str,
+    args: &LoggingOrganizationsSinksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_sinks_get_builder(client, sinkName)?;
+    let builder = logging_organizations_sinks_get_builder(client, &args.sinkName)?;
     logging_organizations_sinks_get_execute(builder)
 }
 
@@ -23061,6 +24934,19 @@ pub fn logging_organizations_sinks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_sinks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsSinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/sinks
 /// Lists sinks.
 ///
@@ -23073,18 +24959,20 @@ pub fn logging_organizations_sinks_list_execute(
 
 pub fn logging_organizations_sinks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingOrganizationsSinksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSinksResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_organizations_sinks_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = logging_organizations_sinks_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_organizations_sinks_list_execute(builder)
 }
 
@@ -23201,6 +25089,21 @@ pub fn logging_organizations_sinks_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_sinks_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsSinksPatchArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+    /// Query parameter: customWriterIdentity
+    pub customWriterIdentity: Option<String>,
+    /// Query parameter: uniqueWriterIdentity
+    pub uniqueWriterIdentity: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogSink,
+}
+
 /// GET v2/organizations/{organizationsId}/sinks/{sinksId}
 /// Updates a sink. This method replaces the values of the destination and filter fields of the existing sink with the corresponding values from the new sink.The updated sink might also have a new writer_identity; see the unique_writer_identity field.
 ///
@@ -23213,22 +25116,18 @@ pub fn logging_organizations_sinks_patch_execute(
 
 pub fn logging_organizations_sinks_patch(
     client: &SimpleHttpClient,
-    sinkName: &str,
-    customWriterIdentity: Option<&str>,
-    uniqueWriterIdentity: Option<bool>,
-    updateMask: Option<&str>,
-    body: &LogSink,
+    args: &LoggingOrganizationsSinksPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_organizations_sinks_patch_builder(
         client,
-        sinkName,
-        customWriterIdentity,
-        uniqueWriterIdentity,
-        updateMask,
-        body,
+        &args.sinkName,
+        args.customWriterIdentity.as_deref(),
+        args.uniqueWriterIdentity,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     logging_organizations_sinks_patch_execute(builder)
 }
@@ -23346,6 +25245,21 @@ pub fn logging_organizations_sinks_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_organizations_sinks_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingOrganizationsSinksUpdateArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+    /// Query parameter: customWriterIdentity
+    pub customWriterIdentity: Option<String>,
+    /// Query parameter: uniqueWriterIdentity
+    pub uniqueWriterIdentity: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogSink,
+}
+
 /// GET v2/organizations/{organizationsId}/sinks/{sinksId}
 /// Updates a sink. This method replaces the values of the destination and filter fields of the existing sink with the corresponding values from the new sink.The updated sink might also have a new writer_identity; see the unique_writer_identity field.
 ///
@@ -23358,22 +25272,18 @@ pub fn logging_organizations_sinks_update_execute(
 
 pub fn logging_organizations_sinks_update(
     client: &SimpleHttpClient,
-    sinkName: &str,
-    customWriterIdentity: Option<&str>,
-    uniqueWriterIdentity: Option<bool>,
-    updateMask: Option<&str>,
-    body: &LogSink,
+    args: &LoggingOrganizationsSinksUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_organizations_sinks_update_builder(
         client,
-        sinkName,
-        customWriterIdentity,
-        uniqueWriterIdentity,
-        updateMask,
-        body,
+        &args.sinkName,
+        args.customWriterIdentity.as_deref(),
+        args.uniqueWriterIdentity,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     logging_organizations_sinks_update_execute(builder)
 }
@@ -23470,6 +25380,13 @@ pub fn logging_projects_get_cmek_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_get_cmek_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsGetCmekSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/cmekSettings
 /// Gets the Logging CMEK settings for the given resource.Note: CMEK for the Log Router can be configured for Google Cloud projects, folders, organizations, and billing accounts. Once configured for an organization, it applies to all projects and folders in the Google Cloud organization.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
 ///
@@ -23482,14 +25399,14 @@ pub fn logging_projects_get_cmek_settings_execute(
 
 pub fn logging_projects_get_cmek_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingProjectsGetCmekSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CmekSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_projects_get_cmek_settings_builder(client, name)?;
+    let builder = logging_projects_get_cmek_settings_builder(client, &args.name)?;
     logging_projects_get_cmek_settings_execute(builder)
 }
 
@@ -23583,6 +25500,13 @@ pub fn logging_projects_get_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_get_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsGetSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/settings
 /// Gets the settings for the given resource.Note: Settings can be retrieved for Google Cloud projects, folders, organizations, and billing accounts.See View default resource settings for Logging (<https://docs.cloud.google.`com/logging/docs/default-settings`#view-org-settings>) for more information.
 ///
@@ -23595,12 +25519,12 @@ pub fn logging_projects_get_settings_execute(
 
 pub fn logging_projects_get_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingProjectsGetSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_get_settings_builder(client, name)?;
+    let builder = logging_projects_get_settings_builder(client, &args.name)?;
     logging_projects_get_settings_execute(builder)
 }
 
@@ -23699,6 +25623,15 @@ pub fn logging_projects_exclusions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_exclusions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsExclusionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: LogExclusion,
+}
+
 /// GET v2/projects/{projectsId}/exclusions
 /// Creates a new exclusion in the _Default sink in a specified parent resource. Only log entries belonging to that resource can be excluded. You can have up to 10 exclusions in a resource.
 ///
@@ -23711,15 +25644,14 @@ pub fn logging_projects_exclusions_create_execute(
 
 pub fn logging_projects_exclusions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &LogExclusion,
+    args: &LoggingProjectsExclusionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogExclusion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_projects_exclusions_create_builder(client, parent, body)?;
+    let builder = logging_projects_exclusions_create_builder(client, &args.parent, &args.body)?;
     logging_projects_exclusions_create_execute(builder)
 }
 
@@ -23813,6 +25745,13 @@ pub fn logging_projects_exclusions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_exclusions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsExclusionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/exclusions/{exclusionsId}
 /// Deletes an exclusion in the _Default sink.
 ///
@@ -23825,12 +25764,12 @@ pub fn logging_projects_exclusions_delete_execute(
 
 pub fn logging_projects_exclusions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingProjectsExclusionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_exclusions_delete_builder(client, name)?;
+    let builder = logging_projects_exclusions_delete_builder(client, &args.name)?;
     logging_projects_exclusions_delete_execute(builder)
 }
 
@@ -23926,6 +25865,13 @@ pub fn logging_projects_exclusions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_exclusions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsExclusionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/exclusions/{exclusionsId}
 /// Gets the description of an exclusion in the _Default sink.
 ///
@@ -23938,14 +25884,14 @@ pub fn logging_projects_exclusions_get_execute(
 
 pub fn logging_projects_exclusions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingProjectsExclusionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogExclusion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_projects_exclusions_get_builder(client, name)?;
+    let builder = logging_projects_exclusions_get_builder(client, &args.name)?;
     logging_projects_exclusions_get_execute(builder)
 }
 
@@ -24057,6 +26003,17 @@ pub fn logging_projects_exclusions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_exclusions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsExclusionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/exclusions
 /// Lists all the exclusions on the _Default sink in a parent resource.
 ///
@@ -24069,16 +26026,19 @@ pub fn logging_projects_exclusions_list_execute(
 
 pub fn logging_projects_exclusions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingProjectsExclusionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListExclusionsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_projects_exclusions_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_projects_exclusions_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_projects_exclusions_list_execute(builder)
 }
 
@@ -24189,6 +26149,17 @@ pub fn logging_projects_exclusions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_exclusions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsExclusionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogExclusion,
+}
+
 /// GET v2/projects/{projectsId}/exclusions/{exclusionsId}
 /// Changes one or more properties of an existing exclusion in the _Default sink.
 ///
@@ -24201,16 +26172,19 @@ pub fn logging_projects_exclusions_patch_execute(
 
 pub fn logging_projects_exclusions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogExclusion,
+    args: &LoggingProjectsExclusionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogExclusion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_projects_exclusions_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_projects_exclusions_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_projects_exclusions_patch_execute(builder)
 }
 
@@ -24304,6 +26278,13 @@ pub fn logging_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -24316,12 +26297,12 @@ pub fn logging_projects_locations_get_execute(
 
 pub fn logging_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_locations_get_builder(client, name)?;
+    let builder = logging_projects_locations_get_builder(client, &args.name)?;
     logging_projects_locations_get_execute(builder)
 }
 
@@ -24441,6 +26422,21 @@ pub fn logging_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service.This method lists locations based on the resource scope provided in the ListLocationsRequest.name field: Global locations: If name is empty, the method lists the public locations available to all projects. Project-specific locations: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project.For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -24453,11 +26449,7 @@ pub fn logging_projects_locations_list_execute(
 
 pub fn logging_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -24466,11 +26458,11 @@ pub fn logging_projects_locations_list(
 > {
     let builder = logging_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_projects_locations_list_execute(builder)
 }
@@ -24580,6 +26572,17 @@ pub fn logging_projects_locations_buckets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: bucketId
+    pub bucketId: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets
 /// Creates a log bucket that can be used to store log entries. After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -24592,15 +26595,17 @@ pub fn logging_projects_locations_buckets_create_execute(
 
 pub fn logging_projects_locations_buckets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    bucketId: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingProjectsLocationsBucketsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogBucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_locations_buckets_create_builder(client, parent, bucketId, body)?;
+    let builder = logging_projects_locations_buckets_create_builder(
+        client,
+        &args.parent,
+        args.bucketId.as_deref(),
+        &args.body,
+    )?;
     logging_projects_locations_buckets_create_execute(builder)
 }
 
@@ -24709,6 +26714,17 @@ pub fn logging_projects_locations_buckets_create_async_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_create_async`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsCreateAsyncArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: bucketId
+    pub bucketId: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets:createAsync
 /// Creates a log bucket asynchronously that can be used to store log entries.After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -24721,15 +26737,17 @@ pub fn logging_projects_locations_buckets_create_async_execute(
 
 pub fn logging_projects_locations_buckets_create_async(
     client: &SimpleHttpClient,
-    parent: &str,
-    bucketId: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingProjectsLocationsBucketsCreateAsyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_locations_buckets_create_async_builder(client, parent, bucketId, body)?;
+    let builder = logging_projects_locations_buckets_create_async_builder(
+        client,
+        &args.parent,
+        args.bucketId.as_deref(),
+        &args.body,
+    )?;
     logging_projects_locations_buckets_create_async_execute(builder)
 }
 
@@ -24823,6 +26841,13 @@ pub fn logging_projects_locations_buckets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}
 /// Deletes a log bucket.Changes the bucket's lifecycle_state to the DELETE_REQUESTED state. After 7 days, the bucket will be purged and all log entries in the bucket will be permanently deleted.
 ///
@@ -24835,12 +26860,12 @@ pub fn logging_projects_locations_buckets_delete_execute(
 
 pub fn logging_projects_locations_buckets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingProjectsLocationsBucketsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_locations_buckets_delete_builder(client, name)?;
+    let builder = logging_projects_locations_buckets_delete_builder(client, &args.name)?;
     logging_projects_locations_buckets_delete_execute(builder)
 }
 
@@ -24934,6 +26959,13 @@ pub fn logging_projects_locations_buckets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}
 /// Gets a log bucket.
 ///
@@ -24946,12 +26978,12 @@ pub fn logging_projects_locations_buckets_get_execute(
 
 pub fn logging_projects_locations_buckets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingProjectsLocationsBucketsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogBucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_locations_buckets_get_builder(client, name)?;
+    let builder = logging_projects_locations_buckets_get_builder(client, &args.name)?;
     logging_projects_locations_buckets_get_execute(builder)
 }
 
@@ -25063,6 +27095,17 @@ pub fn logging_projects_locations_buckets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets
 /// Lists log buckets.
 ///
@@ -25075,17 +27118,19 @@ pub fn logging_projects_locations_buckets_list_execute(
 
 pub fn logging_projects_locations_buckets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingProjectsLocationsBucketsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBucketsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_locations_buckets_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_projects_locations_buckets_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_projects_locations_buckets_list_execute(builder)
 }
 
@@ -25194,6 +27239,17 @@ pub fn logging_projects_locations_buckets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}
 /// Updates a log bucket.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -25206,14 +27262,17 @@ pub fn logging_projects_locations_buckets_patch_execute(
 
 pub fn logging_projects_locations_buckets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingProjectsLocationsBucketsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogBucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_locations_buckets_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_projects_locations_buckets_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_projects_locations_buckets_patch_execute(builder)
 }
 
@@ -25310,6 +27369,15 @@ pub fn logging_projects_locations_buckets_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsUndeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UndeleteBucketRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}:undelete
 /// Undeletes a log bucket. A bucket that has been deleted can be undeleted within the grace period of 7 days.
 ///
@@ -25322,13 +27390,13 @@ pub fn logging_projects_locations_buckets_undelete_execute(
 
 pub fn logging_projects_locations_buckets_undelete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UndeleteBucketRequest,
+    args: &LoggingProjectsLocationsBucketsUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_locations_buckets_undelete_builder(client, name, body)?;
+    let builder =
+        logging_projects_locations_buckets_undelete_builder(client, &args.name, &args.body)?;
     logging_projects_locations_buckets_undelete_execute(builder)
 }
 
@@ -25437,6 +27505,17 @@ pub fn logging_projects_locations_buckets_update_async_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_update_async`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsUpdateAsyncArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogBucket,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
 /// Updates a log bucket asynchronously.If the bucket has a lifecycle_state of DELETE_REQUESTED, then FAILED_PRECONDITION will be returned.After a bucket has been created, the bucket's location cannot be changed.
 ///
@@ -25449,15 +27528,17 @@ pub fn logging_projects_locations_buckets_update_async_execute(
 
 pub fn logging_projects_locations_buckets_update_async(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogBucket,
+    args: &LoggingProjectsLocationsBucketsUpdateAsyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_locations_buckets_update_async_builder(client, name, updateMask, body)?;
+    let builder = logging_projects_locations_buckets_update_async_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_projects_locations_buckets_update_async_execute(builder)
 }
 
@@ -25566,6 +27647,17 @@ pub fn logging_projects_locations_buckets_links_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsLinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: linkId
+    pub linkId: Option<String>,
+    /// Request body.
+    pub body: Link,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/links
 /// Asynchronously creates a linked dataset in BigQuery which makes it possible to use BigQuery to read the logs stored in the log bucket. A log bucket may currently only contain one link.
 ///
@@ -25578,15 +27670,17 @@ pub fn logging_projects_locations_buckets_links_create_execute(
 
 pub fn logging_projects_locations_buckets_links_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    linkId: Option<&str>,
-    body: &Link,
+    args: &LoggingProjectsLocationsBucketsLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_locations_buckets_links_create_builder(client, parent, linkId, body)?;
+    let builder = logging_projects_locations_buckets_links_create_builder(
+        client,
+        &args.parent,
+        args.linkId.as_deref(),
+        &args.body,
+    )?;
     logging_projects_locations_buckets_links_create_execute(builder)
 }
 
@@ -25680,6 +27774,13 @@ pub fn logging_projects_locations_buckets_links_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}
 /// Deletes a link. This will also delete the corresponding BigQuery linked dataset.
 ///
@@ -25692,12 +27793,12 @@ pub fn logging_projects_locations_buckets_links_delete_execute(
 
 pub fn logging_projects_locations_buckets_links_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingProjectsLocationsBucketsLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_locations_buckets_links_delete_builder(client, name)?;
+    let builder = logging_projects_locations_buckets_links_delete_builder(client, &args.name)?;
     logging_projects_locations_buckets_links_delete_execute(builder)
 }
 
@@ -25791,6 +27892,13 @@ pub fn logging_projects_locations_buckets_links_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_links_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsLinksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/links/{linksId}
 /// Gets a link.
 ///
@@ -25803,12 +27911,12 @@ pub fn logging_projects_locations_buckets_links_get_execute(
 
 pub fn logging_projects_locations_buckets_links_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingProjectsLocationsBucketsLinksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Link>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_locations_buckets_links_get_builder(client, name)?;
+    let builder = logging_projects_locations_buckets_links_get_builder(client, &args.name)?;
     logging_projects_locations_buckets_links_get_execute(builder)
 }
 
@@ -25920,6 +28028,17 @@ pub fn logging_projects_locations_buckets_links_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsLinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/links
 /// Lists links.
 ///
@@ -25932,17 +28051,19 @@ pub fn logging_projects_locations_buckets_links_list_execute(
 
 pub fn logging_projects_locations_buckets_links_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingProjectsLocationsBucketsLinksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLinksResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_locations_buckets_links_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_projects_locations_buckets_links_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_projects_locations_buckets_links_list_execute(builder)
 }
 
@@ -26051,6 +28172,17 @@ pub fn logging_projects_locations_buckets_views_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_views_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsViewsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: viewId
+    pub viewId: Option<String>,
+    /// Request body.
+    pub body: LogView,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/views
 /// Creates a view over log entries in a log bucket. A bucket may contain a maximum of 30 views.
 ///
@@ -26063,15 +28195,17 @@ pub fn logging_projects_locations_buckets_views_create_execute(
 
 pub fn logging_projects_locations_buckets_views_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    viewId: Option<&str>,
-    body: &LogView,
+    args: &LoggingProjectsLocationsBucketsViewsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogView>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_locations_buckets_views_create_builder(client, parent, viewId, body)?;
+    let builder = logging_projects_locations_buckets_views_create_builder(
+        client,
+        &args.parent,
+        args.viewId.as_deref(),
+        &args.body,
+    )?;
     logging_projects_locations_buckets_views_create_execute(builder)
 }
 
@@ -26165,6 +28299,13 @@ pub fn logging_projects_locations_buckets_views_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_views_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsViewsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
 /// Deletes a view on a log bucket. If an UNAVAILABLE error is returned, this indicates that system is not in a state where it can delete the view. If this occurs, please try again in a few minutes.
 ///
@@ -26177,12 +28318,12 @@ pub fn logging_projects_locations_buckets_views_delete_execute(
 
 pub fn logging_projects_locations_buckets_views_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingProjectsLocationsBucketsViewsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_locations_buckets_views_delete_builder(client, name)?;
+    let builder = logging_projects_locations_buckets_views_delete_builder(client, &args.name)?;
     logging_projects_locations_buckets_views_delete_execute(builder)
 }
 
@@ -26276,6 +28417,13 @@ pub fn logging_projects_locations_buckets_views_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsViewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
 /// Gets a view on a log bucket.
 ///
@@ -26288,12 +28436,12 @@ pub fn logging_projects_locations_buckets_views_get_execute(
 
 pub fn logging_projects_locations_buckets_views_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingProjectsLocationsBucketsViewsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogView>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_locations_buckets_views_get_builder(client, name)?;
+    let builder = logging_projects_locations_buckets_views_get_builder(client, &args.name)?;
     logging_projects_locations_buckets_views_get_execute(builder)
 }
 
@@ -26390,6 +28538,15 @@ pub fn logging_projects_locations_buckets_views_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_views_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsViewsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -26402,14 +28559,16 @@ pub fn logging_projects_locations_buckets_views_get_iam_policy_execute(
 
 pub fn logging_projects_locations_buckets_views_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &LoggingProjectsLocationsBucketsViewsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_locations_buckets_views_get_iam_policy_builder(client, resource, body)?;
+    let builder = logging_projects_locations_buckets_views_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     logging_projects_locations_buckets_views_get_iam_policy_execute(builder)
 }
 
@@ -26521,6 +28680,17 @@ pub fn logging_projects_locations_buckets_views_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_views_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsViewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/views
 /// Lists views on a log bucket.
 ///
@@ -26533,17 +28703,19 @@ pub fn logging_projects_locations_buckets_views_list_execute(
 
 pub fn logging_projects_locations_buckets_views_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingProjectsLocationsBucketsViewsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListViewsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_locations_buckets_views_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_projects_locations_buckets_views_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_projects_locations_buckets_views_list_execute(builder)
 }
 
@@ -26652,6 +28824,17 @@ pub fn logging_projects_locations_buckets_views_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_views_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsViewsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogView,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
 /// Updates a view on a log bucket. This method replaces the value of the filter field from the existing view with the corresponding value from the new view. If an UNAVAILABLE error is returned, this indicates that system is not in a state where it can update the view. If this occurs, please try again in a few minutes.
 ///
@@ -26664,15 +28847,17 @@ pub fn logging_projects_locations_buckets_views_patch_execute(
 
 pub fn logging_projects_locations_buckets_views_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogView,
+    args: &LoggingProjectsLocationsBucketsViewsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogView>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_locations_buckets_views_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_projects_locations_buckets_views_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_projects_locations_buckets_views_patch_execute(builder)
 }
 
@@ -26769,6 +28954,15 @@ pub fn logging_projects_locations_buckets_views_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_views_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsViewsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -26781,14 +28975,16 @@ pub fn logging_projects_locations_buckets_views_set_iam_policy_execute(
 
 pub fn logging_projects_locations_buckets_views_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &LoggingProjectsLocationsBucketsViewsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_locations_buckets_views_set_iam_policy_builder(client, resource, body)?;
+    let builder = logging_projects_locations_buckets_views_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     logging_projects_locations_buckets_views_set_iam_policy_execute(builder)
 }
 
@@ -26889,6 +29085,15 @@ pub fn logging_projects_locations_buckets_views_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_views_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsViewsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -26901,8 +29106,7 @@ pub fn logging_projects_locations_buckets_views_test_iam_permissions_execute(
 
 pub fn logging_projects_locations_buckets_views_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &LoggingProjectsLocationsBucketsViewsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -26912,7 +29116,9 @@ pub fn logging_projects_locations_buckets_views_test_iam_permissions(
     ApiError,
 > {
     let builder = logging_projects_locations_buckets_views_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     logging_projects_locations_buckets_views_test_iam_permissions_execute(builder)
 }
@@ -27029,6 +29235,19 @@ pub fn logging_projects_locations_buckets_views_logs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_buckets_views_logs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsBucketsViewsLogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resourceNames
+    pub resourceNames: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}/logs
 /// Lists the logs in projects, organizations, folders, or billing accounts. Only logs that have entries are listed.
 ///
@@ -27041,10 +29260,7 @@ pub fn logging_projects_locations_buckets_views_logs_list_execute(
 
 pub fn logging_projects_locations_buckets_views_logs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    resourceNames: Option<&str>,
+    args: &LoggingProjectsLocationsBucketsViewsLogsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLogsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -27053,10 +29269,10 @@ pub fn logging_projects_locations_buckets_views_logs_list(
 > {
     let builder = logging_projects_locations_buckets_views_logs_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        resourceNames,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.resourceNames.as_deref(),
     )?;
     logging_projects_locations_buckets_views_logs_list_execute(builder)
 }
@@ -27166,6 +29382,17 @@ pub fn logging_projects_locations_log_scopes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_log_scopes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsLogScopesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: logScopeId
+    pub logScopeId: Option<String>,
+    /// Request body.
+    pub body: LogScope,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/logScopes
 /// Creates a log scope.
 ///
@@ -27178,15 +29405,17 @@ pub fn logging_projects_locations_log_scopes_create_execute(
 
 pub fn logging_projects_locations_log_scopes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    logScopeId: Option<&str>,
-    body: &LogScope,
+    args: &LoggingProjectsLocationsLogScopesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogScope>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_locations_log_scopes_create_builder(client, parent, logScopeId, body)?;
+    let builder = logging_projects_locations_log_scopes_create_builder(
+        client,
+        &args.parent,
+        args.logScopeId.as_deref(),
+        &args.body,
+    )?;
     logging_projects_locations_log_scopes_create_execute(builder)
 }
 
@@ -27280,6 +29509,13 @@ pub fn logging_projects_locations_log_scopes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_log_scopes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsLogScopesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/logScopes/{logScopesId}
 /// Deletes a log scope.
 ///
@@ -27292,12 +29528,12 @@ pub fn logging_projects_locations_log_scopes_delete_execute(
 
 pub fn logging_projects_locations_log_scopes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingProjectsLocationsLogScopesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_locations_log_scopes_delete_builder(client, name)?;
+    let builder = logging_projects_locations_log_scopes_delete_builder(client, &args.name)?;
     logging_projects_locations_log_scopes_delete_execute(builder)
 }
 
@@ -27391,6 +29627,13 @@ pub fn logging_projects_locations_log_scopes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_log_scopes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsLogScopesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/logScopes/{logScopesId}
 /// Gets a log scope.
 ///
@@ -27403,12 +29646,12 @@ pub fn logging_projects_locations_log_scopes_get_execute(
 
 pub fn logging_projects_locations_log_scopes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingProjectsLocationsLogScopesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogScope>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_locations_log_scopes_get_builder(client, name)?;
+    let builder = logging_projects_locations_log_scopes_get_builder(client, &args.name)?;
     logging_projects_locations_log_scopes_get_execute(builder)
 }
 
@@ -27520,6 +29763,17 @@ pub fn logging_projects_locations_log_scopes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_log_scopes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsLogScopesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/logScopes
 /// Lists log scopes.
 ///
@@ -27532,17 +29786,19 @@ pub fn logging_projects_locations_log_scopes_list_execute(
 
 pub fn logging_projects_locations_log_scopes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingProjectsLocationsLogScopesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLogScopesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_locations_log_scopes_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_projects_locations_log_scopes_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_projects_locations_log_scopes_list_execute(builder)
 }
 
@@ -27651,6 +29907,17 @@ pub fn logging_projects_locations_log_scopes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_log_scopes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsLogScopesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogScope,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/logScopes/{logScopesId}
 /// Updates a log scope.
 ///
@@ -27663,15 +29930,17 @@ pub fn logging_projects_locations_log_scopes_patch_execute(
 
 pub fn logging_projects_locations_log_scopes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LogScope,
+    args: &LoggingProjectsLocationsLogScopesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogScope>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_locations_log_scopes_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_projects_locations_log_scopes_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_projects_locations_log_scopes_patch_execute(builder)
 }
 
@@ -27768,6 +30037,15 @@ pub fn logging_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -27780,13 +30058,13 @@ pub fn logging_projects_locations_operations_cancel_execute(
 
 pub fn logging_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &LoggingProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        logging_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     logging_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -27880,6 +30158,13 @@ pub fn logging_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -27892,12 +30177,12 @@ pub fn logging_projects_locations_operations_get_execute(
 
 pub fn logging_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_locations_operations_get_builder(client, name)?;
+    let builder = logging_projects_locations_operations_get_builder(client, &args.name)?;
     logging_projects_locations_operations_get_execute(builder)
 }
 
@@ -28017,6 +30302,21 @@ pub fn logging_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -28029,11 +30329,7 @@ pub fn logging_projects_locations_operations_list_execute(
 
 pub fn logging_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &LoggingProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -28042,11 +30338,11 @@ pub fn logging_projects_locations_operations_list(
 > {
     let builder = logging_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     logging_projects_locations_operations_list_execute(builder)
 }
@@ -28163,6 +30459,19 @@ pub fn logging_projects_locations_recent_queries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_recent_queries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsRecentQueriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/recentQueries
 /// Lists the RecentQueries that were created by the user making the request.
 ///
@@ -28175,10 +30484,7 @@ pub fn logging_projects_locations_recent_queries_list_execute(
 
 pub fn logging_projects_locations_recent_queries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingProjectsLocationsRecentQueriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRecentQueriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -28186,7 +30492,11 @@ pub fn logging_projects_locations_recent_queries_list(
     ApiError,
 > {
     let builder = logging_projects_locations_recent_queries_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_projects_locations_recent_queries_list_execute(builder)
 }
@@ -28296,6 +30606,17 @@ pub fn logging_projects_locations_saved_queries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_saved_queries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsSavedQueriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: savedQueryId
+    pub savedQueryId: Option<String>,
+    /// Request body.
+    pub body: SavedQuery,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/savedQueries
 /// Creates a new SavedQuery for the user making the request.
 ///
@@ -28308,18 +30629,16 @@ pub fn logging_projects_locations_saved_queries_create_execute(
 
 pub fn logging_projects_locations_saved_queries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    savedQueryId: Option<&str>,
-    body: &SavedQuery,
+    args: &LoggingProjectsLocationsSavedQueriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_projects_locations_saved_queries_create_builder(
         client,
-        parent,
-        savedQueryId,
-        body,
+        &args.parent,
+        args.savedQueryId.as_deref(),
+        &args.body,
     )?;
     logging_projects_locations_saved_queries_create_execute(builder)
 }
@@ -28414,6 +30733,13 @@ pub fn logging_projects_locations_saved_queries_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_saved_queries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsSavedQueriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/savedQueries/{savedQueriesId}
 /// Deletes an existing SavedQuery that was created by the user making the request.
 ///
@@ -28426,12 +30752,12 @@ pub fn logging_projects_locations_saved_queries_delete_execute(
 
 pub fn logging_projects_locations_saved_queries_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingProjectsLocationsSavedQueriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_locations_saved_queries_delete_builder(client, name)?;
+    let builder = logging_projects_locations_saved_queries_delete_builder(client, &args.name)?;
     logging_projects_locations_saved_queries_delete_execute(builder)
 }
 
@@ -28525,6 +30851,13 @@ pub fn logging_projects_locations_saved_queries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_saved_queries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsSavedQueriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/savedQueries/{savedQueriesId}
 /// Returns all data associated with the requested query.
 ///
@@ -28537,12 +30870,12 @@ pub fn logging_projects_locations_saved_queries_get_execute(
 
 pub fn logging_projects_locations_saved_queries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingProjectsLocationsSavedQueriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_locations_saved_queries_get_builder(client, name)?;
+    let builder = logging_projects_locations_saved_queries_get_builder(client, &args.name)?;
     logging_projects_locations_saved_queries_get_execute(builder)
 }
 
@@ -28658,6 +30991,19 @@ pub fn logging_projects_locations_saved_queries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_saved_queries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsSavedQueriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/savedQueries
 /// Lists the SavedQueries that were created by the user making the request.
 ///
@@ -28670,10 +31016,7 @@ pub fn logging_projects_locations_saved_queries_list_execute(
 
 pub fn logging_projects_locations_saved_queries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingProjectsLocationsSavedQueriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSavedQueriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -28681,7 +31024,11 @@ pub fn logging_projects_locations_saved_queries_list(
     ApiError,
 > {
     let builder = logging_projects_locations_saved_queries_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     logging_projects_locations_saved_queries_list_execute(builder)
 }
@@ -28791,6 +31138,17 @@ pub fn logging_projects_locations_saved_queries_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_locations_saved_queries_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLocationsSavedQueriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SavedQuery,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/savedQueries/{savedQueriesId}
 /// Updates an existing SavedQuery.
 ///
@@ -28803,15 +31161,17 @@ pub fn logging_projects_locations_saved_queries_patch_execute(
 
 pub fn logging_projects_locations_saved_queries_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SavedQuery,
+    args: &LoggingProjectsLocationsSavedQueriesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_locations_saved_queries_patch_builder(client, name, updateMask, body)?;
+    let builder = logging_projects_locations_saved_queries_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_projects_locations_saved_queries_patch_execute(builder)
 }
 
@@ -28905,6 +31265,13 @@ pub fn logging_projects_logs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_logs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLogsDeleteArgs {
+    /// Path parameter: logName
+    pub logName: String,
+}
+
 /// GET v2/projects/{projectsId}/logs/{logsId}
 /// Deletes all the log entries in a log for the global _Default Log Bucket. The log reappears if it receives new entries. Log entries written shortly before the delete operation might not be deleted. Entries received after the delete operation with a timestamp before the operation will be deleted.
 ///
@@ -28917,12 +31284,12 @@ pub fn logging_projects_logs_delete_execute(
 
 pub fn logging_projects_logs_delete(
     client: &SimpleHttpClient,
-    logName: &str,
+    args: &LoggingProjectsLogsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_logs_delete_builder(client, logName)?;
+    let builder = logging_projects_logs_delete_builder(client, &args.logName)?;
     logging_projects_logs_delete_execute(builder)
 }
 
@@ -29035,6 +31402,19 @@ pub fn logging_projects_logs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_logs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsLogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resourceNames
+    pub resourceNames: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/logs
 /// Lists the logs in projects, organizations, folders, or billing accounts. Only logs that have entries are listed.
 ///
@@ -29047,18 +31427,20 @@ pub fn logging_projects_logs_list_execute(
 
 pub fn logging_projects_logs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    resourceNames: Option<&str>,
+    args: &LoggingProjectsLogsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLogsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_logs_list_builder(client, parent, pageSize, pageToken, resourceNames)?;
+    let builder = logging_projects_logs_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.resourceNames.as_deref(),
+    )?;
     logging_projects_logs_list_execute(builder)
 }
 
@@ -29155,6 +31537,15 @@ pub fn logging_projects_metrics_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_metrics_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsMetricsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: LogMetric,
+}
+
 /// GET v2/projects/{projectsId}/metrics
 /// Creates a logs-based metric.
 ///
@@ -29167,13 +31558,12 @@ pub fn logging_projects_metrics_create_execute(
 
 pub fn logging_projects_metrics_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &LogMetric,
+    args: &LoggingProjectsMetricsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogMetric>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_metrics_create_builder(client, parent, body)?;
+    let builder = logging_projects_metrics_create_builder(client, &args.parent, &args.body)?;
     logging_projects_metrics_create_execute(builder)
 }
 
@@ -29267,6 +31657,13 @@ pub fn logging_projects_metrics_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_metrics_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsMetricsDeleteArgs {
+    /// Path parameter: metricName
+    pub metricName: String,
+}
+
 /// GET v2/projects/{projectsId}/metrics/{metricsId}
 /// Deletes a logs-based metric.
 ///
@@ -29279,12 +31676,12 @@ pub fn logging_projects_metrics_delete_execute(
 
 pub fn logging_projects_metrics_delete(
     client: &SimpleHttpClient,
-    metricName: &str,
+    args: &LoggingProjectsMetricsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_metrics_delete_builder(client, metricName)?;
+    let builder = logging_projects_metrics_delete_builder(client, &args.metricName)?;
     logging_projects_metrics_delete_execute(builder)
 }
 
@@ -29378,6 +31775,13 @@ pub fn logging_projects_metrics_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_metrics_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsMetricsGetArgs {
+    /// Path parameter: metricName
+    pub metricName: String,
+}
+
 /// GET v2/projects/{projectsId}/metrics/{metricsId}
 /// Gets a logs-based metric.
 ///
@@ -29390,12 +31794,12 @@ pub fn logging_projects_metrics_get_execute(
 
 pub fn logging_projects_metrics_get(
     client: &SimpleHttpClient,
-    metricName: &str,
+    args: &LoggingProjectsMetricsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogMetric>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_metrics_get_builder(client, metricName)?;
+    let builder = logging_projects_metrics_get_builder(client, &args.metricName)?;
     logging_projects_metrics_get_execute(builder)
 }
 
@@ -29507,6 +31911,17 @@ pub fn logging_projects_metrics_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_metrics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsMetricsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/metrics
 /// Lists logs-based metrics.
 ///
@@ -29519,16 +31934,19 @@ pub fn logging_projects_metrics_list_execute(
 
 pub fn logging_projects_metrics_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingProjectsMetricsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLogMetricsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_projects_metrics_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = logging_projects_metrics_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_projects_metrics_list_execute(builder)
 }
 
@@ -29625,6 +32043,15 @@ pub fn logging_projects_metrics_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_metrics_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsMetricsUpdateArgs {
+    /// Path parameter: metricName
+    pub metricName: String,
+    /// Request body.
+    pub body: LogMetric,
+}
+
 /// GET v2/projects/{projectsId}/metrics/{metricsId}
 /// Creates or updates a logs-based metric.
 ///
@@ -29637,13 +32064,12 @@ pub fn logging_projects_metrics_update_execute(
 
 pub fn logging_projects_metrics_update(
     client: &SimpleHttpClient,
-    metricName: &str,
-    body: &LogMetric,
+    args: &LoggingProjectsMetricsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogMetric>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_metrics_update_builder(client, metricName, body)?;
+    let builder = logging_projects_metrics_update_builder(client, &args.metricName, &args.body)?;
     logging_projects_metrics_update_execute(builder)
 }
 
@@ -29756,6 +32182,19 @@ pub fn logging_projects_sinks_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_sinks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsSinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: customWriterIdentity
+    pub customWriterIdentity: Option<String>,
+    /// Query parameter: uniqueWriterIdentity
+    pub uniqueWriterIdentity: Option<bool>,
+    /// Request body.
+    pub body: LogSink,
+}
+
 /// GET v2/projects/{projectsId}/sinks
 /// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
@@ -29768,20 +32207,17 @@ pub fn logging_projects_sinks_create_execute(
 
 pub fn logging_projects_sinks_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    customWriterIdentity: Option<&str>,
-    uniqueWriterIdentity: Option<bool>,
-    body: &LogSink,
+    args: &LoggingProjectsSinksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_projects_sinks_create_builder(
         client,
-        parent,
-        customWriterIdentity,
-        uniqueWriterIdentity,
-        body,
+        &args.parent,
+        args.customWriterIdentity.as_deref(),
+        args.uniqueWriterIdentity,
+        &args.body,
     )?;
     logging_projects_sinks_create_execute(builder)
 }
@@ -29876,6 +32312,13 @@ pub fn logging_projects_sinks_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_sinks_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsSinksDeleteArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+}
+
 /// GET v2/projects/{projectsId}/sinks/{sinksId}
 /// Deletes a sink. If the sink has a unique writer_identity, then that service account is also deleted.
 ///
@@ -29888,12 +32331,12 @@ pub fn logging_projects_sinks_delete_execute(
 
 pub fn logging_projects_sinks_delete(
     client: &SimpleHttpClient,
-    sinkName: &str,
+    args: &LoggingProjectsSinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_sinks_delete_builder(client, sinkName)?;
+    let builder = logging_projects_sinks_delete_builder(client, &args.sinkName)?;
     logging_projects_sinks_delete_execute(builder)
 }
 
@@ -29987,6 +32430,13 @@ pub fn logging_projects_sinks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_sinks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsSinksGetArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+}
+
 /// GET v2/projects/{projectsId}/sinks/{sinksId}
 /// Gets a sink.
 ///
@@ -29999,12 +32449,12 @@ pub fn logging_projects_sinks_get_execute(
 
 pub fn logging_projects_sinks_get(
     client: &SimpleHttpClient,
-    sinkName: &str,
+    args: &LoggingProjectsSinksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_sinks_get_builder(client, sinkName)?;
+    let builder = logging_projects_sinks_get_builder(client, &args.sinkName)?;
     logging_projects_sinks_get_execute(builder)
 }
 
@@ -30120,6 +32570,19 @@ pub fn logging_projects_sinks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_sinks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsSinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/sinks
 /// Lists sinks.
 ///
@@ -30132,17 +32595,20 @@ pub fn logging_projects_sinks_list_execute(
 
 pub fn logging_projects_sinks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingProjectsSinksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSinksResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_projects_sinks_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = logging_projects_sinks_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_projects_sinks_list_execute(builder)
 }
 
@@ -30259,6 +32725,21 @@ pub fn logging_projects_sinks_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_sinks_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsSinksPatchArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+    /// Query parameter: customWriterIdentity
+    pub customWriterIdentity: Option<String>,
+    /// Query parameter: uniqueWriterIdentity
+    pub uniqueWriterIdentity: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogSink,
+}
+
 /// GET v2/projects/{projectsId}/sinks/{sinksId}
 /// Updates a sink. This method replaces the values of the destination and filter fields of the existing sink with the corresponding values from the new sink.The updated sink might also have a new writer_identity; see the unique_writer_identity field.
 ///
@@ -30271,22 +32752,18 @@ pub fn logging_projects_sinks_patch_execute(
 
 pub fn logging_projects_sinks_patch(
     client: &SimpleHttpClient,
-    sinkName: &str,
-    customWriterIdentity: Option<&str>,
-    uniqueWriterIdentity: Option<bool>,
-    updateMask: Option<&str>,
-    body: &LogSink,
+    args: &LoggingProjectsSinksPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_projects_sinks_patch_builder(
         client,
-        sinkName,
-        customWriterIdentity,
-        uniqueWriterIdentity,
-        updateMask,
-        body,
+        &args.sinkName,
+        args.customWriterIdentity.as_deref(),
+        args.uniqueWriterIdentity,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     logging_projects_sinks_patch_execute(builder)
 }
@@ -30404,6 +32881,21 @@ pub fn logging_projects_sinks_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_projects_sinks_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingProjectsSinksUpdateArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+    /// Query parameter: customWriterIdentity
+    pub customWriterIdentity: Option<String>,
+    /// Query parameter: uniqueWriterIdentity
+    pub uniqueWriterIdentity: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogSink,
+}
+
 /// GET v2/projects/{projectsId}/sinks/{sinksId}
 /// Updates a sink. This method replaces the values of the destination and filter fields of the existing sink with the corresponding values from the new sink.The updated sink might also have a new writer_identity; see the unique_writer_identity field.
 ///
@@ -30416,22 +32908,18 @@ pub fn logging_projects_sinks_update_execute(
 
 pub fn logging_projects_sinks_update(
     client: &SimpleHttpClient,
-    sinkName: &str,
-    customWriterIdentity: Option<&str>,
-    uniqueWriterIdentity: Option<bool>,
-    updateMask: Option<&str>,
-    body: &LogSink,
+    args: &LoggingProjectsSinksUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_projects_sinks_update_builder(
         client,
-        sinkName,
-        customWriterIdentity,
-        uniqueWriterIdentity,
-        updateMask,
-        body,
+        &args.sinkName,
+        args.customWriterIdentity.as_deref(),
+        args.uniqueWriterIdentity,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     logging_projects_sinks_update_execute(builder)
 }
@@ -30542,6 +33030,19 @@ pub fn logging_sinks_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_sinks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingSinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: customWriterIdentity
+    pub customWriterIdentity: Option<String>,
+    /// Query parameter: uniqueWriterIdentity
+    pub uniqueWriterIdentity: Option<bool>,
+    /// Request body.
+    pub body: LogSink,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/sinks
 /// Creates a sink that exports specified log entries to a destination. The export begins upon ingress, unless the sink's writer_identity is not permitted to write to the destination. A sink can export log entries only from the resource owning the sink.
 ///
@@ -30554,20 +33055,17 @@ pub fn logging_sinks_create_execute(
 
 pub fn logging_sinks_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    customWriterIdentity: Option<&str>,
-    uniqueWriterIdentity: Option<bool>,
-    body: &LogSink,
+    args: &LoggingSinksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_sinks_create_builder(
         client,
-        parent,
-        customWriterIdentity,
-        uniqueWriterIdentity,
-        body,
+        &args.parent,
+        args.customWriterIdentity.as_deref(),
+        args.uniqueWriterIdentity,
+        &args.body,
     )?;
     logging_sinks_create_execute(builder)
 }
@@ -30659,6 +33157,13 @@ pub fn logging_sinks_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_sinks_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingSinksDeleteArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/sinks/{sinksId}
 /// Deletes a sink. If the sink has a unique writer_identity, then that service account is also deleted.
 ///
@@ -30671,12 +33176,12 @@ pub fn logging_sinks_delete_execute(
 
 pub fn logging_sinks_delete(
     client: &SimpleHttpClient,
-    sinkName: &str,
+    args: &LoggingSinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_sinks_delete_builder(client, sinkName)?;
+    let builder = logging_sinks_delete_builder(client, &args.sinkName)?;
     logging_sinks_delete_execute(builder)
 }
 
@@ -30767,6 +33272,13 @@ pub fn logging_sinks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_sinks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingSinksGetArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/sinks/{sinksId}
 /// Gets a sink.
 ///
@@ -30779,12 +33291,12 @@ pub fn logging_sinks_get_execute(
 
 pub fn logging_sinks_get(
     client: &SimpleHttpClient,
-    sinkName: &str,
+    args: &LoggingSinksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_sinks_get_builder(client, sinkName)?;
+    let builder = logging_sinks_get_builder(client, &args.sinkName)?;
     logging_sinks_get_execute(builder)
 }
 
@@ -30897,6 +33409,19 @@ pub fn logging_sinks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_sinks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingSinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/sinks
 /// Lists sinks.
 ///
@@ -30909,17 +33434,20 @@ pub fn logging_sinks_list_execute(
 
 pub fn logging_sinks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LoggingSinksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSinksResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_sinks_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = logging_sinks_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     logging_sinks_list_execute(builder)
 }
 
@@ -31033,6 +33561,21 @@ pub fn logging_sinks_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_sinks_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingSinksUpdateArgs {
+    /// Path parameter: sinkName
+    pub sinkName: String,
+    /// Query parameter: customWriterIdentity
+    pub customWriterIdentity: Option<String>,
+    /// Query parameter: uniqueWriterIdentity
+    pub uniqueWriterIdentity: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LogSink,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/sinks/{sinksId}
 /// Updates a sink. This method replaces the values of the destination and filter fields of the existing sink with the corresponding values from the new sink.The updated sink might also have a new writer_identity; see the unique_writer_identity field.
 ///
@@ -31045,22 +33588,18 @@ pub fn logging_sinks_update_execute(
 
 pub fn logging_sinks_update(
     client: &SimpleHttpClient,
-    sinkName: &str,
-    customWriterIdentity: Option<&str>,
-    uniqueWriterIdentity: Option<bool>,
-    updateMask: Option<&str>,
-    body: &LogSink,
+    args: &LoggingSinksUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LogSink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = logging_sinks_update_builder(
         client,
-        sinkName,
-        customWriterIdentity,
-        uniqueWriterIdentity,
-        updateMask,
-        body,
+        &args.sinkName,
+        args.customWriterIdentity.as_deref(),
+        args.uniqueWriterIdentity,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     logging_sinks_update_execute(builder)
 }
@@ -31154,6 +33693,13 @@ pub fn logging_get_cmek_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_get_cmek_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingGetCmekSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/cmekSettings
 /// Gets the Logging CMEK settings for the given resource.Note: CMEK for the Log Router can be configured for Google Cloud projects, folders, organizations, and billing accounts. Once configured for an organization, it applies to all projects and folders in the Google Cloud organization.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
 ///
@@ -31166,14 +33712,14 @@ pub fn logging_get_cmek_settings_execute(
 
 pub fn logging_get_cmek_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingGetCmekSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CmekSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_get_cmek_settings_builder(client, name)?;
+    let builder = logging_get_cmek_settings_builder(client, &args.name)?;
     logging_get_cmek_settings_execute(builder)
 }
 
@@ -31264,6 +33810,13 @@ pub fn logging_get_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_get_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingGetSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/settings
 /// Gets the settings for the given resource.Note: Settings can be retrieved for Google Cloud projects, folders, organizations, and billing accounts.See View default resource settings for Logging (<https://docs.cloud.google.`com/logging/docs/default-settings`#view-org-settings>) for more information.
 ///
@@ -31276,12 +33829,12 @@ pub fn logging_get_settings_execute(
 
 pub fn logging_get_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LoggingGetSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_get_settings_builder(client, name)?;
+    let builder = logging_get_settings_builder(client, &args.name)?;
     logging_get_settings_execute(builder)
 }
 
@@ -31389,6 +33942,17 @@ pub fn logging_update_cmek_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_update_cmek_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingUpdateCmekSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CmekSettings,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/cmekSettings
 /// Updates the Log Router CMEK settings for the given resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.UpdateCmekSettings fails when any of the following are `true`: The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure CMEK for Cloud Logging (<https://docs.cloud.google.`com/logging/docs/routing/managed-encryption`>) for more information.
 ///
@@ -31401,16 +33965,19 @@ pub fn logging_update_cmek_settings_execute(
 
 pub fn logging_update_cmek_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &CmekSettings,
+    args: &LoggingUpdateCmekSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CmekSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = logging_update_cmek_settings_builder(client, name, updateMask, body)?;
+    let builder = logging_update_cmek_settings_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_update_cmek_settings_execute(builder)
 }
 
@@ -31516,6 +34083,17 @@ pub fn logging_update_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`logging_update_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LoggingUpdateSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Settings,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/settings
 /// Updates the settings for the given resource. This method applies to all feature configurations for organization and folders.UpdateSettings fails when any of the following are `true`: The value of storage_location either isn't supported by Logging or violates the location OrgPolicy. The default_sink_config field is set, but it has an unspecified filter write mode. The value of kms_key_name is invalid. The associated service account doesn't have the required `roles/cloudkms`.`cryptoKeyEncrypterDecrypter` role assigned for the key. Access to the key is disabled.See Configure default settings for organizations and folders (<https://docs.cloud.google.`com/logging/docs/default-settings`>) for more information.
 ///
@@ -31528,13 +34106,16 @@ pub fn logging_update_settings_execute(
 
 pub fn logging_update_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Settings,
+    args: &LoggingUpdateSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_update_settings_builder(client, name, updateMask, body)?;
+    let builder = logging_update_settings_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     logging_update_settings_execute(builder)
 }

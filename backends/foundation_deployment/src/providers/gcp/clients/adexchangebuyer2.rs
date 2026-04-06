@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2beta1/accounts/{accountId}/clients
 /// Creates a new client buyer.
@@ -109,6 +111,15 @@ pub fn adexchangebuyer2_accounts_clients_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_clients_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsClientsCreateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Request body.
+    pub body: Client,
+}
+
 /// GET v2beta1/accounts/{accountId}/clients
 /// Creates a new client buyer.
 ///
@@ -121,13 +132,13 @@ pub fn adexchangebuyer2_accounts_clients_create_execute(
 
 pub fn adexchangebuyer2_accounts_clients_create(
     client: &SimpleHttpClient,
-    accountId: &str,
-    body: &Client,
+    args: &Adexchangebuyer2AccountsClientsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adexchangebuyer2_accounts_clients_create_builder(client, accountId, body)?;
+    let builder =
+        adexchangebuyer2_accounts_clients_create_builder(client, &args.accountId, &args.body)?;
     adexchangebuyer2_accounts_clients_create_execute(builder)
 }
 
@@ -222,6 +233,15 @@ pub fn adexchangebuyer2_accounts_clients_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_clients_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsClientsGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: clientAccountId
+    pub clientAccountId: String,
+}
+
 /// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}
 /// Gets a client buyer with a given client account ID.
 ///
@@ -234,14 +254,16 @@ pub fn adexchangebuyer2_accounts_clients_get_execute(
 
 pub fn adexchangebuyer2_accounts_clients_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    clientAccountId: &str,
+    args: &Adexchangebuyer2AccountsClientsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_accounts_clients_get_builder(client, accountId, clientAccountId)?;
+    let builder = adexchangebuyer2_accounts_clients_get_builder(
+        client,
+        &args.accountId,
+        &args.clientAccountId,
+    )?;
     adexchangebuyer2_accounts_clients_get_execute(builder)
 }
 
@@ -357,6 +379,19 @@ pub fn adexchangebuyer2_accounts_clients_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_clients_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsClientsListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: partnerClientId
+    pub partnerClientId: Option<String>,
+}
+
 /// GET v2beta1/accounts/{accountId}/clients
 /// Lists all the clients for the current sponsor buyer.
 ///
@@ -369,10 +404,7 @@ pub fn adexchangebuyer2_accounts_clients_list_execute(
 
 pub fn adexchangebuyer2_accounts_clients_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partnerClientId: Option<&str>,
+    args: &Adexchangebuyer2AccountsClientsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListClientsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -381,10 +413,10 @@ pub fn adexchangebuyer2_accounts_clients_list(
 > {
     let builder = adexchangebuyer2_accounts_clients_list_builder(
         client,
-        accountId,
-        pageSize,
-        pageToken,
-        partnerClientId,
+        &args.accountId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.partnerClientId.as_deref(),
     )?;
     adexchangebuyer2_accounts_clients_list_execute(builder)
 }
@@ -483,6 +515,17 @@ pub fn adexchangebuyer2_accounts_clients_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_clients_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsClientsUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: clientAccountId
+    pub clientAccountId: String,
+    /// Request body.
+    pub body: Client,
+}
+
 /// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}
 /// Updates an existing client buyer.
 ///
@@ -495,15 +538,17 @@ pub fn adexchangebuyer2_accounts_clients_update_execute(
 
 pub fn adexchangebuyer2_accounts_clients_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    clientAccountId: &str,
-    body: &Client,
+    args: &Adexchangebuyer2AccountsClientsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_accounts_clients_update_builder(client, accountId, clientAccountId, body)?;
+    let builder = adexchangebuyer2_accounts_clients_update_builder(
+        client,
+        &args.accountId,
+        &args.clientAccountId,
+        &args.body,
+    )?;
     adexchangebuyer2_accounts_clients_update_execute(builder)
 }
 
@@ -603,6 +648,17 @@ pub fn adexchangebuyer2_accounts_clients_invitations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_clients_invitations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsClientsInvitationsCreateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: clientAccountId
+    pub clientAccountId: String,
+    /// Request body.
+    pub body: ClientUserInvitation,
+}
+
 /// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/invitations
 /// Creates and sends out an email invitation to access an Ad Exchange client buyer account.
 ///
@@ -615,9 +671,7 @@ pub fn adexchangebuyer2_accounts_clients_invitations_create_execute(
 
 pub fn adexchangebuyer2_accounts_clients_invitations_create(
     client: &SimpleHttpClient,
-    accountId: &str,
-    clientAccountId: &str,
-    body: &ClientUserInvitation,
+    args: &Adexchangebuyer2AccountsClientsInvitationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ClientUserInvitation>, ApiError>, P = ApiPending>
         + Send
@@ -626,9 +680,9 @@ pub fn adexchangebuyer2_accounts_clients_invitations_create(
 > {
     let builder = adexchangebuyer2_accounts_clients_invitations_create_builder(
         client,
-        accountId,
-        clientAccountId,
-        body,
+        &args.accountId,
+        &args.clientAccountId,
+        &args.body,
     )?;
     adexchangebuyer2_accounts_clients_invitations_create_execute(builder)
 }
@@ -727,6 +781,17 @@ pub fn adexchangebuyer2_accounts_clients_invitations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_clients_invitations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsClientsInvitationsGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: clientAccountId
+    pub clientAccountId: String,
+    /// Path parameter: invitationId
+    pub invitationId: String,
+}
+
 /// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/invitations/{invitationId}
 /// Retrieves an existing client user invitation.
 ///
@@ -739,9 +804,7 @@ pub fn adexchangebuyer2_accounts_clients_invitations_get_execute(
 
 pub fn adexchangebuyer2_accounts_clients_invitations_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    clientAccountId: &str,
-    invitationId: &str,
+    args: &Adexchangebuyer2AccountsClientsInvitationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ClientUserInvitation>, ApiError>, P = ApiPending>
         + Send
@@ -750,9 +813,9 @@ pub fn adexchangebuyer2_accounts_clients_invitations_get(
 > {
     let builder = adexchangebuyer2_accounts_clients_invitations_get_builder(
         client,
-        accountId,
-        clientAccountId,
-        invitationId,
+        &args.accountId,
+        &args.clientAccountId,
+        &args.invitationId,
     )?;
     adexchangebuyer2_accounts_clients_invitations_get_execute(builder)
 }
@@ -868,6 +931,19 @@ pub fn adexchangebuyer2_accounts_clients_invitations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_clients_invitations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsClientsInvitationsListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: clientAccountId
+    pub clientAccountId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/invitations
 /// Lists all the client users invitations for a client with a given account ID.
 ///
@@ -880,10 +956,7 @@ pub fn adexchangebuyer2_accounts_clients_invitations_list_execute(
 
 pub fn adexchangebuyer2_accounts_clients_invitations_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    clientAccountId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2AccountsClientsInvitationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListClientUserInvitationsResponse>, ApiError>,
@@ -894,10 +967,10 @@ pub fn adexchangebuyer2_accounts_clients_invitations_list(
 > {
     let builder = adexchangebuyer2_accounts_clients_invitations_list_builder(
         client,
-        accountId,
-        clientAccountId,
-        pageSize,
-        pageToken,
+        &args.accountId,
+        &args.clientAccountId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_accounts_clients_invitations_list_execute(builder)
 }
@@ -994,6 +1067,17 @@ pub fn adexchangebuyer2_accounts_clients_users_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_clients_users_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsClientsUsersGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: clientAccountId
+    pub clientAccountId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/users/{userId}
 /// Retrieves an existing client user.
 ///
@@ -1006,18 +1090,16 @@ pub fn adexchangebuyer2_accounts_clients_users_get_execute(
 
 pub fn adexchangebuyer2_accounts_clients_users_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    clientAccountId: &str,
-    userId: &str,
+    args: &Adexchangebuyer2AccountsClientsUsersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ClientUser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = adexchangebuyer2_accounts_clients_users_get_builder(
         client,
-        accountId,
-        clientAccountId,
-        userId,
+        &args.accountId,
+        &args.clientAccountId,
+        &args.userId,
     )?;
     adexchangebuyer2_accounts_clients_users_get_execute(builder)
 }
@@ -1131,6 +1213,19 @@ pub fn adexchangebuyer2_accounts_clients_users_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_clients_users_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsClientsUsersListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: clientAccountId
+    pub clientAccountId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/users
 /// Lists all the known client users for a specified sponsor buyer account ID.
 ///
@@ -1143,10 +1238,7 @@ pub fn adexchangebuyer2_accounts_clients_users_list_execute(
 
 pub fn adexchangebuyer2_accounts_clients_users_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    clientAccountId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2AccountsClientsUsersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListClientUsersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1155,10 +1247,10 @@ pub fn adexchangebuyer2_accounts_clients_users_list(
 > {
     let builder = adexchangebuyer2_accounts_clients_users_list_builder(
         client,
-        accountId,
-        clientAccountId,
-        pageSize,
-        pageToken,
+        &args.accountId,
+        &args.clientAccountId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_accounts_clients_users_list_execute(builder)
 }
@@ -1258,6 +1350,19 @@ pub fn adexchangebuyer2_accounts_clients_users_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_clients_users_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsClientsUsersUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: clientAccountId
+    pub clientAccountId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: ClientUser,
+}
+
 /// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/users/{userId}
 /// Updates an existing client user. Only the user status can be changed on update.
 ///
@@ -1270,20 +1375,17 @@ pub fn adexchangebuyer2_accounts_clients_users_update_execute(
 
 pub fn adexchangebuyer2_accounts_clients_users_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    clientAccountId: &str,
-    userId: &str,
-    body: &ClientUser,
+    args: &Adexchangebuyer2AccountsClientsUsersUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ClientUser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = adexchangebuyer2_accounts_clients_users_update_builder(
         client,
-        accountId,
-        clientAccountId,
-        userId,
-        body,
+        &args.accountId,
+        &args.clientAccountId,
+        &args.userId,
+        &args.body,
     )?;
     adexchangebuyer2_accounts_clients_users_update_execute(builder)
 }
@@ -1393,6 +1495,17 @@ pub fn adexchangebuyer2_accounts_creatives_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_creatives_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsCreativesCreateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: duplicateIdMode
+    pub duplicateIdMode: Option<String>,
+    /// Request body.
+    pub body: Creative,
+}
+
 /// GET v2beta1/accounts/{accountId}/creatives
 /// Creates a creative.
 ///
@@ -1405,18 +1518,16 @@ pub fn adexchangebuyer2_accounts_creatives_create_execute(
 
 pub fn adexchangebuyer2_accounts_creatives_create(
     client: &SimpleHttpClient,
-    accountId: &str,
-    duplicateIdMode: Option<&str>,
-    body: &Creative,
+    args: &Adexchangebuyer2AccountsCreativesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = adexchangebuyer2_accounts_creatives_create_builder(
         client,
-        accountId,
-        duplicateIdMode,
-        body,
+        &args.accountId,
+        args.duplicateIdMode.as_deref(),
+        &args.body,
     )?;
     adexchangebuyer2_accounts_creatives_create_execute(builder)
 }
@@ -1512,6 +1623,15 @@ pub fn adexchangebuyer2_accounts_creatives_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_creatives_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsCreativesGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: creativeId
+    pub creativeId: String,
+}
+
 /// GET v2beta1/accounts/{accountId}/creatives/{creativeId}
 /// Gets a creative.
 ///
@@ -1524,13 +1644,13 @@ pub fn adexchangebuyer2_accounts_creatives_get_execute(
 
 pub fn adexchangebuyer2_accounts_creatives_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    creativeId: &str,
+    args: &Adexchangebuyer2AccountsCreativesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adexchangebuyer2_accounts_creatives_get_builder(client, accountId, creativeId)?;
+    let builder =
+        adexchangebuyer2_accounts_creatives_get_builder(client, &args.accountId, &args.creativeId)?;
     adexchangebuyer2_accounts_creatives_get_execute(builder)
 }
 
@@ -1646,6 +1766,19 @@ pub fn adexchangebuyer2_accounts_creatives_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_creatives_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsCreativesListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v2beta1/accounts/{accountId}/creatives
 /// Lists creatives.
 ///
@@ -1658,10 +1791,7 @@ pub fn adexchangebuyer2_accounts_creatives_list_execute(
 
 pub fn adexchangebuyer2_accounts_creatives_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    args: &Adexchangebuyer2AccountsCreativesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCreativesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1669,7 +1799,11 @@ pub fn adexchangebuyer2_accounts_creatives_list(
     ApiError,
 > {
     let builder = adexchangebuyer2_accounts_creatives_list_builder(
-        client, accountId, pageSize, pageToken, query,
+        client,
+        &args.accountId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
     )?;
     adexchangebuyer2_accounts_creatives_list_execute(builder)
 }
@@ -1768,6 +1902,17 @@ pub fn adexchangebuyer2_accounts_creatives_stop_watching_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_creatives_stop_watching`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsCreativesStopWatchingArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: creativeId
+    pub creativeId: String,
+    /// Request body.
+    pub body: StopWatchingCreativeRequest,
+}
+
 /// GET v2beta1/accounts/{accountId}/creatives/{creativeId}:stopWatching
 /// Stops watching a creative. Will stop push notifications being sent to the topics when the creative changes status.
 ///
@@ -1780,15 +1925,16 @@ pub fn adexchangebuyer2_accounts_creatives_stop_watching_execute(
 
 pub fn adexchangebuyer2_accounts_creatives_stop_watching(
     client: &SimpleHttpClient,
-    accountId: &str,
-    creativeId: &str,
-    body: &StopWatchingCreativeRequest,
+    args: &Adexchangebuyer2AccountsCreativesStopWatchingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = adexchangebuyer2_accounts_creatives_stop_watching_builder(
-        client, accountId, creativeId, body,
+        client,
+        &args.accountId,
+        &args.creativeId,
+        &args.body,
     )?;
     adexchangebuyer2_accounts_creatives_stop_watching_execute(builder)
 }
@@ -1887,6 +2033,17 @@ pub fn adexchangebuyer2_accounts_creatives_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_creatives_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsCreativesUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: creativeId
+    pub creativeId: String,
+    /// Request body.
+    pub body: Creative,
+}
+
 /// GET v2beta1/accounts/{accountId}/creatives/{creativeId}
 /// Updates a creative.
 ///
@@ -1899,15 +2056,17 @@ pub fn adexchangebuyer2_accounts_creatives_update_execute(
 
 pub fn adexchangebuyer2_accounts_creatives_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    creativeId: &str,
-    body: &Creative,
+    args: &Adexchangebuyer2AccountsCreativesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_accounts_creatives_update_builder(client, accountId, creativeId, body)?;
+    let builder = adexchangebuyer2_accounts_creatives_update_builder(
+        client,
+        &args.accountId,
+        &args.creativeId,
+        &args.body,
+    )?;
     adexchangebuyer2_accounts_creatives_update_execute(builder)
 }
 
@@ -2005,6 +2164,17 @@ pub fn adexchangebuyer2_accounts_creatives_watch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_creatives_watch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsCreativesWatchArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: creativeId
+    pub creativeId: String,
+    /// Request body.
+    pub body: WatchCreativeRequest,
+}
+
 /// GET v2beta1/accounts/{accountId}/creatives/{creativeId}:watch
 /// Watches a creative. Will result in push notifications being sent to the topic when the creative changes status.
 ///
@@ -2017,15 +2187,17 @@ pub fn adexchangebuyer2_accounts_creatives_watch_execute(
 
 pub fn adexchangebuyer2_accounts_creatives_watch(
     client: &SimpleHttpClient,
-    accountId: &str,
-    creativeId: &str,
-    body: &WatchCreativeRequest,
+    args: &Adexchangebuyer2AccountsCreativesWatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_accounts_creatives_watch_builder(client, accountId, creativeId, body)?;
+    let builder = adexchangebuyer2_accounts_creatives_watch_builder(
+        client,
+        &args.accountId,
+        &args.creativeId,
+        &args.body,
+    )?;
     adexchangebuyer2_accounts_creatives_watch_execute(builder)
 }
 
@@ -2124,6 +2296,17 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_add_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_creatives_deal_associations_add`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsCreativesDealAssociationsAddArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: creativeId
+    pub creativeId: String,
+    /// Request body.
+    pub body: AddDealAssociationRequest,
+}
+
 /// GET v2beta1/accounts/{accountId}/creatives/{creativeId}/dealAssociations:add
 /// Associate an existing deal with a creative.
 ///
@@ -2136,15 +2319,16 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_add_execute(
 
 pub fn adexchangebuyer2_accounts_creatives_deal_associations_add(
     client: &SimpleHttpClient,
-    accountId: &str,
-    creativeId: &str,
-    body: &AddDealAssociationRequest,
+    args: &Adexchangebuyer2AccountsCreativesDealAssociationsAddArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = adexchangebuyer2_accounts_creatives_deal_associations_add_builder(
-        client, accountId, creativeId, body,
+        client,
+        &args.accountId,
+        &args.creativeId,
+        &args.body,
     )?;
     adexchangebuyer2_accounts_creatives_deal_associations_add_execute(builder)
 }
@@ -2264,6 +2448,21 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_creatives_deal_associations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsCreativesDealAssociationsListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: creativeId
+    pub creativeId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v2beta1/accounts/{accountId}/creatives/{creativeId}/dealAssociations
 /// List all creative-deal associations.
 ///
@@ -2276,11 +2475,7 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_list_execute(
 
 pub fn adexchangebuyer2_accounts_creatives_deal_associations_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    creativeId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    args: &Adexchangebuyer2AccountsCreativesDealAssociationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDealAssociationsResponse>, ApiError>,
@@ -2290,7 +2485,12 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_list(
     ApiError,
 > {
     let builder = adexchangebuyer2_accounts_creatives_deal_associations_list_builder(
-        client, accountId, creativeId, pageSize, pageToken, query,
+        client,
+        &args.accountId,
+        &args.creativeId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
     )?;
     adexchangebuyer2_accounts_creatives_deal_associations_list_execute(builder)
 }
@@ -2390,6 +2590,17 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_remove_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_creatives_deal_associations_remove`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsCreativesDealAssociationsRemoveArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: creativeId
+    pub creativeId: String,
+    /// Request body.
+    pub body: RemoveDealAssociationRequest,
+}
+
 /// GET v2beta1/accounts/{accountId}/creatives/{creativeId}/dealAssociations:remove
 /// Remove the association between a deal and a creative.
 ///
@@ -2402,15 +2613,16 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_remove_execute(
 
 pub fn adexchangebuyer2_accounts_creatives_deal_associations_remove(
     client: &SimpleHttpClient,
-    accountId: &str,
-    creativeId: &str,
-    body: &RemoveDealAssociationRequest,
+    args: &Adexchangebuyer2AccountsCreativesDealAssociationsRemoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = adexchangebuyer2_accounts_creatives_deal_associations_remove_builder(
-        client, accountId, creativeId, body,
+        client,
+        &args.accountId,
+        &args.creativeId,
+        &args.body,
     )?;
     adexchangebuyer2_accounts_creatives_deal_associations_remove_execute(builder)
 }
@@ -2531,6 +2743,21 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_finalized_proposals_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsFinalizedProposalsListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: filterSyntax
+    pub filterSyntax: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/accounts/{accountId}/finalizedProposals
 /// List finalized proposals, regardless if a proposal is being renegotiated. A filter expression (PQL query) may be specified to filter the results. The notes will not be returned.
 ///
@@ -2543,11 +2770,7 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_list_execute(
 
 pub fn adexchangebuyer2_accounts_finalized_proposals_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    filter: Option<&str>,
-    filterSyntax: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2AccountsFinalizedProposalsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListProposalsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2556,11 +2779,11 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_list(
 > {
     let builder = adexchangebuyer2_accounts_finalized_proposals_list_builder(
         client,
-        accountId,
-        filter,
-        filterSyntax,
-        pageSize,
-        pageToken,
+        &args.accountId,
+        args.filter.as_deref(),
+        args.filterSyntax.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_accounts_finalized_proposals_list_execute(builder)
 }
@@ -2659,6 +2882,17 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_pause_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_finalized_proposals_pause`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsFinalizedProposalsPauseArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: proposalId
+    pub proposalId: String,
+    /// Request body.
+    pub body: PauseProposalDealsRequest,
+}
+
 /// GET v2beta1/accounts/{accountId}/finalizedProposals/{proposalId}:pause
 /// Update given deals to pause serving. This method will set the DealServingMetadata.DealPauseStatus.has_buyer_paused bit to `true` for all listed deals in the request. Currently, this method only applies to PG and PD deals. For PA deals, call accounts.proposals.pause endpoint. It is a no-op to pause already-paused deals. It is an error to call PauseProposalDeals for deals which are not part of the proposal of proposal_id or which are not finalized or renegotiating.
 ///
@@ -2671,15 +2905,16 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_pause_execute(
 
 pub fn adexchangebuyer2_accounts_finalized_proposals_pause(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
-    body: &PauseProposalDealsRequest,
+    args: &Adexchangebuyer2AccountsFinalizedProposalsPauseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = adexchangebuyer2_accounts_finalized_proposals_pause_builder(
-        client, accountId, proposalId, body,
+        client,
+        &args.accountId,
+        &args.proposalId,
+        &args.body,
     )?;
     adexchangebuyer2_accounts_finalized_proposals_pause_execute(builder)
 }
@@ -2778,6 +3013,17 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_resume_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_finalized_proposals_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsFinalizedProposalsResumeArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: proposalId
+    pub proposalId: String,
+    /// Request body.
+    pub body: ResumeProposalDealsRequest,
+}
+
 /// GET v2beta1/accounts/{accountId}/finalizedProposals/{proposalId}:resume
 /// Update given deals to resume serving. This method will set the DealServingMetadata.DealPauseStatus.has_buyer_paused bit to `false` for all listed deals in the request. Currently, this method only applies to PG and PD deals. For PA deals, call accounts.proposals.resume endpoint. It is a no-op to resume running deals or deals paused by the other party. It is an error to call ResumeProposalDeals for deals which are not part of the proposal of proposal_id or which are not finalized or renegotiating.
 ///
@@ -2790,15 +3036,16 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_resume_execute(
 
 pub fn adexchangebuyer2_accounts_finalized_proposals_resume(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
-    body: &ResumeProposalDealsRequest,
+    args: &Adexchangebuyer2AccountsFinalizedProposalsResumeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = adexchangebuyer2_accounts_finalized_proposals_resume_builder(
-        client, accountId, proposalId, body,
+        client,
+        &args.accountId,
+        &args.proposalId,
+        &args.body,
     )?;
     adexchangebuyer2_accounts_finalized_proposals_resume_execute(builder)
 }
@@ -2894,6 +3141,15 @@ pub fn adexchangebuyer2_accounts_products_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_products_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsProductsGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: productId
+    pub productId: String,
+}
+
 /// GET v2beta1/accounts/{accountId}/products/{productId}
 /// Gets the requested product by ID.
 ///
@@ -2906,13 +3162,13 @@ pub fn adexchangebuyer2_accounts_products_get_execute(
 
 pub fn adexchangebuyer2_accounts_products_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    productId: &str,
+    args: &Adexchangebuyer2AccountsProductsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adexchangebuyer2_accounts_products_get_builder(client, accountId, productId)?;
+    let builder =
+        adexchangebuyer2_accounts_products_get_builder(client, &args.accountId, &args.productId)?;
     adexchangebuyer2_accounts_products_get_execute(builder)
 }
 
@@ -3028,6 +3284,19 @@ pub fn adexchangebuyer2_accounts_products_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_products_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsProductsListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/accounts/{accountId}/products
 /// List all products visible to the buyer (optionally filtered by the specified PQL query).
 ///
@@ -3040,10 +3309,7 @@ pub fn adexchangebuyer2_accounts_products_list_execute(
 
 pub fn adexchangebuyer2_accounts_products_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2AccountsProductsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListProductsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3051,7 +3317,11 @@ pub fn adexchangebuyer2_accounts_products_list(
     ApiError,
 > {
     let builder = adexchangebuyer2_accounts_products_list_builder(
-        client, accountId, filter, pageSize, pageToken,
+        client,
+        &args.accountId,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_accounts_products_list_execute(builder)
 }
@@ -3150,6 +3420,17 @@ pub fn adexchangebuyer2_accounts_proposals_accept_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_proposals_accept`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsProposalsAcceptArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: proposalId
+    pub proposalId: String,
+    /// Request body.
+    pub body: AcceptProposalRequest,
+}
+
 /// GET v2beta1/accounts/{accountId}/proposals/{proposalId}:accept
 /// Mark the proposal as accepted at the given revision number. If the number does not match the server's revision number an ABORTED error message will be returned. This call updates the proposal_state from PROPOSED to BUYER_ACCEPTED, or from SELLER_ACCEPTED to FINALIZED. Upon calling this endpoint, the buyer implicitly agrees to the terms and conditions optionally set within the proposal by the publisher.
 ///
@@ -3162,15 +3443,17 @@ pub fn adexchangebuyer2_accounts_proposals_accept_execute(
 
 pub fn adexchangebuyer2_accounts_proposals_accept(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
-    body: &AcceptProposalRequest,
+    args: &Adexchangebuyer2AccountsProposalsAcceptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_accounts_proposals_accept_builder(client, accountId, proposalId, body)?;
+    let builder = adexchangebuyer2_accounts_proposals_accept_builder(
+        client,
+        &args.accountId,
+        &args.proposalId,
+        &args.body,
+    )?;
     adexchangebuyer2_accounts_proposals_accept_execute(builder)
 }
 
@@ -3268,6 +3551,17 @@ pub fn adexchangebuyer2_accounts_proposals_add_note_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_proposals_add_note`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsProposalsAddNoteArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: proposalId
+    pub proposalId: String,
+    /// Request body.
+    pub body: AddNoteRequest,
+}
+
 /// GET v2beta1/accounts/{accountId}/proposals/{proposalId}:addNote
 /// Create a new note and attach it to the proposal. The note is assigned a unique ID by the server. The proposal revision number will not increase when associated with a new note.
 ///
@@ -3280,15 +3574,17 @@ pub fn adexchangebuyer2_accounts_proposals_add_note_execute(
 
 pub fn adexchangebuyer2_accounts_proposals_add_note(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
-    body: &AddNoteRequest,
+    args: &Adexchangebuyer2AccountsProposalsAddNoteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_accounts_proposals_add_note_builder(client, accountId, proposalId, body)?;
+    let builder = adexchangebuyer2_accounts_proposals_add_note_builder(
+        client,
+        &args.accountId,
+        &args.proposalId,
+        &args.body,
+    )?;
     adexchangebuyer2_accounts_proposals_add_note_execute(builder)
 }
 
@@ -3386,6 +3682,17 @@ pub fn adexchangebuyer2_accounts_proposals_cancel_negotiation_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_proposals_cancel_negotiation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsProposalsCancelNegotiationArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: proposalId
+    pub proposalId: String,
+    /// Request body.
+    pub body: CancelNegotiationRequest,
+}
+
 /// GET v2beta1/accounts/{accountId}/proposals/{proposalId}:cancelNegotiation
 /// Cancel an ongoing negotiation on a proposal. This does not cancel or end serving for the deals if the proposal has been finalized, but only cancels a negotiation unilaterally.
 ///
@@ -3398,15 +3705,16 @@ pub fn adexchangebuyer2_accounts_proposals_cancel_negotiation_execute(
 
 pub fn adexchangebuyer2_accounts_proposals_cancel_negotiation(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
-    body: &CancelNegotiationRequest,
+    args: &Adexchangebuyer2AccountsProposalsCancelNegotiationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = adexchangebuyer2_accounts_proposals_cancel_negotiation_builder(
-        client, accountId, proposalId, body,
+        client,
+        &args.accountId,
+        &args.proposalId,
+        &args.body,
     )?;
     adexchangebuyer2_accounts_proposals_cancel_negotiation_execute(builder)
 }
@@ -3505,6 +3813,17 @@ pub fn adexchangebuyer2_accounts_proposals_complete_setup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_proposals_complete_setup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsProposalsCompleteSetupArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: proposalId
+    pub proposalId: String,
+    /// Request body.
+    pub body: CompleteSetupRequest,
+}
+
 /// GET v2beta1/accounts/{accountId}/proposals/{proposalId}:completeSetup
 /// You can opt-in to manually update proposals to indicate that setup is complete. By default, proposal setup is automatically completed after their deals are finalized. Contact your Technical Account Manager to opt in. Buyers can call this method when the proposal has been finalized, and all the required creatives have been uploaded using the Creatives API. This call updates the is_setup_completed field on the deals in the proposal, and notifies the seller. The server then advances the revision number of the most recent proposal. To mark an individual deal as ready to serve, call buyers.`finalizedDeals`.`setReadyToServe` in the Marketplace API.
 ///
@@ -3517,15 +3836,16 @@ pub fn adexchangebuyer2_accounts_proposals_complete_setup_execute(
 
 pub fn adexchangebuyer2_accounts_proposals_complete_setup(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
-    body: &CompleteSetupRequest,
+    args: &Adexchangebuyer2AccountsProposalsCompleteSetupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = adexchangebuyer2_accounts_proposals_complete_setup_builder(
-        client, accountId, proposalId, body,
+        client,
+        &args.accountId,
+        &args.proposalId,
+        &args.body,
     )?;
     adexchangebuyer2_accounts_proposals_complete_setup_execute(builder)
 }
@@ -3623,6 +3943,15 @@ pub fn adexchangebuyer2_accounts_proposals_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_proposals_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsProposalsCreateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Request body.
+    pub body: Proposal,
+}
+
 /// GET v2beta1/accounts/{accountId}/proposals
 /// Create the given proposal. Each created proposal and any deals it contains are assigned a unique ID by the server.
 ///
@@ -3635,13 +3964,13 @@ pub fn adexchangebuyer2_accounts_proposals_create_execute(
 
 pub fn adexchangebuyer2_accounts_proposals_create(
     client: &SimpleHttpClient,
-    accountId: &str,
-    body: &Proposal,
+    args: &Adexchangebuyer2AccountsProposalsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adexchangebuyer2_accounts_proposals_create_builder(client, accountId, body)?;
+    let builder =
+        adexchangebuyer2_accounts_proposals_create_builder(client, &args.accountId, &args.body)?;
     adexchangebuyer2_accounts_proposals_create_execute(builder)
 }
 
@@ -3736,6 +4065,15 @@ pub fn adexchangebuyer2_accounts_proposals_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_proposals_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsProposalsGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: proposalId
+    pub proposalId: String,
+}
+
 /// GET v2beta1/accounts/{accountId}/proposals/{proposalId}
 /// Gets a proposal given its ID. The proposal is returned at its head revision.
 ///
@@ -3748,13 +4086,13 @@ pub fn adexchangebuyer2_accounts_proposals_get_execute(
 
 pub fn adexchangebuyer2_accounts_proposals_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
+    args: &Adexchangebuyer2AccountsProposalsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adexchangebuyer2_accounts_proposals_get_builder(client, accountId, proposalId)?;
+    let builder =
+        adexchangebuyer2_accounts_proposals_get_builder(client, &args.accountId, &args.proposalId)?;
     adexchangebuyer2_accounts_proposals_get_execute(builder)
 }
 
@@ -3874,6 +4212,21 @@ pub fn adexchangebuyer2_accounts_proposals_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_proposals_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsProposalsListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: filterSyntax
+    pub filterSyntax: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/accounts/{accountId}/proposals
 /// List proposals. A filter expression (PQL query) may be specified to filter the results. To retrieve all finalized proposals, regardless if a proposal is being renegotiated, see the FinalizedProposals resource. Note that B`idder/ChildSeat` relationships differ from the usual behavior. A Bidder account can only see its child seats' proposals by specifying the ChildSeat's `accountId` in the request path.
 ///
@@ -3886,11 +4239,7 @@ pub fn adexchangebuyer2_accounts_proposals_list_execute(
 
 pub fn adexchangebuyer2_accounts_proposals_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    filter: Option<&str>,
-    filterSyntax: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2AccountsProposalsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListProposalsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3899,11 +4248,11 @@ pub fn adexchangebuyer2_accounts_proposals_list(
 > {
     let builder = adexchangebuyer2_accounts_proposals_list_builder(
         client,
-        accountId,
-        filter,
-        filterSyntax,
-        pageSize,
-        pageToken,
+        &args.accountId,
+        args.filter.as_deref(),
+        args.filterSyntax.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_accounts_proposals_list_execute(builder)
 }
@@ -4002,6 +4351,17 @@ pub fn adexchangebuyer2_accounts_proposals_pause_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_proposals_pause`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsProposalsPauseArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: proposalId
+    pub proposalId: String,
+    /// Request body.
+    pub body: PauseProposalRequest,
+}
+
 /// GET v2beta1/accounts/{accountId}/proposals/{proposalId}:pause
 /// Update the given proposal to pause serving. This method will set the DealServingMetadata.DealPauseStatus.has_buyer_paused bit to `true` for all deals in the proposal. It is a no-op to pause an already-paused proposal. It is an error to call PauseProposal for a proposal that is not finalized or renegotiating.
 ///
@@ -4014,15 +4374,17 @@ pub fn adexchangebuyer2_accounts_proposals_pause_execute(
 
 pub fn adexchangebuyer2_accounts_proposals_pause(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
-    body: &PauseProposalRequest,
+    args: &Adexchangebuyer2AccountsProposalsPauseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_accounts_proposals_pause_builder(client, accountId, proposalId, body)?;
+    let builder = adexchangebuyer2_accounts_proposals_pause_builder(
+        client,
+        &args.accountId,
+        &args.proposalId,
+        &args.body,
+    )?;
     adexchangebuyer2_accounts_proposals_pause_execute(builder)
 }
 
@@ -4120,6 +4482,17 @@ pub fn adexchangebuyer2_accounts_proposals_resume_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_proposals_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsProposalsResumeArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: proposalId
+    pub proposalId: String,
+    /// Request body.
+    pub body: ResumeProposalRequest,
+}
+
 /// GET v2beta1/accounts/{accountId}/proposals/{proposalId}:resume
 /// Update the given proposal to resume serving. This method will set the DealServingMetadata.DealPauseStatus.has_buyer_paused bit to `false` for all deals in the proposal. Note that if the has_seller_paused bit is also set, serving will not resume until the seller also resumes. It is a no-op to resume an already-running proposal. It is an error to call ResumeProposal for a proposal that is not finalized or renegotiating.
 ///
@@ -4132,15 +4505,17 @@ pub fn adexchangebuyer2_accounts_proposals_resume_execute(
 
 pub fn adexchangebuyer2_accounts_proposals_resume(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
-    body: &ResumeProposalRequest,
+    args: &Adexchangebuyer2AccountsProposalsResumeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_accounts_proposals_resume_builder(client, accountId, proposalId, body)?;
+    let builder = adexchangebuyer2_accounts_proposals_resume_builder(
+        client,
+        &args.accountId,
+        &args.proposalId,
+        &args.body,
+    )?;
     adexchangebuyer2_accounts_proposals_resume_execute(builder)
 }
 
@@ -4238,6 +4613,17 @@ pub fn adexchangebuyer2_accounts_proposals_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_proposals_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsProposalsUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: proposalId
+    pub proposalId: String,
+    /// Request body.
+    pub body: Proposal,
+}
+
 /// GET v2beta1/accounts/{accountId}/proposals/{proposalId}
 /// Update the given proposal at the client known revision number. If the server revision has advanced since the passed-in proposal.proposal_revision, an ABORTED error message will be returned. Only the buyer-modifiable fields of the proposal will be updated. Note that the deals in the proposal will be updated to match the passed-in copy. If a passed-in deal does not have a deal_id, the server will assign a new unique ID and create the deal. If passed-in deal has a deal_id, it will be updated to match the passed-in copy. Any existing deals not present in the passed-in proposal will be deleted. It is an error to pass in a deal with a deal_id not present at head.
 ///
@@ -4250,15 +4636,17 @@ pub fn adexchangebuyer2_accounts_proposals_update_execute(
 
 pub fn adexchangebuyer2_accounts_proposals_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
-    body: &Proposal,
+    args: &Adexchangebuyer2AccountsProposalsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_accounts_proposals_update_builder(client, accountId, proposalId, body)?;
+    let builder = adexchangebuyer2_accounts_proposals_update_builder(
+        client,
+        &args.accountId,
+        &args.proposalId,
+        &args.body,
+    )?;
     adexchangebuyer2_accounts_proposals_update_execute(builder)
 }
 
@@ -4355,6 +4743,15 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_publisher_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsPublisherProfilesGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: publisherProfileId
+    pub publisherProfileId: String,
+}
+
 /// GET v2beta1/accounts/{accountId}/publisherProfiles/{publisherProfileId}
 /// Gets the requested publisher profile by id.
 ///
@@ -4367,8 +4764,7 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_get_execute(
 
 pub fn adexchangebuyer2_accounts_publisher_profiles_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    publisherProfileId: &str,
+    args: &Adexchangebuyer2AccountsPublisherProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PublisherProfile>, ApiError>, P = ApiPending>
         + Send
@@ -4377,8 +4773,8 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_get(
 > {
     let builder = adexchangebuyer2_accounts_publisher_profiles_get_builder(
         client,
-        accountId,
-        publisherProfileId,
+        &args.accountId,
+        &args.publisherProfileId,
     )?;
     adexchangebuyer2_accounts_publisher_profiles_get_execute(builder)
 }
@@ -4493,6 +4889,17 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_accounts_publisher_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2AccountsPublisherProfilesListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/accounts/{accountId}/publisherProfiles
 /// List all publisher profiles visible to the buyer
 ///
@@ -4505,9 +4912,7 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_list_execute(
 
 pub fn adexchangebuyer2_accounts_publisher_profiles_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2AccountsPublisherProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPublisherProfilesResponse>, ApiError>,
@@ -4517,7 +4922,10 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_list(
     ApiError,
 > {
     let builder = adexchangebuyer2_accounts_publisher_profiles_list_builder(
-        client, accountId, pageSize, pageToken,
+        client,
+        &args.accountId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_accounts_publisher_profiles_list_execute(builder)
 }
@@ -4627,6 +5035,17 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersAccountsFilterSetsCreateArgs {
+    /// Path parameter: ownerName
+    pub ownerName: String,
+    /// Query parameter: isTransient
+    pub isTransient: Option<bool>,
+    /// Request body.
+    pub body: FilterSet,
+}
+
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets
 /// Creates the specified filter set for the account with the given account ID.
 ///
@@ -4639,18 +5058,16 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_create_execute(
 
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_create(
     client: &SimpleHttpClient,
-    ownerName: &str,
-    isTransient: Option<bool>,
-    body: &FilterSet,
+    args: &Adexchangebuyer2BiddersAccountsFilterSetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = adexchangebuyer2_bidders_accounts_filter_sets_create_builder(
         client,
-        ownerName,
-        isTransient,
-        body,
+        &args.ownerName,
+        args.isTransient,
+        &args.body,
     )?;
     adexchangebuyer2_bidders_accounts_filter_sets_create_execute(builder)
 }
@@ -4745,6 +5162,13 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersAccountsFilterSetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}
 /// Deletes the requested filter set from the account with the given account ID.
 ///
@@ -4757,12 +5181,12 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_delete_execute(
 
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &Adexchangebuyer2BiddersAccountsFilterSetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adexchangebuyer2_bidders_accounts_filter_sets_delete_builder(client, name)?;
+    let builder = adexchangebuyer2_bidders_accounts_filter_sets_delete_builder(client, &args.name)?;
     adexchangebuyer2_bidders_accounts_filter_sets_delete_execute(builder)
 }
 
@@ -4856,6 +5280,13 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersAccountsFilterSetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}
 /// Retrieves the requested filter set for the account with the given account ID.
 ///
@@ -4868,12 +5299,12 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_get_execute(
 
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &Adexchangebuyer2BiddersAccountsFilterSetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adexchangebuyer2_bidders_accounts_filter_sets_get_builder(client, name)?;
+    let builder = adexchangebuyer2_bidders_accounts_filter_sets_get_builder(client, &args.name)?;
     adexchangebuyer2_bidders_accounts_filter_sets_get_execute(builder)
 }
 
@@ -4985,6 +5416,17 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersAccountsFilterSetsListArgs {
+    /// Path parameter: ownerName
+    pub ownerName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets
 /// Lists all filter sets for the account with the given account ID.
 ///
@@ -4997,9 +5439,7 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_list_execute(
 
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_list(
     client: &SimpleHttpClient,
-    ownerName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersAccountsFilterSetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFilterSetsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5007,7 +5447,10 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_list(
     ApiError,
 > {
     let builder = adexchangebuyer2_bidders_accounts_filter_sets_list_builder(
-        client, ownerName, pageSize, pageToken,
+        client,
+        &args.ownerName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_accounts_filter_sets_list_execute(builder)
 }
@@ -5120,6 +5563,17 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersAccountsFilterSetsBidMetricsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidMetrics
 /// Lists all metrics that are measured in terms of number of bids.
 ///
@@ -5132,9 +5586,7 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_execute(
 
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersAccountsFilterSetsBidMetricsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBidMetricsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5143,9 +5595,9 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list(
 > {
     let builder = adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_execute(builder)
 }
@@ -5260,6 +5712,17 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersAccountsFilterSetsBidResponseErrorsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidResponseErrors
 /// List all errors that occurred in bid responses, with the number of bid responses affected for each reason.
 ///
@@ -5272,9 +5735,7 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_ex
 
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersAccountsFilterSetsBidResponseErrorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBidResponseErrorsResponse>, ApiError>,
@@ -5285,9 +5746,9 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list(
 > {
     let builder = adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_execute(builder)
 }
@@ -5402,6 +5863,17 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersAccountsFilterSetsBidResponsesWithoutBidsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
 /// List all reasons for which bid responses were considered to have no applicable bids, with the number of bid responses affected for each reason.
 ///
@@ -5414,9 +5886,7 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_
 
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersAccountsFilterSetsBidResponsesWithoutBidsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBidResponsesWithoutBidsResponse>, ApiError>,
@@ -5428,9 +5898,9 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_
     let builder =
         adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_builder(
             client,
-            filterSetName,
-            pageSize,
-            pageToken,
+            &args.filterSetName,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_execute(builder)
 }
@@ -5545,6 +6015,17 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidRequestsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBidRequests
 /// List all reasons that caused a bid request not to be sent for an impression, with the number of bid requests not sent for each reason.
 ///
@@ -5557,9 +6038,7 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_
 
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidRequestsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListFilteredBidRequestsResponse>, ApiError>,
@@ -5570,9 +6049,9 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list(
 > {
     let builder = adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_execute(builder)
 }
@@ -5685,6 +6164,17 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids
 /// List all reasons for which bids were filtered, with the number of bids filtered for each reason.
 ///
@@ -5697,9 +6187,7 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_execute(
 
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFilteredBidsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5708,9 +6196,9 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list(
 > {
     let builder = adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_execute(builder)
 }
@@ -5828,6 +6316,19 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_lis
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsCreativesListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Path parameter: creativeStatusId
+    pub creativeStatusId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
 /// List all creatives associated with a specific reason for which bids were filtered, with the number of bids filtered for each creative.
 ///
@@ -5840,10 +6341,7 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_lis
 
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    creativeStatusId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsCreativesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCreativeStatusBreakdownByCreativeResponse>, ApiError>,
@@ -5855,10 +6353,10 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_lis
     let builder =
         adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_builder(
             client,
-            filterSetName,
-            creativeStatusId,
-            pageSize,
-            pageToken,
+            &args.filterSetName,
+            &args.creativeStatusId,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_execute(builder)
 }
@@ -5976,6 +6474,19 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsDetailsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Path parameter: creativeStatusId
+    pub creativeStatusId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
 /// List all details associated with a specific reason for which bids were filtered, with the number of bids filtered for each detail.
 ///
@@ -5988,10 +6499,7 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_
 
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    creativeStatusId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsDetailsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCreativeStatusBreakdownByDetailResponse>, ApiError>,
@@ -6002,10 +6510,10 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list(
 > {
     let builder = adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_builder(
         client,
-        filterSetName,
-        creativeStatusId,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        &args.creativeStatusId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_execute(builder)
 }
@@ -6120,6 +6628,17 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersAccountsFilterSetsImpressionMetricsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/impressionMetrics
 /// Lists all metrics that are measured in terms of number of impressions.
 ///
@@ -6132,9 +6651,7 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_exe
 
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersAccountsFilterSetsImpressionMetricsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListImpressionMetricsResponse>, ApiError>,
@@ -6145,9 +6662,9 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list(
 > {
     let builder = adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_execute(builder)
 }
@@ -6260,6 +6777,17 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersAccountsFilterSetsLosingBidsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/losingBids
 /// List all reasons for which bids lost in the auction, with the number of bids that lost for each reason.
 ///
@@ -6272,9 +6800,7 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_execute(
 
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersAccountsFilterSetsLosingBidsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLosingBidsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6283,9 +6809,9 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list(
 > {
     let builder = adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_execute(builder)
 }
@@ -6400,6 +6926,17 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_l
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersAccountsFilterSetsNonBillableWinningBidsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/nonBillableWinningBids
 /// List all reasons for which winning bids were not billable, with the number of bids not billed for each reason.
 ///
@@ -6412,9 +6949,7 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_l
 
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersAccountsFilterSetsNonBillableWinningBidsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListNonBillableWinningBidsResponse>, ApiError>,
@@ -6426,9 +6961,9 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_l
     let builder =
         adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_builder(
             client,
-            filterSetName,
-            pageSize,
-            pageToken,
+            &args.filterSetName,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_execute(builder)
 }
@@ -6538,6 +7073,17 @@ pub fn adexchangebuyer2_bidders_filter_sets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_filter_sets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersFilterSetsCreateArgs {
+    /// Path parameter: ownerName
+    pub ownerName: String,
+    /// Query parameter: isTransient
+    pub isTransient: Option<bool>,
+    /// Request body.
+    pub body: FilterSet,
+}
+
 /// GET v2beta1/bidders/{biddersId}/filterSets
 /// Creates the specified filter set for the account with the given account ID.
 ///
@@ -6550,15 +7096,17 @@ pub fn adexchangebuyer2_bidders_filter_sets_create_execute(
 
 pub fn adexchangebuyer2_bidders_filter_sets_create(
     client: &SimpleHttpClient,
-    ownerName: &str,
-    isTransient: Option<bool>,
-    body: &FilterSet,
+    args: &Adexchangebuyer2BiddersFilterSetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_bidders_filter_sets_create_builder(client, ownerName, isTransient, body)?;
+    let builder = adexchangebuyer2_bidders_filter_sets_create_builder(
+        client,
+        &args.ownerName,
+        args.isTransient,
+        &args.body,
+    )?;
     adexchangebuyer2_bidders_filter_sets_create_execute(builder)
 }
 
@@ -6652,6 +7200,13 @@ pub fn adexchangebuyer2_bidders_filter_sets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_filter_sets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersFilterSetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}
 /// Deletes the requested filter set from the account with the given account ID.
 ///
@@ -6664,12 +7219,12 @@ pub fn adexchangebuyer2_bidders_filter_sets_delete_execute(
 
 pub fn adexchangebuyer2_bidders_filter_sets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &Adexchangebuyer2BiddersFilterSetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adexchangebuyer2_bidders_filter_sets_delete_builder(client, name)?;
+    let builder = adexchangebuyer2_bidders_filter_sets_delete_builder(client, &args.name)?;
     adexchangebuyer2_bidders_filter_sets_delete_execute(builder)
 }
 
@@ -6763,6 +7318,13 @@ pub fn adexchangebuyer2_bidders_filter_sets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_filter_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersFilterSetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}
 /// Retrieves the requested filter set for the account with the given account ID.
 ///
@@ -6775,12 +7337,12 @@ pub fn adexchangebuyer2_bidders_filter_sets_get_execute(
 
 pub fn adexchangebuyer2_bidders_filter_sets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &Adexchangebuyer2BiddersFilterSetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adexchangebuyer2_bidders_filter_sets_get_builder(client, name)?;
+    let builder = adexchangebuyer2_bidders_filter_sets_get_builder(client, &args.name)?;
     adexchangebuyer2_bidders_filter_sets_get_execute(builder)
 }
 
@@ -6892,6 +7454,17 @@ pub fn adexchangebuyer2_bidders_filter_sets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_filter_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersFilterSetsListArgs {
+    /// Path parameter: ownerName
+    pub ownerName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/filterSets
 /// Lists all filter sets for the account with the given account ID.
 ///
@@ -6904,17 +7477,19 @@ pub fn adexchangebuyer2_bidders_filter_sets_list_execute(
 
 pub fn adexchangebuyer2_bidders_filter_sets_list(
     client: &SimpleHttpClient,
-    ownerName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersFilterSetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFilterSetsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_bidders_filter_sets_list_builder(client, ownerName, pageSize, pageToken)?;
+    let builder = adexchangebuyer2_bidders_filter_sets_list_builder(
+        client,
+        &args.ownerName,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     adexchangebuyer2_bidders_filter_sets_list_execute(builder)
 }
 
@@ -7026,6 +7601,17 @@ pub fn adexchangebuyer2_bidders_filter_sets_bid_metrics_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_filter_sets_bid_metrics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersFilterSetsBidMetricsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidMetrics
 /// Lists all metrics that are measured in terms of number of bids.
 ///
@@ -7038,9 +7624,7 @@ pub fn adexchangebuyer2_bidders_filter_sets_bid_metrics_list_execute(
 
 pub fn adexchangebuyer2_bidders_filter_sets_bid_metrics_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersFilterSetsBidMetricsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBidMetricsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7049,9 +7633,9 @@ pub fn adexchangebuyer2_bidders_filter_sets_bid_metrics_list(
 > {
     let builder = adexchangebuyer2_bidders_filter_sets_bid_metrics_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_filter_sets_bid_metrics_list_execute(builder)
 }
@@ -7166,6 +7750,17 @@ pub fn adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_filter_sets_bid_response_errors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersFilterSetsBidResponseErrorsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidResponseErrors
 /// List all errors that occurred in bid responses, with the number of bid responses affected for each reason.
 ///
@@ -7178,9 +7773,7 @@ pub fn adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_execute(
 
 pub fn adexchangebuyer2_bidders_filter_sets_bid_response_errors_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersFilterSetsBidResponseErrorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBidResponseErrorsResponse>, ApiError>,
@@ -7191,9 +7784,9 @@ pub fn adexchangebuyer2_bidders_filter_sets_bid_response_errors_list(
 > {
     let builder = adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_execute(builder)
 }
@@ -7308,6 +7901,17 @@ pub fn adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersFilterSetsBidResponsesWithoutBidsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
 /// List all reasons for which bid responses were considered to have no applicable bids, with the number of bid responses affected for each reason.
 ///
@@ -7320,9 +7924,7 @@ pub fn adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_exec
 
 pub fn adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersFilterSetsBidResponsesWithoutBidsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBidResponsesWithoutBidsResponse>, ApiError>,
@@ -7333,9 +7935,9 @@ pub fn adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list(
 > {
     let builder = adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_execute(builder)
 }
@@ -7450,6 +8052,17 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersFilterSetsFilteredBidRequestsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBidRequests
 /// List all reasons that caused a bid request not to be sent for an impression, with the number of bid requests not sent for each reason.
 ///
@@ -7462,9 +8075,7 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_execute(
 
 pub fn adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersFilterSetsFilteredBidRequestsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListFilteredBidRequestsResponse>, ApiError>,
@@ -7475,9 +8086,9 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list(
 > {
     let builder = adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_execute(builder)
 }
@@ -7590,6 +8201,17 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_filter_sets_filtered_bids_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersFilterSetsFilteredBidsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids
 /// List all reasons for which bids were filtered, with the number of bids filtered for each reason.
 ///
@@ -7602,9 +8224,7 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_list_execute(
 
 pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersFilterSetsFilteredBidsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFilteredBidsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7613,9 +8233,9 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_list(
 > {
     let builder = adexchangebuyer2_bidders_filter_sets_filtered_bids_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_filter_sets_filtered_bids_list_execute(builder)
 }
@@ -7733,6 +8353,19 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersFilterSetsFilteredBidsCreativesListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Path parameter: creativeStatusId
+    pub creativeStatusId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
 /// List all creatives associated with a specific reason for which bids were filtered, with the number of bids filtered for each creative.
 ///
@@ -7745,10 +8378,7 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_execute
 
 pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    creativeStatusId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersFilterSetsFilteredBidsCreativesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCreativeStatusBreakdownByCreativeResponse>, ApiError>,
@@ -7759,10 +8389,10 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list(
 > {
     let builder = adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_builder(
         client,
-        filterSetName,
-        creativeStatusId,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        &args.creativeStatusId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_execute(builder)
 }
@@ -7880,6 +8510,19 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersFilterSetsFilteredBidsDetailsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Path parameter: creativeStatusId
+    pub creativeStatusId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
 /// List all details associated with a specific reason for which bids were filtered, with the number of bids filtered for each detail.
 ///
@@ -7892,10 +8535,7 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_execute(
 
 pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    creativeStatusId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersFilterSetsFilteredBidsDetailsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCreativeStatusBreakdownByDetailResponse>, ApiError>,
@@ -7906,10 +8546,10 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list(
 > {
     let builder = adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_builder(
         client,
-        filterSetName,
-        creativeStatusId,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        &args.creativeStatusId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_execute(builder)
 }
@@ -8024,6 +8664,17 @@ pub fn adexchangebuyer2_bidders_filter_sets_impression_metrics_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_filter_sets_impression_metrics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersFilterSetsImpressionMetricsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/impressionMetrics
 /// Lists all metrics that are measured in terms of number of impressions.
 ///
@@ -8036,9 +8687,7 @@ pub fn adexchangebuyer2_bidders_filter_sets_impression_metrics_list_execute(
 
 pub fn adexchangebuyer2_bidders_filter_sets_impression_metrics_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersFilterSetsImpressionMetricsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListImpressionMetricsResponse>, ApiError>,
@@ -8049,9 +8698,9 @@ pub fn adexchangebuyer2_bidders_filter_sets_impression_metrics_list(
 > {
     let builder = adexchangebuyer2_bidders_filter_sets_impression_metrics_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_filter_sets_impression_metrics_list_execute(builder)
 }
@@ -8164,6 +8813,17 @@ pub fn adexchangebuyer2_bidders_filter_sets_losing_bids_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_filter_sets_losing_bids_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersFilterSetsLosingBidsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/losingBids
 /// List all reasons for which bids lost in the auction, with the number of bids that lost for each reason.
 ///
@@ -8176,9 +8836,7 @@ pub fn adexchangebuyer2_bidders_filter_sets_losing_bids_list_execute(
 
 pub fn adexchangebuyer2_bidders_filter_sets_losing_bids_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersFilterSetsLosingBidsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLosingBidsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8187,9 +8845,9 @@ pub fn adexchangebuyer2_bidders_filter_sets_losing_bids_list(
 > {
     let builder = adexchangebuyer2_bidders_filter_sets_losing_bids_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_filter_sets_losing_bids_list_execute(builder)
 }
@@ -8304,6 +8962,17 @@ pub fn adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BiddersFilterSetsNonBillableWinningBidsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/nonBillableWinningBids
 /// List all reasons for which winning bids were not billable, with the number of bids not billed for each reason.
 ///
@@ -8316,9 +8985,7 @@ pub fn adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_execu
 
 pub fn adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BiddersFilterSetsNonBillableWinningBidsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListNonBillableWinningBidsResponse>, ApiError>,
@@ -8329,9 +8996,9 @@ pub fn adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list(
 > {
     let builder = adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_execute(builder)
 }
@@ -8441,6 +9108,17 @@ pub fn adexchangebuyer2_buyers_filter_sets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_buyers_filter_sets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BuyersFilterSetsCreateArgs {
+    /// Path parameter: ownerName
+    pub ownerName: String,
+    /// Query parameter: isTransient
+    pub isTransient: Option<bool>,
+    /// Request body.
+    pub body: FilterSet,
+}
+
 /// GET v2beta1/buyers/{buyersId}/filterSets
 /// Creates the specified filter set for the account with the given account ID.
 ///
@@ -8453,15 +9131,17 @@ pub fn adexchangebuyer2_buyers_filter_sets_create_execute(
 
 pub fn adexchangebuyer2_buyers_filter_sets_create(
     client: &SimpleHttpClient,
-    ownerName: &str,
-    isTransient: Option<bool>,
-    body: &FilterSet,
+    args: &Adexchangebuyer2BuyersFilterSetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_buyers_filter_sets_create_builder(client, ownerName, isTransient, body)?;
+    let builder = adexchangebuyer2_buyers_filter_sets_create_builder(
+        client,
+        &args.ownerName,
+        args.isTransient,
+        &args.body,
+    )?;
     adexchangebuyer2_buyers_filter_sets_create_execute(builder)
 }
 
@@ -8555,6 +9235,13 @@ pub fn adexchangebuyer2_buyers_filter_sets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_buyers_filter_sets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BuyersFilterSetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}
 /// Deletes the requested filter set from the account with the given account ID.
 ///
@@ -8567,12 +9254,12 @@ pub fn adexchangebuyer2_buyers_filter_sets_delete_execute(
 
 pub fn adexchangebuyer2_buyers_filter_sets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &Adexchangebuyer2BuyersFilterSetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adexchangebuyer2_buyers_filter_sets_delete_builder(client, name)?;
+    let builder = adexchangebuyer2_buyers_filter_sets_delete_builder(client, &args.name)?;
     adexchangebuyer2_buyers_filter_sets_delete_execute(builder)
 }
 
@@ -8666,6 +9353,13 @@ pub fn adexchangebuyer2_buyers_filter_sets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_buyers_filter_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BuyersFilterSetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}
 /// Retrieves the requested filter set for the account with the given account ID.
 ///
@@ -8678,12 +9372,12 @@ pub fn adexchangebuyer2_buyers_filter_sets_get_execute(
 
 pub fn adexchangebuyer2_buyers_filter_sets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &Adexchangebuyer2BuyersFilterSetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adexchangebuyer2_buyers_filter_sets_get_builder(client, name)?;
+    let builder = adexchangebuyer2_buyers_filter_sets_get_builder(client, &args.name)?;
     adexchangebuyer2_buyers_filter_sets_get_execute(builder)
 }
 
@@ -8795,6 +9489,17 @@ pub fn adexchangebuyer2_buyers_filter_sets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_buyers_filter_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BuyersFilterSetsListArgs {
+    /// Path parameter: ownerName
+    pub ownerName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/buyers/{buyersId}/filterSets
 /// Lists all filter sets for the account with the given account ID.
 ///
@@ -8807,17 +9512,19 @@ pub fn adexchangebuyer2_buyers_filter_sets_list_execute(
 
 pub fn adexchangebuyer2_buyers_filter_sets_list(
     client: &SimpleHttpClient,
-    ownerName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BuyersFilterSetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFilterSetsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_buyers_filter_sets_list_builder(client, ownerName, pageSize, pageToken)?;
+    let builder = adexchangebuyer2_buyers_filter_sets_list_builder(
+        client,
+        &args.ownerName,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     adexchangebuyer2_buyers_filter_sets_list_execute(builder)
 }
 
@@ -8929,6 +9636,17 @@ pub fn adexchangebuyer2_buyers_filter_sets_bid_metrics_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_buyers_filter_sets_bid_metrics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BuyersFilterSetsBidMetricsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidMetrics
 /// Lists all metrics that are measured in terms of number of bids.
 ///
@@ -8941,9 +9659,7 @@ pub fn adexchangebuyer2_buyers_filter_sets_bid_metrics_list_execute(
 
 pub fn adexchangebuyer2_buyers_filter_sets_bid_metrics_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BuyersFilterSetsBidMetricsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBidMetricsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8952,9 +9668,9 @@ pub fn adexchangebuyer2_buyers_filter_sets_bid_metrics_list(
 > {
     let builder = adexchangebuyer2_buyers_filter_sets_bid_metrics_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_buyers_filter_sets_bid_metrics_list_execute(builder)
 }
@@ -9069,6 +9785,17 @@ pub fn adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_buyers_filter_sets_bid_response_errors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BuyersFilterSetsBidResponseErrorsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidResponseErrors
 /// List all errors that occurred in bid responses, with the number of bid responses affected for each reason.
 ///
@@ -9081,9 +9808,7 @@ pub fn adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_execute(
 
 pub fn adexchangebuyer2_buyers_filter_sets_bid_response_errors_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BuyersFilterSetsBidResponseErrorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBidResponseErrorsResponse>, ApiError>,
@@ -9094,9 +9819,9 @@ pub fn adexchangebuyer2_buyers_filter_sets_bid_response_errors_list(
 > {
     let builder = adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_execute(builder)
 }
@@ -9211,6 +9936,17 @@ pub fn adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BuyersFilterSetsBidResponsesWithoutBidsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
 /// List all reasons for which bid responses were considered to have no applicable bids, with the number of bid responses affected for each reason.
 ///
@@ -9223,9 +9959,7 @@ pub fn adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_execu
 
 pub fn adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BuyersFilterSetsBidResponsesWithoutBidsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBidResponsesWithoutBidsResponse>, ApiError>,
@@ -9236,9 +9970,9 @@ pub fn adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list(
 > {
     let builder = adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_execute(builder)
 }
@@ -9353,6 +10087,17 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BuyersFilterSetsFilteredBidRequestsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBidRequests
 /// List all reasons that caused a bid request not to be sent for an impression, with the number of bid requests not sent for each reason.
 ///
@@ -9365,9 +10110,7 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_execute(
 
 pub fn adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BuyersFilterSetsFilteredBidRequestsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListFilteredBidRequestsResponse>, ApiError>,
@@ -9378,9 +10121,9 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list(
 > {
     let builder = adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_execute(builder)
 }
@@ -9493,6 +10236,17 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_buyers_filter_sets_filtered_bids_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BuyersFilterSetsFilteredBidsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids
 /// List all reasons for which bids were filtered, with the number of bids filtered for each reason.
 ///
@@ -9505,9 +10259,7 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_list_execute(
 
 pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BuyersFilterSetsFilteredBidsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFilteredBidsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9516,9 +10268,9 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_list(
 > {
     let builder = adexchangebuyer2_buyers_filter_sets_filtered_bids_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_buyers_filter_sets_filtered_bids_list_execute(builder)
 }
@@ -9636,6 +10388,19 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BuyersFilterSetsFilteredBidsCreativesListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Path parameter: creativeStatusId
+    pub creativeStatusId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
 /// List all creatives associated with a specific reason for which bids were filtered, with the number of bids filtered for each creative.
 ///
@@ -9648,10 +10413,7 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_execute(
 
 pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    creativeStatusId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BuyersFilterSetsFilteredBidsCreativesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCreativeStatusBreakdownByCreativeResponse>, ApiError>,
@@ -9662,10 +10424,10 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list(
 > {
     let builder = adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_builder(
         client,
-        filterSetName,
-        creativeStatusId,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        &args.creativeStatusId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_execute(builder)
 }
@@ -9783,6 +10545,19 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BuyersFilterSetsFilteredBidsDetailsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Path parameter: creativeStatusId
+    pub creativeStatusId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
 /// List all details associated with a specific reason for which bids were filtered, with the number of bids filtered for each detail.
 ///
@@ -9795,10 +10570,7 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_execute(
 
 pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    creativeStatusId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BuyersFilterSetsFilteredBidsDetailsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCreativeStatusBreakdownByDetailResponse>, ApiError>,
@@ -9809,10 +10581,10 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list(
 > {
     let builder = adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_builder(
         client,
-        filterSetName,
-        creativeStatusId,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        &args.creativeStatusId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_execute(builder)
 }
@@ -9927,6 +10699,17 @@ pub fn adexchangebuyer2_buyers_filter_sets_impression_metrics_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_buyers_filter_sets_impression_metrics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BuyersFilterSetsImpressionMetricsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/impressionMetrics
 /// Lists all metrics that are measured in terms of number of impressions.
 ///
@@ -9939,9 +10722,7 @@ pub fn adexchangebuyer2_buyers_filter_sets_impression_metrics_list_execute(
 
 pub fn adexchangebuyer2_buyers_filter_sets_impression_metrics_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BuyersFilterSetsImpressionMetricsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListImpressionMetricsResponse>, ApiError>,
@@ -9952,9 +10733,9 @@ pub fn adexchangebuyer2_buyers_filter_sets_impression_metrics_list(
 > {
     let builder = adexchangebuyer2_buyers_filter_sets_impression_metrics_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_buyers_filter_sets_impression_metrics_list_execute(builder)
 }
@@ -10067,6 +10848,17 @@ pub fn adexchangebuyer2_buyers_filter_sets_losing_bids_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_buyers_filter_sets_losing_bids_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BuyersFilterSetsLosingBidsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/losingBids
 /// List all reasons for which bids lost in the auction, with the number of bids that lost for each reason.
 ///
@@ -10079,9 +10871,7 @@ pub fn adexchangebuyer2_buyers_filter_sets_losing_bids_list_execute(
 
 pub fn adexchangebuyer2_buyers_filter_sets_losing_bids_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BuyersFilterSetsLosingBidsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLosingBidsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -10090,9 +10880,9 @@ pub fn adexchangebuyer2_buyers_filter_sets_losing_bids_list(
 > {
     let builder = adexchangebuyer2_buyers_filter_sets_losing_bids_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_buyers_filter_sets_losing_bids_list_execute(builder)
 }
@@ -10207,6 +10997,17 @@ pub fn adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Adexchangebuyer2BuyersFilterSetsNonBillableWinningBidsListArgs {
+    /// Path parameter: filterSetName
+    pub filterSetName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/nonBillableWinningBids
 /// List all reasons for which winning bids were not billable, with the number of bids not billed for each reason.
 ///
@@ -10219,9 +11020,7 @@ pub fn adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_execut
 
 pub fn adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list(
     client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &Adexchangebuyer2BuyersFilterSetsNonBillableWinningBidsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListNonBillableWinningBidsResponse>, ApiError>,
@@ -10232,9 +11031,9 @@ pub fn adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list(
 > {
     let builder = adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_builder(
         client,
-        filterSetName,
-        pageSize,
-        pageToken,
+        &args.filterSetName,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_execute(builder)
 }

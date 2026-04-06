@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/documents/{documentId}:batchUpdate
 /// Applies one or more updates to the document. Each request is validated before being applied. If any request is not valid, then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. Other requests do not need to return information; these each return an empty reply. The order of replies matches that of the requests. For example, suppose you call `batchUpdate` with four updates, and only the third one returns information. The response would have two empty replies, the reply to the third request, and another empty reply, in that order. Because other users may be editing the document, the document might not exactly reflect your changes: your changes may be altered with respect to collaborator changes. If there are no collaborators, the document should reflect your changes. In any case, the updates in your request are guaranteed to be applied together atomically.
@@ -113,6 +115,15 @@ pub fn docs_documents_batch_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`docs_documents_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocsDocumentsBatchUpdateArgs {
+    /// Path parameter: documentId
+    pub documentId: String,
+    /// Request body.
+    pub body: BatchUpdateDocumentRequest,
+}
+
 /// GET v1/documents/{documentId}:batchUpdate
 /// Applies one or more updates to the document. Each request is validated before being applied. If any request is not valid, then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. Other requests do not need to return information; these each return an empty reply. The order of replies matches that of the requests. For example, suppose you call `batchUpdate` with four updates, and only the third one returns information. The response would have two empty replies, the reply to the third request, and another empty reply, in that order. Because other users may be editing the document, the document might not exactly reflect your changes: your changes may be altered with respect to collaborator changes. If there are no collaborators, the document should reflect your changes. In any case, the updates in your request are guaranteed to be applied together atomically.
 ///
@@ -125,8 +136,7 @@ pub fn docs_documents_batch_update_execute(
 
 pub fn docs_documents_batch_update(
     client: &SimpleHttpClient,
-    documentId: &str,
-    body: &BatchUpdateDocumentRequest,
+    args: &DocsDocumentsBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUpdateDocumentResponse>, ApiError>,
@@ -135,7 +145,7 @@ pub fn docs_documents_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder = docs_documents_batch_update_builder(client, documentId, body)?;
+    let builder = docs_documents_batch_update_builder(client, &args.documentId, &args.body)?;
     docs_documents_batch_update_execute(builder)
 }
 
@@ -228,6 +238,13 @@ pub fn docs_documents_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`docs_documents_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocsDocumentsCreateArgs {
+    /// Request body.
+    pub body: Document,
+}
+
 /// GET v1/documents
 /// Creates a blank document using the title given in the request. Other fields in the request, including any provided content, are ignored. Returns the created document.
 ///
@@ -240,12 +257,12 @@ pub fn docs_documents_create_execute(
 
 pub fn docs_documents_create(
     client: &SimpleHttpClient,
-    body: &Document,
+    args: &DocsDocumentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Document>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = docs_documents_create_builder(client, body)?;
+    let builder = docs_documents_create_builder(client, &args.body)?;
     docs_documents_create_execute(builder)
 }
 
@@ -352,6 +369,17 @@ pub fn docs_documents_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`docs_documents_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocsDocumentsGetArgs {
+    /// Path parameter: documentId
+    pub documentId: String,
+    /// Query parameter: includeTabsContent
+    pub includeTabsContent: Option<bool>,
+    /// Query parameter: suggestionsViewMode
+    pub suggestionsViewMode: Option<String>,
+}
+
 /// GET v1/documents/{documentId}
 /// Gets the latest version of the specified document.
 ///
@@ -364,14 +392,16 @@ pub fn docs_documents_get_execute(
 
 pub fn docs_documents_get(
     client: &SimpleHttpClient,
-    documentId: &str,
-    includeTabsContent: Option<bool>,
-    suggestionsViewMode: Option<&str>,
+    args: &DocsDocumentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Document>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        docs_documents_get_builder(client, documentId, includeTabsContent, suggestionsViewMode)?;
+    let builder = docs_documents_get_builder(
+        client,
+        &args.documentId,
+        args.includeTabsContent,
+        args.suggestionsViewMode.as_deref(),
+    )?;
     docs_documents_get_execute(builder)
 }

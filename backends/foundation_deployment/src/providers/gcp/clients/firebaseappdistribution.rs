@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases:upload
 /// Uploads a binary. Uploading a binary can result in a new release being created, an update to an existing release, or a no-op if a release with the same binary already exists.
@@ -113,6 +115,15 @@ pub fn firebaseappdistribution_media_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_media_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionMediaUploadArgs {
+    /// Path parameter: app
+    pub app: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppdistroV1UploadReleaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases:upload
 /// Uploads a binary. Uploading a binary can result in a new release being created, an update to an existing release, or a no-op if a release with the same binary already exists.
 ///
@@ -125,8 +136,7 @@ pub fn firebaseappdistribution_media_upload_execute(
 
 pub fn firebaseappdistribution_media_upload(
     client: &SimpleHttpClient,
-    app: &str,
-    body: &GoogleFirebaseAppdistroV1UploadReleaseRequest,
+    args: &FirebaseappdistributionMediaUploadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -135,7 +145,7 @@ pub fn firebaseappdistribution_media_upload(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappdistribution_media_upload_builder(client, app, body)?;
+    let builder = firebaseappdistribution_media_upload_builder(client, &args.app, &args.body)?;
     firebaseappdistribution_media_upload_execute(builder)
 }
 
@@ -233,6 +243,13 @@ pub fn firebaseappdistribution_projects_apps_get_aab_info_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_apps_get_aab_info`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsGetAabInfoArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/aabInfo
 /// Gets Android App Bundle (AAB) information for a Firebase app.
 ///
@@ -245,7 +262,7 @@ pub fn firebaseappdistribution_projects_apps_get_aab_info_execute(
 
 pub fn firebaseappdistribution_projects_apps_get_aab_info(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappdistributionProjectsAppsGetAabInfoArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppdistroV1AabInfo>, ApiError>,
@@ -254,7 +271,7 @@ pub fn firebaseappdistribution_projects_apps_get_aab_info(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappdistribution_projects_apps_get_aab_info_builder(client, name)?;
+    let builder = firebaseappdistribution_projects_apps_get_aab_info_builder(client, &args.name)?;
     firebaseappdistribution_projects_apps_get_aab_info_execute(builder)
 }
 
@@ -353,6 +370,15 @@ pub fn firebaseappdistribution_projects_apps_releases_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesBatchDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppdistroV1BatchDeleteReleasesRequest,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases:batchDelete
 /// Deletes releases. A maximum of 100 releases can be deleted per request.
 ///
@@ -365,16 +391,18 @@ pub fn firebaseappdistribution_projects_apps_releases_batch_delete_execute(
 
 pub fn firebaseappdistribution_projects_apps_releases_batch_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleFirebaseAppdistroV1BatchDeleteReleasesRequest,
+    args: &FirebaseappdistributionProjectsAppsReleasesBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappdistribution_projects_apps_releases_batch_delete_builder(client, parent, body)?;
+    let builder = firebaseappdistribution_projects_apps_releases_batch_delete_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     firebaseappdistribution_projects_apps_releases_batch_delete_execute(builder)
 }
 
@@ -476,6 +504,15 @@ pub fn firebaseappdistribution_projects_apps_releases_distribute_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_distribute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesDistributeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppdistroV1DistributeReleaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}:distribute
 /// Distributes a release to testers. This call does the following: 1. Creates testers for the specified emails, if none exist. 2. Adds the testers and groups to the release. 3. Sends new testers an invitation email. 4. Sends existing testers a new release email. The request will fail with a INVALID_ARGUMENT if it contains a group that doesn't exist.
 ///
@@ -488,8 +525,7 @@ pub fn firebaseappdistribution_projects_apps_releases_distribute_execute(
 
 pub fn firebaseappdistribution_projects_apps_releases_distribute(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleFirebaseAppdistroV1DistributeReleaseRequest,
+    args: &FirebaseappdistributionProjectsAppsReleasesDistributeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppdistroV1DistributeReleaseResponse>, ApiError>,
@@ -498,8 +534,9 @@ pub fn firebaseappdistribution_projects_apps_releases_distribute(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappdistribution_projects_apps_releases_distribute_builder(client, name, body)?;
+    let builder = firebaseappdistribution_projects_apps_releases_distribute_builder(
+        client, &args.name, &args.body,
+    )?;
     firebaseappdistribution_projects_apps_releases_distribute_execute(builder)
 }
 
@@ -597,6 +634,13 @@ pub fn firebaseappdistribution_projects_apps_releases_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}
 /// Gets a release.
 ///
@@ -609,7 +653,7 @@ pub fn firebaseappdistribution_projects_apps_releases_get_execute(
 
 pub fn firebaseappdistribution_projects_apps_releases_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappdistributionProjectsAppsReleasesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppdistroV1Release>, ApiError>,
@@ -618,7 +662,7 @@ pub fn firebaseappdistribution_projects_apps_releases_get(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappdistribution_projects_apps_releases_get_builder(client, name)?;
+    let builder = firebaseappdistribution_projects_apps_releases_get_builder(client, &args.name)?;
     firebaseappdistribution_projects_apps_releases_get_execute(builder)
 }
 
@@ -741,6 +785,21 @@ pub fn firebaseappdistribution_projects_apps_releases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases
 /// Lists releases. By default, sorts by `createTime` in descending order.
 ///
@@ -753,11 +812,7 @@ pub fn firebaseappdistribution_projects_apps_releases_list_execute(
 
 pub fn firebaseappdistribution_projects_apps_releases_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirebaseappdistributionProjectsAppsReleasesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppdistroV1ListReleasesResponse>, ApiError>,
@@ -767,7 +822,12 @@ pub fn firebaseappdistribution_projects_apps_releases_list(
     ApiError,
 > {
     let builder = firebaseappdistribution_projects_apps_releases_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     firebaseappdistribution_projects_apps_releases_list_execute(builder)
 }
@@ -881,6 +941,17 @@ pub fn firebaseappdistribution_projects_apps_releases_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleFirebaseAppdistroV1Release,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}
 /// Updates a release.
 ///
@@ -893,9 +964,7 @@ pub fn firebaseappdistribution_projects_apps_releases_patch_execute(
 
 pub fn firebaseappdistribution_projects_apps_releases_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleFirebaseAppdistroV1Release,
+    args: &FirebaseappdistributionProjectsAppsReleasesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppdistroV1Release>, ApiError>,
@@ -905,7 +974,10 @@ pub fn firebaseappdistribution_projects_apps_releases_patch(
     ApiError,
 > {
     let builder = firebaseappdistribution_projects_apps_releases_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     firebaseappdistribution_projects_apps_releases_patch_execute(builder)
 }
@@ -1002,6 +1074,13 @@ pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_delete_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_feedback_reports_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesFeedbackReportsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/feedbackReports/{feedbackReportsId}
 /// Deletes a feedback report.
 ///
@@ -1014,7 +1093,7 @@ pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_delete_ex
 
 pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappdistributionProjectsAppsReleasesFeedbackReportsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -1022,7 +1101,7 @@ pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_delete(
     ApiError,
 > {
     let builder = firebaseappdistribution_projects_apps_releases_feedback_reports_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     firebaseappdistribution_projects_apps_releases_feedback_reports_delete_execute(builder)
 }
@@ -1122,6 +1201,13 @@ pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_get_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_feedback_reports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesFeedbackReportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/feedbackReports/{feedbackReportsId}
 /// Gets a feedback report.
 ///
@@ -1134,7 +1220,7 @@ pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_get_execu
 
 pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappdistributionProjectsAppsReleasesFeedbackReportsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppdistroV1FeedbackReport>, ApiError>,
@@ -1143,8 +1229,9 @@ pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappdistribution_projects_apps_releases_feedback_reports_get_builder(client, name)?;
+    let builder = firebaseappdistribution_projects_apps_releases_feedback_reports_get_builder(
+        client, &args.name,
+    )?;
     firebaseappdistribution_projects_apps_releases_feedback_reports_get_execute(builder)
 }
 
@@ -1259,6 +1346,17 @@ pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_feedback_reports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesFeedbackReportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/feedbackReports
 /// Lists feedback reports. By default, sorts by `createTime` in descending order.
 ///
@@ -1271,9 +1369,7 @@ pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_list_exec
 
 pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirebaseappdistributionProjectsAppsReleasesFeedbackReportsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppdistroV1ListFeedbackReportsResponse>, ApiError>,
@@ -1283,7 +1379,10 @@ pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_list(
     ApiError,
 > {
     let builder = firebaseappdistribution_projects_apps_releases_feedback_reports_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     firebaseappdistribution_projects_apps_releases_feedback_reports_list_execute(builder)
 }
@@ -1383,6 +1482,15 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1395,8 +1503,7 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_cancel_execute(
 
 pub fn firebaseappdistribution_projects_apps_releases_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &FirebaseappdistributionProjectsAppsReleasesOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -1404,7 +1511,7 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_cancel(
     ApiError,
 > {
     let builder = firebaseappdistribution_projects_apps_releases_operations_cancel_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     firebaseappdistribution_projects_apps_releases_operations_cancel_execute(builder)
 }
@@ -1501,6 +1608,13 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1513,15 +1627,16 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_delete_execute(
 
 pub fn firebaseappdistribution_projects_apps_releases_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappdistributionProjectsAppsReleasesOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappdistribution_projects_apps_releases_operations_delete_builder(client, name)?;
+    let builder = firebaseappdistribution_projects_apps_releases_operations_delete_builder(
+        client, &args.name,
+    )?;
     firebaseappdistribution_projects_apps_releases_operations_delete_execute(builder)
 }
 
@@ -1619,6 +1734,13 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1631,7 +1753,7 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_get_execute(
 
 pub fn firebaseappdistribution_projects_apps_releases_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappdistributionProjectsAppsReleasesOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1641,7 +1763,7 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_get(
     ApiError,
 > {
     let builder =
-        firebaseappdistribution_projects_apps_releases_operations_get_builder(client, name)?;
+        firebaseappdistribution_projects_apps_releases_operations_get_builder(client, &args.name)?;
     firebaseappdistribution_projects_apps_releases_operations_get_execute(builder)
 }
 
@@ -1764,6 +1886,21 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1776,11 +1913,7 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_list_execute(
 
 pub fn firebaseappdistribution_projects_apps_releases_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &FirebaseappdistributionProjectsAppsReleasesOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -1791,11 +1924,11 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_list(
 > {
     let builder = firebaseappdistribution_projects_apps_releases_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     firebaseappdistribution_projects_apps_releases_operations_list_execute(builder)
 }
@@ -1897,6 +2030,15 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_wait_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_operations_wait`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesOperationsWaitArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningWaitOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:wait
 /// Waits until the specified long-running operation is done or reaches at most a specified timeout, returning the latest state. If the operation is already done, the latest state is immediately returned. If the timeout specified is greater than the default HTTP/RPC timeout, the HTTP/RPC timeout is used. If the server does not support this method, it returns google.rpc.Code.UNIMPLEMENTED. Note that this method is on a best-effort basis. It may return the latest state before the specified timeout (including immediately), meaning even an immediate response is no guarantee that the operation is done.
 ///
@@ -1909,8 +2051,7 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_wait_execute(
 
 pub fn firebaseappdistribution_projects_apps_releases_operations_wait(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningWaitOperationRequest,
+    args: &FirebaseappdistributionProjectsAppsReleasesOperationsWaitArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1919,8 +2060,9 @@ pub fn firebaseappdistribution_projects_apps_releases_operations_wait(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappdistribution_projects_apps_releases_operations_wait_builder(client, name, body)?;
+    let builder = firebaseappdistribution_projects_apps_releases_operations_wait_builder(
+        client, &args.name, &args.body,
+    )?;
     firebaseappdistribution_projects_apps_releases_operations_wait_execute(builder)
 }
 
@@ -2019,6 +2161,15 @@ pub fn firebaseappdistribution_projects_groups_batch_join_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_groups_batch_join`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsGroupsBatchJoinArgs {
+    /// Path parameter: group
+    pub group: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppdistroV1BatchJoinGroupRequest,
+}
+
 /// GET v1/projects/{projectsId}/groups/{groupsId}:batchJoin
 /// Batch adds members to a group. The testers will gain access to all releases that the groups have access to.
 ///
@@ -2031,15 +2182,18 @@ pub fn firebaseappdistribution_projects_groups_batch_join_execute(
 
 pub fn firebaseappdistribution_projects_groups_batch_join(
     client: &SimpleHttpClient,
-    group: &str,
-    body: &GoogleFirebaseAppdistroV1BatchJoinGroupRequest,
+    args: &FirebaseappdistributionProjectsGroupsBatchJoinArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappdistribution_projects_groups_batch_join_builder(client, group, body)?;
+    let builder = firebaseappdistribution_projects_groups_batch_join_builder(
+        client,
+        &args.group,
+        &args.body,
+    )?;
     firebaseappdistribution_projects_groups_batch_join_execute(builder)
 }
 
@@ -2138,6 +2292,15 @@ pub fn firebaseappdistribution_projects_groups_batch_leave_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_groups_batch_leave`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsGroupsBatchLeaveArgs {
+    /// Path parameter: group
+    pub group: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppdistroV1BatchLeaveGroupRequest,
+}
+
 /// GET v1/projects/{projectsId}/groups/{groupsId}:batchLeave
 /// Batch removed members from a group. The testers will lose access to all releases that the groups have access to.
 ///
@@ -2150,15 +2313,18 @@ pub fn firebaseappdistribution_projects_groups_batch_leave_execute(
 
 pub fn firebaseappdistribution_projects_groups_batch_leave(
     client: &SimpleHttpClient,
-    group: &str,
-    body: &GoogleFirebaseAppdistroV1BatchLeaveGroupRequest,
+    args: &FirebaseappdistributionProjectsGroupsBatchLeaveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappdistribution_projects_groups_batch_leave_builder(client, group, body)?;
+    let builder = firebaseappdistribution_projects_groups_batch_leave_builder(
+        client,
+        &args.group,
+        &args.body,
+    )?;
     firebaseappdistribution_projects_groups_batch_leave_execute(builder)
 }
 
@@ -2271,6 +2437,17 @@ pub fn firebaseappdistribution_projects_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: groupId
+    pub groupId: Option<String>,
+    /// Request body.
+    pub body: GoogleFirebaseAppdistroV1Group,
+}
+
 /// GET v1/projects/{projectsId}/groups
 /// Create a group.
 ///
@@ -2283,9 +2460,7 @@ pub fn firebaseappdistribution_projects_groups_create_execute(
 
 pub fn firebaseappdistribution_projects_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    groupId: Option<&str>,
-    body: &GoogleFirebaseAppdistroV1Group,
+    args: &FirebaseappdistributionProjectsGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppdistroV1Group>, ApiError>,
@@ -2294,8 +2469,12 @@ pub fn firebaseappdistribution_projects_groups_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappdistribution_projects_groups_create_builder(client, parent, groupId, body)?;
+    let builder = firebaseappdistribution_projects_groups_create_builder(
+        client,
+        &args.parent,
+        args.groupId.as_deref(),
+        &args.body,
+    )?;
     firebaseappdistribution_projects_groups_create_execute(builder)
 }
 
@@ -2391,6 +2570,13 @@ pub fn firebaseappdistribution_projects_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/groups/{groupsId}
 /// Delete a group.
 ///
@@ -2403,14 +2589,14 @@ pub fn firebaseappdistribution_projects_groups_delete_execute(
 
 pub fn firebaseappdistribution_projects_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappdistributionProjectsGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappdistribution_projects_groups_delete_builder(client, name)?;
+    let builder = firebaseappdistribution_projects_groups_delete_builder(client, &args.name)?;
     firebaseappdistribution_projects_groups_delete_execute(builder)
 }
 
@@ -2508,6 +2694,13 @@ pub fn firebaseappdistribution_projects_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/groups/{groupsId}
 /// Get a group.
 ///
@@ -2520,7 +2713,7 @@ pub fn firebaseappdistribution_projects_groups_get_execute(
 
 pub fn firebaseappdistribution_projects_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappdistributionProjectsGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppdistroV1Group>, ApiError>,
@@ -2529,7 +2722,7 @@ pub fn firebaseappdistribution_projects_groups_get(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappdistribution_projects_groups_get_builder(client, name)?;
+    let builder = firebaseappdistribution_projects_groups_get_builder(client, &args.name)?;
     firebaseappdistribution_projects_groups_get_execute(builder)
 }
 
@@ -2644,6 +2837,17 @@ pub fn firebaseappdistribution_projects_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/groups
 /// List groups.
 ///
@@ -2656,9 +2860,7 @@ pub fn firebaseappdistribution_projects_groups_list_execute(
 
 pub fn firebaseappdistribution_projects_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirebaseappdistributionProjectsGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppdistroV1ListGroupsResponse>, ApiError>,
@@ -2667,8 +2869,12 @@ pub fn firebaseappdistribution_projects_groups_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappdistribution_projects_groups_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = firebaseappdistribution_projects_groups_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     firebaseappdistribution_projects_groups_list_execute(builder)
 }
 
@@ -2781,6 +2987,17 @@ pub fn firebaseappdistribution_projects_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleFirebaseAppdistroV1Group,
+}
+
 /// GET v1/projects/{projectsId}/groups/{groupsId}
 /// Update a group.
 ///
@@ -2793,9 +3010,7 @@ pub fn firebaseappdistribution_projects_groups_patch_execute(
 
 pub fn firebaseappdistribution_projects_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleFirebaseAppdistroV1Group,
+    args: &FirebaseappdistributionProjectsGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppdistroV1Group>, ApiError>,
@@ -2804,8 +3019,12 @@ pub fn firebaseappdistribution_projects_groups_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappdistribution_projects_groups_patch_builder(client, name, updateMask, body)?;
+    let builder = firebaseappdistribution_projects_groups_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     firebaseappdistribution_projects_groups_patch_execute(builder)
 }
 
@@ -2907,6 +3126,15 @@ pub fn firebaseappdistribution_projects_testers_batch_add_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_testers_batch_add`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsTestersBatchAddArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppdistroV1BatchAddTestersRequest,
+}
+
 /// GET v1/projects/{projectsId}/testers:batchAdd
 /// Batch adds testers. This call adds testers for the specified emails if they don't already exist. Returns all testers specified in the request, including newly created and previously existing testers. This action is idempotent.
 ///
@@ -2919,8 +3147,7 @@ pub fn firebaseappdistribution_projects_testers_batch_add_execute(
 
 pub fn firebaseappdistribution_projects_testers_batch_add(
     client: &SimpleHttpClient,
-    project: &str,
-    body: &GoogleFirebaseAppdistroV1BatchAddTestersRequest,
+    args: &FirebaseappdistributionProjectsTestersBatchAddArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppdistroV1BatchAddTestersResponse>, ApiError>,
@@ -2929,8 +3156,11 @@ pub fn firebaseappdistribution_projects_testers_batch_add(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappdistribution_projects_testers_batch_add_builder(client, project, body)?;
+    let builder = firebaseappdistribution_projects_testers_batch_add_builder(
+        client,
+        &args.project,
+        &args.body,
+    )?;
     firebaseappdistribution_projects_testers_batch_add_execute(builder)
 }
 
@@ -3032,6 +3262,15 @@ pub fn firebaseappdistribution_projects_testers_batch_remove_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_testers_batch_remove`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsTestersBatchRemoveArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppdistroV1BatchRemoveTestersRequest,
+}
+
 /// GET v1/projects/{projectsId}/testers:batchRemove
 /// Batch removes testers. If found, this call deletes testers for the specified emails. Returns all deleted testers.
 ///
@@ -3044,8 +3283,7 @@ pub fn firebaseappdistribution_projects_testers_batch_remove_execute(
 
 pub fn firebaseappdistribution_projects_testers_batch_remove(
     client: &SimpleHttpClient,
-    project: &str,
-    body: &GoogleFirebaseAppdistroV1BatchRemoveTestersRequest,
+    args: &FirebaseappdistributionProjectsTestersBatchRemoveArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppdistroV1BatchRemoveTestersResponse>, ApiError>,
@@ -3054,8 +3292,11 @@ pub fn firebaseappdistribution_projects_testers_batch_remove(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappdistribution_projects_testers_batch_remove_builder(client, project, body)?;
+    let builder = firebaseappdistribution_projects_testers_batch_remove_builder(
+        client,
+        &args.project,
+        &args.body,
+    )?;
     firebaseappdistribution_projects_testers_batch_remove_execute(builder)
 }
 
@@ -3174,6 +3415,19 @@ pub fn firebaseappdistribution_projects_testers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_testers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsTestersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/testers
 /// Lists testers and their resource ids.
 ///
@@ -3186,10 +3440,7 @@ pub fn firebaseappdistribution_projects_testers_list_execute(
 
 pub fn firebaseappdistribution_projects_testers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirebaseappdistributionProjectsTestersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppdistroV1ListTestersResponse>, ApiError>,
@@ -3199,7 +3450,11 @@ pub fn firebaseappdistribution_projects_testers_list(
     ApiError,
 > {
     let builder = firebaseappdistribution_projects_testers_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     firebaseappdistribution_projects_testers_list_execute(builder)
 }
@@ -3313,6 +3568,17 @@ pub fn firebaseappdistribution_projects_testers_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappdistribution_projects_testers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsTestersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleFirebaseAppdistroV1Tester,
+}
+
 /// GET v1/projects/{projectsId}/testers/{testersId}
 /// Update a tester. If the testers joins a group they gain access to all releases that the group has access to.
 ///
@@ -3325,9 +3591,7 @@ pub fn firebaseappdistribution_projects_testers_patch_execute(
 
 pub fn firebaseappdistribution_projects_testers_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleFirebaseAppdistroV1Tester,
+    args: &FirebaseappdistributionProjectsTestersPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppdistroV1Tester>, ApiError>,
@@ -3336,7 +3600,11 @@ pub fn firebaseappdistribution_projects_testers_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappdistribution_projects_testers_patch_builder(client, name, updateMask, body)?;
+    let builder = firebaseappdistribution_projects_testers_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     firebaseappdistribution_projects_testers_patch_execute(builder)
 }

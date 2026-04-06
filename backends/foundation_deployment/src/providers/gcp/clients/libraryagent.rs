@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/shelves/{shelvesId}
 /// Gets a shelf. Returns NOT_FOUND if the shelf does not exist.
@@ -107,6 +109,13 @@ pub fn libraryagent_shelves_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`libraryagent_shelves_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LibraryagentShelvesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/shelves/{shelvesId}
 /// Gets a shelf. Returns NOT_FOUND if the shelf does not exist.
 ///
@@ -119,7 +128,7 @@ pub fn libraryagent_shelves_get_execute(
 
 pub fn libraryagent_shelves_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LibraryagentShelvesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleExampleLibraryagentV1Shelf>, ApiError>,
@@ -128,7 +137,7 @@ pub fn libraryagent_shelves_get(
         + 'static,
     ApiError,
 > {
-    let builder = libraryagent_shelves_get_builder(client, name)?;
+    let builder = libraryagent_shelves_get_builder(client, &args.name)?;
     libraryagent_shelves_get_execute(builder)
 }
 
@@ -239,6 +248,15 @@ pub fn libraryagent_shelves_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`libraryagent_shelves_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LibraryagentShelvesListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/shelves
 /// Lists shelves. The order is unspecified but deterministic. Newly created shelves will not necessarily be added to the end of this list.
 ///
@@ -251,8 +269,7 @@ pub fn libraryagent_shelves_list_execute(
 
 pub fn libraryagent_shelves_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LibraryagentShelvesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleExampleLibraryagentV1ListShelvesResponse>, ApiError>,
@@ -261,7 +278,8 @@ pub fn libraryagent_shelves_list(
         + 'static,
     ApiError,
 > {
-    let builder = libraryagent_shelves_list_builder(client, pageSize, pageToken)?;
+    let builder =
+        libraryagent_shelves_list_builder(client, args.pageSize, args.pageToken.as_deref())?;
     libraryagent_shelves_list_execute(builder)
 }
 
@@ -359,6 +377,13 @@ pub fn libraryagent_shelves_books_borrow_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`libraryagent_shelves_books_borrow`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LibraryagentShelvesBooksBorrowArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/shelves/{shelvesId}/books/{booksId}:borrow
 /// Borrow a book from the library. Returns the book if it is borrowed successfully. Returns NOT_FOUND if the book does not exist in the library. Returns quota exceeded error if the amount of books borrowed exceeds allocation quota in any dimensions.
 ///
@@ -371,7 +396,7 @@ pub fn libraryagent_shelves_books_borrow_execute(
 
 pub fn libraryagent_shelves_books_borrow(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LibraryagentShelvesBooksBorrowArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleExampleLibraryagentV1Book>, ApiError>,
@@ -380,7 +405,7 @@ pub fn libraryagent_shelves_books_borrow(
         + 'static,
     ApiError,
 > {
-    let builder = libraryagent_shelves_books_borrow_builder(client, name)?;
+    let builder = libraryagent_shelves_books_borrow_builder(client, &args.name)?;
     libraryagent_shelves_books_borrow_execute(builder)
 }
 
@@ -478,6 +503,13 @@ pub fn libraryagent_shelves_books_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`libraryagent_shelves_books_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LibraryagentShelvesBooksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/shelves/{shelvesId}/books/{booksId}
 /// Gets a book. Returns NOT_FOUND if the book does not exist.
 ///
@@ -490,7 +522,7 @@ pub fn libraryagent_shelves_books_get_execute(
 
 pub fn libraryagent_shelves_books_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LibraryagentShelvesBooksGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleExampleLibraryagentV1Book>, ApiError>,
@@ -499,7 +531,7 @@ pub fn libraryagent_shelves_books_get(
         + 'static,
     ApiError,
 > {
-    let builder = libraryagent_shelves_books_get_builder(client, name)?;
+    let builder = libraryagent_shelves_books_get_builder(client, &args.name)?;
     libraryagent_shelves_books_get_execute(builder)
 }
 
@@ -614,6 +646,17 @@ pub fn libraryagent_shelves_books_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`libraryagent_shelves_books_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LibraryagentShelvesBooksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/shelves/{shelvesId}/books
 /// Lists books in a shelf. The order is unspecified but deterministic. Newly created books will not necessarily be added to the end of this list. Returns NOT_FOUND if the shelf does not exist.
 ///
@@ -626,9 +669,7 @@ pub fn libraryagent_shelves_books_list_execute(
 
 pub fn libraryagent_shelves_books_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LibraryagentShelvesBooksListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleExampleLibraryagentV1ListBooksResponse>, ApiError>,
@@ -637,7 +678,12 @@ pub fn libraryagent_shelves_books_list(
         + 'static,
     ApiError,
 > {
-    let builder = libraryagent_shelves_books_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = libraryagent_shelves_books_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     libraryagent_shelves_books_list_execute(builder)
 }
 
@@ -735,6 +781,13 @@ pub fn libraryagent_shelves_books_return_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`libraryagent_shelves_books_return`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LibraryagentShelvesBooksReturnArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/shelves/{shelvesId}/books/{booksId}:return
 /// Return a book to the library. Returns the book if it is returned to the library successfully. Returns error if the book does not belong to the library or the users didn't borrow before.
 ///
@@ -747,7 +800,7 @@ pub fn libraryagent_shelves_books_return_execute(
 
 pub fn libraryagent_shelves_books_return(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &LibraryagentShelvesBooksReturnArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleExampleLibraryagentV1Book>, ApiError>,
@@ -756,6 +809,6 @@ pub fn libraryagent_shelves_books_return(
         + 'static,
     ApiError,
 > {
-    let builder = libraryagent_shelves_books_return_builder(client, name)?;
+    let builder = libraryagent_shelves_books_return_builder(client, &args.name)?;
     libraryagent_shelves_books_return_execute(builder)
 }

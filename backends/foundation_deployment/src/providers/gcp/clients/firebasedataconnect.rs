@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn firebasedataconnect_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn firebasedataconnect_projects_locations_get_execute(
 
 pub fn firebasedataconnect_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebasedataconnectProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebasedataconnect_projects_locations_get_builder(client, name)?;
+    let builder = firebasedataconnect_projects_locations_get_builder(client, &args.name)?;
     firebasedataconnect_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn firebasedataconnect_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn firebasedataconnect_projects_locations_list_execute(
 
 pub fn firebasedataconnect_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirebasedataconnectProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn firebasedataconnect_projects_locations_list(
 > {
     let builder = firebasedataconnect_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     firebasedataconnect_projects_locations_list_execute(builder)
 }
@@ -370,6 +390,15 @@ pub fn firebasedataconnect_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -382,14 +411,14 @@ pub fn firebasedataconnect_projects_locations_operations_cancel_execute(
 
 pub fn firebasedataconnect_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &FirebasedataconnectProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        firebasedataconnect_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = firebasedataconnect_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     firebasedataconnect_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -483,6 +512,13 @@ pub fn firebasedataconnect_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -495,12 +531,13 @@ pub fn firebasedataconnect_projects_locations_operations_delete_execute(
 
 pub fn firebasedataconnect_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebasedataconnectProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebasedataconnect_projects_locations_operations_delete_builder(client, name)?;
+    let builder =
+        firebasedataconnect_projects_locations_operations_delete_builder(client, &args.name)?;
     firebasedataconnect_projects_locations_operations_delete_execute(builder)
 }
 
@@ -594,6 +631,13 @@ pub fn firebasedataconnect_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -606,12 +650,13 @@ pub fn firebasedataconnect_projects_locations_operations_get_execute(
 
 pub fn firebasedataconnect_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebasedataconnectProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebasedataconnect_projects_locations_operations_get_builder(client, name)?;
+    let builder =
+        firebasedataconnect_projects_locations_operations_get_builder(client, &args.name)?;
     firebasedataconnect_projects_locations_operations_get_execute(builder)
 }
 
@@ -731,6 +776,21 @@ pub fn firebasedataconnect_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -743,11 +803,7 @@ pub fn firebasedataconnect_projects_locations_operations_list_execute(
 
 pub fn firebasedataconnect_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &FirebasedataconnectProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -756,11 +812,11 @@ pub fn firebasedataconnect_projects_locations_operations_list(
 > {
     let builder = firebasedataconnect_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     firebasedataconnect_projects_locations_operations_list_execute(builder)
 }
@@ -878,6 +934,21 @@ pub fn firebasedataconnect_projects_locations_services_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: serviceId
+    pub serviceId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Service,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services
 /// Creates a new Service in a given project and location.
 ///
@@ -890,22 +961,18 @@ pub fn firebasedataconnect_projects_locations_services_create_execute(
 
 pub fn firebasedataconnect_projects_locations_services_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    serviceId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Service,
+    args: &FirebasedataconnectProjectsLocationsServicesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebasedataconnect_projects_locations_services_create_builder(
         client,
-        parent,
-        requestId,
-        serviceId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.serviceId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     firebasedataconnect_projects_locations_services_create_execute(builder)
 }
@@ -1028,6 +1095,23 @@ pub fn firebasedataconnect_projects_locations_services_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}
 /// Deletes a single Service.
 ///
@@ -1040,24 +1124,19 @@ pub fn firebasedataconnect_projects_locations_services_delete_execute(
 
 pub fn firebasedataconnect_projects_locations_services_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    force: Option<bool>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &FirebasedataconnectProjectsLocationsServicesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebasedataconnect_projects_locations_services_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        force,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.force,
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     firebasedataconnect_projects_locations_services_delete_execute(builder)
 }
@@ -1157,6 +1236,15 @@ pub fn firebasedataconnect_projects_locations_services_execute_graphql_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_execute_graphql`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesExecuteGraphqlArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GraphqlRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:executeGraphql
 /// Execute any GraphQL query and mutation against the Firebase Data Connect's generated GraphQL schema. Grants full read and write access to the connected data sources. Note: Use introspection query to explore the generated GraphQL schema.
 ///
@@ -1169,8 +1257,7 @@ pub fn firebasedataconnect_projects_locations_services_execute_graphql_execute(
 
 pub fn firebasedataconnect_projects_locations_services_execute_graphql(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GraphqlRequest,
+    args: &FirebasedataconnectProjectsLocationsServicesExecuteGraphqlArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GraphqlResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1178,7 +1265,7 @@ pub fn firebasedataconnect_projects_locations_services_execute_graphql(
     ApiError,
 > {
     let builder = firebasedataconnect_projects_locations_services_execute_graphql_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     firebasedataconnect_projects_locations_services_execute_graphql_execute(builder)
 }
@@ -1278,6 +1365,15 @@ pub fn firebasedataconnect_projects_locations_services_execute_graphql_read_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_execute_graphql_read`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesExecuteGraphqlReadArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GraphqlRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:executeGraphqlRead
 /// Execute any GraphQL query against the Firebase Data Connect's generated GraphQL schema. Grants full read to the connected data sources. ExecuteGraphqlRead is identical to ExecuteGraphql except it only accepts read-only query.
 ///
@@ -1290,8 +1386,7 @@ pub fn firebasedataconnect_projects_locations_services_execute_graphql_read_exec
 
 pub fn firebasedataconnect_projects_locations_services_execute_graphql_read(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GraphqlRequest,
+    args: &FirebasedataconnectProjectsLocationsServicesExecuteGraphqlReadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GraphqlResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1299,7 +1394,7 @@ pub fn firebasedataconnect_projects_locations_services_execute_graphql_read(
     ApiError,
 > {
     let builder = firebasedataconnect_projects_locations_services_execute_graphql_read_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     firebasedataconnect_projects_locations_services_execute_graphql_read_execute(builder)
 }
@@ -1394,6 +1489,13 @@ pub fn firebasedataconnect_projects_locations_services_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}
 /// Gets details of a single Service.
 ///
@@ -1406,12 +1508,12 @@ pub fn firebasedataconnect_projects_locations_services_get_execute(
 
 pub fn firebasedataconnect_projects_locations_services_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebasedataconnectProjectsLocationsServicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebasedataconnect_projects_locations_services_get_builder(client, name)?;
+    let builder = firebasedataconnect_projects_locations_services_get_builder(client, &args.name)?;
     firebasedataconnect_projects_locations_services_get_execute(builder)
 }
 
@@ -1510,6 +1612,15 @@ pub fn firebasedataconnect_projects_locations_services_introspect_graphql_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_introspect_graphql`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesIntrospectGraphqlArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GraphqlRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:introspectGraphql
 /// Execute introspection query against the Firebase Data Connect's generated GraphQL schema. GraphQL introspection query provides metadata such as what tables the schema have, what queries and mutations can be performed on the schema, and so on. Read more at <https://graphql.`org/learn/introspection`.> IntrospectGraphql can read schema metadata but cannot read rows from Cloud SQL instance, which can be done via ExecuteGraphqlRead.
 ///
@@ -1522,8 +1633,7 @@ pub fn firebasedataconnect_projects_locations_services_introspect_graphql_execut
 
 pub fn firebasedataconnect_projects_locations_services_introspect_graphql(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GraphqlRequest,
+    args: &FirebasedataconnectProjectsLocationsServicesIntrospectGraphqlArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GraphqlResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1531,7 +1641,7 @@ pub fn firebasedataconnect_projects_locations_services_introspect_graphql(
     ApiError,
 > {
     let builder = firebasedataconnect_projects_locations_services_introspect_graphql_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     firebasedataconnect_projects_locations_services_introspect_graphql_execute(builder)
 }
@@ -1652,6 +1762,21 @@ pub fn firebasedataconnect_projects_locations_services_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services
 /// Lists Services in a given project and location.
 ///
@@ -1664,11 +1789,7 @@ pub fn firebasedataconnect_projects_locations_services_list_execute(
 
 pub fn firebasedataconnect_projects_locations_services_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirebasedataconnectProjectsLocationsServicesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1676,7 +1797,12 @@ pub fn firebasedataconnect_projects_locations_services_list(
     ApiError,
 > {
     let builder = firebasedataconnect_projects_locations_services_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     firebasedataconnect_projects_locations_services_list_execute(builder)
 }
@@ -1798,6 +1924,23 @@ pub fn firebasedataconnect_projects_locations_services_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Service,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}
 /// Updates the parameters of a single Service.
 ///
@@ -1810,24 +1953,19 @@ pub fn firebasedataconnect_projects_locations_services_patch_execute(
 
 pub fn firebasedataconnect_projects_locations_services_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Service,
+    args: &FirebasedataconnectProjectsLocationsServicesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebasedataconnect_projects_locations_services_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     firebasedataconnect_projects_locations_services_patch_execute(builder)
 }
@@ -1945,6 +2083,21 @@ pub fn firebasedataconnect_projects_locations_services_connectors_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_connectors_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesConnectorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: connectorId
+    pub connectorId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Connector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/connectors
 /// Creates a new Connector in a given project and location. The operations are validated against and must be compatible with the active schema. If the operations and schema are not compatible or if the schema is not present, this will result in an error.
 ///
@@ -1957,22 +2110,18 @@ pub fn firebasedataconnect_projects_locations_services_connectors_create_execute
 
 pub fn firebasedataconnect_projects_locations_services_connectors_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    connectorId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Connector,
+    args: &FirebasedataconnectProjectsLocationsServicesConnectorsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebasedataconnect_projects_locations_services_connectors_create_builder(
         client,
-        parent,
-        connectorId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.connectorId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     firebasedataconnect_projects_locations_services_connectors_create_execute(builder)
 }
@@ -2095,6 +2244,23 @@ pub fn firebasedataconnect_projects_locations_services_connectors_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_connectors_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesConnectorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/connectors/{connectorsId}
 /// Deletes a single Connector.
 ///
@@ -2107,24 +2273,19 @@ pub fn firebasedataconnect_projects_locations_services_connectors_delete_execute
 
 pub fn firebasedataconnect_projects_locations_services_connectors_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    force: Option<bool>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &FirebasedataconnectProjectsLocationsServicesConnectorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebasedataconnect_projects_locations_services_connectors_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        force,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.force,
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     firebasedataconnect_projects_locations_services_connectors_delete_execute(builder)
 }
@@ -2224,6 +2385,15 @@ pub fn firebasedataconnect_projects_locations_services_connectors_execute_mutati
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_connectors_execute_mutation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesConnectorsExecuteMutationArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExecuteMutationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/connectors/{connectorsId}:executeMutation
 /// Execute a predefined mutation in a Connector.
 ///
@@ -2236,8 +2406,7 @@ pub fn firebasedataconnect_projects_locations_services_connectors_execute_mutati
 
 pub fn firebasedataconnect_projects_locations_services_connectors_execute_mutation(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExecuteMutationRequest,
+    args: &FirebasedataconnectProjectsLocationsServicesConnectorsExecuteMutationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExecuteMutationResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2246,7 +2415,7 @@ pub fn firebasedataconnect_projects_locations_services_connectors_execute_mutati
 > {
     let builder =
         firebasedataconnect_projects_locations_services_connectors_execute_mutation_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     firebasedataconnect_projects_locations_services_connectors_execute_mutation_execute(builder)
 }
@@ -2346,6 +2515,15 @@ pub fn firebasedataconnect_projects_locations_services_connectors_execute_query_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_connectors_execute_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesConnectorsExecuteQueryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExecuteQueryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/connectors/{connectorsId}:executeQuery
 /// Execute a predefined query in a Connector.
 ///
@@ -2358,8 +2536,7 @@ pub fn firebasedataconnect_projects_locations_services_connectors_execute_query_
 
 pub fn firebasedataconnect_projects_locations_services_connectors_execute_query(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExecuteQueryRequest,
+    args: &FirebasedataconnectProjectsLocationsServicesConnectorsExecuteQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExecuteQueryResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2367,7 +2544,7 @@ pub fn firebasedataconnect_projects_locations_services_connectors_execute_query(
     ApiError,
 > {
     let builder = firebasedataconnect_projects_locations_services_connectors_execute_query_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     firebasedataconnect_projects_locations_services_connectors_execute_query_execute(builder)
 }
@@ -2462,6 +2639,13 @@ pub fn firebasedataconnect_projects_locations_services_connectors_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_connectors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesConnectorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/connectors/{connectorsId}
 /// Gets details of a single Connector.
 ///
@@ -2474,13 +2658,13 @@ pub fn firebasedataconnect_projects_locations_services_connectors_get_execute(
 
 pub fn firebasedataconnect_projects_locations_services_connectors_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebasedataconnectProjectsLocationsServicesConnectorsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Connector>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        firebasedataconnect_projects_locations_services_connectors_get_builder(client, name)?;
+        firebasedataconnect_projects_locations_services_connectors_get_builder(client, &args.name)?;
     firebasedataconnect_projects_locations_services_connectors_get_execute(builder)
 }
 
@@ -2579,6 +2763,15 @@ pub fn firebasedataconnect_projects_locations_services_connectors_impersonate_mu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_connectors_impersonate_mutation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesConnectorsImpersonateMutationArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ImpersonateRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/connectors/{connectorsId}:impersonateMutation
 /// Impersonate a mutation defined on a Firebase Data Connect connector. It grants the admin SDK access to mutations defined in the given connector. The caller can choose to impersonate a particular Firebase Auth user, or skip @auth completely.
 ///
@@ -2591,8 +2784,7 @@ pub fn firebasedataconnect_projects_locations_services_connectors_impersonate_mu
 
 pub fn firebasedataconnect_projects_locations_services_connectors_impersonate_mutation(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ImpersonateRequest,
+    args: &FirebasedataconnectProjectsLocationsServicesConnectorsImpersonateMutationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GraphqlResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2601,7 +2793,7 @@ pub fn firebasedataconnect_projects_locations_services_connectors_impersonate_mu
 > {
     let builder =
         firebasedataconnect_projects_locations_services_connectors_impersonate_mutation_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     firebasedataconnect_projects_locations_services_connectors_impersonate_mutation_execute(builder)
 }
@@ -2701,6 +2893,15 @@ pub fn firebasedataconnect_projects_locations_services_connectors_impersonate_qu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_connectors_impersonate_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesConnectorsImpersonateQueryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ImpersonateRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/connectors/{connectorsId}:impersonateQuery
 /// Impersonate a query defined on a Firebase Data Connect connector. It grants the admin SDK access to queries defined in the given connector. The caller can choose to impersonate a particular Firebase Auth user, or skip @auth completely.
 ///
@@ -2713,8 +2914,7 @@ pub fn firebasedataconnect_projects_locations_services_connectors_impersonate_qu
 
 pub fn firebasedataconnect_projects_locations_services_connectors_impersonate_query(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ImpersonateRequest,
+    args: &FirebasedataconnectProjectsLocationsServicesConnectorsImpersonateQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GraphqlResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2723,7 +2923,7 @@ pub fn firebasedataconnect_projects_locations_services_connectors_impersonate_qu
 > {
     let builder =
         firebasedataconnect_projects_locations_services_connectors_impersonate_query_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     firebasedataconnect_projects_locations_services_connectors_impersonate_query_execute(builder)
 }
@@ -2844,6 +3044,21 @@ pub fn firebasedataconnect_projects_locations_services_connectors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_connectors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesConnectorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/connectors
 /// Lists Connectors in a given project and location.
 ///
@@ -2856,11 +3071,7 @@ pub fn firebasedataconnect_projects_locations_services_connectors_list_execute(
 
 pub fn firebasedataconnect_projects_locations_services_connectors_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirebasedataconnectProjectsLocationsServicesConnectorsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListConnectorsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2868,7 +3079,12 @@ pub fn firebasedataconnect_projects_locations_services_connectors_list(
     ApiError,
 > {
     let builder = firebasedataconnect_projects_locations_services_connectors_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     firebasedataconnect_projects_locations_services_connectors_list_execute(builder)
 }
@@ -2990,6 +3206,23 @@ pub fn firebasedataconnect_projects_locations_services_connectors_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_connectors_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesConnectorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Connector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/connectors/{connectorsId}
 /// Updates the parameters of a single Connector, and creates a new ConnectorRevision with the updated Connector. The operations are validated against and must be compatible with the live schema. If the operations and schema are not compatible or if the schema is not present, this will result in an error.
 ///
@@ -3002,24 +3235,19 @@ pub fn firebasedataconnect_projects_locations_services_connectors_patch_execute(
 
 pub fn firebasedataconnect_projects_locations_services_connectors_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Connector,
+    args: &FirebasedataconnectProjectsLocationsServicesConnectorsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebasedataconnect_projects_locations_services_connectors_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     firebasedataconnect_projects_locations_services_connectors_patch_execute(builder)
 }
@@ -3137,6 +3365,21 @@ pub fn firebasedataconnect_projects_locations_services_schemas_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_schemas_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesSchemasCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: schemaId
+    pub schemaId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Schema,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/schemas
 /// Creates a new Schema in a given project and location. Only creation of `schemas/main` is supported and calling create with any other schema ID will result in an error.
 ///
@@ -3149,22 +3392,18 @@ pub fn firebasedataconnect_projects_locations_services_schemas_create_execute(
 
 pub fn firebasedataconnect_projects_locations_services_schemas_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    schemaId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Schema,
+    args: &FirebasedataconnectProjectsLocationsServicesSchemasCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebasedataconnect_projects_locations_services_schemas_create_builder(
         client,
-        parent,
-        requestId,
-        schemaId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.schemaId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     firebasedataconnect_projects_locations_services_schemas_create_execute(builder)
 }
@@ -3287,6 +3526,23 @@ pub fn firebasedataconnect_projects_locations_services_schemas_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_schemas_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesSchemasDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/schemas/{schemasId}
 /// Deletes a single Schema. Because the schema and connectors must be compatible at all times, if this is called while any connectors are active, this will result in an error.
 ///
@@ -3299,24 +3555,19 @@ pub fn firebasedataconnect_projects_locations_services_schemas_delete_execute(
 
 pub fn firebasedataconnect_projects_locations_services_schemas_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    force: Option<bool>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &FirebasedataconnectProjectsLocationsServicesSchemasDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebasedataconnect_projects_locations_services_schemas_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        force,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.force,
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     firebasedataconnect_projects_locations_services_schemas_delete_execute(builder)
 }
@@ -3411,6 +3662,13 @@ pub fn firebasedataconnect_projects_locations_services_schemas_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_schemas_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesSchemasGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/schemas/{schemasId}
 /// Gets details of a single Schema.
 ///
@@ -3423,13 +3681,13 @@ pub fn firebasedataconnect_projects_locations_services_schemas_get_execute(
 
 pub fn firebasedataconnect_projects_locations_services_schemas_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebasedataconnectProjectsLocationsServicesSchemasGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Schema>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        firebasedataconnect_projects_locations_services_schemas_get_builder(client, name)?;
+        firebasedataconnect_projects_locations_services_schemas_get_builder(client, &args.name)?;
     firebasedataconnect_projects_locations_services_schemas_get_execute(builder)
 }
 
@@ -3549,6 +3807,21 @@ pub fn firebasedataconnect_projects_locations_services_schemas_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_schemas_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesSchemasListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/schemas
 /// Lists Schemas in a given project and location.
 ///
@@ -3561,11 +3834,7 @@ pub fn firebasedataconnect_projects_locations_services_schemas_list_execute(
 
 pub fn firebasedataconnect_projects_locations_services_schemas_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirebasedataconnectProjectsLocationsServicesSchemasListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSchemasResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3573,7 +3842,12 @@ pub fn firebasedataconnect_projects_locations_services_schemas_list(
     ApiError,
 > {
     let builder = firebasedataconnect_projects_locations_services_schemas_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     firebasedataconnect_projects_locations_services_schemas_list_execute(builder)
 }
@@ -3695,6 +3969,23 @@ pub fn firebasedataconnect_projects_locations_services_schemas_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedataconnect_projects_locations_services_schemas_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedataconnectProjectsLocationsServicesSchemasPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Schema,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/schemas/{schemasId}
 /// Updates the parameters of a single Schema, and creates a new SchemaRevision with the updated Schema.
 ///
@@ -3707,24 +3998,19 @@ pub fn firebasedataconnect_projects_locations_services_schemas_patch_execute(
 
 pub fn firebasedataconnect_projects_locations_services_schemas_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Schema,
+    args: &FirebasedataconnectProjectsLocationsServicesSchemasPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebasedataconnect_projects_locations_services_schemas_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     firebasedataconnect_projects_locations_services_schemas_patch_execute(builder)
 }

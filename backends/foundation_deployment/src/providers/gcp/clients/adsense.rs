@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/accounts/{accountsId}
 /// Gets information about the selected AdSense account.
@@ -103,6 +105,13 @@ pub fn adsense_accounts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/accounts/{accountsId}
 /// Gets information about the selected AdSense account.
 ///
@@ -115,12 +124,12 @@ pub fn adsense_accounts_get_execute(
 
 pub fn adsense_accounts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdsenseAccountsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_get_builder(client, name)?;
+    let builder = adsense_accounts_get_builder(client, &args.name)?;
     adsense_accounts_get_execute(builder)
 }
 
@@ -216,6 +225,13 @@ pub fn adsense_accounts_get_ad_blocking_recovery_tag_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_get_ad_blocking_recovery_tag`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsGetAdBlockingRecoveryTagArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/accounts/{accountsId}/adBlockingRecoveryTag
 /// Gets the ad blocking recovery tag of an account.
 ///
@@ -228,14 +244,14 @@ pub fn adsense_accounts_get_ad_blocking_recovery_tag_execute(
 
 pub fn adsense_accounts_get_ad_blocking_recovery_tag(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdsenseAccountsGetAdBlockingRecoveryTagArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdBlockingRecoveryTag>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_get_ad_blocking_recovery_tag_builder(client, name)?;
+    let builder = adsense_accounts_get_ad_blocking_recovery_tag_builder(client, &args.name)?;
     adsense_accounts_get_ad_blocking_recovery_tag_execute(builder)
 }
 
@@ -343,6 +359,15 @@ pub fn adsense_accounts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/accounts
 /// Lists all accounts available to this user.
 ///
@@ -355,15 +380,14 @@ pub fn adsense_accounts_list_execute(
 
 pub fn adsense_accounts_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AdsenseAccountsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAccountsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_list_builder(client, pageSize, pageToken)?;
+    let builder = adsense_accounts_list_builder(client, args.pageSize, args.pageToken.as_deref())?;
     adsense_accounts_list_execute(builder)
 }
 
@@ -475,6 +499,17 @@ pub fn adsense_accounts_list_child_accounts_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_list_child_accounts`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsListChildAccountsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/accounts/{accountsId}:listChildAccounts
 /// Lists all accounts directly managed by the given AdSense account.
 ///
@@ -487,17 +522,19 @@ pub fn adsense_accounts_list_child_accounts_execute(
 
 pub fn adsense_accounts_list_child_accounts(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AdsenseAccountsListChildAccountsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListChildAccountsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        adsense_accounts_list_child_accounts_builder(client, parent, pageSize, pageToken)?;
+    let builder = adsense_accounts_list_child_accounts_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     adsense_accounts_list_child_accounts_execute(builder)
 }
 
@@ -591,6 +628,13 @@ pub fn adsense_accounts_adclients_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}
 /// Gets the ad client from the given resource name.
 ///
@@ -603,12 +647,12 @@ pub fn adsense_accounts_adclients_get_execute(
 
 pub fn adsense_accounts_adclients_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdsenseAccountsAdclientsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdClient>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_adclients_get_builder(client, name)?;
+    let builder = adsense_accounts_adclients_get_builder(client, &args.name)?;
     adsense_accounts_adclients_get_execute(builder)
 }
 
@@ -704,6 +748,13 @@ pub fn adsense_accounts_adclients_get_adcode_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_get_adcode`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsGetAdcodeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adcode
 /// Gets the AdSense code for a given ad client. This returns what was previously known as the 'auto ad code'. This is only supported for ad clients with a product_code of AFC. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>).
 ///
@@ -716,14 +767,14 @@ pub fn adsense_accounts_adclients_get_adcode_execute(
 
 pub fn adsense_accounts_adclients_get_adcode(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdsenseAccountsAdclientsGetAdcodeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdClientAdCode>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_adclients_get_adcode_builder(client, name)?;
+    let builder = adsense_accounts_adclients_get_adcode_builder(client, &args.name)?;
     adsense_accounts_adclients_get_adcode_execute(builder)
 }
 
@@ -835,6 +886,17 @@ pub fn adsense_accounts_adclients_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/accounts/{accountsId}/adclients
 /// Lists all the ad clients available in an account.
 ///
@@ -847,16 +909,19 @@ pub fn adsense_accounts_adclients_list_execute(
 
 pub fn adsense_accounts_adclients_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AdsenseAccountsAdclientsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAdClientsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_adclients_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = adsense_accounts_adclients_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     adsense_accounts_adclients_list_execute(builder)
 }
 
@@ -953,6 +1018,15 @@ pub fn adsense_accounts_adclients_adunits_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_adunits_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsAdunitsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AdUnit,
+}
+
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits
 /// Creates an ad unit. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method. Note that ad units can only be created for ad clients with an "AFC" product code. For more info see the [AdClient resource](/`adsense/management/reference/rest/v2/accounts`.adclients). For now, this method can only be used to create DISPLAY ad units. See: <https://support.google.`com/adsense/answer/9183566`>
 ///
@@ -965,13 +1039,13 @@ pub fn adsense_accounts_adclients_adunits_create_execute(
 
 pub fn adsense_accounts_adclients_adunits_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AdUnit,
+    args: &AdsenseAccountsAdclientsAdunitsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdUnit>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_adclients_adunits_create_builder(client, parent, body)?;
+    let builder =
+        adsense_accounts_adclients_adunits_create_builder(client, &args.parent, &args.body)?;
     adsense_accounts_adclients_adunits_create_execute(builder)
 }
 
@@ -1065,6 +1139,13 @@ pub fn adsense_accounts_adclients_adunits_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_adunits_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsAdunitsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}
 /// Gets an ad unit from a specified account and ad client.
 ///
@@ -1077,12 +1158,12 @@ pub fn adsense_accounts_adclients_adunits_get_execute(
 
 pub fn adsense_accounts_adclients_adunits_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdsenseAccountsAdclientsAdunitsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdUnit>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_adclients_adunits_get_builder(client, name)?;
+    let builder = adsense_accounts_adclients_adunits_get_builder(client, &args.name)?;
     adsense_accounts_adclients_adunits_get_execute(builder)
 }
 
@@ -1178,6 +1259,13 @@ pub fn adsense_accounts_adclients_adunits_get_adcode_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_adunits_get_adcode`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsAdunitsGetAdcodeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}/adcode
 /// Gets the ad unit code for a given ad unit. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>) and [Where to place the ad code in your HTML](<https://support.google.`com/adsense/answer/9190028`>).
 ///
@@ -1190,14 +1278,14 @@ pub fn adsense_accounts_adclients_adunits_get_adcode_execute(
 
 pub fn adsense_accounts_adclients_adunits_get_adcode(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdsenseAccountsAdclientsAdunitsGetAdcodeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdUnitAdCode>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_adclients_adunits_get_adcode_builder(client, name)?;
+    let builder = adsense_accounts_adclients_adunits_get_adcode_builder(client, &args.name)?;
     adsense_accounts_adclients_adunits_get_adcode_execute(builder)
 }
 
@@ -1309,6 +1397,17 @@ pub fn adsense_accounts_adclients_adunits_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_adunits_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsAdunitsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits
 /// Lists all ad units under a specified account and ad client.
 ///
@@ -1321,17 +1420,19 @@ pub fn adsense_accounts_adclients_adunits_list_execute(
 
 pub fn adsense_accounts_adclients_adunits_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AdsenseAccountsAdclientsAdunitsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAdUnitsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        adsense_accounts_adclients_adunits_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = adsense_accounts_adclients_adunits_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     adsense_accounts_adclients_adunits_list_execute(builder)
 }
 
@@ -1445,6 +1546,17 @@ pub fn adsense_accounts_adclients_adunits_list_linked_custom_channels_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_adunits_list_linked_custom_channels`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsAdunitsListLinkedCustomChannelsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}:listLinkedCustomChannels
 /// Lists all the custom channels available for an ad unit.
 ///
@@ -1457,9 +1569,7 @@ pub fn adsense_accounts_adclients_adunits_list_linked_custom_channels_execute(
 
 pub fn adsense_accounts_adclients_adunits_list_linked_custom_channels(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AdsenseAccountsAdclientsAdunitsListLinkedCustomChannelsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListLinkedCustomChannelsResponse>, ApiError>,
@@ -1469,7 +1579,10 @@ pub fn adsense_accounts_adclients_adunits_list_linked_custom_channels(
     ApiError,
 > {
     let builder = adsense_accounts_adclients_adunits_list_linked_custom_channels_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adsense_accounts_adclients_adunits_list_linked_custom_channels_execute(builder)
 }
@@ -1579,6 +1692,17 @@ pub fn adsense_accounts_adclients_adunits_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_adunits_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsAdunitsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AdUnit,
+}
+
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}
 /// Updates an ad unit. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method. For now, this method can only be used to update DISPLAY ad units. See: <https://support.google.`com/adsense/answer/9183566`>
 ///
@@ -1591,14 +1715,17 @@ pub fn adsense_accounts_adclients_adunits_patch_execute(
 
 pub fn adsense_accounts_adclients_adunits_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AdUnit,
+    args: &AdsenseAccountsAdclientsAdunitsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdUnit>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_adclients_adunits_patch_builder(client, name, updateMask, body)?;
+    let builder = adsense_accounts_adclients_adunits_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     adsense_accounts_adclients_adunits_patch_execute(builder)
 }
 
@@ -1697,6 +1824,15 @@ pub fn adsense_accounts_adclients_customchannels_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_customchannels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsCustomchannelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CustomChannel,
+}
+
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels
 /// Creates a custom channel. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method.
 ///
@@ -1709,15 +1845,15 @@ pub fn adsense_accounts_adclients_customchannels_create_execute(
 
 pub fn adsense_accounts_adclients_customchannels_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CustomChannel,
+    args: &AdsenseAccountsAdclientsCustomchannelsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomChannel>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_adclients_customchannels_create_builder(client, parent, body)?;
+    let builder =
+        adsense_accounts_adclients_customchannels_create_builder(client, &args.parent, &args.body)?;
     adsense_accounts_adclients_customchannels_create_execute(builder)
 }
 
@@ -1811,6 +1947,13 @@ pub fn adsense_accounts_adclients_customchannels_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_customchannels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsCustomchannelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}
 /// Deletes a custom channel. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method.
 ///
@@ -1823,12 +1966,12 @@ pub fn adsense_accounts_adclients_customchannels_delete_execute(
 
 pub fn adsense_accounts_adclients_customchannels_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdsenseAccountsAdclientsCustomchannelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_adclients_customchannels_delete_builder(client, name)?;
+    let builder = adsense_accounts_adclients_customchannels_delete_builder(client, &args.name)?;
     adsense_accounts_adclients_customchannels_delete_execute(builder)
 }
 
@@ -1924,6 +2067,13 @@ pub fn adsense_accounts_adclients_customchannels_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_customchannels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsCustomchannelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}
 /// Gets information about the selected custom channel.
 ///
@@ -1936,14 +2086,14 @@ pub fn adsense_accounts_adclients_customchannels_get_execute(
 
 pub fn adsense_accounts_adclients_customchannels_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdsenseAccountsAdclientsCustomchannelsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomChannel>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_adclients_customchannels_get_builder(client, name)?;
+    let builder = adsense_accounts_adclients_customchannels_get_builder(client, &args.name)?;
     adsense_accounts_adclients_customchannels_get_execute(builder)
 }
 
@@ -2057,6 +2207,17 @@ pub fn adsense_accounts_adclients_customchannels_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_customchannels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsCustomchannelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels
 /// Lists all the custom channels available in an ad client.
 ///
@@ -2069,9 +2230,7 @@ pub fn adsense_accounts_adclients_customchannels_list_execute(
 
 pub fn adsense_accounts_adclients_customchannels_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AdsenseAccountsAdclientsCustomchannelsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCustomChannelsResponse>, ApiError>,
@@ -2081,7 +2240,10 @@ pub fn adsense_accounts_adclients_customchannels_list(
     ApiError,
 > {
     let builder = adsense_accounts_adclients_customchannels_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adsense_accounts_adclients_customchannels_list_execute(builder)
 }
@@ -2194,6 +2356,17 @@ pub fn adsense_accounts_adclients_customchannels_list_linked_ad_units_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_customchannels_list_linked_ad_units`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsCustomchannelsListLinkedAdUnitsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}:listLinkedAdUnits
 /// Lists all the ad units available for a custom channel.
 ///
@@ -2206,9 +2379,7 @@ pub fn adsense_accounts_adclients_customchannels_list_linked_ad_units_execute(
 
 pub fn adsense_accounts_adclients_customchannels_list_linked_ad_units(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AdsenseAccountsAdclientsCustomchannelsListLinkedAdUnitsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLinkedAdUnitsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2216,7 +2387,10 @@ pub fn adsense_accounts_adclients_customchannels_list_linked_ad_units(
     ApiError,
 > {
     let builder = adsense_accounts_adclients_customchannels_list_linked_ad_units_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     adsense_accounts_adclients_customchannels_list_linked_ad_units_execute(builder)
 }
@@ -2328,6 +2502,17 @@ pub fn adsense_accounts_adclients_customchannels_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_customchannels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsCustomchannelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CustomChannel,
+}
+
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}
 /// Updates a custom channel. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method.
 ///
@@ -2340,17 +2525,19 @@ pub fn adsense_accounts_adclients_customchannels_patch_execute(
 
 pub fn adsense_accounts_adclients_customchannels_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &CustomChannel,
+    args: &AdsenseAccountsAdclientsCustomchannelsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomChannel>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        adsense_accounts_adclients_customchannels_patch_builder(client, name, updateMask, body)?;
+    let builder = adsense_accounts_adclients_customchannels_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     adsense_accounts_adclients_customchannels_patch_execute(builder)
 }
 
@@ -2444,6 +2631,13 @@ pub fn adsense_accounts_adclients_urlchannels_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_urlchannels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsUrlchannelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/urlchannels/{urlchannelsId}
 /// Gets information about the selected url channel.
 ///
@@ -2456,12 +2650,12 @@ pub fn adsense_accounts_adclients_urlchannels_get_execute(
 
 pub fn adsense_accounts_adclients_urlchannels_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdsenseAccountsAdclientsUrlchannelsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UrlChannel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_adclients_urlchannels_get_builder(client, name)?;
+    let builder = adsense_accounts_adclients_urlchannels_get_builder(client, &args.name)?;
     adsense_accounts_adclients_urlchannels_get_execute(builder)
 }
 
@@ -2573,6 +2767,17 @@ pub fn adsense_accounts_adclients_urlchannels_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_adclients_urlchannels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsUrlchannelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/urlchannels
 /// Lists active url channels.
 ///
@@ -2585,17 +2790,19 @@ pub fn adsense_accounts_adclients_urlchannels_list_execute(
 
 pub fn adsense_accounts_adclients_urlchannels_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AdsenseAccountsAdclientsUrlchannelsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListUrlChannelsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        adsense_accounts_adclients_urlchannels_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = adsense_accounts_adclients_urlchannels_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     adsense_accounts_adclients_urlchannels_list_execute(builder)
 }
 
@@ -2703,6 +2910,15 @@ pub fn adsense_accounts_alerts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_alerts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAlertsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET v2/accounts/{accountsId}/alerts
 /// Lists all the alerts available in an account.
 ///
@@ -2715,15 +2931,15 @@ pub fn adsense_accounts_alerts_list_execute(
 
 pub fn adsense_accounts_alerts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
+    args: &AdsenseAccountsAlertsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAlertsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_alerts_list_builder(client, parent, languageCode)?;
+    let builder =
+        adsense_accounts_alerts_list_builder(client, &args.parent, args.languageCode.as_deref())?;
     adsense_accounts_alerts_list_execute(builder)
 }
 
@@ -2819,6 +3035,13 @@ pub fn adsense_accounts_payments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_payments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsPaymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v2/accounts/{accountsId}/payments
 /// Lists all the payments available for an account.
 ///
@@ -2831,14 +3054,14 @@ pub fn adsense_accounts_payments_list_execute(
 
 pub fn adsense_accounts_payments_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &AdsenseAccountsPaymentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPaymentsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_payments_list_builder(client, parent)?;
+    let builder = adsense_accounts_payments_list_builder(client, &args.parent)?;
     adsense_accounts_payments_list_execute(builder)
 }
 
@@ -2932,6 +3155,13 @@ pub fn adsense_accounts_policy_issues_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_policy_issues_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsPolicyIssuesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/accounts/{accountsId}/policyIssues/{policyIssuesId}
 /// Gets information about the selected policy issue.
 ///
@@ -2944,12 +3174,12 @@ pub fn adsense_accounts_policy_issues_get_execute(
 
 pub fn adsense_accounts_policy_issues_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdsenseAccountsPolicyIssuesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PolicyIssue>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_policy_issues_get_builder(client, name)?;
+    let builder = adsense_accounts_policy_issues_get_builder(client, &args.name)?;
     adsense_accounts_policy_issues_get_execute(builder)
 }
 
@@ -3061,6 +3291,17 @@ pub fn adsense_accounts_policy_issues_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_policy_issues_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsPolicyIssuesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/accounts/{accountsId}/policyIssues
 /// Lists all the policy issues where the specified account is involved, both directly and through any AFP child accounts.
 ///
@@ -3073,16 +3314,19 @@ pub fn adsense_accounts_policy_issues_list_execute(
 
 pub fn adsense_accounts_policy_issues_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AdsenseAccountsPolicyIssuesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPolicyIssuesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_policy_issues_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = adsense_accounts_policy_issues_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     adsense_accounts_policy_issues_list_execute(builder)
 }
 
@@ -3246,6 +3490,43 @@ pub fn adsense_accounts_reports_generate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_reports_generate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsReportsGenerateArgs {
+    /// Path parameter: account
+    pub account: String,
+    /// Query parameter: currencyCode
+    pub currencyCode: Option<String>,
+    /// Query parameter: dateRange
+    pub dateRange: Option<String>,
+    /// Query parameter: dimensions
+    pub dimensions: Option<String>,
+    /// Query parameter: endDate_day
+    pub endDate_day: Option<i32>,
+    /// Query parameter: endDate_month
+    pub endDate_month: Option<i32>,
+    /// Query parameter: endDate_year
+    pub endDate_year: Option<i32>,
+    /// Query parameter: filters
+    pub filters: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<i32>,
+    /// Query parameter: metrics
+    pub metrics: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: reportingTimeZone
+    pub reportingTimeZone: Option<String>,
+    /// Query parameter: startDate_day
+    pub startDate_day: Option<i32>,
+    /// Query parameter: startDate_month
+    pub startDate_month: Option<i32>,
+    /// Query parameter: startDate_year
+    pub startDate_year: Option<i32>,
+}
+
 /// GET v2/accounts/{accountsId}/reports:generate
 /// Generates an ad hoc report.
 ///
@@ -3258,22 +3539,7 @@ pub fn adsense_accounts_reports_generate_execute(
 
 pub fn adsense_accounts_reports_generate(
     client: &SimpleHttpClient,
-    account: &str,
-    currencyCode: Option<&str>,
-    dateRange: Option<&str>,
-    dimensions: Option<&str>,
-    endDate_day: Option<i32>,
-    endDate_month: Option<i32>,
-    endDate_year: Option<i32>,
-    filters: Option<&str>,
-    languageCode: Option<&str>,
-    limit: Option<i32>,
-    metrics: Option<&str>,
-    orderBy: Option<&str>,
-    reportingTimeZone: Option<&str>,
-    startDate_day: Option<i32>,
-    startDate_month: Option<i32>,
-    startDate_year: Option<i32>,
+    args: &AdsenseAccountsReportsGenerateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReportResult>, ApiError>, P = ApiPending>
         + Send
@@ -3282,22 +3548,22 @@ pub fn adsense_accounts_reports_generate(
 > {
     let builder = adsense_accounts_reports_generate_builder(
         client,
-        account,
-        currencyCode,
-        dateRange,
-        dimensions,
-        endDate_day,
-        endDate_month,
-        endDate_year,
-        filters,
-        languageCode,
-        limit,
-        metrics,
-        orderBy,
-        reportingTimeZone,
-        startDate_day,
-        startDate_month,
-        startDate_year,
+        &args.account,
+        args.currencyCode.as_deref(),
+        args.dateRange.as_deref(),
+        args.dimensions.as_deref(),
+        args.endDate_day,
+        args.endDate_month,
+        args.endDate_year,
+        args.filters.as_deref(),
+        args.languageCode.as_deref(),
+        args.limit,
+        args.metrics.as_deref(),
+        args.orderBy.as_deref(),
+        args.reportingTimeZone.as_deref(),
+        args.startDate_day,
+        args.startDate_month,
+        args.startDate_year,
     )?;
     adsense_accounts_reports_generate_execute(builder)
 }
@@ -3460,6 +3726,43 @@ pub fn adsense_accounts_reports_generate_csv_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_reports_generate_csv`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsReportsGenerateCsvArgs {
+    /// Path parameter: account
+    pub account: String,
+    /// Query parameter: currencyCode
+    pub currencyCode: Option<String>,
+    /// Query parameter: dateRange
+    pub dateRange: Option<String>,
+    /// Query parameter: dimensions
+    pub dimensions: Option<String>,
+    /// Query parameter: endDate_day
+    pub endDate_day: Option<i32>,
+    /// Query parameter: endDate_month
+    pub endDate_month: Option<i32>,
+    /// Query parameter: endDate_year
+    pub endDate_year: Option<i32>,
+    /// Query parameter: filters
+    pub filters: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<i32>,
+    /// Query parameter: metrics
+    pub metrics: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: reportingTimeZone
+    pub reportingTimeZone: Option<String>,
+    /// Query parameter: startDate_day
+    pub startDate_day: Option<i32>,
+    /// Query parameter: startDate_month
+    pub startDate_month: Option<i32>,
+    /// Query parameter: startDate_year
+    pub startDate_year: Option<i32>,
+}
+
 /// GET v2/accounts/{accountsId}/reports:generateCsv
 /// Generates a csv formatted ad hoc report.
 ///
@@ -3472,44 +3775,29 @@ pub fn adsense_accounts_reports_generate_csv_execute(
 
 pub fn adsense_accounts_reports_generate_csv(
     client: &SimpleHttpClient,
-    account: &str,
-    currencyCode: Option<&str>,
-    dateRange: Option<&str>,
-    dimensions: Option<&str>,
-    endDate_day: Option<i32>,
-    endDate_month: Option<i32>,
-    endDate_year: Option<i32>,
-    filters: Option<&str>,
-    languageCode: Option<&str>,
-    limit: Option<i32>,
-    metrics: Option<&str>,
-    orderBy: Option<&str>,
-    reportingTimeZone: Option<&str>,
-    startDate_day: Option<i32>,
-    startDate_month: Option<i32>,
-    startDate_year: Option<i32>,
+    args: &AdsenseAccountsReportsGenerateCsvArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = adsense_accounts_reports_generate_csv_builder(
         client,
-        account,
-        currencyCode,
-        dateRange,
-        dimensions,
-        endDate_day,
-        endDate_month,
-        endDate_year,
-        filters,
-        languageCode,
-        limit,
-        metrics,
-        orderBy,
-        reportingTimeZone,
-        startDate_day,
-        startDate_month,
-        startDate_year,
+        &args.account,
+        args.currencyCode.as_deref(),
+        args.dateRange.as_deref(),
+        args.dimensions.as_deref(),
+        args.endDate_day,
+        args.endDate_month,
+        args.endDate_year,
+        args.filters.as_deref(),
+        args.languageCode.as_deref(),
+        args.limit,
+        args.metrics.as_deref(),
+        args.orderBy.as_deref(),
+        args.reportingTimeZone.as_deref(),
+        args.startDate_day,
+        args.startDate_month,
+        args.startDate_year,
     )?;
     adsense_accounts_reports_generate_csv_execute(builder)
 }
@@ -3604,6 +3892,13 @@ pub fn adsense_accounts_reports_get_saved_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_reports_get_saved`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsReportsGetSavedArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/accounts/{accountsId}/reports/{reportsId}/saved
 /// Gets the saved report from the given resource name.
 ///
@@ -3616,12 +3911,12 @@ pub fn adsense_accounts_reports_get_saved_execute(
 
 pub fn adsense_accounts_reports_get_saved(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdsenseAccountsReportsGetSavedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedReport>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_reports_get_saved_builder(client, name)?;
+    let builder = adsense_accounts_reports_get_saved_builder(client, &args.name)?;
     adsense_accounts_reports_get_saved_execute(builder)
 }
 
@@ -3765,6 +4060,33 @@ pub fn adsense_accounts_reports_saved_generate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_reports_saved_generate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsReportsSavedGenerateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: currencyCode
+    pub currencyCode: Option<String>,
+    /// Query parameter: dateRange
+    pub dateRange: Option<String>,
+    /// Query parameter: endDate_day
+    pub endDate_day: Option<i32>,
+    /// Query parameter: endDate_month
+    pub endDate_month: Option<i32>,
+    /// Query parameter: endDate_year
+    pub endDate_year: Option<i32>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: reportingTimeZone
+    pub reportingTimeZone: Option<String>,
+    /// Query parameter: startDate_day
+    pub startDate_day: Option<i32>,
+    /// Query parameter: startDate_month
+    pub startDate_month: Option<i32>,
+    /// Query parameter: startDate_year
+    pub startDate_year: Option<i32>,
+}
+
 /// GET v2/accounts/{accountsId}/reports/{reportsId}/saved:generate
 /// Generates a saved report.
 ///
@@ -3777,17 +4099,7 @@ pub fn adsense_accounts_reports_saved_generate_execute(
 
 pub fn adsense_accounts_reports_saved_generate(
     client: &SimpleHttpClient,
-    name: &str,
-    currencyCode: Option<&str>,
-    dateRange: Option<&str>,
-    endDate_day: Option<i32>,
-    endDate_month: Option<i32>,
-    endDate_year: Option<i32>,
-    languageCode: Option<&str>,
-    reportingTimeZone: Option<&str>,
-    startDate_day: Option<i32>,
-    startDate_month: Option<i32>,
-    startDate_year: Option<i32>,
+    args: &AdsenseAccountsReportsSavedGenerateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReportResult>, ApiError>, P = ApiPending>
         + Send
@@ -3796,17 +4108,17 @@ pub fn adsense_accounts_reports_saved_generate(
 > {
     let builder = adsense_accounts_reports_saved_generate_builder(
         client,
-        name,
-        currencyCode,
-        dateRange,
-        endDate_day,
-        endDate_month,
-        endDate_year,
-        languageCode,
-        reportingTimeZone,
-        startDate_day,
-        startDate_month,
-        startDate_year,
+        &args.name,
+        args.currencyCode.as_deref(),
+        args.dateRange.as_deref(),
+        args.endDate_day,
+        args.endDate_month,
+        args.endDate_year,
+        args.languageCode.as_deref(),
+        args.reportingTimeZone.as_deref(),
+        args.startDate_day,
+        args.startDate_month,
+        args.startDate_year,
     )?;
     adsense_accounts_reports_saved_generate_execute(builder)
 }
@@ -3949,6 +4261,33 @@ pub fn adsense_accounts_reports_saved_generate_csv_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_reports_saved_generate_csv`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsReportsSavedGenerateCsvArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: currencyCode
+    pub currencyCode: Option<String>,
+    /// Query parameter: dateRange
+    pub dateRange: Option<String>,
+    /// Query parameter: endDate_day
+    pub endDate_day: Option<i32>,
+    /// Query parameter: endDate_month
+    pub endDate_month: Option<i32>,
+    /// Query parameter: endDate_year
+    pub endDate_year: Option<i32>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: reportingTimeZone
+    pub reportingTimeZone: Option<String>,
+    /// Query parameter: startDate_day
+    pub startDate_day: Option<i32>,
+    /// Query parameter: startDate_month
+    pub startDate_month: Option<i32>,
+    /// Query parameter: startDate_year
+    pub startDate_year: Option<i32>,
+}
+
 /// GET v2/accounts/{accountsId}/reports/{reportsId}/saved:generateCsv
 /// Generates a csv formatted saved report.
 ///
@@ -3961,34 +4300,24 @@ pub fn adsense_accounts_reports_saved_generate_csv_execute(
 
 pub fn adsense_accounts_reports_saved_generate_csv(
     client: &SimpleHttpClient,
-    name: &str,
-    currencyCode: Option<&str>,
-    dateRange: Option<&str>,
-    endDate_day: Option<i32>,
-    endDate_month: Option<i32>,
-    endDate_year: Option<i32>,
-    languageCode: Option<&str>,
-    reportingTimeZone: Option<&str>,
-    startDate_day: Option<i32>,
-    startDate_month: Option<i32>,
-    startDate_year: Option<i32>,
+    args: &AdsenseAccountsReportsSavedGenerateCsvArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = adsense_accounts_reports_saved_generate_csv_builder(
         client,
-        name,
-        currencyCode,
-        dateRange,
-        endDate_day,
-        endDate_month,
-        endDate_year,
-        languageCode,
-        reportingTimeZone,
-        startDate_day,
-        startDate_month,
-        startDate_year,
+        &args.name,
+        args.currencyCode.as_deref(),
+        args.dateRange.as_deref(),
+        args.endDate_day,
+        args.endDate_month,
+        args.endDate_year,
+        args.languageCode.as_deref(),
+        args.reportingTimeZone.as_deref(),
+        args.startDate_day,
+        args.startDate_month,
+        args.startDate_year,
     )?;
     adsense_accounts_reports_saved_generate_csv_execute(builder)
 }
@@ -4101,6 +4430,17 @@ pub fn adsense_accounts_reports_saved_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_reports_saved_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsReportsSavedListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/accounts/{accountsId}/reports/saved
 /// Lists saved reports.
 ///
@@ -4113,16 +4453,19 @@ pub fn adsense_accounts_reports_saved_list_execute(
 
 pub fn adsense_accounts_reports_saved_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AdsenseAccountsReportsSavedListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSavedReportsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_reports_saved_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = adsense_accounts_reports_saved_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     adsense_accounts_reports_saved_list_execute(builder)
 }
 
@@ -4216,6 +4559,13 @@ pub fn adsense_accounts_sites_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_sites_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsSitesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/accounts/{accountsId}/sites/{sitesId}
 /// Gets information about the selected site.
 ///
@@ -4228,12 +4578,12 @@ pub fn adsense_accounts_sites_get_execute(
 
 pub fn adsense_accounts_sites_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdsenseAccountsSitesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_sites_get_builder(client, name)?;
+    let builder = adsense_accounts_sites_get_builder(client, &args.name)?;
     adsense_accounts_sites_get_execute(builder)
 }
 
@@ -4345,6 +4695,17 @@ pub fn adsense_accounts_sites_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsense_accounts_sites_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsSitesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/accounts/{accountsId}/sites
 /// Lists all the sites available in an account.
 ///
@@ -4357,15 +4718,18 @@ pub fn adsense_accounts_sites_list_execute(
 
 pub fn adsense_accounts_sites_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AdsenseAccountsSitesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSitesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_sites_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = adsense_accounts_sites_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     adsense_accounts_sites_list_execute(builder)
 }

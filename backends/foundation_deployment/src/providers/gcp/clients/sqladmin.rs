@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/backups
 /// Creates a backup for a Cloud SQL instance. This API can be used only to create on-demand backups.
@@ -109,6 +111,15 @@ pub fn sql__backups__create_backup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql__backups__create_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlBackupsCreateBackupArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v1/projects/{projectsId}/backups
 /// Creates a backup for a Cloud SQL instance. This API can be used only to create on-demand backups.
 ///
@@ -121,13 +132,12 @@ pub fn sql__backups__create_backup_execute(
 
 pub fn sql__backups__create_backup(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Backup,
+    args: &SqlBackupsCreateBackupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql__backups__create_backup_builder(client, parent, body)?;
+    let builder = sql__backups__create_backup_builder(client, &args.parent, &args.body)?;
     sql__backups__create_backup_execute(builder)
 }
 
@@ -221,6 +231,13 @@ pub fn sql__backups__delete_backup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql__backups__delete_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlBackupsDeleteBackupArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/backups/{backupsId}
 /// Deletes the backup.
 ///
@@ -233,12 +250,12 @@ pub fn sql__backups__delete_backup_execute(
 
 pub fn sql__backups__delete_backup(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SqlBackupsDeleteBackupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql__backups__delete_backup_builder(client, name)?;
+    let builder = sql__backups__delete_backup_builder(client, &args.name)?;
     sql__backups__delete_backup_execute(builder)
 }
 
@@ -332,6 +349,13 @@ pub fn sql__backups__get_backup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql__backups__get_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlBackupsGetBackupArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/backups/{backupsId}
 /// Retrieves a resource containing information about a backup.
 ///
@@ -344,12 +368,12 @@ pub fn sql__backups__get_backup_execute(
 
 pub fn sql__backups__get_backup(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SqlBackupsGetBackupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql__backups__get_backup_builder(client, name)?;
+    let builder = sql__backups__get_backup_builder(client, &args.name)?;
     sql__backups__get_backup_execute(builder)
 }
 
@@ -465,6 +489,19 @@ pub fn sql__backups__list_backups_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql__backups__list_backups`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlBackupsListBackupsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/backups
 /// Lists all backups associated with the project.
 ///
@@ -477,17 +514,20 @@ pub fn sql__backups__list_backups_execute(
 
 pub fn sql__backups__list_backups(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SqlBackupsListBackupsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sql__backups__list_backups_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = sql__backups__list_backups_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     sql__backups__list_backups_execute(builder)
 }
 
@@ -596,6 +636,17 @@ pub fn sql__backups__update_backup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql__backups__update_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlBackupsUpdateBackupArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v1/projects/{projectsId}/backups/{backupsId}
 /// Updates the retention period and description of the backup. You can use this API to update final backups only.
 ///
@@ -608,14 +659,17 @@ pub fn sql__backups__update_backup_execute(
 
 pub fn sql__backups__update_backup(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Backup,
+    args: &SqlBackupsUpdateBackupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql__backups__update_backup_builder(client, name, updateMask, body)?;
+    let builder = sql__backups__update_backup_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     sql__backups__update_backup_execute(builder)
 }
 
@@ -711,6 +765,17 @@ pub fn sql_backup_runs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_backup_runs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlBackupRunsDeleteArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/backupRuns/{id}
 /// Deletes the backup taken by a backup run.
 ///
@@ -723,14 +788,12 @@ pub fn sql_backup_runs_delete_execute(
 
 pub fn sql_backup_runs_delete(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    id: &str,
+    args: &SqlBackupRunsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_backup_runs_delete_builder(client, project, instance, id)?;
+    let builder = sql_backup_runs_delete_builder(client, &args.project, &args.instance, &args.id)?;
     sql_backup_runs_delete_execute(builder)
 }
 
@@ -826,6 +889,17 @@ pub fn sql_backup_runs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_backup_runs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlBackupRunsGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/backupRuns/{id}
 /// Retrieves a resource containing information about a backup run.
 ///
@@ -838,14 +912,12 @@ pub fn sql_backup_runs_get_execute(
 
 pub fn sql_backup_runs_get(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    id: &str,
+    args: &SqlBackupRunsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BackupRun>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_backup_runs_get_builder(client, project, instance, id)?;
+    let builder = sql_backup_runs_get_builder(client, &args.project, &args.instance, &args.id)?;
     sql_backup_runs_get_execute(builder)
 }
 
@@ -943,6 +1015,17 @@ pub fn sql_backup_runs_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_backup_runs_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlBackupRunsInsertArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: BackupRun,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/backupRuns
 /// Creates a new backup run on demand.
 ///
@@ -955,14 +1038,13 @@ pub fn sql_backup_runs_insert_execute(
 
 pub fn sql_backup_runs_insert(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &BackupRun,
+    args: &SqlBackupRunsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_backup_runs_insert_builder(client, project, instance, body)?;
+    let builder =
+        sql_backup_runs_insert_builder(client, &args.project, &args.instance, &args.body)?;
     sql_backup_runs_insert_execute(builder)
 }
 
@@ -1075,6 +1157,19 @@ pub fn sql_backup_runs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_backup_runs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlBackupRunsListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/backupRuns
 /// Lists all backup runs associated with the project or a given instance and configuration in the reverse chronological order of the backup initiation time.
 ///
@@ -1087,17 +1182,20 @@ pub fn sql_backup_runs_list_execute(
 
 pub fn sql_backup_runs_list(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SqlBackupRunsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BackupRunsListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sql_backup_runs_list_builder(client, project, instance, maxResults, pageToken)?;
+    let builder = sql_backup_runs_list_builder(
+        client,
+        &args.project,
+        &args.instance,
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     sql_backup_runs_list_execute(builder)
 }
 
@@ -1199,6 +1297,17 @@ pub fn sql_connect_generate_ephemeral_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_connect_generate_ephemeral`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlConnectGenerateEphemeralArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: GenerateEphemeralCertRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}:generateEphemeralCert
 /// Generates a short-lived X509 certificate containing the provided public key and signed by a private key specific to the target instance. Users may use the certificate to authenticate as themselves when connecting to the database.
 ///
@@ -1211,9 +1320,7 @@ pub fn sql_connect_generate_ephemeral_execute(
 
 pub fn sql_connect_generate_ephemeral(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &GenerateEphemeralCertRequest,
+    args: &SqlConnectGenerateEphemeralArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateEphemeralCertResponse>, ApiError>,
@@ -1222,7 +1329,8 @@ pub fn sql_connect_generate_ephemeral(
         + 'static,
     ApiError,
 > {
-    let builder = sql_connect_generate_ephemeral_builder(client, project, instance, body)?;
+    let builder =
+        sql_connect_generate_ephemeral_builder(client, &args.project, &args.instance, &args.body)?;
     sql_connect_generate_ephemeral_execute(builder)
 }
 
@@ -1331,6 +1439,17 @@ pub fn sql_connect_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_connect_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlConnectGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Query parameter: readTime
+    pub readTime: Option<String>,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/connectSettings
 /// Retrieves connect settings about a Cloud SQL instance.
 ///
@@ -1343,16 +1462,19 @@ pub fn sql_connect_get_execute(
 
 pub fn sql_connect_get(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    readTime: Option<&str>,
+    args: &SqlConnectGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConnectSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sql_connect_get_builder(client, project, instance, readTime)?;
+    let builder = sql_connect_get_builder(
+        client,
+        &args.project,
+        &args.instance,
+        args.readTime.as_deref(),
+    )?;
     sql_connect_get_execute(builder)
 }
 
@@ -1448,6 +1570,17 @@ pub fn sql_databases_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_databases_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlDatabasesDeleteArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Path parameter: database
+    pub database: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/databases/{database}
 /// Deletes a database from a Cloud SQL instance.
 ///
@@ -1460,14 +1593,13 @@ pub fn sql_databases_delete_execute(
 
 pub fn sql_databases_delete(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    database: &str,
+    args: &SqlDatabasesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_databases_delete_builder(client, project, instance, database)?;
+    let builder =
+        sql_databases_delete_builder(client, &args.project, &args.instance, &args.database)?;
     sql_databases_delete_execute(builder)
 }
 
@@ -1563,6 +1695,17 @@ pub fn sql_databases_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_databases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlDatabasesGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Path parameter: database
+    pub database: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/databases/{database}
 /// Retrieves a resource containing information about a database inside a Cloud SQL instance.
 ///
@@ -1575,14 +1718,12 @@ pub fn sql_databases_get_execute(
 
 pub fn sql_databases_get(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    database: &str,
+    args: &SqlDatabasesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Database>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_databases_get_builder(client, project, instance, database)?;
+    let builder = sql_databases_get_builder(client, &args.project, &args.instance, &args.database)?;
     sql_databases_get_execute(builder)
 }
 
@@ -1680,6 +1821,17 @@ pub fn sql_databases_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_databases_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlDatabasesInsertArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: Database,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/databases
 /// Inserts a resource containing information about a database inside a Cloud SQL instance. **Note:** You can't modify the default character set and collation.
 ///
@@ -1692,14 +1844,12 @@ pub fn sql_databases_insert_execute(
 
 pub fn sql_databases_insert(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &Database,
+    args: &SqlDatabasesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_databases_insert_builder(client, project, instance, body)?;
+    let builder = sql_databases_insert_builder(client, &args.project, &args.instance, &args.body)?;
     sql_databases_insert_execute(builder)
 }
 
@@ -1796,6 +1946,15 @@ pub fn sql_databases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_databases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlDatabasesListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/databases
 /// Lists databases in the specified Cloud SQL instance.
 ///
@@ -1808,15 +1967,14 @@ pub fn sql_databases_list_execute(
 
 pub fn sql_databases_list(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
+    args: &SqlDatabasesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatabasesListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sql_databases_list_builder(client, project, instance)?;
+    let builder = sql_databases_list_builder(client, &args.project, &args.instance)?;
     sql_databases_list_execute(builder)
 }
 
@@ -1915,6 +2073,19 @@ pub fn sql_databases_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_databases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlDatabasesPatchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Path parameter: database
+    pub database: String,
+    /// Request body.
+    pub body: Database,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/databases/{database}
 /// Partially updates a resource containing information about a database inside a Cloud SQL instance. This method supports patch semantics.
 ///
@@ -1927,15 +2098,18 @@ pub fn sql_databases_patch_execute(
 
 pub fn sql_databases_patch(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    database: &str,
-    body: &Database,
+    args: &SqlDatabasesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_databases_patch_builder(client, project, instance, database, body)?;
+    let builder = sql_databases_patch_builder(
+        client,
+        &args.project,
+        &args.instance,
+        &args.database,
+        &args.body,
+    )?;
     sql_databases_patch_execute(builder)
 }
 
@@ -2034,6 +2208,19 @@ pub fn sql_databases_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_databases_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlDatabasesUpdateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Path parameter: database
+    pub database: String,
+    /// Request body.
+    pub body: Database,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/databases/{database}
 /// Updates a resource containing information about a database inside a Cloud SQL instance.
 ///
@@ -2046,15 +2233,18 @@ pub fn sql_databases_update_execute(
 
 pub fn sql_databases_update(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    database: &str,
-    body: &Database,
+    args: &SqlDatabasesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_databases_update_builder(client, project, instance, database, body)?;
+    let builder = sql_databases_update_builder(
+        client,
+        &args.project,
+        &args.instance,
+        &args.database,
+        &args.body,
+    )?;
     sql_databases_update_execute(builder)
 }
 
@@ -2162,6 +2352,15 @@ pub fn sql_flags_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_flags_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlFlagsListArgs {
+    /// Query parameter: databaseVersion
+    pub databaseVersion: Option<String>,
+    /// Query parameter: flagScope
+    pub flagScope: Option<String>,
+}
+
 /// GET v1/flags
 /// Lists all available database flags for Cloud SQL instances.
 ///
@@ -2174,15 +2373,18 @@ pub fn sql_flags_list_execute(
 
 pub fn sql_flags_list(
     client: &SimpleHttpClient,
-    databaseVersion: Option<&str>,
-    flagScope: Option<&str>,
+    args: &SqlFlagsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FlagsListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sql_flags_list_builder(client, databaseVersion, flagScope)?;
+    let builder = sql_flags_list_builder(
+        client,
+        args.databaseVersion.as_deref(),
+        args.flagScope.as_deref(),
+    )?;
     sql_flags_list_execute(builder)
 }
 
@@ -2281,6 +2483,15 @@ pub fn sql_instances__list_entra_id_certificates_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances__list_entra_id_certificates`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesListEntraIdCertificatesArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/listEntraIdCertificates
 /// Lists all versions of EntraID certificates for the specified instance. There can be up to three sets of certificates listed: the certificate that is currently in use, a future that has been added but not yet used to sign a certificate, and a certificate that has been rotated out.
 ///
@@ -2293,8 +2504,7 @@ pub fn sql_instances__list_entra_id_certificates_execute(
 
 pub fn sql_instances__list_entra_id_certificates(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
+    args: &SqlInstancesListEntraIdCertificatesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<InstancesListEntraIdCertificatesResponse>, ApiError>,
@@ -2303,7 +2513,8 @@ pub fn sql_instances__list_entra_id_certificates(
         + 'static,
     ApiError,
 > {
-    let builder = sql_instances__list_entra_id_certificates_builder(client, project, instance)?;
+    let builder =
+        sql_instances__list_entra_id_certificates_builder(client, &args.project, &args.instance)?;
     sql_instances__list_entra_id_certificates_execute(builder)
 }
 
@@ -2403,6 +2614,15 @@ pub fn sql_instances__list_server_certificates_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances__list_server_certificates`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesListServerCertificatesArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/listServerCertificates
 /// Lists all versions of server certificates and certificate authorities (CAs) for the specified instance. There can be up to three sets of certs listed: the certificate that is currently in use, a future that has been added but not yet used to sign a certificate, and a certificate that has been rotated out. For instances not using Certificate Authority Service (CAS) server CA, use ListServerCas instead.
 ///
@@ -2415,8 +2635,7 @@ pub fn sql_instances__list_server_certificates_execute(
 
 pub fn sql_instances__list_server_certificates(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
+    args: &SqlInstancesListServerCertificatesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<InstancesListServerCertificatesResponse>, ApiError>,
@@ -2425,7 +2644,8 @@ pub fn sql_instances__list_server_certificates(
         + 'static,
     ApiError,
 > {
-    let builder = sql_instances__list_server_certificates_builder(client, project, instance)?;
+    let builder =
+        sql_instances__list_server_certificates_builder(client, &args.project, &args.instance)?;
     sql_instances__list_server_certificates_execute(builder)
 }
 
@@ -2523,6 +2743,17 @@ pub fn sql_instances__rotate_entra_id_certificate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances__rotate_entra_id_certificate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesRotateEntraIdCertificateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: InstancesRotateEntraIdCertificateRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/rotateEntraIdCertificate
 /// Rotates the server certificate version to one previously added with the `addEntraIdCertificate` method.
 ///
@@ -2535,15 +2766,17 @@ pub fn sql_instances__rotate_entra_id_certificate_execute(
 
 pub fn sql_instances__rotate_entra_id_certificate(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &InstancesRotateEntraIdCertificateRequest,
+    args: &SqlInstancesRotateEntraIdCertificateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_instances__rotate_entra_id_certificate_builder(client, project, instance, body)?;
+    let builder = sql_instances__rotate_entra_id_certificate_builder(
+        client,
+        &args.project,
+        &args.instance,
+        &args.body,
+    )?;
     sql_instances__rotate_entra_id_certificate_execute(builder)
 }
 
@@ -2641,6 +2874,17 @@ pub fn sql_instances__rotate_server_certificate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances__rotate_server_certificate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesRotateServerCertificateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: InstancesRotateServerCertificateRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/rotateServerCertificate
 /// Rotates the server certificate version to one previously added with the `addServerCertificate` method. For instances not using Certificate Authority Service (CAS) server CA, use RotateServerCa instead.
 ///
@@ -2653,15 +2897,17 @@ pub fn sql_instances__rotate_server_certificate_execute(
 
 pub fn sql_instances__rotate_server_certificate(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &InstancesRotateServerCertificateRequest,
+    args: &SqlInstancesRotateServerCertificateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_instances__rotate_server_certificate_builder(client, project, instance, body)?;
+    let builder = sql_instances__rotate_server_certificate_builder(
+        client,
+        &args.project,
+        &args.instance,
+        &args.body,
+    )?;
     sql_instances__rotate_server_certificate_execute(builder)
 }
 
@@ -2763,6 +3009,17 @@ pub fn sql_instances_acquire_ssrs_lease_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_acquire_ssrs_lease`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesAcquireSsrsLeaseArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: InstancesAcquireSsrsLeaseRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/acquireSsrsLease
 /// Acquire a lease for the setup of SQL Server Reporting Services (SSRS).
 ///
@@ -2775,9 +3032,7 @@ pub fn sql_instances_acquire_ssrs_lease_execute(
 
 pub fn sql_instances_acquire_ssrs_lease(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &InstancesAcquireSsrsLeaseRequest,
+    args: &SqlInstancesAcquireSsrsLeaseArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SqlInstancesAcquireSsrsLeaseResponse>, ApiError>,
@@ -2786,7 +3041,12 @@ pub fn sql_instances_acquire_ssrs_lease(
         + 'static,
     ApiError,
 > {
-    let builder = sql_instances_acquire_ssrs_lease_builder(client, project, instance, body)?;
+    let builder = sql_instances_acquire_ssrs_lease_builder(
+        client,
+        &args.project,
+        &args.instance,
+        &args.body,
+    )?;
     sql_instances_acquire_ssrs_lease_execute(builder)
 }
 
@@ -2881,6 +3141,15 @@ pub fn sql_instances_add_entra_id_certificate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_add_entra_id_certificate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesAddEntraIdCertificateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/addEntraIdCertificate
 /// Adds a new Entra ID certificate for the specified instance. If an Entra ID certificate was previously added but never used in a certificate rotation, this operation replaces that version.
 ///
@@ -2893,13 +3162,13 @@ pub fn sql_instances_add_entra_id_certificate_execute(
 
 pub fn sql_instances_add_entra_id_certificate(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
+    args: &SqlInstancesAddEntraIdCertificateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_add_entra_id_certificate_builder(client, project, instance)?;
+    let builder =
+        sql_instances_add_entra_id_certificate_builder(client, &args.project, &args.instance)?;
     sql_instances_add_entra_id_certificate_execute(builder)
 }
 
@@ -2994,6 +3263,15 @@ pub fn sql_instances_add_server_ca_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_add_server_ca`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesAddServerCaArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/addServerCa
 /// Adds a new trusted Certificate Authority (CA) version for the specified instance. Required to prepare for a certificate rotation. If a CA version was previously added but never used in a certificate rotation, this operation replaces that version. There cannot be more than one CA version waiting to be rotated in. For instances that have enabled Certificate Authority Service (CAS) based server CA, use AddServerCertificate to add a new server certificate.
 ///
@@ -3006,13 +3284,12 @@ pub fn sql_instances_add_server_ca_execute(
 
 pub fn sql_instances_add_server_ca(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
+    args: &SqlInstancesAddServerCaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_add_server_ca_builder(client, project, instance)?;
+    let builder = sql_instances_add_server_ca_builder(client, &args.project, &args.instance)?;
     sql_instances_add_server_ca_execute(builder)
 }
 
@@ -3107,6 +3384,15 @@ pub fn sql_instances_add_server_certificate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_add_server_certificate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesAddServerCertificateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/addServerCertificate
 /// Add a new trusted server certificate version for the specified instance using Certificate Authority Service (CAS) server CA. Required to prepare for a certificate rotation. If a server certificate version was previously added but never used in a certificate rotation, this operation replaces that version. There cannot be more than one certificate version waiting to be rotated in. For instances not using CAS server CA, use AddServerCa instead.
 ///
@@ -3119,13 +3405,13 @@ pub fn sql_instances_add_server_certificate_execute(
 
 pub fn sql_instances_add_server_certificate(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
+    args: &SqlInstancesAddServerCertificateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_add_server_certificate_builder(client, project, instance)?;
+    let builder =
+        sql_instances_add_server_certificate_builder(client, &args.project, &args.instance)?;
     sql_instances_add_server_certificate_execute(builder)
 }
 
@@ -3223,6 +3509,17 @@ pub fn sql_instances_clone_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_clone`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesCloneArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: InstancesCloneRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/clone
 /// Creates a Cloud SQL instance as a clone of the source instance. Using this operation might cause your instance to restart.
 ///
@@ -3235,14 +3532,12 @@ pub fn sql_instances_clone_execute(
 
 pub fn sql_instances_clone(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &InstancesCloneRequest,
+    args: &SqlInstancesCloneArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_clone_builder(client, project, instance, body)?;
+    let builder = sql_instances_clone_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_clone_execute(builder)
 }
 
@@ -3361,6 +3656,23 @@ pub fn sql_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesDeleteArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Query parameter: enableFinalBackup
+    pub enableFinalBackup: Option<bool>,
+    /// Query parameter: finalBackupDescription
+    pub finalBackupDescription: Option<String>,
+    /// Query parameter: finalBackupExpiryTime
+    pub finalBackupExpiryTime: Option<String>,
+    /// Query parameter: finalBackupTtlDays
+    pub finalBackupTtlDays: Option<String>,
+}
+
 /// GET v1/projects/{project}/instances/{instance}
 /// Deletes a Cloud SQL instance.
 ///
@@ -3373,24 +3685,19 @@ pub fn sql_instances_delete_execute(
 
 pub fn sql_instances_delete(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    enableFinalBackup: Option<bool>,
-    finalBackupDescription: Option<&str>,
-    finalBackupExpiryTime: Option<&str>,
-    finalBackupTtlDays: Option<&str>,
+    args: &SqlInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = sql_instances_delete_builder(
         client,
-        project,
-        instance,
-        enableFinalBackup,
-        finalBackupDescription,
-        finalBackupExpiryTime,
-        finalBackupTtlDays,
+        &args.project,
+        &args.instance,
+        args.enableFinalBackup,
+        args.finalBackupDescription.as_deref(),
+        args.finalBackupExpiryTime.as_deref(),
+        args.finalBackupTtlDays.as_deref(),
     )?;
     sql_instances_delete_execute(builder)
 }
@@ -3489,6 +3796,17 @@ pub fn sql_instances_demote_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_demote`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesDemoteArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: InstancesDemoteRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/demote
 /// Demotes an existing standalone instance to be a Cloud SQL read replica for an external database server.
 ///
@@ -3501,14 +3819,12 @@ pub fn sql_instances_demote_execute(
 
 pub fn sql_instances_demote(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &InstancesDemoteRequest,
+    args: &SqlInstancesDemoteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_demote_builder(client, project, instance, body)?;
+    let builder = sql_instances_demote_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_demote_execute(builder)
 }
 
@@ -3606,6 +3922,17 @@ pub fn sql_instances_demote_master_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_demote_master`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesDemoteMasterArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: InstancesDemoteMasterRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/demoteMaster
 /// Demotes the stand-alone instance to be a Cloud SQL read replica for an external database server.
 ///
@@ -3618,14 +3945,13 @@ pub fn sql_instances_demote_master_execute(
 
 pub fn sql_instances_demote_master(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &InstancesDemoteMasterRequest,
+    args: &SqlInstancesDemoteMasterArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_demote_master_builder(client, project, instance, body)?;
+    let builder =
+        sql_instances_demote_master_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_demote_master_execute(builder)
 }
 
@@ -3727,6 +4053,17 @@ pub fn sql_instances_execute_sql_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_execute_sql`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesExecuteSqlArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: ExecuteSqlPayload,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/executeSql
 /// Execute SQL statements.
 ///
@@ -3739,9 +4076,7 @@ pub fn sql_instances_execute_sql_execute(
 
 pub fn sql_instances_execute_sql(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &ExecuteSqlPayload,
+    args: &SqlInstancesExecuteSqlArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SqlInstancesExecuteSqlResponse>, ApiError>,
@@ -3750,7 +4085,8 @@ pub fn sql_instances_execute_sql(
         + 'static,
     ApiError,
 > {
-    let builder = sql_instances_execute_sql_builder(client, project, instance, body)?;
+    let builder =
+        sql_instances_execute_sql_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_execute_sql_execute(builder)
 }
 
@@ -3848,6 +4184,17 @@ pub fn sql_instances_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesExportArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: InstancesExportRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/export
 /// Exports data from a Cloud SQL instance to a Cloud Storage bucket as a SQL dump or CSV file.
 ///
@@ -3860,14 +4207,12 @@ pub fn sql_instances_export_execute(
 
 pub fn sql_instances_export(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &InstancesExportRequest,
+    args: &SqlInstancesExportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_export_builder(client, project, instance, body)?;
+    let builder = sql_instances_export_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_export_execute(builder)
 }
 
@@ -3965,6 +4310,17 @@ pub fn sql_instances_failover_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_failover`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesFailoverArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: InstancesFailoverRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/failover
 /// Initiates a manual failover of a high availability (HA) primary instance to a standby instance, which becomes the primary instance. Users are then rerouted to the new primary. For more information, see the [Overview of high availability](<https://cloud.google.`com/sql/docs/mysql/high-availability`>) page in the Cloud SQL documentation. If using Legacy HA (MySQL only), this causes the instance to failover to its failover replica instance.
 ///
@@ -3977,14 +4333,13 @@ pub fn sql_instances_failover_execute(
 
 pub fn sql_instances_failover(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &InstancesFailoverRequest,
+    args: &SqlInstancesFailoverArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_failover_builder(client, project, instance, body)?;
+    let builder =
+        sql_instances_failover_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_failover_execute(builder)
 }
 
@@ -4081,6 +4436,15 @@ pub fn sql_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}
 /// Retrieves a resource containing information about a Cloud SQL instance.
 ///
@@ -4093,15 +4457,14 @@ pub fn sql_instances_get_execute(
 
 pub fn sql_instances_get(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
+    args: &SqlInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatabaseInstance>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sql_instances_get_builder(client, project, instance)?;
+    let builder = sql_instances_get_builder(client, &args.project, &args.instance)?;
     sql_instances_get_execute(builder)
 }
 
@@ -4199,6 +4562,17 @@ pub fn sql_instances_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesImportArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: InstancesImportRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/import
 /// Imports data into a Cloud SQL instance from a SQL dump or CSV file in Cloud Storage.
 ///
@@ -4211,14 +4585,12 @@ pub fn sql_instances_import_execute(
 
 pub fn sql_instances_import(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &InstancesImportRequest,
+    args: &SqlInstancesImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_import_builder(client, project, instance, body)?;
+    let builder = sql_instances_import_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_import_execute(builder)
 }
 
@@ -4315,6 +4687,15 @@ pub fn sql_instances_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesInsertArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Request body.
+    pub body: DatabaseInstance,
+}
+
 /// GET v1/projects/{project}/instances
 /// Creates a new Cloud SQL instance.
 ///
@@ -4327,13 +4708,12 @@ pub fn sql_instances_insert_execute(
 
 pub fn sql_instances_insert(
     client: &SimpleHttpClient,
-    project: &str,
-    body: &DatabaseInstance,
+    args: &SqlInstancesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_insert_builder(client, project, body)?;
+    let builder = sql_instances_insert_builder(client, &args.project, &args.body)?;
     sql_instances_insert_execute(builder)
 }
 
@@ -4449,6 +4829,19 @@ pub fn sql_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{project}/instances
 /// Lists instances under a given project.
 ///
@@ -4461,17 +4854,20 @@ pub fn sql_instances_list_execute(
 
 pub fn sql_instances_list(
     client: &SimpleHttpClient,
-    project: &str,
-    filter: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SqlInstancesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InstancesListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sql_instances_list_builder(client, project, filter, maxResults, pageToken)?;
+    let builder = sql_instances_list_builder(
+        client,
+        &args.project,
+        args.filter.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     sql_instances_list_execute(builder)
 }
 
@@ -4570,6 +4966,15 @@ pub fn sql_instances_list_server_cas_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_list_server_cas`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesListServerCasArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/listServerCas
 /// Lists all of the trusted Certificate Authorities (CAs) for the specified instance. There can be up to three CAs listed: the CA that was used to sign the certificate that is currently in use, a CA that has been added but not yet used to sign a certificate, and a CA used to sign a certificate that has previously rotated out.
 ///
@@ -4582,8 +4987,7 @@ pub fn sql_instances_list_server_cas_execute(
 
 pub fn sql_instances_list_server_cas(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
+    args: &SqlInstancesListServerCasArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<InstancesListServerCasResponse>, ApiError>,
@@ -4592,7 +4996,7 @@ pub fn sql_instances_list_server_cas(
         + 'static,
     ApiError,
 > {
-    let builder = sql_instances_list_server_cas_builder(client, project, instance)?;
+    let builder = sql_instances_list_server_cas_builder(client, &args.project, &args.instance)?;
     sql_instances_list_server_cas_execute(builder)
 }
 
@@ -4690,6 +5094,17 @@ pub fn sql_instances_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesPatchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: DatabaseInstance,
+}
+
 /// GET v1/projects/{project}/instances/{instance}
 /// Partially updates settings of a Cloud SQL instance by merging the request with the current configuration. This method supports patch semantics.
 ///
@@ -4702,14 +5117,12 @@ pub fn sql_instances_patch_execute(
 
 pub fn sql_instances_patch(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &DatabaseInstance,
+    args: &SqlInstancesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_patch_builder(client, project, instance, body)?;
+    let builder = sql_instances_patch_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_patch_execute(builder)
 }
 
@@ -4806,6 +5219,15 @@ pub fn sql_instances_point_in_time_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_point_in_time_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesPointInTimeRestoreArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: PointInTimeRestoreContext,
+}
+
 /// GET v1/projects/{projectsId}:pointInTimeRestore
 /// Point in time restore for an instance managed by Google Cloud Backup and Disaster Recovery.
 ///
@@ -4818,13 +5240,12 @@ pub fn sql_instances_point_in_time_restore_execute(
 
 pub fn sql_instances_point_in_time_restore(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &PointInTimeRestoreContext,
+    args: &SqlInstancesPointInTimeRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_point_in_time_restore_builder(client, parent, body)?;
+    let builder = sql_instances_point_in_time_restore_builder(client, &args.parent, &args.body)?;
     sql_instances_point_in_time_restore_execute(builder)
 }
 
@@ -4922,6 +5343,17 @@ pub fn sql_instances_pre_check_major_version_upgrade_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_pre_check_major_version_upgrade`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesPreCheckMajorVersionUpgradeArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: InstancesPreCheckMajorVersionUpgradeRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/preCheckMajorVersionUpgrade
 /// Execute MVU Pre-checks
 ///
@@ -4934,15 +5366,17 @@ pub fn sql_instances_pre_check_major_version_upgrade_execute(
 
 pub fn sql_instances_pre_check_major_version_upgrade(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &InstancesPreCheckMajorVersionUpgradeRequest,
+    args: &SqlInstancesPreCheckMajorVersionUpgradeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_instances_pre_check_major_version_upgrade_builder(client, project, instance, body)?;
+    let builder = sql_instances_pre_check_major_version_upgrade_builder(
+        client,
+        &args.project,
+        &args.instance,
+        &args.body,
+    )?;
     sql_instances_pre_check_major_version_upgrade_execute(builder)
 }
 
@@ -5049,6 +5483,17 @@ pub fn sql_instances_promote_replica_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_promote_replica`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesPromoteReplicaArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Query parameter: failover
+    pub failover: Option<bool>,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/promoteReplica
 /// Promotes the read replica instance to be an independent Cloud SQL primary instance. Using this operation might cause your instance to restart.
 ///
@@ -5061,14 +5506,17 @@ pub fn sql_instances_promote_replica_execute(
 
 pub fn sql_instances_promote_replica(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    failover: Option<bool>,
+    args: &SqlInstancesPromoteReplicaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_promote_replica_builder(client, project, instance, failover)?;
+    let builder = sql_instances_promote_replica_builder(
+        client,
+        &args.project,
+        &args.instance,
+        args.failover,
+    )?;
     sql_instances_promote_replica_execute(builder)
 }
 
@@ -5166,6 +5614,17 @@ pub fn sql_instances_reencrypt_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_reencrypt`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesReencryptArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: InstancesReencryptRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/reencrypt
 /// Reencrypt CMEK instance with latest key version.
 ///
@@ -5178,14 +5637,13 @@ pub fn sql_instances_reencrypt_execute(
 
 pub fn sql_instances_reencrypt(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &InstancesReencryptRequest,
+    args: &SqlInstancesReencryptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_reencrypt_builder(client, project, instance, body)?;
+    let builder =
+        sql_instances_reencrypt_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_reencrypt_execute(builder)
 }
 
@@ -5284,6 +5742,15 @@ pub fn sql_instances_release_ssrs_lease_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_release_ssrs_lease`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesReleaseSsrsLeaseArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/releaseSsrsLease
 /// Release a lease for the setup of SQL Server Reporting Services (SSRS).
 ///
@@ -5296,8 +5763,7 @@ pub fn sql_instances_release_ssrs_lease_execute(
 
 pub fn sql_instances_release_ssrs_lease(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
+    args: &SqlInstancesReleaseSsrsLeaseArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SqlInstancesReleaseSsrsLeaseResponse>, ApiError>,
@@ -5306,7 +5772,7 @@ pub fn sql_instances_release_ssrs_lease(
         + 'static,
     ApiError,
 > {
-    let builder = sql_instances_release_ssrs_lease_builder(client, project, instance)?;
+    let builder = sql_instances_release_ssrs_lease_builder(client, &args.project, &args.instance)?;
     sql_instances_release_ssrs_lease_execute(builder)
 }
 
@@ -5413,6 +5879,17 @@ pub fn sql_instances_reset_ssl_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_reset_ssl_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesResetSslConfigArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Query parameter: mode
+    pub mode: Option<String>,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/resetSslConfig
 /// Deletes all client certificates and generates a new server SSL certificate for the instance.
 ///
@@ -5425,14 +5902,17 @@ pub fn sql_instances_reset_ssl_config_execute(
 
 pub fn sql_instances_reset_ssl_config(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    mode: Option<&str>,
+    args: &SqlInstancesResetSslConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_reset_ssl_config_builder(client, project, instance, mode)?;
+    let builder = sql_instances_reset_ssl_config_builder(
+        client,
+        &args.project,
+        &args.instance,
+        args.mode.as_deref(),
+    )?;
     sql_instances_reset_ssl_config_execute(builder)
 }
 
@@ -5527,6 +6007,15 @@ pub fn sql_instances_restart_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_restart`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesRestartArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/restart
 /// Restarts a Cloud SQL instance.
 ///
@@ -5539,13 +6028,12 @@ pub fn sql_instances_restart_execute(
 
 pub fn sql_instances_restart(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
+    args: &SqlInstancesRestartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_restart_builder(client, project, instance)?;
+    let builder = sql_instances_restart_builder(client, &args.project, &args.instance)?;
     sql_instances_restart_execute(builder)
 }
 
@@ -5643,6 +6131,17 @@ pub fn sql_instances_restore_backup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_restore_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesRestoreBackupArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: InstancesRestoreBackupRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/restoreBackup
 /// Restores a backup of a Cloud SQL instance. Using this operation might cause your instance to restart.
 ///
@@ -5655,14 +6154,13 @@ pub fn sql_instances_restore_backup_execute(
 
 pub fn sql_instances_restore_backup(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &InstancesRestoreBackupRequest,
+    args: &SqlInstancesRestoreBackupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_restore_backup_builder(client, project, instance, body)?;
+    let builder =
+        sql_instances_restore_backup_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_restore_backup_execute(builder)
 }
 
@@ -5760,6 +6258,17 @@ pub fn sql_instances_rotate_server_ca_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_rotate_server_ca`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesRotateServerCaArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: InstancesRotateServerCaRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/rotateServerCa
 /// Rotates the server certificate to one signed by the Certificate Authority (CA) version previously added with the `addServerCA` method. For instances that have enabled Certificate Authority Service (CAS) based server CA, use RotateServerCertificate to rotate the server certificate.
 ///
@@ -5772,14 +6281,13 @@ pub fn sql_instances_rotate_server_ca_execute(
 
 pub fn sql_instances_rotate_server_ca(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &InstancesRotateServerCaRequest,
+    args: &SqlInstancesRotateServerCaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_rotate_server_ca_builder(client, project, instance, body)?;
+    let builder =
+        sql_instances_rotate_server_ca_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_rotate_server_ca_execute(builder)
 }
 
@@ -5874,6 +6382,15 @@ pub fn sql_instances_start_replica_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_start_replica`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesStartReplicaArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/startReplica
 /// Starts the replication in the read replica instance.
 ///
@@ -5886,13 +6403,12 @@ pub fn sql_instances_start_replica_execute(
 
 pub fn sql_instances_start_replica(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
+    args: &SqlInstancesStartReplicaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_start_replica_builder(client, project, instance)?;
+    let builder = sql_instances_start_replica_builder(client, &args.project, &args.instance)?;
     sql_instances_start_replica_execute(builder)
 }
 
@@ -5987,6 +6503,15 @@ pub fn sql_instances_stop_replica_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_stop_replica`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesStopReplicaArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/stopReplica
 /// Stops the replication in the read replica instance.
 ///
@@ -5999,13 +6524,12 @@ pub fn sql_instances_stop_replica_execute(
 
 pub fn sql_instances_stop_replica(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
+    args: &SqlInstancesStopReplicaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_stop_replica_builder(client, project, instance)?;
+    let builder = sql_instances_stop_replica_builder(client, &args.project, &args.instance)?;
     sql_instances_stop_replica_execute(builder)
 }
 
@@ -6112,6 +6636,17 @@ pub fn sql_instances_switchover_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_switchover`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesSwitchoverArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Query parameter: dbTimeout
+    pub dbTimeout: Option<String>,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/switchover
 /// Switches over from the primary instance to the DR replica instance.
 ///
@@ -6124,14 +6659,17 @@ pub fn sql_instances_switchover_execute(
 
 pub fn sql_instances_switchover(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    dbTimeout: Option<&str>,
+    args: &SqlInstancesSwitchoverArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_switchover_builder(client, project, instance, dbTimeout)?;
+    let builder = sql_instances_switchover_builder(
+        client,
+        &args.project,
+        &args.instance,
+        args.dbTimeout.as_deref(),
+    )?;
     sql_instances_switchover_execute(builder)
 }
 
@@ -6229,6 +6767,17 @@ pub fn sql_instances_truncate_log_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_truncate_log`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesTruncateLogArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: InstancesTruncateLogRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/truncateLog
 /// Truncate MySQL general and slow query log tables MySQL only.
 ///
@@ -6241,14 +6790,13 @@ pub fn sql_instances_truncate_log_execute(
 
 pub fn sql_instances_truncate_log(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &InstancesTruncateLogRequest,
+    args: &SqlInstancesTruncateLogArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_truncate_log_builder(client, project, instance, body)?;
+    let builder =
+        sql_instances_truncate_log_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_truncate_log_execute(builder)
 }
 
@@ -6346,6 +6894,17 @@ pub fn sql_instances_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_instances_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesUpdateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: DatabaseInstance,
+}
+
 /// GET v1/projects/{project}/instances/{instance}
 /// Updates settings of a Cloud SQL instance. Using this operation might cause your instance to restart.
 ///
@@ -6358,14 +6917,12 @@ pub fn sql_instances_update_execute(
 
 pub fn sql_instances_update(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &DatabaseInstance,
+    args: &SqlInstancesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_update_builder(client, project, instance, body)?;
+    let builder = sql_instances_update_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_update_execute(builder)
 }
 
@@ -6460,6 +7017,15 @@ pub fn sql_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlOperationsCancelArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: operation
+    pub operation: String,
+}
+
 /// GET v1/projects/{project}/operations/{operation}/cancel
 /// Cancels an instance operation that has been performed on an instance.
 ///
@@ -6472,13 +7038,12 @@ pub fn sql_operations_cancel_execute(
 
 pub fn sql_operations_cancel(
     client: &SimpleHttpClient,
-    project: &str,
-    operation: &str,
+    args: &SqlOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_operations_cancel_builder(client, project, operation)?;
+    let builder = sql_operations_cancel_builder(client, &args.project, &args.operation)?;
     sql_operations_cancel_execute(builder)
 }
 
@@ -6573,6 +7138,15 @@ pub fn sql_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlOperationsGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: operation
+    pub operation: String,
+}
+
 /// GET v1/projects/{project}/operations/{operation}
 /// Retrieves an instance operation that has been performed on an instance.
 ///
@@ -6585,13 +7159,12 @@ pub fn sql_operations_get_execute(
 
 pub fn sql_operations_get(
     client: &SimpleHttpClient,
-    project: &str,
-    operation: &str,
+    args: &SqlOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_operations_get_builder(client, project, operation)?;
+    let builder = sql_operations_get_builder(client, &args.project, &args.operation)?;
     sql_operations_get_execute(builder)
 }
 
@@ -6707,6 +7280,19 @@ pub fn sql_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlOperationsListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: instance
+    pub instance: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{project}/operations
 /// Lists all instance operations that have been performed on the given Cloud SQL instance in the reverse chronological order of the start time.
 ///
@@ -6719,17 +7305,20 @@ pub fn sql_operations_list_execute(
 
 pub fn sql_operations_list(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SqlOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OperationsListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sql_operations_list_builder(client, project, instance, maxResults, pageToken)?;
+    let builder = sql_operations_list_builder(
+        client,
+        &args.project,
+        args.instance.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     sql_operations_list_execute(builder)
 }
 
@@ -6829,6 +7418,15 @@ pub fn sql_projects_instances_get_disk_shrink_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_projects_instances_get_disk_shrink_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlProjectsInstancesGetDiskShrinkConfigArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/getDiskShrinkConfig
 /// Get Disk Shrink Config for a given instance.
 ///
@@ -6841,8 +7439,7 @@ pub fn sql_projects_instances_get_disk_shrink_config_execute(
 
 pub fn sql_projects_instances_get_disk_shrink_config(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
+    args: &SqlProjectsInstancesGetDiskShrinkConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SqlInstancesGetDiskShrinkConfigResponse>, ApiError>,
@@ -6851,7 +7448,11 @@ pub fn sql_projects_instances_get_disk_shrink_config(
         + 'static,
     ApiError,
 > {
-    let builder = sql_projects_instances_get_disk_shrink_config_builder(client, project, instance)?;
+    let builder = sql_projects_instances_get_disk_shrink_config_builder(
+        client,
+        &args.project,
+        &args.instance,
+    )?;
     sql_projects_instances_get_disk_shrink_config_execute(builder)
 }
 
@@ -6962,6 +7563,17 @@ pub fn sql_projects_instances_get_latest_recovery_time_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_projects_instances_get_latest_recovery_time`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlProjectsInstancesGetLatestRecoveryTimeArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Query parameter: sourceInstanceDeletionTime
+    pub sourceInstanceDeletionTime: Option<String>,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/getLatestRecoveryTime
 /// Get Latest Recovery Time for a given instance.
 ///
@@ -6974,9 +7586,7 @@ pub fn sql_projects_instances_get_latest_recovery_time_execute(
 
 pub fn sql_projects_instances_get_latest_recovery_time(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    sourceInstanceDeletionTime: Option<&str>,
+    args: &SqlProjectsInstancesGetLatestRecoveryTimeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SqlInstancesGetLatestRecoveryTimeResponse>, ApiError>,
@@ -6987,9 +7597,9 @@ pub fn sql_projects_instances_get_latest_recovery_time(
 > {
     let builder = sql_projects_instances_get_latest_recovery_time_builder(
         client,
-        project,
-        instance,
-        sourceInstanceDeletionTime,
+        &args.project,
+        &args.instance,
+        args.sourceInstanceDeletionTime.as_deref(),
     )?;
     sql_projects_instances_get_latest_recovery_time_execute(builder)
 }
@@ -7088,6 +7698,17 @@ pub fn sql_projects_instances_perform_disk_shrink_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_projects_instances_perform_disk_shrink`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlProjectsInstancesPerformDiskShrinkArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: PerformDiskShrinkContext,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/performDiskShrink
 /// Perform Disk Shrink on primary instance.
 ///
@@ -7100,15 +7721,17 @@ pub fn sql_projects_instances_perform_disk_shrink_execute(
 
 pub fn sql_projects_instances_perform_disk_shrink(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &PerformDiskShrinkContext,
+    args: &SqlProjectsInstancesPerformDiskShrinkArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_projects_instances_perform_disk_shrink_builder(client, project, instance, body)?;
+    let builder = sql_projects_instances_perform_disk_shrink_builder(
+        client,
+        &args.project,
+        &args.instance,
+        &args.body,
+    )?;
     sql_projects_instances_perform_disk_shrink_execute(builder)
 }
 
@@ -7206,6 +7829,17 @@ pub fn sql_projects_instances_reschedule_maintenance_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_projects_instances_reschedule_maintenance`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlProjectsInstancesRescheduleMaintenanceArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: SqlInstancesRescheduleMaintenanceRequestBody,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/rescheduleMaintenance
 /// Reschedules the maintenance on the given instance.
 ///
@@ -7218,15 +7852,17 @@ pub fn sql_projects_instances_reschedule_maintenance_execute(
 
 pub fn sql_projects_instances_reschedule_maintenance(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &SqlInstancesRescheduleMaintenanceRequestBody,
+    args: &SqlProjectsInstancesRescheduleMaintenanceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_projects_instances_reschedule_maintenance_builder(client, project, instance, body)?;
+    let builder = sql_projects_instances_reschedule_maintenance_builder(
+        client,
+        &args.project,
+        &args.instance,
+        &args.body,
+    )?;
     sql_projects_instances_reschedule_maintenance_execute(builder)
 }
 
@@ -7324,6 +7960,17 @@ pub fn sql_projects_instances_reset_replica_size_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_projects_instances_reset_replica_size`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlProjectsInstancesResetReplicaSizeArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: SqlInstancesResetReplicaSizeRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/resetReplicaSize
 /// Reset Replica Size to primary instance disk size.
 ///
@@ -7336,15 +7983,17 @@ pub fn sql_projects_instances_reset_replica_size_execute(
 
 pub fn sql_projects_instances_reset_replica_size(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &SqlInstancesResetReplicaSizeRequest,
+    args: &SqlProjectsInstancesResetReplicaSizeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_projects_instances_reset_replica_size_builder(client, project, instance, body)?;
+    let builder = sql_projects_instances_reset_replica_size_builder(
+        client,
+        &args.project,
+        &args.instance,
+        &args.body,
+    )?;
     sql_projects_instances_reset_replica_size_execute(builder)
 }
 
@@ -7442,6 +8091,17 @@ pub fn sql_projects_instances_start_external_sync_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_projects_instances_start_external_sync`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlProjectsInstancesStartExternalSyncArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: SqlInstancesStartExternalSyncRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/startExternalSync
 /// Start External primary instance migration.
 ///
@@ -7454,15 +8114,17 @@ pub fn sql_projects_instances_start_external_sync_execute(
 
 pub fn sql_projects_instances_start_external_sync(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &SqlInstancesStartExternalSyncRequest,
+    args: &SqlProjectsInstancesStartExternalSyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_projects_instances_start_external_sync_builder(client, project, instance, body)?;
+    let builder = sql_projects_instances_start_external_sync_builder(
+        client,
+        &args.project,
+        &args.instance,
+        &args.body,
+    )?;
     sql_projects_instances_start_external_sync_execute(builder)
 }
 
@@ -7565,6 +8227,17 @@ pub fn sql_projects_instances_verify_external_sync_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_projects_instances_verify_external_sync_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlProjectsInstancesVerifyExternalSyncSettingsArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: SqlInstancesVerifyExternalSyncSettingsRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/verifyExternalSyncSettings
 /// Verify External primary instance external sync settings.
 ///
@@ -7577,9 +8250,7 @@ pub fn sql_projects_instances_verify_external_sync_settings_execute(
 
 pub fn sql_projects_instances_verify_external_sync_settings(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &SqlInstancesVerifyExternalSyncSettingsRequest,
+    args: &SqlProjectsInstancesVerifyExternalSyncSettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SqlInstancesVerifyExternalSyncSettingsResponse>, ApiError>,
@@ -7589,7 +8260,10 @@ pub fn sql_projects_instances_verify_external_sync_settings(
     ApiError,
 > {
     let builder = sql_projects_instances_verify_external_sync_settings_builder(
-        client, project, instance, body,
+        client,
+        &args.project,
+        &args.instance,
+        &args.body,
     )?;
     sql_projects_instances_verify_external_sync_settings_execute(builder)
 }
@@ -7688,6 +8362,17 @@ pub fn sql_ssl_certs_create_ephemeral_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_ssl_certs_create_ephemeral`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlSslCertsCreateEphemeralArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: SslCertsCreateEphemeralRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/createEphemeral
 /// Generates a short-lived X509 certificate containing the provided public key and signed by a private key specific to the target instance. Users may use the certificate to authenticate as themselves when connecting to the database.
 ///
@@ -7700,14 +8385,13 @@ pub fn sql_ssl_certs_create_ephemeral_execute(
 
 pub fn sql_ssl_certs_create_ephemeral(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &SslCertsCreateEphemeralRequest,
+    args: &SqlSslCertsCreateEphemeralArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SslCert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_ssl_certs_create_ephemeral_builder(client, project, instance, body)?;
+    let builder =
+        sql_ssl_certs_create_ephemeral_builder(client, &args.project, &args.instance, &args.body)?;
     sql_ssl_certs_create_ephemeral_execute(builder)
 }
 
@@ -7803,6 +8487,17 @@ pub fn sql_ssl_certs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_ssl_certs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlSslCertsDeleteArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Path parameter: sha1Fingerprint
+    pub sha1Fingerprint: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/sslCerts/{sha1Fingerprint}
 /// Deletes the SSL certificate. For First Generation instances, the certificate remains valid until the instance is restarted.
 ///
@@ -7815,14 +8510,13 @@ pub fn sql_ssl_certs_delete_execute(
 
 pub fn sql_ssl_certs_delete(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    sha1Fingerprint: &str,
+    args: &SqlSslCertsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_ssl_certs_delete_builder(client, project, instance, sha1Fingerprint)?;
+    let builder =
+        sql_ssl_certs_delete_builder(client, &args.project, &args.instance, &args.sha1Fingerprint)?;
     sql_ssl_certs_delete_execute(builder)
 }
 
@@ -7918,6 +8612,17 @@ pub fn sql_ssl_certs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_ssl_certs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlSslCertsGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Path parameter: sha1Fingerprint
+    pub sha1Fingerprint: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/sslCerts/{sha1Fingerprint}
 /// Retrieves a particular SSL certificate. Does not include the private key (required for usage). The private key must be saved from the response to initial creation.
 ///
@@ -7930,14 +8635,13 @@ pub fn sql_ssl_certs_get_execute(
 
 pub fn sql_ssl_certs_get(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    sha1Fingerprint: &str,
+    args: &SqlSslCertsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SslCert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_ssl_certs_get_builder(client, project, instance, sha1Fingerprint)?;
+    let builder =
+        sql_ssl_certs_get_builder(client, &args.project, &args.instance, &args.sha1Fingerprint)?;
     sql_ssl_certs_get_execute(builder)
 }
 
@@ -8037,6 +8741,17 @@ pub fn sql_ssl_certs_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_ssl_certs_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlSslCertsInsertArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: SslCertsInsertRequest,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/sslCerts
 /// Creates an SSL certificate and returns it along with the private key and server certificate authority. The new certificate will not be usable until the instance is restarted.
 ///
@@ -8049,16 +8764,14 @@ pub fn sql_ssl_certs_insert_execute(
 
 pub fn sql_ssl_certs_insert(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &SslCertsInsertRequest,
+    args: &SqlSslCertsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SslCertsInsertResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sql_ssl_certs_insert_builder(client, project, instance, body)?;
+    let builder = sql_ssl_certs_insert_builder(client, &args.project, &args.instance, &args.body)?;
     sql_ssl_certs_insert_execute(builder)
 }
 
@@ -8155,6 +8868,15 @@ pub fn sql_ssl_certs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_ssl_certs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlSslCertsListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/sslCerts
 /// Lists all of the current SSL certificates for the instance.
 ///
@@ -8167,15 +8889,14 @@ pub fn sql_ssl_certs_list_execute(
 
 pub fn sql_ssl_certs_list(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
+    args: &SqlSslCertsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SslCertsListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sql_ssl_certs_list_builder(client, project, instance)?;
+    let builder = sql_ssl_certs_list_builder(client, &args.project, &args.instance)?;
     sql_ssl_certs_list_execute(builder)
 }
 
@@ -8271,6 +8992,13 @@ pub fn sql_tiers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_tiers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlTiersListArgs {
+    /// Path parameter: project
+    pub project: String,
+}
+
 /// GET v1/projects/{project}/tiers
 /// Lists all available machine types (tiers) for Cloud SQL, for example, db-custom-1-3840. For more information, see <https://cloud.google.`com/sql/pricing`.>
 ///
@@ -8283,14 +9011,14 @@ pub fn sql_tiers_list_execute(
 
 pub fn sql_tiers_list(
     client: &SimpleHttpClient,
-    project: &str,
+    args: &SqlTiersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TiersListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sql_tiers_list_builder(client, project)?;
+    let builder = sql_tiers_list_builder(client, &args.project)?;
     sql_tiers_list_execute(builder)
 }
 
@@ -8401,6 +9129,19 @@ pub fn sql_users_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_users_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlUsersDeleteArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Query parameter: host
+    pub host: Option<String>,
+    /// Query parameter: name
+    pub name: Option<String>,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/users
 /// Deletes a user from a Cloud SQL instance.
 ///
@@ -8413,15 +9154,18 @@ pub fn sql_users_delete_execute(
 
 pub fn sql_users_delete(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    host: Option<&str>,
-    name: Option<&str>,
+    args: &SqlUsersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_users_delete_builder(client, project, instance, host, name)?;
+    let builder = sql_users_delete_builder(
+        client,
+        &args.project,
+        &args.instance,
+        args.host.as_deref(),
+        args.name.as_deref(),
+    )?;
     sql_users_delete_execute(builder)
 }
 
@@ -8529,6 +9273,19 @@ pub fn sql_users_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_users_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlUsersGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: host
+    pub host: Option<String>,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/users/{name}
 /// Retrieves a resource containing information about a user.
 ///
@@ -8541,15 +9298,18 @@ pub fn sql_users_get_execute(
 
 pub fn sql_users_get(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    name: &str,
-    host: Option<&str>,
+    args: &SqlUsersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_users_get_builder(client, project, instance, name, host)?;
+    let builder = sql_users_get_builder(
+        client,
+        &args.project,
+        &args.instance,
+        &args.name,
+        args.host.as_deref(),
+    )?;
     sql_users_get_execute(builder)
 }
 
@@ -8647,6 +9407,17 @@ pub fn sql_users_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_users_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlUsersInsertArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: User,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/users
 /// Creates a new user in a Cloud SQL instance.
 ///
@@ -8659,14 +9430,12 @@ pub fn sql_users_insert_execute(
 
 pub fn sql_users_insert(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    body: &User,
+    args: &SqlUsersInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_users_insert_builder(client, project, instance, body)?;
+    let builder = sql_users_insert_builder(client, &args.project, &args.instance, &args.body)?;
     sql_users_insert_execute(builder)
 }
 
@@ -8763,6 +9532,15 @@ pub fn sql_users_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_users_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlUsersListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/users
 /// Lists users in the specified Cloud SQL instance.
 ///
@@ -8775,15 +9553,14 @@ pub fn sql_users_list_execute(
 
 pub fn sql_users_list(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
+    args: &SqlUsersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UsersListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sql_users_list_builder(client, project, instance)?;
+    let builder = sql_users_list_builder(client, &args.project, &args.instance)?;
     sql_users_list_execute(builder)
 }
 
@@ -8905,6 +9682,25 @@ pub fn sql_users_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sql_users_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlUsersUpdateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Query parameter: databaseRoles
+    pub databaseRoles: Option<String>,
+    /// Query parameter: host
+    pub host: Option<String>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: revokeExistingRoles
+    pub revokeExistingRoles: Option<bool>,
+    /// Request body.
+    pub body: User,
+}
+
 /// GET v1/projects/{project}/instances/{instance}/users
 /// Updates an existing user in a Cloud SQL instance.
 ///
@@ -8917,26 +9713,20 @@ pub fn sql_users_update_execute(
 
 pub fn sql_users_update(
     client: &SimpleHttpClient,
-    project: &str,
-    instance: &str,
-    databaseRoles: Option<&str>,
-    host: Option<&str>,
-    name: Option<&str>,
-    revokeExistingRoles: Option<bool>,
-    body: &User,
+    args: &SqlUsersUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = sql_users_update_builder(
         client,
-        project,
-        instance,
-        databaseRoles,
-        host,
-        name,
-        revokeExistingRoles,
-        body,
+        &args.project,
+        &args.instance,
+        args.databaseRoles.as_deref(),
+        args.host.as_deref(),
+        args.name.as_deref(),
+        args.revokeExistingRoles,
+        &args.body,
     )?;
     sql_users_update_execute(builder)
 }

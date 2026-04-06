@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn dataform_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn dataform_projects_locations_get_execute(
 
 pub fn dataform_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_get_builder(client, name)?;
+    let builder = dataform_projects_locations_get_builder(client, &args.name)?;
     dataform_projects_locations_get_execute(builder)
 }
 
@@ -217,6 +226,13 @@ pub fn dataform_projects_locations_get_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_get_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsGetConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/config
 /// Get default config for a given project and location.
 ///
@@ -229,12 +245,12 @@ pub fn dataform_projects_locations_get_config_execute(
 
 pub fn dataform_projects_locations_get_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsGetConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Config>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_get_config_builder(client, name)?;
+    let builder = dataform_projects_locations_get_config_builder(client, &args.name)?;
     dataform_projects_locations_get_config_execute(builder)
 }
 
@@ -354,6 +370,21 @@ pub fn dataform_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -366,11 +397,7 @@ pub fn dataform_projects_locations_list_execute(
 
 pub fn dataform_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataformProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -379,11 +406,11 @@ pub fn dataform_projects_locations_list(
 > {
     let builder = dataform_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataform_projects_locations_list_execute(builder)
 }
@@ -506,6 +533,21 @@ pub fn dataform_projects_locations_query_user_root_contents_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_query_user_root_contents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsQueryUserRootContentsArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:queryUserRootContents
 /// Returns the contents of a caller's root folder in a given location. The root folder contains all resources that are created by the user and not contained in any other folder.
 ///
@@ -518,11 +560,7 @@ pub fn dataform_projects_locations_query_user_root_contents_execute(
 
 pub fn dataform_projects_locations_query_user_root_contents(
     client: &SimpleHttpClient,
-    location: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataformProjectsLocationsQueryUserRootContentsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<QueryUserRootContentsResponse>, ApiError>,
@@ -532,7 +570,12 @@ pub fn dataform_projects_locations_query_user_root_contents(
     ApiError,
 > {
     let builder = dataform_projects_locations_query_user_root_contents_builder(
-        client, location, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.location,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataform_projects_locations_query_user_root_contents_execute(builder)
 }
@@ -642,6 +685,17 @@ pub fn dataform_projects_locations_update_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_update_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsUpdateConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Config,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/config
 /// Update default config for a given project and location. **Note:** *This method does not fully implement [AIP/134](<https://google.aip.`dev/134`>). The wildcard entry (\*) is treated as a bad request, and when the field_mask is omitted, the request is treated as a full update on all modifiable fields.*
 ///
@@ -654,15 +708,17 @@ pub fn dataform_projects_locations_update_config_execute(
 
 pub fn dataform_projects_locations_update_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Config,
+    args: &DataformProjectsLocationsUpdateConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Config>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_update_config_builder(client, name, updateMask, body)?;
+    let builder = dataform_projects_locations_update_config_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     dataform_projects_locations_update_config_execute(builder)
 }
 
@@ -759,6 +815,15 @@ pub fn dataform_projects_locations_folders_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_folders_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsFoldersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Folder,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/folders
 /// Creates a new Folder in a given project and location.
 ///
@@ -771,13 +836,13 @@ pub fn dataform_projects_locations_folders_create_execute(
 
 pub fn dataform_projects_locations_folders_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Folder,
+    args: &DataformProjectsLocationsFoldersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_folders_create_builder(client, parent, body)?;
+    let builder =
+        dataform_projects_locations_folders_create_builder(client, &args.parent, &args.body)?;
     dataform_projects_locations_folders_create_execute(builder)
 }
 
@@ -871,6 +936,13 @@ pub fn dataform_projects_locations_folders_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_folders_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsFoldersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/folders/{foldersId}
 /// Deletes a single Folder.
 ///
@@ -883,12 +955,12 @@ pub fn dataform_projects_locations_folders_delete_execute(
 
 pub fn dataform_projects_locations_folders_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsFoldersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_folders_delete_builder(client, name)?;
+    let builder = dataform_projects_locations_folders_delete_builder(client, &args.name)?;
     dataform_projects_locations_folders_delete_execute(builder)
 }
 
@@ -985,6 +1057,15 @@ pub fn dataform_projects_locations_folders_delete_tree_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_folders_delete_tree`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsFoldersDeleteTreeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DeleteFolderTreeRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/folders/{foldersId}:deleteTree
 /// Deletes a Folder with its contents (Folders, Repositories, Workspaces, ReleaseConfigs, and WorkflowConfigs).
 ///
@@ -997,13 +1078,13 @@ pub fn dataform_projects_locations_folders_delete_tree_execute(
 
 pub fn dataform_projects_locations_folders_delete_tree(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DeleteFolderTreeRequest,
+    args: &DataformProjectsLocationsFoldersDeleteTreeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_folders_delete_tree_builder(client, name, body)?;
+    let builder =
+        dataform_projects_locations_folders_delete_tree_builder(client, &args.name, &args.body)?;
     dataform_projects_locations_folders_delete_tree_execute(builder)
 }
 
@@ -1097,6 +1178,13 @@ pub fn dataform_projects_locations_folders_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_folders_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsFoldersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/folders/{foldersId}
 /// Fetches a single Folder.
 ///
@@ -1109,12 +1197,12 @@ pub fn dataform_projects_locations_folders_get_execute(
 
 pub fn dataform_projects_locations_folders_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsFoldersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_folders_get_builder(client, name)?;
+    let builder = dataform_projects_locations_folders_get_builder(client, &args.name)?;
     dataform_projects_locations_folders_get_execute(builder)
 }
 
@@ -1220,6 +1308,15 @@ pub fn dataform_projects_locations_folders_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_folders_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsFoldersGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/folders/{foldersId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1232,16 +1329,15 @@ pub fn dataform_projects_locations_folders_get_iam_policy_execute(
 
 pub fn dataform_projects_locations_folders_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataformProjectsLocationsFoldersGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataform_projects_locations_folders_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataform_projects_locations_folders_get_iam_policy_execute(builder)
 }
@@ -1339,6 +1435,15 @@ pub fn dataform_projects_locations_folders_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_folders_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsFoldersMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MoveFolderRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/folders/{foldersId}:move
 /// Moves a Folder to a new Folder, TeamFolder, or the root location.
 ///
@@ -1351,13 +1456,12 @@ pub fn dataform_projects_locations_folders_move_execute(
 
 pub fn dataform_projects_locations_folders_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MoveFolderRequest,
+    args: &DataformProjectsLocationsFoldersMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_folders_move_builder(client, name, body)?;
+    let builder = dataform_projects_locations_folders_move_builder(client, &args.name, &args.body)?;
     dataform_projects_locations_folders_move_execute(builder)
 }
 
@@ -1466,6 +1570,17 @@ pub fn dataform_projects_locations_folders_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_folders_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsFoldersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Folder,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/folders/{foldersId}
 /// Updates a single Folder.
 ///
@@ -1478,15 +1593,17 @@ pub fn dataform_projects_locations_folders_patch_execute(
 
 pub fn dataform_projects_locations_folders_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Folder,
+    args: &DataformProjectsLocationsFoldersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_folders_patch_builder(client, name, updateMask, body)?;
+    let builder = dataform_projects_locations_folders_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     dataform_projects_locations_folders_patch_execute(builder)
 }
 
@@ -1608,6 +1725,21 @@ pub fn dataform_projects_locations_folders_query_folder_contents_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_folders_query_folder_contents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsFoldersQueryFolderContentsArgs {
+    /// Path parameter: folder
+    pub folder: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/folders/{foldersId}:queryFolderContents
 /// Returns the contents of a given Folder.
 ///
@@ -1620,11 +1752,7 @@ pub fn dataform_projects_locations_folders_query_folder_contents_execute(
 
 pub fn dataform_projects_locations_folders_query_folder_contents(
     client: &SimpleHttpClient,
-    folder: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataformProjectsLocationsFoldersQueryFolderContentsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<QueryFolderContentsResponse>, ApiError>,
@@ -1634,7 +1762,12 @@ pub fn dataform_projects_locations_folders_query_folder_contents(
     ApiError,
 > {
     let builder = dataform_projects_locations_folders_query_folder_contents_builder(
-        client, folder, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.folder,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataform_projects_locations_folders_query_folder_contents_execute(builder)
 }
@@ -1732,6 +1865,15 @@ pub fn dataform_projects_locations_folders_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_folders_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsFoldersSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/folders/{foldersId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1744,14 +1886,16 @@ pub fn dataform_projects_locations_folders_set_iam_policy_execute(
 
 pub fn dataform_projects_locations_folders_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DataformProjectsLocationsFoldersSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_folders_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataform_projects_locations_folders_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataform_projects_locations_folders_set_iam_policy_execute(builder)
 }
 
@@ -1852,6 +1996,15 @@ pub fn dataform_projects_locations_folders_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_folders_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsFoldersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/folders/{foldersId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1864,8 +2017,7 @@ pub fn dataform_projects_locations_folders_test_iam_permissions_execute(
 
 pub fn dataform_projects_locations_folders_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DataformProjectsLocationsFoldersTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1874,8 +2026,11 @@ pub fn dataform_projects_locations_folders_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_folders_test_iam_permissions_builder(client, resource, body)?;
+    let builder = dataform_projects_locations_folders_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataform_projects_locations_folders_test_iam_permissions_execute(builder)
 }
 
@@ -1972,6 +2127,15 @@ pub fn dataform_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1984,13 +2148,13 @@ pub fn dataform_projects_locations_operations_cancel_execute(
 
 pub fn dataform_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &DataformProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        dataform_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     dataform_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -2084,6 +2248,13 @@ pub fn dataform_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -2096,12 +2267,12 @@ pub fn dataform_projects_locations_operations_delete_execute(
 
 pub fn dataform_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_operations_delete_builder(client, name)?;
+    let builder = dataform_projects_locations_operations_delete_builder(client, &args.name)?;
     dataform_projects_locations_operations_delete_execute(builder)
 }
 
@@ -2195,6 +2366,13 @@ pub fn dataform_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2207,12 +2385,12 @@ pub fn dataform_projects_locations_operations_get_execute(
 
 pub fn dataform_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_operations_get_builder(client, name)?;
+    let builder = dataform_projects_locations_operations_get_builder(client, &args.name)?;
     dataform_projects_locations_operations_get_execute(builder)
 }
 
@@ -2332,6 +2510,21 @@ pub fn dataform_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -2344,11 +2537,7 @@ pub fn dataform_projects_locations_operations_list_execute(
 
 pub fn dataform_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DataformProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2357,11 +2546,11 @@ pub fn dataform_projects_locations_operations_list(
 > {
     let builder = dataform_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     dataform_projects_locations_operations_list_execute(builder)
 }
@@ -2463,6 +2652,15 @@ pub fn dataform_projects_locations_repositories_commit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_commit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesCommitArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CommitRepositoryChangesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:commit
 /// Applies a Git commit to a Repository. The Repository must not have a value for git_remote_settings.url.
 ///
@@ -2475,8 +2673,7 @@ pub fn dataform_projects_locations_repositories_commit_execute(
 
 pub fn dataform_projects_locations_repositories_commit(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CommitRepositoryChangesRequest,
+    args: &DataformProjectsLocationsRepositoriesCommitArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CommitRepositoryChangesResponse>, ApiError>,
@@ -2485,7 +2682,8 @@ pub fn dataform_projects_locations_repositories_commit(
         + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_repositories_commit_builder(client, name, body)?;
+    let builder =
+        dataform_projects_locations_repositories_commit_builder(client, &args.name, &args.body)?;
     dataform_projects_locations_repositories_commit_execute(builder)
 }
 
@@ -2584,6 +2782,13 @@ pub fn dataform_projects_locations_repositories_compute_access_token_status_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_compute_access_token_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesComputeAccessTokenStatusArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:computeAccessTokenStatus
 /// Computes a Repository's Git access token status.
 ///
@@ -2596,7 +2801,7 @@ pub fn dataform_projects_locations_repositories_compute_access_token_status_exec
 
 pub fn dataform_projects_locations_repositories_compute_access_token_status(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsRepositoriesComputeAccessTokenStatusArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ComputeRepositoryAccessTokenStatusResponse>, ApiError>,
@@ -2605,8 +2810,9 @@ pub fn dataform_projects_locations_repositories_compute_access_token_status(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_repositories_compute_access_token_status_builder(client, name)?;
+    let builder = dataform_projects_locations_repositories_compute_access_token_status_builder(
+        client, &args.name,
+    )?;
     dataform_projects_locations_repositories_compute_access_token_status_execute(builder)
 }
 
@@ -2715,6 +2921,17 @@ pub fn dataform_projects_locations_repositories_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: repositoryId
+    pub repositoryId: Option<String>,
+    /// Request body.
+    pub body: Repository,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories
 /// Creates a new Repository in a given project and location.
 ///
@@ -2727,18 +2944,16 @@ pub fn dataform_projects_locations_repositories_create_execute(
 
 pub fn dataform_projects_locations_repositories_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    repositoryId: Option<&str>,
-    body: &Repository,
+    args: &DataformProjectsLocationsRepositoriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Repository>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_create_builder(
         client,
-        parent,
-        repositoryId,
-        body,
+        &args.parent,
+        args.repositoryId.as_deref(),
+        &args.body,
     )?;
     dataform_projects_locations_repositories_create_execute(builder)
 }
@@ -2845,6 +3060,15 @@ pub fn dataform_projects_locations_repositories_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
 /// Deletes a single Repository.
 ///
@@ -2857,13 +3081,13 @@ pub fn dataform_projects_locations_repositories_delete_execute(
 
 pub fn dataform_projects_locations_repositories_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &DataformProjectsLocationsRepositoriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_repositories_delete_builder(client, name, force)?;
+    let builder =
+        dataform_projects_locations_repositories_delete_builder(client, &args.name, args.force)?;
     dataform_projects_locations_repositories_delete_execute(builder)
 }
 
@@ -2977,6 +3201,17 @@ pub fn dataform_projects_locations_repositories_fetch_history_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_fetch_history`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesFetchHistoryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:fetchHistory
 /// Fetches a Repository's history of commits. The Repository must not have a value for git_remote_settings.url.
 ///
@@ -2989,9 +3224,7 @@ pub fn dataform_projects_locations_repositories_fetch_history_execute(
 
 pub fn dataform_projects_locations_repositories_fetch_history(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataformProjectsLocationsRepositoriesFetchHistoryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchRepositoryHistoryResponse>, ApiError>,
@@ -3001,7 +3234,10 @@ pub fn dataform_projects_locations_repositories_fetch_history(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_fetch_history_builder(
-        client, name, pageSize, pageToken,
+        client,
+        &args.name,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataform_projects_locations_repositories_fetch_history_execute(builder)
 }
@@ -3100,6 +3336,13 @@ pub fn dataform_projects_locations_repositories_fetch_remote_branches_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_fetch_remote_branches`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesFetchRemoteBranchesArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:fetchRemoteBranches
 /// Fetches a Repository's remote branches.
 ///
@@ -3112,7 +3355,7 @@ pub fn dataform_projects_locations_repositories_fetch_remote_branches_execute(
 
 pub fn dataform_projects_locations_repositories_fetch_remote_branches(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsRepositoriesFetchRemoteBranchesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchRemoteBranchesResponse>, ApiError>,
@@ -3122,7 +3365,7 @@ pub fn dataform_projects_locations_repositories_fetch_remote_branches(
     ApiError,
 > {
     let builder =
-        dataform_projects_locations_repositories_fetch_remote_branches_builder(client, name)?;
+        dataform_projects_locations_repositories_fetch_remote_branches_builder(client, &args.name)?;
     dataform_projects_locations_repositories_fetch_remote_branches_execute(builder)
 }
 
@@ -3216,6 +3459,13 @@ pub fn dataform_projects_locations_repositories_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
 /// Fetches a single Repository.
 ///
@@ -3228,12 +3478,12 @@ pub fn dataform_projects_locations_repositories_get_execute(
 
 pub fn dataform_projects_locations_repositories_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsRepositoriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Repository>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_repositories_get_builder(client, name)?;
+    let builder = dataform_projects_locations_repositories_get_builder(client, &args.name)?;
     dataform_projects_locations_repositories_get_execute(builder)
 }
 
@@ -3339,6 +3589,15 @@ pub fn dataform_projects_locations_repositories_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -3351,16 +3610,15 @@ pub fn dataform_projects_locations_repositories_get_iam_policy_execute(
 
 pub fn dataform_projects_locations_repositories_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataformProjectsLocationsRepositoriesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataform_projects_locations_repositories_get_iam_policy_execute(builder)
 }
@@ -3481,6 +3739,21 @@ pub fn dataform_projects_locations_repositories_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories
 /// Lists Repositories in a given project and location. **Note:** *This method can return repositories not shown in the [Dataform UI](<https://console.cloud.google.`com/bigquery/dataform`>)*.
 ///
@@ -3493,11 +3766,7 @@ pub fn dataform_projects_locations_repositories_list_execute(
 
 pub fn dataform_projects_locations_repositories_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataformProjectsLocationsRepositoriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRepositoriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3505,7 +3774,12 @@ pub fn dataform_projects_locations_repositories_list(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataform_projects_locations_repositories_list_execute(builder)
 }
@@ -3603,6 +3877,15 @@ pub fn dataform_projects_locations_repositories_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MoveRepositoryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:move
 /// Moves a Repository to a new location.
 ///
@@ -3615,13 +3898,13 @@ pub fn dataform_projects_locations_repositories_move_execute(
 
 pub fn dataform_projects_locations_repositories_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MoveRepositoryRequest,
+    args: &DataformProjectsLocationsRepositoriesMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_repositories_move_builder(client, name, body)?;
+    let builder =
+        dataform_projects_locations_repositories_move_builder(client, &args.name, &args.body)?;
     dataform_projects_locations_repositories_move_execute(builder)
 }
 
@@ -3730,6 +4013,17 @@ pub fn dataform_projects_locations_repositories_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Repository,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
 /// Updates a single Repository. **Note:** *This method does not fully implement [AIP/134](<https://google.aip.`dev/134`>). The wildcard entry (\*) is treated as a bad request, and when the field_mask is omitted, the request is treated as a full update on all modifiable fields.*
 ///
@@ -3742,15 +4036,17 @@ pub fn dataform_projects_locations_repositories_patch_execute(
 
 pub fn dataform_projects_locations_repositories_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Repository,
+    args: &DataformProjectsLocationsRepositoriesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Repository>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_repositories_patch_builder(client, name, updateMask, body)?;
+    let builder = dataform_projects_locations_repositories_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     dataform_projects_locations_repositories_patch_execute(builder)
 }
 
@@ -3872,6 +4168,21 @@ pub fn dataform_projects_locations_repositories_query_directory_contents_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_query_directory_contents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesQueryDirectoryContentsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: commitSha
+    pub commitSha: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: path
+    pub path: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:queryDirectoryContents
 /// Returns the contents of a given Repository directory. The Repository must not have a value for git_remote_settings.url.
 ///
@@ -3884,11 +4195,7 @@ pub fn dataform_projects_locations_repositories_query_directory_contents_execute
 
 pub fn dataform_projects_locations_repositories_query_directory_contents(
     client: &SimpleHttpClient,
-    name: &str,
-    commitSha: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    path: Option<&str>,
+    args: &DataformProjectsLocationsRepositoriesQueryDirectoryContentsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<QueryRepositoryDirectoryContentsResponse>, ApiError>,
@@ -3898,7 +4205,12 @@ pub fn dataform_projects_locations_repositories_query_directory_contents(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_query_directory_contents_builder(
-        client, name, commitSha, pageSize, pageToken, path,
+        client,
+        &args.name,
+        args.commitSha.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.path.as_deref(),
     )?;
     dataform_projects_locations_repositories_query_directory_contents_execute(builder)
 }
@@ -4013,6 +4325,17 @@ pub fn dataform_projects_locations_repositories_read_file_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_read_file`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesReadFileArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: commitSha
+    pub commitSha: Option<String>,
+    /// Query parameter: path
+    pub path: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:readFile
 /// Returns the contents of a file (inside a Repository). The Repository must not have a value for git_remote_settings.url.
 ///
@@ -4025,9 +4348,7 @@ pub fn dataform_projects_locations_repositories_read_file_execute(
 
 pub fn dataform_projects_locations_repositories_read_file(
     client: &SimpleHttpClient,
-    name: &str,
-    commitSha: Option<&str>,
-    path: Option<&str>,
+    args: &DataformProjectsLocationsRepositoriesReadFileArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ReadRepositoryFileResponse>, ApiError>,
@@ -4036,8 +4357,12 @@ pub fn dataform_projects_locations_repositories_read_file(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_repositories_read_file_builder(client, name, commitSha, path)?;
+    let builder = dataform_projects_locations_repositories_read_file_builder(
+        client,
+        &args.name,
+        args.commitSha.as_deref(),
+        args.path.as_deref(),
+    )?;
     dataform_projects_locations_repositories_read_file_execute(builder)
 }
 
@@ -4134,6 +4459,15 @@ pub fn dataform_projects_locations_repositories_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -4146,14 +4480,16 @@ pub fn dataform_projects_locations_repositories_set_iam_policy_execute(
 
 pub fn dataform_projects_locations_repositories_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DataformProjectsLocationsRepositoriesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_repositories_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataform_projects_locations_repositories_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataform_projects_locations_repositories_set_iam_policy_execute(builder)
 }
 
@@ -4254,6 +4590,15 @@ pub fn dataform_projects_locations_repositories_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -4266,8 +4611,7 @@ pub fn dataform_projects_locations_repositories_test_iam_permissions_execute(
 
 pub fn dataform_projects_locations_repositories_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DataformProjectsLocationsRepositoriesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -4277,7 +4621,9 @@ pub fn dataform_projects_locations_repositories_test_iam_permissions(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataform_projects_locations_repositories_test_iam_permissions_execute(builder)
 }
@@ -4377,6 +4723,15 @@ pub fn dataform_projects_locations_repositories_compilation_results_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_compilation_results_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesCompilationResultsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CompilationResult,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/compilationResults
 /// Creates a new CompilationResult in a given project and location.
 ///
@@ -4389,8 +4744,7 @@ pub fn dataform_projects_locations_repositories_compilation_results_create_execu
 
 pub fn dataform_projects_locations_repositories_compilation_results_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CompilationResult,
+    args: &DataformProjectsLocationsRepositoriesCompilationResultsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CompilationResult>, ApiError>, P = ApiPending>
         + Send
@@ -4398,7 +4752,9 @@ pub fn dataform_projects_locations_repositories_compilation_results_create(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_compilation_results_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     dataform_projects_locations_repositories_compilation_results_create_execute(builder)
 }
@@ -4495,6 +4851,13 @@ pub fn dataform_projects_locations_repositories_compilation_results_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_compilation_results_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesCompilationResultsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/compilationResults/{compilationResultsId}
 /// Fetches a single CompilationResult.
 ///
@@ -4507,15 +4870,16 @@ pub fn dataform_projects_locations_repositories_compilation_results_get_execute(
 
 pub fn dataform_projects_locations_repositories_compilation_results_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsRepositoriesCompilationResultsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CompilationResult>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_repositories_compilation_results_get_builder(client, name)?;
+    let builder = dataform_projects_locations_repositories_compilation_results_get_builder(
+        client, &args.name,
+    )?;
     dataform_projects_locations_repositories_compilation_results_get_execute(builder)
 }
 
@@ -4637,6 +5001,21 @@ pub fn dataform_projects_locations_repositories_compilation_results_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_compilation_results_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesCompilationResultsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/compilationResults
 /// Lists CompilationResults in a given Repository.
 ///
@@ -4649,11 +5028,7 @@ pub fn dataform_projects_locations_repositories_compilation_results_list_execute
 
 pub fn dataform_projects_locations_repositories_compilation_results_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataformProjectsLocationsRepositoriesCompilationResultsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCompilationResultsResponse>, ApiError>,
@@ -4663,7 +5038,12 @@ pub fn dataform_projects_locations_repositories_compilation_results_list(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_compilation_results_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataform_projects_locations_repositories_compilation_results_list_execute(builder)
 }
@@ -4782,6 +5162,19 @@ pub fn dataform_projects_locations_repositories_compilation_results_query_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_compilation_results_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesCompilationResultsQueryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/compilationResults/{compilationResultsId}:query
 /// Returns CompilationResultActions in a given CompilationResult.
 ///
@@ -4794,10 +5187,7 @@ pub fn dataform_projects_locations_repositories_compilation_results_query_execut
 
 pub fn dataform_projects_locations_repositories_compilation_results_query(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataformProjectsLocationsRepositoriesCompilationResultsQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<QueryCompilationResultActionsResponse>, ApiError>,
@@ -4807,7 +5197,11 @@ pub fn dataform_projects_locations_repositories_compilation_results_query(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_compilation_results_query_builder(
-        client, name, filter, pageSize, pageToken,
+        client,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataform_projects_locations_repositories_compilation_results_query_execute(builder)
 }
@@ -4919,6 +5313,17 @@ pub fn dataform_projects_locations_repositories_release_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_release_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesReleaseConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: releaseConfigId
+    pub releaseConfigId: Option<String>,
+    /// Request body.
+    pub body: ReleaseConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/releaseConfigs
 /// Creates a new ReleaseConfig in a given Repository.
 ///
@@ -4931,9 +5336,7 @@ pub fn dataform_projects_locations_repositories_release_configs_create_execute(
 
 pub fn dataform_projects_locations_repositories_release_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    releaseConfigId: Option<&str>,
-    body: &ReleaseConfig,
+    args: &DataformProjectsLocationsRepositoriesReleaseConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReleaseConfig>, ApiError>, P = ApiPending>
         + Send
@@ -4942,9 +5345,9 @@ pub fn dataform_projects_locations_repositories_release_configs_create(
 > {
     let builder = dataform_projects_locations_repositories_release_configs_create_builder(
         client,
-        parent,
-        releaseConfigId,
-        body,
+        &args.parent,
+        args.releaseConfigId.as_deref(),
+        &args.body,
     )?;
     dataform_projects_locations_repositories_release_configs_create_execute(builder)
 }
@@ -5039,6 +5442,13 @@ pub fn dataform_projects_locations_repositories_release_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_release_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesReleaseConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/releaseConfigs/{releaseConfigsId}
 /// Deletes a single ReleaseConfig.
 ///
@@ -5051,13 +5461,14 @@ pub fn dataform_projects_locations_repositories_release_configs_delete_execute(
 
 pub fn dataform_projects_locations_repositories_release_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsRepositoriesReleaseConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_repositories_release_configs_delete_builder(client, name)?;
+    let builder = dataform_projects_locations_repositories_release_configs_delete_builder(
+        client, &args.name,
+    )?;
     dataform_projects_locations_repositories_release_configs_delete_execute(builder)
 }
 
@@ -5153,6 +5564,13 @@ pub fn dataform_projects_locations_repositories_release_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_release_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesReleaseConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/releaseConfigs/{releaseConfigsId}
 /// Fetches a single ReleaseConfig.
 ///
@@ -5165,7 +5583,7 @@ pub fn dataform_projects_locations_repositories_release_configs_get_execute(
 
 pub fn dataform_projects_locations_repositories_release_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsRepositoriesReleaseConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReleaseConfig>, ApiError>, P = ApiPending>
         + Send
@@ -5173,7 +5591,7 @@ pub fn dataform_projects_locations_repositories_release_configs_get(
     ApiError,
 > {
     let builder =
-        dataform_projects_locations_repositories_release_configs_get_builder(client, name)?;
+        dataform_projects_locations_repositories_release_configs_get_builder(client, &args.name)?;
     dataform_projects_locations_repositories_release_configs_get_execute(builder)
 }
 
@@ -5287,6 +5705,17 @@ pub fn dataform_projects_locations_repositories_release_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_release_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesReleaseConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/releaseConfigs
 /// Lists ReleaseConfigs in a given Repository.
 ///
@@ -5299,9 +5728,7 @@ pub fn dataform_projects_locations_repositories_release_configs_list_execute(
 
 pub fn dataform_projects_locations_repositories_release_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataformProjectsLocationsRepositoriesReleaseConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListReleaseConfigsResponse>, ApiError>,
@@ -5311,7 +5738,10 @@ pub fn dataform_projects_locations_repositories_release_configs_list(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_release_configs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataform_projects_locations_repositories_release_configs_list_execute(builder)
 }
@@ -5423,6 +5853,17 @@ pub fn dataform_projects_locations_repositories_release_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_release_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesReleaseConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ReleaseConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/releaseConfigs/{releaseConfigsId}
 /// Updates a single ReleaseConfig. **Note:** *This method does not fully implement [AIP/134](<https://google.aip.`dev/134`>). The wildcard entry (\*) is treated as a bad request, and when the field_mask is omitted, the request is treated as a full update on all modifiable fields.*
 ///
@@ -5435,9 +5876,7 @@ pub fn dataform_projects_locations_repositories_release_configs_patch_execute(
 
 pub fn dataform_projects_locations_repositories_release_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ReleaseConfig,
+    args: &DataformProjectsLocationsRepositoriesReleaseConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReleaseConfig>, ApiError>, P = ApiPending>
         + Send
@@ -5445,7 +5884,10 @@ pub fn dataform_projects_locations_repositories_release_configs_patch(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_release_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dataform_projects_locations_repositories_release_configs_patch_execute(builder)
 }
@@ -5557,6 +5999,17 @@ pub fn dataform_projects_locations_repositories_workflow_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workflow_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkflowConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: workflowConfigId
+    pub workflowConfigId: Option<String>,
+    /// Request body.
+    pub body: WorkflowConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workflowConfigs
 /// Creates a new WorkflowConfig in a given Repository.
 ///
@@ -5569,9 +6022,7 @@ pub fn dataform_projects_locations_repositories_workflow_configs_create_execute(
 
 pub fn dataform_projects_locations_repositories_workflow_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    workflowConfigId: Option<&str>,
-    body: &WorkflowConfig,
+    args: &DataformProjectsLocationsRepositoriesWorkflowConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkflowConfig>, ApiError>, P = ApiPending>
         + Send
@@ -5580,9 +6031,9 @@ pub fn dataform_projects_locations_repositories_workflow_configs_create(
 > {
     let builder = dataform_projects_locations_repositories_workflow_configs_create_builder(
         client,
-        parent,
-        workflowConfigId,
-        body,
+        &args.parent,
+        args.workflowConfigId.as_deref(),
+        &args.body,
     )?;
     dataform_projects_locations_repositories_workflow_configs_create_execute(builder)
 }
@@ -5677,6 +6128,13 @@ pub fn dataform_projects_locations_repositories_workflow_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workflow_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkflowConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workflowConfigs/{workflowConfigsId}
 /// Deletes a single WorkflowConfig.
 ///
@@ -5689,13 +6147,14 @@ pub fn dataform_projects_locations_repositories_workflow_configs_delete_execute(
 
 pub fn dataform_projects_locations_repositories_workflow_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsRepositoriesWorkflowConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_repositories_workflow_configs_delete_builder(client, name)?;
+    let builder = dataform_projects_locations_repositories_workflow_configs_delete_builder(
+        client, &args.name,
+    )?;
     dataform_projects_locations_repositories_workflow_configs_delete_execute(builder)
 }
 
@@ -5791,6 +6250,13 @@ pub fn dataform_projects_locations_repositories_workflow_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workflow_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkflowConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workflowConfigs/{workflowConfigsId}
 /// Fetches a single WorkflowConfig.
 ///
@@ -5803,7 +6269,7 @@ pub fn dataform_projects_locations_repositories_workflow_configs_get_execute(
 
 pub fn dataform_projects_locations_repositories_workflow_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsRepositoriesWorkflowConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkflowConfig>, ApiError>, P = ApiPending>
         + Send
@@ -5811,7 +6277,7 @@ pub fn dataform_projects_locations_repositories_workflow_configs_get(
     ApiError,
 > {
     let builder =
-        dataform_projects_locations_repositories_workflow_configs_get_builder(client, name)?;
+        dataform_projects_locations_repositories_workflow_configs_get_builder(client, &args.name)?;
     dataform_projects_locations_repositories_workflow_configs_get_execute(builder)
 }
 
@@ -5925,6 +6391,17 @@ pub fn dataform_projects_locations_repositories_workflow_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workflow_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkflowConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workflowConfigs
 /// Lists WorkflowConfigs in a given Repository.
 ///
@@ -5937,9 +6414,7 @@ pub fn dataform_projects_locations_repositories_workflow_configs_list_execute(
 
 pub fn dataform_projects_locations_repositories_workflow_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataformProjectsLocationsRepositoriesWorkflowConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListWorkflowConfigsResponse>, ApiError>,
@@ -5949,7 +6424,10 @@ pub fn dataform_projects_locations_repositories_workflow_configs_list(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workflow_configs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataform_projects_locations_repositories_workflow_configs_list_execute(builder)
 }
@@ -6061,6 +6539,17 @@ pub fn dataform_projects_locations_repositories_workflow_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workflow_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkflowConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: WorkflowConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workflowConfigs/{workflowConfigsId}
 /// Updates a single WorkflowConfig. **Note:** *This method does not fully implement [AIP/134](<https://google.aip.`dev/134`>). The wildcard entry (\*) is treated as a bad request, and when the field_mask is omitted, the request is treated as a full update on all modifiable fields.*
 ///
@@ -6073,9 +6562,7 @@ pub fn dataform_projects_locations_repositories_workflow_configs_patch_execute(
 
 pub fn dataform_projects_locations_repositories_workflow_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &WorkflowConfig,
+    args: &DataformProjectsLocationsRepositoriesWorkflowConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkflowConfig>, ApiError>, P = ApiPending>
         + Send
@@ -6083,7 +6570,10 @@ pub fn dataform_projects_locations_repositories_workflow_configs_patch(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workflow_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dataform_projects_locations_repositories_workflow_configs_patch_execute(builder)
 }
@@ -6185,6 +6675,15 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_cancel_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workflow_invocations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkflowInvocationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelWorkflowInvocationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workflowInvocations/{workflowInvocationsId}:cancel
 /// Requests cancellation of a running WorkflowInvocation.
 ///
@@ -6197,8 +6696,7 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_cancel_exec
 
 pub fn dataform_projects_locations_repositories_workflow_invocations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelWorkflowInvocationRequest,
+    args: &DataformProjectsLocationsRepositoriesWorkflowInvocationsCancelArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CancelWorkflowInvocationResponse>, ApiError>,
@@ -6208,7 +6706,7 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_cancel(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workflow_invocations_cancel_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     dataform_projects_locations_repositories_workflow_invocations_cancel_execute(builder)
 }
@@ -6308,6 +6806,15 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_create_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workflow_invocations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkflowInvocationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: WorkflowInvocation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workflowInvocations
 /// Creates a new WorkflowInvocation in a given Repository.
 ///
@@ -6320,8 +6827,7 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_create_exec
 
 pub fn dataform_projects_locations_repositories_workflow_invocations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &WorkflowInvocation,
+    args: &DataformProjectsLocationsRepositoriesWorkflowInvocationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkflowInvocation>, ApiError>, P = ApiPending>
         + Send
@@ -6329,7 +6835,9 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_create(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workflow_invocations_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     dataform_projects_locations_repositories_workflow_invocations_create_execute(builder)
 }
@@ -6424,6 +6932,13 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_delete_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workflow_invocations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkflowInvocationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workflowInvocations/{workflowInvocationsId}
 /// Deletes a single WorkflowInvocation.
 ///
@@ -6436,13 +6951,14 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_delete_exec
 
 pub fn dataform_projects_locations_repositories_workflow_invocations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsRepositoriesWorkflowInvocationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_repositories_workflow_invocations_delete_builder(client, name)?;
+    let builder = dataform_projects_locations_repositories_workflow_invocations_delete_builder(
+        client, &args.name,
+    )?;
     dataform_projects_locations_repositories_workflow_invocations_delete_execute(builder)
 }
 
@@ -6538,6 +7054,13 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workflow_invocations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkflowInvocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workflowInvocations/{workflowInvocationsId}
 /// Fetches a single WorkflowInvocation.
 ///
@@ -6550,15 +7073,16 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_get_execute
 
 pub fn dataform_projects_locations_repositories_workflow_invocations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsRepositoriesWorkflowInvocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkflowInvocation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_repositories_workflow_invocations_get_builder(client, name)?;
+    let builder = dataform_projects_locations_repositories_workflow_invocations_get_builder(
+        client, &args.name,
+    )?;
     dataform_projects_locations_repositories_workflow_invocations_get_execute(builder)
 }
 
@@ -6680,6 +7204,21 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workflow_invocations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkflowInvocationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workflowInvocations
 /// Lists WorkflowInvocations in a given Repository.
 ///
@@ -6692,11 +7231,7 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_list_execut
 
 pub fn dataform_projects_locations_repositories_workflow_invocations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataformProjectsLocationsRepositoriesWorkflowInvocationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListWorkflowInvocationsResponse>, ApiError>,
@@ -6706,7 +7241,12 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_list(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workflow_invocations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataform_projects_locations_repositories_workflow_invocations_list_execute(builder)
 }
@@ -6821,6 +7361,17 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_query_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workflow_invocations_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkflowInvocationsQueryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workflowInvocations/{workflowInvocationsId}:query
 /// Returns WorkflowInvocationActions in a given WorkflowInvocation.
 ///
@@ -6833,9 +7384,7 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_query_execu
 
 pub fn dataform_projects_locations_repositories_workflow_invocations_query(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataformProjectsLocationsRepositoriesWorkflowInvocationsQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<QueryWorkflowInvocationActionsResponse>, ApiError>,
@@ -6845,7 +7394,10 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_query(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workflow_invocations_query_builder(
-        client, name, pageSize, pageToken,
+        client,
+        &args.name,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataform_projects_locations_repositories_workflow_invocations_query_execute(builder)
 }
@@ -6947,6 +7499,15 @@ pub fn dataform_projects_locations_repositories_workspaces_commit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_commit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesCommitArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CommitWorkspaceChangesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:commit
 /// Applies a Git commit for uncommitted files in a Workspace.
 ///
@@ -6959,8 +7520,7 @@ pub fn dataform_projects_locations_repositories_workspaces_commit_execute(
 
 pub fn dataform_projects_locations_repositories_workspaces_commit(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CommitWorkspaceChangesRequest,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesCommitArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CommitWorkspaceChangesResponse>, ApiError>,
@@ -6969,8 +7529,9 @@ pub fn dataform_projects_locations_repositories_workspaces_commit(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_repositories_workspaces_commit_builder(client, name, body)?;
+    let builder = dataform_projects_locations_repositories_workspaces_commit_builder(
+        client, &args.name, &args.body,
+    )?;
     dataform_projects_locations_repositories_workspaces_commit_execute(builder)
 }
 
@@ -7079,6 +7640,17 @@ pub fn dataform_projects_locations_repositories_workspaces_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: workspaceId
+    pub workspaceId: Option<String>,
+    /// Request body.
+    pub body: Workspace,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces
 /// Creates a new Workspace in a given Repository.
 ///
@@ -7091,18 +7663,16 @@ pub fn dataform_projects_locations_repositories_workspaces_create_execute(
 
 pub fn dataform_projects_locations_repositories_workspaces_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    workspaceId: Option<&str>,
-    body: &Workspace,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Workspace>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workspaces_create_builder(
         client,
-        parent,
-        workspaceId,
-        body,
+        &args.parent,
+        args.workspaceId.as_deref(),
+        &args.body,
     )?;
     dataform_projects_locations_repositories_workspaces_create_execute(builder)
 }
@@ -7197,6 +7767,13 @@ pub fn dataform_projects_locations_repositories_workspaces_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}
 /// Deletes a single Workspace.
 ///
@@ -7209,12 +7786,13 @@ pub fn dataform_projects_locations_repositories_workspaces_delete_execute(
 
 pub fn dataform_projects_locations_repositories_workspaces_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_repositories_workspaces_delete_builder(client, name)?;
+    let builder =
+        dataform_projects_locations_repositories_workspaces_delete_builder(client, &args.name)?;
     dataform_projects_locations_repositories_workspaces_delete_execute(builder)
 }
 
@@ -7322,6 +7900,15 @@ pub fn dataform_projects_locations_repositories_workspaces_fetch_file_diff_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_fetch_file_diff`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesFetchFileDiffArgs {
+    /// Path parameter: workspace
+    pub workspace: String,
+    /// Query parameter: path
+    pub path: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:fetchFileDiff
 /// Fetches Git diff for an uncommitted file in a Workspace.
 ///
@@ -7334,8 +7921,7 @@ pub fn dataform_projects_locations_repositories_workspaces_fetch_file_diff_execu
 
 pub fn dataform_projects_locations_repositories_workspaces_fetch_file_diff(
     client: &SimpleHttpClient,
-    workspace: &str,
-    path: Option<&str>,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesFetchFileDiffArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FetchFileDiffResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7343,7 +7929,9 @@ pub fn dataform_projects_locations_repositories_workspaces_fetch_file_diff(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workspaces_fetch_file_diff_builder(
-        client, workspace, path,
+        client,
+        &args.workspace,
+        args.path.as_deref(),
     )?;
     dataform_projects_locations_repositories_workspaces_fetch_file_diff_execute(builder)
 }
@@ -7442,6 +8030,13 @@ pub fn dataform_projects_locations_repositories_workspaces_fetch_file_git_status
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_fetch_file_git_statuses`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesFetchFileGitStatusesArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:fetchFileGitStatuses
 /// Fetches Git statuses for the files in a Workspace.
 ///
@@ -7454,7 +8049,7 @@ pub fn dataform_projects_locations_repositories_workspaces_fetch_file_git_status
 
 pub fn dataform_projects_locations_repositories_workspaces_fetch_file_git_statuses(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesFetchFileGitStatusesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchFileGitStatusesResponse>, ApiError>,
@@ -7465,7 +8060,7 @@ pub fn dataform_projects_locations_repositories_workspaces_fetch_file_git_status
 > {
     let builder =
         dataform_projects_locations_repositories_workspaces_fetch_file_git_statuses_builder(
-            client, name,
+            client, &args.name,
         )?;
     dataform_projects_locations_repositories_workspaces_fetch_file_git_statuses_execute(builder)
 }
@@ -7576,6 +8171,15 @@ pub fn dataform_projects_locations_repositories_workspaces_fetch_git_ahead_behin
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_fetch_git_ahead_behind`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesFetchGitAheadBehindArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: remoteBranch
+    pub remoteBranch: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:fetchGitAheadBehind
 /// Fetches Git `ahead/behind` against a remote branch.
 ///
@@ -7588,8 +8192,7 @@ pub fn dataform_projects_locations_repositories_workspaces_fetch_git_ahead_behin
 
 pub fn dataform_projects_locations_repositories_workspaces_fetch_git_ahead_behind(
     client: &SimpleHttpClient,
-    name: &str,
-    remoteBranch: Option<&str>,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesFetchGitAheadBehindArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchGitAheadBehindResponse>, ApiError>,
@@ -7601,8 +8204,8 @@ pub fn dataform_projects_locations_repositories_workspaces_fetch_git_ahead_behin
     let builder =
         dataform_projects_locations_repositories_workspaces_fetch_git_ahead_behind_builder(
             client,
-            name,
-            remoteBranch,
+            &args.name,
+            args.remoteBranch.as_deref(),
         )?;
     dataform_projects_locations_repositories_workspaces_fetch_git_ahead_behind_execute(builder)
 }
@@ -7697,6 +8300,13 @@ pub fn dataform_projects_locations_repositories_workspaces_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}
 /// Fetches a single Workspace.
 ///
@@ -7709,12 +8319,13 @@ pub fn dataform_projects_locations_repositories_workspaces_get_execute(
 
 pub fn dataform_projects_locations_repositories_workspaces_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Workspace>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_repositories_workspaces_get_builder(client, name)?;
+    let builder =
+        dataform_projects_locations_repositories_workspaces_get_builder(client, &args.name)?;
     dataform_projects_locations_repositories_workspaces_get_execute(builder)
 }
 
@@ -7820,6 +8431,15 @@ pub fn dataform_projects_locations_repositories_workspaces_get_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -7832,16 +8452,15 @@ pub fn dataform_projects_locations_repositories_workspaces_get_iam_policy_execut
 
 pub fn dataform_projects_locations_repositories_workspaces_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workspaces_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataform_projects_locations_repositories_workspaces_get_iam_policy_execute(builder)
 }
@@ -7943,6 +8562,15 @@ pub fn dataform_projects_locations_repositories_workspaces_install_npm_packages_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_install_npm_packages`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesInstallNpmPackagesArgs {
+    /// Path parameter: workspace
+    pub workspace: String,
+    /// Request body.
+    pub body: InstallNpmPackagesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:installNpmPackages
 /// Installs dependency NPM packages (inside a Workspace).
 ///
@@ -7955,8 +8583,7 @@ pub fn dataform_projects_locations_repositories_workspaces_install_npm_packages_
 
 pub fn dataform_projects_locations_repositories_workspaces_install_npm_packages(
     client: &SimpleHttpClient,
-    workspace: &str,
-    body: &InstallNpmPackagesRequest,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesInstallNpmPackagesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<InstallNpmPackagesResponse>, ApiError>,
@@ -7966,7 +8593,9 @@ pub fn dataform_projects_locations_repositories_workspaces_install_npm_packages(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workspaces_install_npm_packages_builder(
-        client, workspace, body,
+        client,
+        &args.workspace,
+        &args.body,
     )?;
     dataform_projects_locations_repositories_workspaces_install_npm_packages_execute(builder)
 }
@@ -8087,6 +8716,21 @@ pub fn dataform_projects_locations_repositories_workspaces_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces
 /// Lists Workspaces in a given Repository.
 ///
@@ -8099,11 +8743,7 @@ pub fn dataform_projects_locations_repositories_workspaces_list_execute(
 
 pub fn dataform_projects_locations_repositories_workspaces_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListWorkspacesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8111,7 +8751,12 @@ pub fn dataform_projects_locations_repositories_workspaces_list(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workspaces_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataform_projects_locations_repositories_workspaces_list_execute(builder)
 }
@@ -8211,6 +8856,15 @@ pub fn dataform_projects_locations_repositories_workspaces_make_directory_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_make_directory`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesMakeDirectoryArgs {
+    /// Path parameter: workspace
+    pub workspace: String,
+    /// Request body.
+    pub body: MakeDirectoryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:makeDirectory
 /// Creates a directory inside a Workspace.
 ///
@@ -8223,8 +8877,7 @@ pub fn dataform_projects_locations_repositories_workspaces_make_directory_execut
 
 pub fn dataform_projects_locations_repositories_workspaces_make_directory(
     client: &SimpleHttpClient,
-    workspace: &str,
-    body: &MakeDirectoryRequest,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesMakeDirectoryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MakeDirectoryResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8232,7 +8885,9 @@ pub fn dataform_projects_locations_repositories_workspaces_make_directory(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workspaces_make_directory_builder(
-        client, workspace, body,
+        client,
+        &args.workspace,
+        &args.body,
     )?;
     dataform_projects_locations_repositories_workspaces_make_directory_execute(builder)
 }
@@ -8332,6 +8987,15 @@ pub fn dataform_projects_locations_repositories_workspaces_move_directory_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_move_directory`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesMoveDirectoryArgs {
+    /// Path parameter: workspace
+    pub workspace: String,
+    /// Request body.
+    pub body: MoveDirectoryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:moveDirectory
 /// Moves a directory (inside a Workspace), and all of its contents, to a new location.
 ///
@@ -8344,8 +9008,7 @@ pub fn dataform_projects_locations_repositories_workspaces_move_directory_execut
 
 pub fn dataform_projects_locations_repositories_workspaces_move_directory(
     client: &SimpleHttpClient,
-    workspace: &str,
-    body: &MoveDirectoryRequest,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesMoveDirectoryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MoveDirectoryResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8353,7 +9016,9 @@ pub fn dataform_projects_locations_repositories_workspaces_move_directory(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workspaces_move_directory_builder(
-        client, workspace, body,
+        client,
+        &args.workspace,
+        &args.body,
     )?;
     dataform_projects_locations_repositories_workspaces_move_directory_execute(builder)
 }
@@ -8453,6 +9118,15 @@ pub fn dataform_projects_locations_repositories_workspaces_move_file_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_move_file`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesMoveFileArgs {
+    /// Path parameter: workspace
+    pub workspace: String,
+    /// Request body.
+    pub body: MoveFileRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:moveFile
 /// Moves a file (inside a Workspace) to a new location.
 ///
@@ -8465,8 +9139,7 @@ pub fn dataform_projects_locations_repositories_workspaces_move_file_execute(
 
 pub fn dataform_projects_locations_repositories_workspaces_move_file(
     client: &SimpleHttpClient,
-    workspace: &str,
-    body: &MoveFileRequest,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesMoveFileArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MoveFileResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8474,7 +9147,9 @@ pub fn dataform_projects_locations_repositories_workspaces_move_file(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workspaces_move_file_builder(
-        client, workspace, body,
+        client,
+        &args.workspace,
+        &args.body,
     )?;
     dataform_projects_locations_repositories_workspaces_move_file_execute(builder)
 }
@@ -8574,6 +9249,15 @@ pub fn dataform_projects_locations_repositories_workspaces_pull_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_pull`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesPullArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: PullGitCommitsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:pull
 /// Pulls Git commits from the Repository's remote into a Workspace.
 ///
@@ -8586,16 +9270,16 @@ pub fn dataform_projects_locations_repositories_workspaces_pull_execute(
 
 pub fn dataform_projects_locations_repositories_workspaces_pull(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &PullGitCommitsRequest,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesPullArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PullGitCommitsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_repositories_workspaces_pull_builder(client, name, body)?;
+    let builder = dataform_projects_locations_repositories_workspaces_pull_builder(
+        client, &args.name, &args.body,
+    )?;
     dataform_projects_locations_repositories_workspaces_pull_execute(builder)
 }
 
@@ -8694,6 +9378,15 @@ pub fn dataform_projects_locations_repositories_workspaces_push_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_push`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesPushArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: PushGitCommitsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:push
 /// Pushes Git commits from a Workspace to the Repository's remote.
 ///
@@ -8706,16 +9399,16 @@ pub fn dataform_projects_locations_repositories_workspaces_push_execute(
 
 pub fn dataform_projects_locations_repositories_workspaces_push(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &PushGitCommitsRequest,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesPushArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PushGitCommitsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_repositories_workspaces_push_builder(client, name, body)?;
+    let builder = dataform_projects_locations_repositories_workspaces_push_builder(
+        client, &args.name, &args.body,
+    )?;
     dataform_projects_locations_repositories_workspaces_push_execute(builder)
 }
 
@@ -8837,6 +9530,21 @@ pub fn dataform_projects_locations_repositories_workspaces_query_directory_conte
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_query_directory_contents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesQueryDirectoryContentsArgs {
+    /// Path parameter: workspace
+    pub workspace: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: path
+    pub path: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:queryDirectoryContents
 /// Returns the contents of a given Workspace directory.
 ///
@@ -8849,11 +9557,7 @@ pub fn dataform_projects_locations_repositories_workspaces_query_directory_conte
 
 pub fn dataform_projects_locations_repositories_workspaces_query_directory_contents(
     client: &SimpleHttpClient,
-    workspace: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    path: Option<&str>,
-    view: Option<&str>,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesQueryDirectoryContentsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<QueryDirectoryContentsResponse>, ApiError>,
@@ -8864,7 +9568,12 @@ pub fn dataform_projects_locations_repositories_workspaces_query_directory_conte
 > {
     let builder =
         dataform_projects_locations_repositories_workspaces_query_directory_contents_builder(
-            client, workspace, pageSize, pageToken, path, view,
+            client,
+            &args.workspace,
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.path.as_deref(),
+            args.view.as_deref(),
         )?;
     dataform_projects_locations_repositories_workspaces_query_directory_contents_execute(builder)
 }
@@ -8977,6 +9686,17 @@ pub fn dataform_projects_locations_repositories_workspaces_read_file_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_read_file`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesReadFileArgs {
+    /// Path parameter: workspace
+    pub workspace: String,
+    /// Query parameter: path
+    pub path: Option<String>,
+    /// Query parameter: revision
+    pub revision: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:readFile
 /// Returns the contents of a file (inside a Workspace).
 ///
@@ -8989,9 +9709,7 @@ pub fn dataform_projects_locations_repositories_workspaces_read_file_execute(
 
 pub fn dataform_projects_locations_repositories_workspaces_read_file(
     client: &SimpleHttpClient,
-    workspace: &str,
-    path: Option<&str>,
-    revision: Option<&str>,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesReadFileArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReadFileResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8999,7 +9717,10 @@ pub fn dataform_projects_locations_repositories_workspaces_read_file(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workspaces_read_file_builder(
-        client, workspace, path, revision,
+        client,
+        &args.workspace,
+        args.path.as_deref(),
+        args.revision.as_deref(),
     )?;
     dataform_projects_locations_repositories_workspaces_read_file_execute(builder)
 }
@@ -9099,6 +9820,15 @@ pub fn dataform_projects_locations_repositories_workspaces_remove_directory_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_remove_directory`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesRemoveDirectoryArgs {
+    /// Path parameter: workspace
+    pub workspace: String,
+    /// Request body.
+    pub body: RemoveDirectoryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:removeDirectory
 /// Deletes a directory (inside a Workspace) and all of its contents.
 ///
@@ -9111,8 +9841,7 @@ pub fn dataform_projects_locations_repositories_workspaces_remove_directory_exec
 
 pub fn dataform_projects_locations_repositories_workspaces_remove_directory(
     client: &SimpleHttpClient,
-    workspace: &str,
-    body: &RemoveDirectoryRequest,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesRemoveDirectoryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemoveDirectoryResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9120,7 +9849,9 @@ pub fn dataform_projects_locations_repositories_workspaces_remove_directory(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workspaces_remove_directory_builder(
-        client, workspace, body,
+        client,
+        &args.workspace,
+        &args.body,
     )?;
     dataform_projects_locations_repositories_workspaces_remove_directory_execute(builder)
 }
@@ -9220,6 +9951,15 @@ pub fn dataform_projects_locations_repositories_workspaces_remove_file_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_remove_file`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesRemoveFileArgs {
+    /// Path parameter: workspace
+    pub workspace: String,
+    /// Request body.
+    pub body: RemoveFileRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:removeFile
 /// Deletes a file (inside a Workspace).
 ///
@@ -9232,8 +9972,7 @@ pub fn dataform_projects_locations_repositories_workspaces_remove_file_execute(
 
 pub fn dataform_projects_locations_repositories_workspaces_remove_file(
     client: &SimpleHttpClient,
-    workspace: &str,
-    body: &RemoveFileRequest,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesRemoveFileArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemoveFileResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9241,7 +9980,9 @@ pub fn dataform_projects_locations_repositories_workspaces_remove_file(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workspaces_remove_file_builder(
-        client, workspace, body,
+        client,
+        &args.workspace,
+        &args.body,
     )?;
     dataform_projects_locations_repositories_workspaces_remove_file_execute(builder)
 }
@@ -9343,6 +10084,15 @@ pub fn dataform_projects_locations_repositories_workspaces_reset_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_reset`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesResetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResetWorkspaceChangesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:reset
 /// Performs a Git reset for uncommitted files in a Workspace.
 ///
@@ -9355,8 +10105,7 @@ pub fn dataform_projects_locations_repositories_workspaces_reset_execute(
 
 pub fn dataform_projects_locations_repositories_workspaces_reset(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResetWorkspaceChangesRequest,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesResetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ResetWorkspaceChangesResponse>, ApiError>,
@@ -9365,8 +10114,9 @@ pub fn dataform_projects_locations_repositories_workspaces_reset(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_repositories_workspaces_reset_builder(client, name, body)?;
+    let builder = dataform_projects_locations_repositories_workspaces_reset_builder(
+        client, &args.name, &args.body,
+    )?;
     dataform_projects_locations_repositories_workspaces_reset_execute(builder)
 }
 
@@ -9482,6 +10232,19 @@ pub fn dataform_projects_locations_repositories_workspaces_search_files_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_search_files`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesSearchFilesArgs {
+    /// Path parameter: workspace
+    pub workspace: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:searchFiles
 /// Finds the contents of a given Workspace directory by filter.
 ///
@@ -9494,10 +10257,7 @@ pub fn dataform_projects_locations_repositories_workspaces_search_files_execute(
 
 pub fn dataform_projects_locations_repositories_workspaces_search_files(
     client: &SimpleHttpClient,
-    workspace: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesSearchFilesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchFilesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9505,7 +10265,11 @@ pub fn dataform_projects_locations_repositories_workspaces_search_files(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workspaces_search_files_builder(
-        client, workspace, filter, pageSize, pageToken,
+        client,
+        &args.workspace,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataform_projects_locations_repositories_workspaces_search_files_execute(builder)
 }
@@ -9603,6 +10367,15 @@ pub fn dataform_projects_locations_repositories_workspaces_set_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -9615,14 +10388,15 @@ pub fn dataform_projects_locations_repositories_workspaces_set_iam_policy_execut
 
 pub fn dataform_projects_locations_repositories_workspaces_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workspaces_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataform_projects_locations_repositories_workspaces_set_iam_policy_execute(builder)
 }
@@ -9724,6 +10498,15 @@ pub fn dataform_projects_locations_repositories_workspaces_test_iam_permissions_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -9736,8 +10519,7 @@ pub fn dataform_projects_locations_repositories_workspaces_test_iam_permissions_
 
 pub fn dataform_projects_locations_repositories_workspaces_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -9747,7 +10529,9 @@ pub fn dataform_projects_locations_repositories_workspaces_test_iam_permissions(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workspaces_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataform_projects_locations_repositories_workspaces_test_iam_permissions_execute(builder)
 }
@@ -9847,6 +10631,15 @@ pub fn dataform_projects_locations_repositories_workspaces_write_file_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_repositories_workspaces_write_file`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsRepositoriesWorkspacesWriteFileArgs {
+    /// Path parameter: workspace
+    pub workspace: String,
+    /// Request body.
+    pub body: WriteFileRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:writeFile
 /// Writes to a file (inside a Workspace).
 ///
@@ -9859,8 +10652,7 @@ pub fn dataform_projects_locations_repositories_workspaces_write_file_execute(
 
 pub fn dataform_projects_locations_repositories_workspaces_write_file(
     client: &SimpleHttpClient,
-    workspace: &str,
-    body: &WriteFileRequest,
+    args: &DataformProjectsLocationsRepositoriesWorkspacesWriteFileArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WriteFileResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9868,7 +10660,9 @@ pub fn dataform_projects_locations_repositories_workspaces_write_file(
     ApiError,
 > {
     let builder = dataform_projects_locations_repositories_workspaces_write_file_builder(
-        client, workspace, body,
+        client,
+        &args.workspace,
+        &args.body,
     )?;
     dataform_projects_locations_repositories_workspaces_write_file_execute(builder)
 }
@@ -9966,6 +10760,15 @@ pub fn dataform_projects_locations_team_folders_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_team_folders_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsTeamFoldersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: TeamFolder,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/teamFolders
 /// Creates a new TeamFolder in a given project and location.
 ///
@@ -9978,13 +10781,13 @@ pub fn dataform_projects_locations_team_folders_create_execute(
 
 pub fn dataform_projects_locations_team_folders_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &TeamFolder,
+    args: &DataformProjectsLocationsTeamFoldersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TeamFolder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_team_folders_create_builder(client, parent, body)?;
+    let builder =
+        dataform_projects_locations_team_folders_create_builder(client, &args.parent, &args.body)?;
     dataform_projects_locations_team_folders_create_execute(builder)
 }
 
@@ -10078,6 +10881,13 @@ pub fn dataform_projects_locations_team_folders_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_team_folders_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsTeamFoldersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/teamFolders/{teamFoldersId}
 /// Deletes a single TeamFolder.
 ///
@@ -10090,12 +10900,12 @@ pub fn dataform_projects_locations_team_folders_delete_execute(
 
 pub fn dataform_projects_locations_team_folders_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsTeamFoldersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_team_folders_delete_builder(client, name)?;
+    let builder = dataform_projects_locations_team_folders_delete_builder(client, &args.name)?;
     dataform_projects_locations_team_folders_delete_execute(builder)
 }
 
@@ -10192,6 +11002,15 @@ pub fn dataform_projects_locations_team_folders_delete_tree_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_team_folders_delete_tree`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsTeamFoldersDeleteTreeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DeleteTeamFolderTreeRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/teamFolders/{teamFoldersId}:deleteTree
 /// Deletes a TeamFolder with its contents (Folders, Repositories, Workspaces, ReleaseConfigs, and WorkflowConfigs).
 ///
@@ -10204,13 +11023,14 @@ pub fn dataform_projects_locations_team_folders_delete_tree_execute(
 
 pub fn dataform_projects_locations_team_folders_delete_tree(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DeleteTeamFolderTreeRequest,
+    args: &DataformProjectsLocationsTeamFoldersDeleteTreeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_team_folders_delete_tree_builder(client, name, body)?;
+    let builder = dataform_projects_locations_team_folders_delete_tree_builder(
+        client, &args.name, &args.body,
+    )?;
     dataform_projects_locations_team_folders_delete_tree_execute(builder)
 }
 
@@ -10304,6 +11124,13 @@ pub fn dataform_projects_locations_team_folders_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_team_folders_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsTeamFoldersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/teamFolders/{teamFoldersId}
 /// Fetches a single TeamFolder.
 ///
@@ -10316,12 +11143,12 @@ pub fn dataform_projects_locations_team_folders_get_execute(
 
 pub fn dataform_projects_locations_team_folders_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataformProjectsLocationsTeamFoldersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TeamFolder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataform_projects_locations_team_folders_get_builder(client, name)?;
+    let builder = dataform_projects_locations_team_folders_get_builder(client, &args.name)?;
     dataform_projects_locations_team_folders_get_execute(builder)
 }
 
@@ -10427,6 +11254,15 @@ pub fn dataform_projects_locations_team_folders_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_team_folders_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsTeamFoldersGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/teamFolders/{teamFoldersId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -10439,16 +11275,15 @@ pub fn dataform_projects_locations_team_folders_get_iam_policy_execute(
 
 pub fn dataform_projects_locations_team_folders_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DataformProjectsLocationsTeamFoldersGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataform_projects_locations_team_folders_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     dataform_projects_locations_team_folders_get_iam_policy_execute(builder)
 }
@@ -10558,6 +11393,17 @@ pub fn dataform_projects_locations_team_folders_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_team_folders_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsTeamFoldersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: TeamFolder,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/teamFolders/{teamFoldersId}
 /// Updates a single TeamFolder.
 ///
@@ -10570,15 +11416,17 @@ pub fn dataform_projects_locations_team_folders_patch_execute(
 
 pub fn dataform_projects_locations_team_folders_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &TeamFolder,
+    args: &DataformProjectsLocationsTeamFoldersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TeamFolder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_team_folders_patch_builder(client, name, updateMask, body)?;
+    let builder = dataform_projects_locations_team_folders_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     dataform_projects_locations_team_folders_patch_execute(builder)
 }
 
@@ -10700,6 +11548,21 @@ pub fn dataform_projects_locations_team_folders_query_contents_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_team_folders_query_contents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsTeamFoldersQueryContentsArgs {
+    /// Path parameter: teamFolder
+    pub teamFolder: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/teamFolders/{teamFoldersId}:queryContents
 /// Returns the contents of a given TeamFolder.
 ///
@@ -10712,11 +11575,7 @@ pub fn dataform_projects_locations_team_folders_query_contents_execute(
 
 pub fn dataform_projects_locations_team_folders_query_contents(
     client: &SimpleHttpClient,
-    teamFolder: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataformProjectsLocationsTeamFoldersQueryContentsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<QueryTeamFolderContentsResponse>, ApiError>,
@@ -10726,7 +11585,12 @@ pub fn dataform_projects_locations_team_folders_query_contents(
     ApiError,
 > {
     let builder = dataform_projects_locations_team_folders_query_contents_builder(
-        client, teamFolder, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.teamFolder,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataform_projects_locations_team_folders_query_contents_execute(builder)
 }
@@ -10847,6 +11711,21 @@ pub fn dataform_projects_locations_team_folders_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_team_folders_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsTeamFoldersSearchArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/teamFolders:search
 /// Returns all TeamFolders in a given location that the caller has access to and match the provided filter.
 ///
@@ -10859,11 +11738,7 @@ pub fn dataform_projects_locations_team_folders_search_execute(
 
 pub fn dataform_projects_locations_team_folders_search(
     client: &SimpleHttpClient,
-    location: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataformProjectsLocationsTeamFoldersSearchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchTeamFoldersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -10871,7 +11746,12 @@ pub fn dataform_projects_locations_team_folders_search(
     ApiError,
 > {
     let builder = dataform_projects_locations_team_folders_search_builder(
-        client, location, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.location,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataform_projects_locations_team_folders_search_execute(builder)
 }
@@ -10969,6 +11849,15 @@ pub fn dataform_projects_locations_team_folders_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_team_folders_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsTeamFoldersSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/teamFolders/{teamFoldersId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -10981,14 +11870,16 @@ pub fn dataform_projects_locations_team_folders_set_iam_policy_execute(
 
 pub fn dataform_projects_locations_team_folders_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DataformProjectsLocationsTeamFoldersSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataform_projects_locations_team_folders_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataform_projects_locations_team_folders_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataform_projects_locations_team_folders_set_iam_policy_execute(builder)
 }
 
@@ -11089,6 +11980,15 @@ pub fn dataform_projects_locations_team_folders_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataform_projects_locations_team_folders_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataformProjectsLocationsTeamFoldersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/teamFolders/{teamFoldersId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -11101,8 +12001,7 @@ pub fn dataform_projects_locations_team_folders_test_iam_permissions_execute(
 
 pub fn dataform_projects_locations_team_folders_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DataformProjectsLocationsTeamFoldersTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -11112,7 +12011,9 @@ pub fn dataform_projects_locations_team_folders_test_iam_permissions(
     ApiError,
 > {
     let builder = dataform_projects_locations_team_folders_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataform_projects_locations_team_folders_test_iam_permissions_execute(builder)
 }

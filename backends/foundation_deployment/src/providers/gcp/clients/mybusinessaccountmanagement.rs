@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/accounts
 /// Creates an account with the specified name and type under the given parent. - Personal accounts and Organizations cannot be created. - User Groups cannot be created with a Personal account as primary owner. - Location Groups cannot be created with a primary owner of a Personal account if the Personal account is in an Organization. - Location Groups cannot own Location Groups.
@@ -105,6 +107,13 @@ pub fn mybusinessaccountmanagement_accounts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessaccountmanagement_accounts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsCreateArgs {
+    /// Request body.
+    pub body: Account,
+}
+
 /// GET v1/accounts
 /// Creates an account with the specified name and type under the given parent. - Personal accounts and Organizations cannot be created. - User Groups cannot be created with a Personal account as primary owner. - Location Groups cannot be created with a primary owner of a Personal account if the Personal account is in an Organization. - Location Groups cannot own Location Groups.
 ///
@@ -117,12 +126,12 @@ pub fn mybusinessaccountmanagement_accounts_create_execute(
 
 pub fn mybusinessaccountmanagement_accounts_create(
     client: &SimpleHttpClient,
-    body: &Account,
+    args: &MybusinessaccountmanagementAccountsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessaccountmanagement_accounts_create_builder(client, body)?;
+    let builder = mybusinessaccountmanagement_accounts_create_builder(client, &args.body)?;
     mybusinessaccountmanagement_accounts_create_execute(builder)
 }
 
@@ -216,6 +225,13 @@ pub fn mybusinessaccountmanagement_accounts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessaccountmanagement_accounts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}
 /// Gets the specified account. Returns NOT_FOUND if the account does not exist or if the caller does not have access rights to it.
 ///
@@ -228,12 +244,12 @@ pub fn mybusinessaccountmanagement_accounts_get_execute(
 
 pub fn mybusinessaccountmanagement_accounts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MybusinessaccountmanagementAccountsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessaccountmanagement_accounts_get_builder(client, name)?;
+    let builder = mybusinessaccountmanagement_accounts_get_builder(client, &args.name)?;
     mybusinessaccountmanagement_accounts_get_execute(builder)
 }
 
@@ -349,6 +365,19 @@ pub fn mybusinessaccountmanagement_accounts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessaccountmanagement_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parentAccount
+    pub parentAccount: Option<String>,
+}
+
 /// GET v1/accounts
 /// Lists all of the accounts for the authenticated user. This includes all accounts that the user owns, as well as any accounts for which the user has management rights.
 ///
@@ -361,10 +390,7 @@ pub fn mybusinessaccountmanagement_accounts_list_execute(
 
 pub fn mybusinessaccountmanagement_accounts_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parentAccount: Option<&str>,
+    args: &MybusinessaccountmanagementAccountsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAccountsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -373,10 +399,10 @@ pub fn mybusinessaccountmanagement_accounts_list(
 > {
     let builder = mybusinessaccountmanagement_accounts_list_builder(
         client,
-        filter,
-        pageSize,
-        pageToken,
-        parentAccount,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parentAccount.as_deref(),
     )?;
     mybusinessaccountmanagement_accounts_list_execute(builder)
 }
@@ -490,6 +516,19 @@ pub fn mybusinessaccountmanagement_accounts_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessaccountmanagement_accounts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Account,
+}
+
 /// GET v1/accounts/{accountsId}
 /// Updates the specified business account. Personal accounts cannot be updated using this method.
 ///
@@ -502,20 +541,17 @@ pub fn mybusinessaccountmanagement_accounts_patch_execute(
 
 pub fn mybusinessaccountmanagement_accounts_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Account,
+    args: &MybusinessaccountmanagementAccountsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = mybusinessaccountmanagement_accounts_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     mybusinessaccountmanagement_accounts_patch_execute(builder)
 }
@@ -613,6 +649,15 @@ pub fn mybusinessaccountmanagement_accounts_admins_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessaccountmanagement_accounts_admins_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsAdminsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Admin,
+}
+
 /// GET v1/accounts/{accountsId}/admins
 /// Invites the specified user to become an administrator for the specified account. The invitee must accept the invitation in order to be granted access to the account. See AcceptInvitation to programmatically accept an invitation.
 ///
@@ -625,13 +670,16 @@ pub fn mybusinessaccountmanagement_accounts_admins_create_execute(
 
 pub fn mybusinessaccountmanagement_accounts_admins_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Admin,
+    args: &MybusinessaccountmanagementAccountsAdminsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Admin>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessaccountmanagement_accounts_admins_create_builder(client, parent, body)?;
+    let builder = mybusinessaccountmanagement_accounts_admins_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     mybusinessaccountmanagement_accounts_admins_create_execute(builder)
 }
 
@@ -725,6 +773,13 @@ pub fn mybusinessaccountmanagement_accounts_admins_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessaccountmanagement_accounts_admins_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsAdminsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}/admins/{adminsId}
 /// Removes the specified admin from the specified account.
 ///
@@ -737,12 +792,12 @@ pub fn mybusinessaccountmanagement_accounts_admins_delete_execute(
 
 pub fn mybusinessaccountmanagement_accounts_admins_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MybusinessaccountmanagementAccountsAdminsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessaccountmanagement_accounts_admins_delete_builder(client, name)?;
+    let builder = mybusinessaccountmanagement_accounts_admins_delete_builder(client, &args.name)?;
     mybusinessaccountmanagement_accounts_admins_delete_execute(builder)
 }
 
@@ -838,6 +893,13 @@ pub fn mybusinessaccountmanagement_accounts_admins_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessaccountmanagement_accounts_admins_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsAdminsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/accounts/{accountsId}/admins
 /// Lists the admins for the specified account.
 ///
@@ -850,14 +912,14 @@ pub fn mybusinessaccountmanagement_accounts_admins_list_execute(
 
 pub fn mybusinessaccountmanagement_accounts_admins_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &MybusinessaccountmanagementAccountsAdminsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAccountAdminsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = mybusinessaccountmanagement_accounts_admins_list_builder(client, parent)?;
+    let builder = mybusinessaccountmanagement_accounts_admins_list_builder(client, &args.parent)?;
     mybusinessaccountmanagement_accounts_admins_list_execute(builder)
 }
 
@@ -966,6 +1028,17 @@ pub fn mybusinessaccountmanagement_accounts_admins_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessaccountmanagement_accounts_admins_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsAdminsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Admin,
+}
+
 /// GET v1/accounts/{accountsId}/admins/{adminsId}
 /// Updates the Admin for the specified Account Admin.
 ///
@@ -978,15 +1051,17 @@ pub fn mybusinessaccountmanagement_accounts_admins_patch_execute(
 
 pub fn mybusinessaccountmanagement_accounts_admins_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Admin,
+    args: &MybusinessaccountmanagementAccountsAdminsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Admin>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinessaccountmanagement_accounts_admins_patch_builder(client, name, updateMask, body)?;
+    let builder = mybusinessaccountmanagement_accounts_admins_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     mybusinessaccountmanagement_accounts_admins_patch_execute(builder)
 }
 
@@ -1083,6 +1158,15 @@ pub fn mybusinessaccountmanagement_accounts_invitations_accept_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessaccountmanagement_accounts_invitations_accept`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsInvitationsAcceptArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AcceptInvitationRequest,
+}
+
 /// GET v1/accounts/{accountsId}/invitations/{invitationsId}:accept
 /// Accepts the specified invitation.
 ///
@@ -1095,14 +1179,14 @@ pub fn mybusinessaccountmanagement_accounts_invitations_accept_execute(
 
 pub fn mybusinessaccountmanagement_accounts_invitations_accept(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AcceptInvitationRequest,
+    args: &MybusinessaccountmanagementAccountsInvitationsAcceptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinessaccountmanagement_accounts_invitations_accept_builder(client, name, body)?;
+    let builder = mybusinessaccountmanagement_accounts_invitations_accept_builder(
+        client, &args.name, &args.body,
+    )?;
     mybusinessaccountmanagement_accounts_invitations_accept_execute(builder)
 }
 
@@ -1199,6 +1283,15 @@ pub fn mybusinessaccountmanagement_accounts_invitations_decline_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessaccountmanagement_accounts_invitations_decline`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsInvitationsDeclineArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DeclineInvitationRequest,
+}
+
 /// GET v1/accounts/{accountsId}/invitations/{invitationsId}:decline
 /// Declines the specified invitation.
 ///
@@ -1211,14 +1304,14 @@ pub fn mybusinessaccountmanagement_accounts_invitations_decline_execute(
 
 pub fn mybusinessaccountmanagement_accounts_invitations_decline(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DeclineInvitationRequest,
+    args: &MybusinessaccountmanagementAccountsInvitationsDeclineArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinessaccountmanagement_accounts_invitations_decline_builder(client, name, body)?;
+    let builder = mybusinessaccountmanagement_accounts_invitations_decline_builder(
+        client, &args.name, &args.body,
+    )?;
     mybusinessaccountmanagement_accounts_invitations_decline_execute(builder)
 }
 
@@ -1326,6 +1419,15 @@ pub fn mybusinessaccountmanagement_accounts_invitations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessaccountmanagement_accounts_invitations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementAccountsInvitationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/invitations
 /// Lists pending invitations for the specified account.
 ///
@@ -1338,16 +1440,18 @@ pub fn mybusinessaccountmanagement_accounts_invitations_list_execute(
 
 pub fn mybusinessaccountmanagement_accounts_invitations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    args: &MybusinessaccountmanagementAccountsInvitationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListInvitationsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinessaccountmanagement_accounts_invitations_list_builder(client, parent, filter)?;
+    let builder = mybusinessaccountmanagement_accounts_invitations_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+    )?;
     mybusinessaccountmanagement_accounts_invitations_list_execute(builder)
 }
 
@@ -1444,6 +1548,15 @@ pub fn mybusinessaccountmanagement_locations_transfer_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessaccountmanagement_locations_transfer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementLocationsTransferArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: TransferLocationRequest,
+}
+
 /// GET v1/locations/{locationsId}:transfer
 /// Moves a location from an account that the user owns to another account that the same user administers. The user must be an owner of the account the location is currently associated with and must also be at least a manager of the destination account.
 ///
@@ -1456,13 +1569,13 @@ pub fn mybusinessaccountmanagement_locations_transfer_execute(
 
 pub fn mybusinessaccountmanagement_locations_transfer(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &TransferLocationRequest,
+    args: &MybusinessaccountmanagementLocationsTransferArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessaccountmanagement_locations_transfer_builder(client, name, body)?;
+    let builder =
+        mybusinessaccountmanagement_locations_transfer_builder(client, &args.name, &args.body)?;
     mybusinessaccountmanagement_locations_transfer_execute(builder)
 }
 
@@ -1559,6 +1672,15 @@ pub fn mybusinessaccountmanagement_locations_admins_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessaccountmanagement_locations_admins_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementLocationsAdminsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Admin,
+}
+
 /// GET v1/locations/{locationsId}/admins
 /// Invites the specified user to become an administrator for the specified location. The invitee must accept the invitation in order to be granted access to the location. See AcceptInvitation to programmatically accept an invitation.
 ///
@@ -1571,14 +1693,16 @@ pub fn mybusinessaccountmanagement_locations_admins_create_execute(
 
 pub fn mybusinessaccountmanagement_locations_admins_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Admin,
+    args: &MybusinessaccountmanagementLocationsAdminsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Admin>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinessaccountmanagement_locations_admins_create_builder(client, parent, body)?;
+    let builder = mybusinessaccountmanagement_locations_admins_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     mybusinessaccountmanagement_locations_admins_create_execute(builder)
 }
 
@@ -1672,6 +1796,13 @@ pub fn mybusinessaccountmanagement_locations_admins_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessaccountmanagement_locations_admins_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementLocationsAdminsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/locations/{locationsId}/admins/{adminsId}
 /// Removes the specified admin as a manager of the specified location.
 ///
@@ -1684,12 +1815,12 @@ pub fn mybusinessaccountmanagement_locations_admins_delete_execute(
 
 pub fn mybusinessaccountmanagement_locations_admins_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MybusinessaccountmanagementLocationsAdminsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessaccountmanagement_locations_admins_delete_builder(client, name)?;
+    let builder = mybusinessaccountmanagement_locations_admins_delete_builder(client, &args.name)?;
     mybusinessaccountmanagement_locations_admins_delete_execute(builder)
 }
 
@@ -1787,6 +1918,13 @@ pub fn mybusinessaccountmanagement_locations_admins_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessaccountmanagement_locations_admins_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementLocationsAdminsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/locations/{locationsId}/admins
 /// Lists all of the admins for the specified location.
 ///
@@ -1799,7 +1937,7 @@ pub fn mybusinessaccountmanagement_locations_admins_list_execute(
 
 pub fn mybusinessaccountmanagement_locations_admins_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &MybusinessaccountmanagementLocationsAdminsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListLocationAdminsResponse>, ApiError>,
@@ -1808,7 +1946,7 @@ pub fn mybusinessaccountmanagement_locations_admins_list(
         + 'static,
     ApiError,
 > {
-    let builder = mybusinessaccountmanagement_locations_admins_list_builder(client, parent)?;
+    let builder = mybusinessaccountmanagement_locations_admins_list_builder(client, &args.parent)?;
     mybusinessaccountmanagement_locations_admins_list_execute(builder)
 }
 
@@ -1917,6 +2055,17 @@ pub fn mybusinessaccountmanagement_locations_admins_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessaccountmanagement_locations_admins_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessaccountmanagementLocationsAdminsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Admin,
+}
+
 /// GET v1/locations/{locationsId}/admins/{adminsId}
 /// Updates the Admin for the specified location. Only the AdminRole of the Admin can be updated.
 ///
@@ -1929,14 +2078,16 @@ pub fn mybusinessaccountmanagement_locations_admins_patch_execute(
 
 pub fn mybusinessaccountmanagement_locations_admins_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Admin,
+    args: &MybusinessaccountmanagementLocationsAdminsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Admin>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinessaccountmanagement_locations_admins_patch_builder(client, name, updateMask, body)?;
+    let builder = mybusinessaccountmanagement_locations_admins_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     mybusinessaccountmanagement_locations_admins_patch_execute(builder)
 }

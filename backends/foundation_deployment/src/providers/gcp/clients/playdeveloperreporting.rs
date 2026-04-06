@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1beta1/apps/{appsId}/anomalies
 /// Lists anomalies in any of the datasets.
@@ -134,6 +136,19 @@ pub fn playdeveloperreporting_anomalies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_anomalies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingAnomaliesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/apps/{appsId}/anomalies
 /// Lists anomalies in any of the datasets.
 ///
@@ -146,10 +161,7 @@ pub fn playdeveloperreporting_anomalies_list_execute(
 
 pub fn playdeveloperreporting_anomalies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PlaydeveloperreportingAnomaliesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -161,8 +173,13 @@ pub fn playdeveloperreporting_anomalies_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playdeveloperreporting_anomalies_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = playdeveloperreporting_anomalies_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     playdeveloperreporting_anomalies_list_execute(builder)
 }
 
@@ -264,6 +281,13 @@ pub fn playdeveloperreporting_apps_fetch_release_filter_options_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_apps_fetch_release_filter_options`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingAppsFetchReleaseFilterOptionsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/apps/{appsId}:fetchReleaseFilterOptions
 /// Describes filtering options for releases.
 ///
@@ -276,7 +300,7 @@ pub fn playdeveloperreporting_apps_fetch_release_filter_options_execute(
 
 pub fn playdeveloperreporting_apps_fetch_release_filter_options(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PlaydeveloperreportingAppsFetchReleaseFilterOptionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -288,7 +312,8 @@ pub fn playdeveloperreporting_apps_fetch_release_filter_options(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_apps_fetch_release_filter_options_builder(client, name)?;
+    let builder =
+        playdeveloperreporting_apps_fetch_release_filter_options_builder(client, &args.name)?;
     playdeveloperreporting_apps_fetch_release_filter_options_execute(builder)
 }
 
@@ -402,6 +427,15 @@ pub fn playdeveloperreporting_apps_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_apps_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingAppsSearchArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/apps:search
 /// Searches for Apps accessible by the user.
 ///
@@ -414,8 +448,7 @@ pub fn playdeveloperreporting_apps_search_execute(
 
 pub fn playdeveloperreporting_apps_search(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PlaydeveloperreportingAppsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -427,7 +460,11 @@ pub fn playdeveloperreporting_apps_search(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_apps_search_builder(client, pageSize, pageToken)?;
+    let builder = playdeveloperreporting_apps_search_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     playdeveloperreporting_apps_search_execute(builder)
 }
 
@@ -526,6 +563,13 @@ pub fn playdeveloperreporting_vitals_anrrate_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_anrrate_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsAnrrateGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/apps/{appsId}/anrRateMetricSet
 /// Describes the properties of the metric set.
 ///
@@ -538,7 +582,7 @@ pub fn playdeveloperreporting_vitals_anrrate_get_execute(
 
 pub fn playdeveloperreporting_vitals_anrrate_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PlaydeveloperreportingVitalsAnrrateGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePlayDeveloperReportingV1beta1AnrRateMetricSet>, ApiError>,
@@ -547,7 +591,7 @@ pub fn playdeveloperreporting_vitals_anrrate_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_anrrate_get_builder(client, name)?;
+    let builder = playdeveloperreporting_vitals_anrrate_get_builder(client, &args.name)?;
     playdeveloperreporting_vitals_anrrate_get_execute(builder)
 }
 
@@ -652,6 +696,15 @@ pub fn playdeveloperreporting_vitals_anrrate_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_anrrate_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsAnrrateQueryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetRequest,
+}
+
 /// GET v1beta1/apps/{appsId}/anrRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
@@ -664,8 +717,7 @@ pub fn playdeveloperreporting_vitals_anrrate_query_execute(
 
 pub fn playdeveloperreporting_vitals_anrrate_query(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetRequest,
+    args: &PlaydeveloperreportingVitalsAnrrateQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -677,7 +729,8 @@ pub fn playdeveloperreporting_vitals_anrrate_query(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_anrrate_query_builder(client, name, body)?;
+    let builder =
+        playdeveloperreporting_vitals_anrrate_query_builder(client, &args.name, &args.body)?;
     playdeveloperreporting_vitals_anrrate_query_execute(builder)
 }
 
@@ -779,6 +832,13 @@ pub fn playdeveloperreporting_vitals_crashrate_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_crashrate_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsCrashrateGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/apps/{appsId}/crashRateMetricSet
 /// Describes the properties of the metric set.
 ///
@@ -791,7 +851,7 @@ pub fn playdeveloperreporting_vitals_crashrate_get_execute(
 
 pub fn playdeveloperreporting_vitals_crashrate_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PlaydeveloperreportingVitalsCrashrateGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -803,7 +863,7 @@ pub fn playdeveloperreporting_vitals_crashrate_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_crashrate_get_builder(client, name)?;
+    let builder = playdeveloperreporting_vitals_crashrate_get_builder(client, &args.name)?;
     playdeveloperreporting_vitals_crashrate_get_execute(builder)
 }
 
@@ -908,6 +968,15 @@ pub fn playdeveloperreporting_vitals_crashrate_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_crashrate_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsCrashrateQueryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetRequest,
+}
+
 /// GET v1beta1/apps/{appsId}/crashRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
@@ -920,8 +989,7 @@ pub fn playdeveloperreporting_vitals_crashrate_query_execute(
 
 pub fn playdeveloperreporting_vitals_crashrate_query(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetRequest,
+    args: &PlaydeveloperreportingVitalsCrashrateQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -933,7 +1001,8 @@ pub fn playdeveloperreporting_vitals_crashrate_query(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_crashrate_query_builder(client, name, body)?;
+    let builder =
+        playdeveloperreporting_vitals_crashrate_query_builder(client, &args.name, &args.body)?;
     playdeveloperreporting_vitals_crashrate_query_execute(builder)
 }
 
@@ -1035,6 +1104,13 @@ pub fn playdeveloperreporting_vitals_errors_counts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_errors_counts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsErrorsCountsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/apps/{appsId}/errorCountMetricSet
 /// Describes the properties of the metrics set.
 ///
@@ -1047,7 +1123,7 @@ pub fn playdeveloperreporting_vitals_errors_counts_get_execute(
 
 pub fn playdeveloperreporting_vitals_errors_counts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PlaydeveloperreportingVitalsErrorsCountsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1059,7 +1135,7 @@ pub fn playdeveloperreporting_vitals_errors_counts_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_errors_counts_get_builder(client, name)?;
+    let builder = playdeveloperreporting_vitals_errors_counts_get_builder(client, &args.name)?;
     playdeveloperreporting_vitals_errors_counts_get_execute(builder)
 }
 
@@ -1164,6 +1240,15 @@ pub fn playdeveloperreporting_vitals_errors_counts_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_errors_counts_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsErrorsCountsQueryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetRequest,
+}
+
 /// GET v1beta1/apps/{appsId}/errorCountMetricSet:query
 /// Queries the metrics in the metrics set.
 ///
@@ -1176,8 +1261,7 @@ pub fn playdeveloperreporting_vitals_errors_counts_query_execute(
 
 pub fn playdeveloperreporting_vitals_errors_counts_query(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetRequest,
+    args: &PlaydeveloperreportingVitalsErrorsCountsQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1189,7 +1273,8 @@ pub fn playdeveloperreporting_vitals_errors_counts_query(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_errors_counts_query_builder(client, name, body)?;
+    let builder =
+        playdeveloperreporting_vitals_errors_counts_query_builder(client, &args.name, &args.body)?;
     playdeveloperreporting_vitals_errors_counts_query_execute(builder)
 }
 
@@ -1399,6 +1484,63 @@ pub fn playdeveloperreporting_vitals_errors_issues_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_errors_issues_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsErrorsIssuesSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: interval_endTime_day
+    pub interval_endTime_day: Option<i32>,
+    /// Query parameter: interval_endTime_hours
+    pub interval_endTime_hours: Option<i32>,
+    /// Query parameter: interval_endTime_minutes
+    pub interval_endTime_minutes: Option<i32>,
+    /// Query parameter: interval_endTime_month
+    pub interval_endTime_month: Option<i32>,
+    /// Query parameter: interval_endTime_nanos
+    pub interval_endTime_nanos: Option<i32>,
+    /// Query parameter: interval_endTime_seconds
+    pub interval_endTime_seconds: Option<i32>,
+    /// Query parameter: interval_endTime_timeZone_id
+    pub interval_endTime_timeZone_id: Option<String>,
+    /// Query parameter: interval_endTime_timeZone_version
+    pub interval_endTime_timeZone_version: Option<String>,
+    /// Query parameter: interval_endTime_utcOffset
+    pub interval_endTime_utcOffset: Option<String>,
+    /// Query parameter: interval_endTime_year
+    pub interval_endTime_year: Option<i32>,
+    /// Query parameter: interval_startTime_day
+    pub interval_startTime_day: Option<i32>,
+    /// Query parameter: interval_startTime_hours
+    pub interval_startTime_hours: Option<i32>,
+    /// Query parameter: interval_startTime_minutes
+    pub interval_startTime_minutes: Option<i32>,
+    /// Query parameter: interval_startTime_month
+    pub interval_startTime_month: Option<i32>,
+    /// Query parameter: interval_startTime_nanos
+    pub interval_startTime_nanos: Option<i32>,
+    /// Query parameter: interval_startTime_seconds
+    pub interval_startTime_seconds: Option<i32>,
+    /// Query parameter: interval_startTime_timeZone_id
+    pub interval_startTime_timeZone_id: Option<String>,
+    /// Query parameter: interval_startTime_timeZone_version
+    pub interval_startTime_timeZone_version: Option<String>,
+    /// Query parameter: interval_startTime_utcOffset
+    pub interval_startTime_utcOffset: Option<String>,
+    /// Query parameter: interval_startTime_year
+    pub interval_startTime_year: Option<i32>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: sampleErrorReportLimit
+    pub sampleErrorReportLimit: Option<i32>,
+}
+
 /// GET v1beta1/apps/{appsId}/errorIssues:search
 /// Searches all error issues in which reports have been grouped.
 ///
@@ -1411,32 +1553,7 @@ pub fn playdeveloperreporting_vitals_errors_issues_search_execute(
 
 pub fn playdeveloperreporting_vitals_errors_issues_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    interval_endTime_day: Option<i32>,
-    interval_endTime_hours: Option<i32>,
-    interval_endTime_minutes: Option<i32>,
-    interval_endTime_month: Option<i32>,
-    interval_endTime_nanos: Option<i32>,
-    interval_endTime_seconds: Option<i32>,
-    interval_endTime_timeZone_id: Option<&str>,
-    interval_endTime_timeZone_version: Option<&str>,
-    interval_endTime_utcOffset: Option<&str>,
-    interval_endTime_year: Option<i32>,
-    interval_startTime_day: Option<i32>,
-    interval_startTime_hours: Option<i32>,
-    interval_startTime_minutes: Option<i32>,
-    interval_startTime_month: Option<i32>,
-    interval_startTime_nanos: Option<i32>,
-    interval_startTime_seconds: Option<i32>,
-    interval_startTime_timeZone_id: Option<&str>,
-    interval_startTime_timeZone_version: Option<&str>,
-    interval_startTime_utcOffset: Option<&str>,
-    interval_startTime_year: Option<i32>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    sampleErrorReportLimit: Option<i32>,
+    args: &PlaydeveloperreportingVitalsErrorsIssuesSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1450,32 +1567,32 @@ pub fn playdeveloperreporting_vitals_errors_issues_search(
 > {
     let builder = playdeveloperreporting_vitals_errors_issues_search_builder(
         client,
-        parent,
-        filter,
-        interval_endTime_day,
-        interval_endTime_hours,
-        interval_endTime_minutes,
-        interval_endTime_month,
-        interval_endTime_nanos,
-        interval_endTime_seconds,
-        interval_endTime_timeZone_id,
-        interval_endTime_timeZone_version,
-        interval_endTime_utcOffset,
-        interval_endTime_year,
-        interval_startTime_day,
-        interval_startTime_hours,
-        interval_startTime_minutes,
-        interval_startTime_month,
-        interval_startTime_nanos,
-        interval_startTime_seconds,
-        interval_startTime_timeZone_id,
-        interval_startTime_timeZone_version,
-        interval_startTime_utcOffset,
-        interval_startTime_year,
-        orderBy,
-        pageSize,
-        pageToken,
-        sampleErrorReportLimit,
+        &args.parent,
+        args.filter.as_deref(),
+        args.interval_endTime_day,
+        args.interval_endTime_hours,
+        args.interval_endTime_minutes,
+        args.interval_endTime_month,
+        args.interval_endTime_nanos,
+        args.interval_endTime_seconds,
+        args.interval_endTime_timeZone_id.as_deref(),
+        args.interval_endTime_timeZone_version.as_deref(),
+        args.interval_endTime_utcOffset.as_deref(),
+        args.interval_endTime_year,
+        args.interval_startTime_day,
+        args.interval_startTime_hours,
+        args.interval_startTime_minutes,
+        args.interval_startTime_month,
+        args.interval_startTime_nanos,
+        args.interval_startTime_seconds,
+        args.interval_startTime_timeZone_id.as_deref(),
+        args.interval_startTime_timeZone_version.as_deref(),
+        args.interval_startTime_utcOffset.as_deref(),
+        args.interval_startTime_year,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.sampleErrorReportLimit,
     )?;
     playdeveloperreporting_vitals_errors_issues_search_execute(builder)
 }
@@ -1678,6 +1795,59 @@ pub fn playdeveloperreporting_vitals_errors_reports_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_errors_reports_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsErrorsReportsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: interval_endTime_day
+    pub interval_endTime_day: Option<i32>,
+    /// Query parameter: interval_endTime_hours
+    pub interval_endTime_hours: Option<i32>,
+    /// Query parameter: interval_endTime_minutes
+    pub interval_endTime_minutes: Option<i32>,
+    /// Query parameter: interval_endTime_month
+    pub interval_endTime_month: Option<i32>,
+    /// Query parameter: interval_endTime_nanos
+    pub interval_endTime_nanos: Option<i32>,
+    /// Query parameter: interval_endTime_seconds
+    pub interval_endTime_seconds: Option<i32>,
+    /// Query parameter: interval_endTime_timeZone_id
+    pub interval_endTime_timeZone_id: Option<String>,
+    /// Query parameter: interval_endTime_timeZone_version
+    pub interval_endTime_timeZone_version: Option<String>,
+    /// Query parameter: interval_endTime_utcOffset
+    pub interval_endTime_utcOffset: Option<String>,
+    /// Query parameter: interval_endTime_year
+    pub interval_endTime_year: Option<i32>,
+    /// Query parameter: interval_startTime_day
+    pub interval_startTime_day: Option<i32>,
+    /// Query parameter: interval_startTime_hours
+    pub interval_startTime_hours: Option<i32>,
+    /// Query parameter: interval_startTime_minutes
+    pub interval_startTime_minutes: Option<i32>,
+    /// Query parameter: interval_startTime_month
+    pub interval_startTime_month: Option<i32>,
+    /// Query parameter: interval_startTime_nanos
+    pub interval_startTime_nanos: Option<i32>,
+    /// Query parameter: interval_startTime_seconds
+    pub interval_startTime_seconds: Option<i32>,
+    /// Query parameter: interval_startTime_timeZone_id
+    pub interval_startTime_timeZone_id: Option<String>,
+    /// Query parameter: interval_startTime_timeZone_version
+    pub interval_startTime_timeZone_version: Option<String>,
+    /// Query parameter: interval_startTime_utcOffset
+    pub interval_startTime_utcOffset: Option<String>,
+    /// Query parameter: interval_startTime_year
+    pub interval_startTime_year: Option<i32>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/apps/{appsId}/errorReports:search
 /// Searches all error reports received for an app.
 ///
@@ -1690,30 +1860,7 @@ pub fn playdeveloperreporting_vitals_errors_reports_search_execute(
 
 pub fn playdeveloperreporting_vitals_errors_reports_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    interval_endTime_day: Option<i32>,
-    interval_endTime_hours: Option<i32>,
-    interval_endTime_minutes: Option<i32>,
-    interval_endTime_month: Option<i32>,
-    interval_endTime_nanos: Option<i32>,
-    interval_endTime_seconds: Option<i32>,
-    interval_endTime_timeZone_id: Option<&str>,
-    interval_endTime_timeZone_version: Option<&str>,
-    interval_endTime_utcOffset: Option<&str>,
-    interval_endTime_year: Option<i32>,
-    interval_startTime_day: Option<i32>,
-    interval_startTime_hours: Option<i32>,
-    interval_startTime_minutes: Option<i32>,
-    interval_startTime_month: Option<i32>,
-    interval_startTime_nanos: Option<i32>,
-    interval_startTime_seconds: Option<i32>,
-    interval_startTime_timeZone_id: Option<&str>,
-    interval_startTime_timeZone_version: Option<&str>,
-    interval_startTime_utcOffset: Option<&str>,
-    interval_startTime_year: Option<i32>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PlaydeveloperreportingVitalsErrorsReportsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1727,30 +1874,30 @@ pub fn playdeveloperreporting_vitals_errors_reports_search(
 > {
     let builder = playdeveloperreporting_vitals_errors_reports_search_builder(
         client,
-        parent,
-        filter,
-        interval_endTime_day,
-        interval_endTime_hours,
-        interval_endTime_minutes,
-        interval_endTime_month,
-        interval_endTime_nanos,
-        interval_endTime_seconds,
-        interval_endTime_timeZone_id,
-        interval_endTime_timeZone_version,
-        interval_endTime_utcOffset,
-        interval_endTime_year,
-        interval_startTime_day,
-        interval_startTime_hours,
-        interval_startTime_minutes,
-        interval_startTime_month,
-        interval_startTime_nanos,
-        interval_startTime_seconds,
-        interval_startTime_timeZone_id,
-        interval_startTime_timeZone_version,
-        interval_startTime_utcOffset,
-        interval_startTime_year,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.filter.as_deref(),
+        args.interval_endTime_day,
+        args.interval_endTime_hours,
+        args.interval_endTime_minutes,
+        args.interval_endTime_month,
+        args.interval_endTime_nanos,
+        args.interval_endTime_seconds,
+        args.interval_endTime_timeZone_id.as_deref(),
+        args.interval_endTime_timeZone_version.as_deref(),
+        args.interval_endTime_utcOffset.as_deref(),
+        args.interval_endTime_year,
+        args.interval_startTime_day,
+        args.interval_startTime_hours,
+        args.interval_startTime_minutes,
+        args.interval_startTime_month,
+        args.interval_startTime_nanos,
+        args.interval_startTime_seconds,
+        args.interval_startTime_timeZone_id.as_deref(),
+        args.interval_startTime_timeZone_version.as_deref(),
+        args.interval_startTime_utcOffset.as_deref(),
+        args.interval_startTime_year,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     playdeveloperreporting_vitals_errors_reports_search_execute(builder)
 }
@@ -1853,6 +2000,13 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_excessivewakeuprate_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsExcessivewakeuprateGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/apps/{appsId}/excessiveWakeupRateMetricSet
 /// Describes the properties of the metric set.
 ///
@@ -1865,7 +2019,7 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_get_execute(
 
 pub fn playdeveloperreporting_vitals_excessivewakeuprate_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PlaydeveloperreportingVitalsExcessivewakeuprateGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1877,7 +2031,8 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_excessivewakeuprate_get_builder(client, name)?;
+    let builder =
+        playdeveloperreporting_vitals_excessivewakeuprate_get_builder(client, &args.name)?;
     playdeveloperreporting_vitals_excessivewakeuprate_get_execute(builder)
 }
 
@@ -1978,6 +2133,15 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_excessivewakeuprate_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsExcessivewakeuprateQueryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetRequest,
+}
+
 /// GET v1beta1/apps/{appsId}/excessiveWakeupRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
@@ -1990,8 +2154,7 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_query_execute(
 
 pub fn playdeveloperreporting_vitals_excessivewakeuprate_query(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetRequest,
+    args: &PlaydeveloperreportingVitalsExcessivewakeuprateQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2005,8 +2168,9 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playdeveloperreporting_vitals_excessivewakeuprate_query_builder(client, name, body)?;
+    let builder = playdeveloperreporting_vitals_excessivewakeuprate_query_builder(
+        client, &args.name, &args.body,
+    )?;
     playdeveloperreporting_vitals_excessivewakeuprate_query_execute(builder)
 }
 
@@ -2105,6 +2269,13 @@ pub fn playdeveloperreporting_vitals_lmkrate_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_lmkrate_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsLmkrateGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/apps/{appsId}/lmkRateMetricSet
 /// Describes the properties of the metric set.
 ///
@@ -2117,7 +2288,7 @@ pub fn playdeveloperreporting_vitals_lmkrate_get_execute(
 
 pub fn playdeveloperreporting_vitals_lmkrate_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PlaydeveloperreportingVitalsLmkrateGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePlayDeveloperReportingV1beta1LmkRateMetricSet>, ApiError>,
@@ -2126,7 +2297,7 @@ pub fn playdeveloperreporting_vitals_lmkrate_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_lmkrate_get_builder(client, name)?;
+    let builder = playdeveloperreporting_vitals_lmkrate_get_builder(client, &args.name)?;
     playdeveloperreporting_vitals_lmkrate_get_execute(builder)
 }
 
@@ -2231,6 +2402,15 @@ pub fn playdeveloperreporting_vitals_lmkrate_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_lmkrate_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsLmkrateQueryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetRequest,
+}
+
 /// GET v1beta1/apps/{appsId}/lmkRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
@@ -2243,8 +2423,7 @@ pub fn playdeveloperreporting_vitals_lmkrate_query_execute(
 
 pub fn playdeveloperreporting_vitals_lmkrate_query(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetRequest,
+    args: &PlaydeveloperreportingVitalsLmkrateQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2256,7 +2435,8 @@ pub fn playdeveloperreporting_vitals_lmkrate_query(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_lmkrate_query_builder(client, name, body)?;
+    let builder =
+        playdeveloperreporting_vitals_lmkrate_query_builder(client, &args.name, &args.body)?;
     playdeveloperreporting_vitals_lmkrate_query_execute(builder)
 }
 
@@ -2358,6 +2538,13 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_slowrenderingrate_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsSlowrenderingrateGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/apps/{appsId}/slowRenderingRateMetricSet
 /// Describes the properties of the metric set.
 ///
@@ -2370,7 +2557,7 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_get_execute(
 
 pub fn playdeveloperreporting_vitals_slowrenderingrate_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PlaydeveloperreportingVitalsSlowrenderingrateGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2382,7 +2569,7 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_slowrenderingrate_get_builder(client, name)?;
+    let builder = playdeveloperreporting_vitals_slowrenderingrate_get_builder(client, &args.name)?;
     playdeveloperreporting_vitals_slowrenderingrate_get_execute(builder)
 }
 
@@ -2483,6 +2670,15 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_slowrenderingrate_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsSlowrenderingrateQueryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetRequest,
+}
+
 /// GET v1beta1/apps/{appsId}/slowRenderingRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
@@ -2495,8 +2691,7 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_query_execute(
 
 pub fn playdeveloperreporting_vitals_slowrenderingrate_query(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetRequest,
+    args: &PlaydeveloperreportingVitalsSlowrenderingrateQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2510,8 +2705,9 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playdeveloperreporting_vitals_slowrenderingrate_query_builder(client, name, body)?;
+    let builder = playdeveloperreporting_vitals_slowrenderingrate_query_builder(
+        client, &args.name, &args.body,
+    )?;
     playdeveloperreporting_vitals_slowrenderingrate_query_execute(builder)
 }
 
@@ -2613,6 +2809,13 @@ pub fn playdeveloperreporting_vitals_slowstartrate_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_slowstartrate_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsSlowstartrateGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/apps/{appsId}/slowStartRateMetricSet
 /// Describes the properties of the metric set.
 ///
@@ -2625,7 +2828,7 @@ pub fn playdeveloperreporting_vitals_slowstartrate_get_execute(
 
 pub fn playdeveloperreporting_vitals_slowstartrate_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PlaydeveloperreportingVitalsSlowstartrateGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2637,7 +2840,7 @@ pub fn playdeveloperreporting_vitals_slowstartrate_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_slowstartrate_get_builder(client, name)?;
+    let builder = playdeveloperreporting_vitals_slowstartrate_get_builder(client, &args.name)?;
     playdeveloperreporting_vitals_slowstartrate_get_execute(builder)
 }
 
@@ -2741,6 +2944,15 @@ pub fn playdeveloperreporting_vitals_slowstartrate_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_slowstartrate_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsSlowstartrateQueryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetRequest,
+}
+
 /// GET v1beta1/apps/{appsId}/slowStartRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
@@ -2753,8 +2965,7 @@ pub fn playdeveloperreporting_vitals_slowstartrate_query_execute(
 
 pub fn playdeveloperreporting_vitals_slowstartrate_query(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetRequest,
+    args: &PlaydeveloperreportingVitalsSlowstartrateQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2766,7 +2977,8 @@ pub fn playdeveloperreporting_vitals_slowstartrate_query(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_slowstartrate_query_builder(client, name, body)?;
+    let builder =
+        playdeveloperreporting_vitals_slowstartrate_query_builder(client, &args.name, &args.body)?;
     playdeveloperreporting_vitals_slowstartrate_query_execute(builder)
 }
 
@@ -2864,6 +3076,13 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsStuckbackgroundwakelockrateGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/apps/{appsId}/stuckBackgroundWakelockRateMetricSet
 /// Describes the properties of the metric set.
 ///
@@ -2876,7 +3095,7 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_execute(
 
 pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PlaydeveloperreportingVitalsStuckbackgroundwakelockrateGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2891,7 +3110,7 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get(
     ApiError,
 > {
     let builder =
-        playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_builder(client, name)?;
+        playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_builder(client, &args.name)?;
     playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_execute(builder)
 }
 
@@ -2986,6 +3205,15 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaydeveloperreportingVitalsStuckbackgroundwakelockrateQueryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetRequest,
+}
+
 /// GET v1beta1/apps/{appsId}/stuckBackgroundWakelockRateMetricSet:query
 /// Queries the metrics in the metric set.
 ///
@@ -2998,8 +3226,7 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_execute(
 
 pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetRequest,
+    args: &PlaydeveloperreportingVitalsStuckbackgroundwakelockrateQueryArgs,
 ) -> Result<
     impl StreamIterator<
         D = Result<ApiResponse<GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetResponse>, ApiError>,
@@ -3008,7 +3235,7 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query(
     ApiError,
 >{
     let builder = playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_execute(builder)
 }

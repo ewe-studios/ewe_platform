@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
@@ -109,6 +111,15 @@ pub fn cloudshell_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudshell_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudshellOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -121,13 +132,12 @@ pub fn cloudshell_operations_cancel_execute(
 
 pub fn cloudshell_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &CloudshellOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudshell_operations_cancel_builder(client, name, body)?;
+    let builder = cloudshell_operations_cancel_builder(client, &args.name, &args.body)?;
     cloudshell_operations_cancel_execute(builder)
 }
 
@@ -218,6 +228,13 @@ pub fn cloudshell_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudshell_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudshellOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -230,12 +247,12 @@ pub fn cloudshell_operations_delete_execute(
 
 pub fn cloudshell_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudshellOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudshell_operations_delete_builder(client, name)?;
+    let builder = cloudshell_operations_delete_builder(client, &args.name)?;
     cloudshell_operations_delete_execute(builder)
 }
 
@@ -326,6 +343,13 @@ pub fn cloudshell_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudshell_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudshellOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -338,12 +362,12 @@ pub fn cloudshell_operations_get_execute(
 
 pub fn cloudshell_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudshellOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudshell_operations_get_builder(client, name)?;
+    let builder = cloudshell_operations_get_builder(client, &args.name)?;
     cloudshell_operations_get_execute(builder)
 }
 
@@ -460,6 +484,21 @@ pub fn cloudshell_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudshell_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudshellOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -472,11 +511,7 @@ pub fn cloudshell_operations_list_execute(
 
 pub fn cloudshell_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &CloudshellOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -485,11 +520,11 @@ pub fn cloudshell_operations_list(
 > {
     let builder = cloudshell_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     cloudshell_operations_list_execute(builder)
 }
@@ -587,6 +622,15 @@ pub fn cloudshell_users_environments_add_public_key_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudshell_users_environments_add_public_key`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudshellUsersEnvironmentsAddPublicKeyArgs {
+    /// Path parameter: environment
+    pub environment: String,
+    /// Request body.
+    pub body: AddPublicKeyRequest,
+}
+
 /// GET v1/users/{usersId}/environments/{environmentsId}:addPublicKey
 /// Adds a public SSH key to an environment, allowing clients with the corresponding private key to connect to that environment via SSH. If a key with the same content already exists, this will error with ALREADY_EXISTS.
 ///
@@ -599,13 +643,16 @@ pub fn cloudshell_users_environments_add_public_key_execute(
 
 pub fn cloudshell_users_environments_add_public_key(
     client: &SimpleHttpClient,
-    environment: &str,
-    body: &AddPublicKeyRequest,
+    args: &CloudshellUsersEnvironmentsAddPublicKeyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudshell_users_environments_add_public_key_builder(client, environment, body)?;
+    let builder = cloudshell_users_environments_add_public_key_builder(
+        client,
+        &args.environment,
+        &args.body,
+    )?;
     cloudshell_users_environments_add_public_key_execute(builder)
 }
 
@@ -702,6 +749,15 @@ pub fn cloudshell_users_environments_authorize_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudshell_users_environments_authorize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudshellUsersEnvironmentsAuthorizeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AuthorizeEnvironmentRequest,
+}
+
 /// GET v1/users/{usersId}/environments/{environmentsId}:authorize
 /// Sends OAuth credentials to a running environment on behalf of a user. When this completes, the environment will be authorized to run various Google Cloud command line tools without requiring the user to manually authenticate.
 ///
@@ -714,13 +770,12 @@ pub fn cloudshell_users_environments_authorize_execute(
 
 pub fn cloudshell_users_environments_authorize(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AuthorizeEnvironmentRequest,
+    args: &CloudshellUsersEnvironmentsAuthorizeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudshell_users_environments_authorize_builder(client, name, body)?;
+    let builder = cloudshell_users_environments_authorize_builder(client, &args.name, &args.body)?;
     cloudshell_users_environments_authorize_execute(builder)
 }
 
@@ -834,6 +889,17 @@ pub fn cloudshell_users_environments_generate_access_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudshell_users_environments_generate_access_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudshellUsersEnvironmentsGenerateAccessTokenArgs {
+    /// Path parameter: environment
+    pub environment: String,
+    /// Query parameter: expireTime
+    pub expireTime: Option<String>,
+    /// Query parameter: ttl
+    pub ttl: Option<String>,
+}
+
 /// GET v1/users/{usersId}/environments/{environmentsId}:generateAccessToken
 /// Generates an access token for the user's environment.
 ///
@@ -846,9 +912,7 @@ pub fn cloudshell_users_environments_generate_access_token_execute(
 
 pub fn cloudshell_users_environments_generate_access_token(
     client: &SimpleHttpClient,
-    environment: &str,
-    expireTime: Option<&str>,
-    ttl: Option<&str>,
+    args: &CloudshellUsersEnvironmentsGenerateAccessTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateAccessTokenResponse>, ApiError>,
@@ -859,9 +923,9 @@ pub fn cloudshell_users_environments_generate_access_token(
 > {
     let builder = cloudshell_users_environments_generate_access_token_builder(
         client,
-        environment,
-        expireTime,
-        ttl,
+        &args.environment,
+        args.expireTime.as_deref(),
+        args.ttl.as_deref(),
     )?;
     cloudshell_users_environments_generate_access_token_execute(builder)
 }
@@ -956,6 +1020,13 @@ pub fn cloudshell_users_environments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudshell_users_environments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudshellUsersEnvironmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/users/{usersId}/environments/{environmentsId}
 /// Gets an environment. Returns NOT_FOUND if the environment does not exist.
 ///
@@ -968,12 +1039,12 @@ pub fn cloudshell_users_environments_get_execute(
 
 pub fn cloudshell_users_environments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudshellUsersEnvironmentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Environment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudshell_users_environments_get_builder(client, name)?;
+    let builder = cloudshell_users_environments_get_builder(client, &args.name)?;
     cloudshell_users_environments_get_execute(builder)
 }
 
@@ -1070,6 +1141,15 @@ pub fn cloudshell_users_environments_remove_public_key_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudshell_users_environments_remove_public_key`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudshellUsersEnvironmentsRemovePublicKeyArgs {
+    /// Path parameter: environment
+    pub environment: String,
+    /// Request body.
+    pub body: RemovePublicKeyRequest,
+}
+
 /// GET v1/users/{usersId}/environments/{environmentsId}:removePublicKey
 /// Removes a public SSH key from an environment. Clients will no longer be able to connect to the environment using the corresponding private key. If a key with the same content is not present, this will error with NOT_FOUND.
 ///
@@ -1082,14 +1162,16 @@ pub fn cloudshell_users_environments_remove_public_key_execute(
 
 pub fn cloudshell_users_environments_remove_public_key(
     client: &SimpleHttpClient,
-    environment: &str,
-    body: &RemovePublicKeyRequest,
+    args: &CloudshellUsersEnvironmentsRemovePublicKeyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudshell_users_environments_remove_public_key_builder(client, environment, body)?;
+    let builder = cloudshell_users_environments_remove_public_key_builder(
+        client,
+        &args.environment,
+        &args.body,
+    )?;
     cloudshell_users_environments_remove_public_key_execute(builder)
 }
 
@@ -1186,6 +1268,15 @@ pub fn cloudshell_users_environments_start_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudshell_users_environments_start`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudshellUsersEnvironmentsStartArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StartEnvironmentRequest,
+}
+
 /// GET v1/users/{usersId}/environments/{environmentsId}:start
 /// Starts an existing environment, allowing clients to connect to it. The returned operation will contain an instance of StartEnvironmentMetadata in its metadata field. Users can wait for the environment to start by polling this operation via GetOperation. Once the environment has finished starting and is ready to accept connections, the operation will contain a StartEnvironmentResponse in its response field.
 ///
@@ -1198,12 +1289,11 @@ pub fn cloudshell_users_environments_start_execute(
 
 pub fn cloudshell_users_environments_start(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StartEnvironmentRequest,
+    args: &CloudshellUsersEnvironmentsStartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudshell_users_environments_start_builder(client, name, body)?;
+    let builder = cloudshell_users_environments_start_builder(client, &args.name, &args.body)?;
     cloudshell_users_environments_start_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn managedidentities_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn managedidentities_projects_locations_get_execute(
 
 pub fn managedidentities_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedidentitiesProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedidentities_projects_locations_get_builder(client, name)?;
+    let builder = managedidentities_projects_locations_get_builder(client, &args.name)?;
     managedidentities_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn managedidentities_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
 ///
@@ -255,11 +279,7 @@ pub fn managedidentities_projects_locations_list_execute(
 
 pub fn managedidentities_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ManagedidentitiesProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn managedidentities_projects_locations_list(
 > {
     let builder = managedidentities_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     managedidentities_projects_locations_list_execute(builder)
 }
@@ -370,6 +390,15 @@ pub fn managedidentities_projects_locations_global_domains_attach_trust_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_attach_trust`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsAttachTrustArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AttachTrustRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}:attachTrust
 /// Adds an AD trust to a domain.
 ///
@@ -382,14 +411,13 @@ pub fn managedidentities_projects_locations_global_domains_attach_trust_execute(
 
 pub fn managedidentities_projects_locations_global_domains_attach_trust(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AttachTrustRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsAttachTrustArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_attach_trust_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     managedidentities_projects_locations_global_domains_attach_trust_execute(builder)
 }
@@ -491,6 +519,15 @@ pub fn managedidentities_projects_locations_global_domains_check_migration_permi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_check_migration_permission`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsCheckMigrationPermissionArgs {
+    /// Path parameter: domain
+    pub domain: String,
+    /// Request body.
+    pub body: CheckMigrationPermissionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}:checkMigrationPermission
 /// CheckMigrationPermission API gets the current state of DomainMigration
 ///
@@ -503,8 +540,7 @@ pub fn managedidentities_projects_locations_global_domains_check_migration_permi
 
 pub fn managedidentities_projects_locations_global_domains_check_migration_permission(
     client: &SimpleHttpClient,
-    domain: &str,
-    body: &CheckMigrationPermissionRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsCheckMigrationPermissionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CheckMigrationPermissionResponse>, ApiError>,
@@ -515,7 +551,9 @@ pub fn managedidentities_projects_locations_global_domains_check_migration_permi
 > {
     let builder =
         managedidentities_projects_locations_global_domains_check_migration_permission_builder(
-            client, domain, body,
+            client,
+            &args.domain,
+            &args.body,
         )?;
     managedidentities_projects_locations_global_domains_check_migration_permission_execute(builder)
 }
@@ -625,6 +663,17 @@ pub fn managedidentities_projects_locations_global_domains_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: domainName
+    pub domainName: Option<String>,
+    /// Request body.
+    pub body: Domain,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains
 /// Creates a Microsoft AD domain.
 ///
@@ -637,15 +686,16 @@ pub fn managedidentities_projects_locations_global_domains_create_execute(
 
 pub fn managedidentities_projects_locations_global_domains_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    domainName: Option<&str>,
-    body: &Domain,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_create_builder(
-        client, parent, domainName, body,
+        client,
+        &args.parent,
+        args.domainName.as_deref(),
+        &args.body,
     )?;
     managedidentities_projects_locations_global_domains_create_execute(builder)
 }
@@ -740,6 +790,13 @@ pub fn managedidentities_projects_locations_global_domains_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}
 /// Deletes a domain.
 ///
@@ -752,12 +809,13 @@ pub fn managedidentities_projects_locations_global_domains_delete_execute(
 
 pub fn managedidentities_projects_locations_global_domains_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedidentities_projects_locations_global_domains_delete_builder(client, name)?;
+    let builder =
+        managedidentities_projects_locations_global_domains_delete_builder(client, &args.name)?;
     managedidentities_projects_locations_global_domains_delete_execute(builder)
 }
 
@@ -854,6 +912,15 @@ pub fn managedidentities_projects_locations_global_domains_detach_trust_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_detach_trust`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsDetachTrustArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DetachTrustRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}:detachTrust
 /// Removes an AD trust.
 ///
@@ -866,14 +933,13 @@ pub fn managedidentities_projects_locations_global_domains_detach_trust_execute(
 
 pub fn managedidentities_projects_locations_global_domains_detach_trust(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DetachTrustRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsDetachTrustArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_detach_trust_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     managedidentities_projects_locations_global_domains_detach_trust_execute(builder)
 }
@@ -971,6 +1037,15 @@ pub fn managedidentities_projects_locations_global_domains_disable_migration_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_disable_migration`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsDisableMigrationArgs {
+    /// Path parameter: domain
+    pub domain: String,
+    /// Request body.
+    pub body: DisableMigrationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}:disableMigration
 /// Disable Domain Migration
 ///
@@ -983,14 +1058,15 @@ pub fn managedidentities_projects_locations_global_domains_disable_migration_exe
 
 pub fn managedidentities_projects_locations_global_domains_disable_migration(
     client: &SimpleHttpClient,
-    domain: &str,
-    body: &DisableMigrationRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsDisableMigrationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_disable_migration_builder(
-        client, domain, body,
+        client,
+        &args.domain,
+        &args.body,
     )?;
     managedidentities_projects_locations_global_domains_disable_migration_execute(builder)
 }
@@ -1090,6 +1166,15 @@ pub fn managedidentities_projects_locations_global_domains_domain_join_machine_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_domain_join_machine`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsDomainJoinMachineArgs {
+    /// Path parameter: domain
+    pub domain: String,
+    /// Request body.
+    pub body: DomainJoinMachineRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}:domainJoinMachine
 /// DomainJoinMachine API joins a Compute Engine VM to the domain
 ///
@@ -1102,8 +1187,7 @@ pub fn managedidentities_projects_locations_global_domains_domain_join_machine_e
 
 pub fn managedidentities_projects_locations_global_domains_domain_join_machine(
     client: &SimpleHttpClient,
-    domain: &str,
-    body: &DomainJoinMachineRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsDomainJoinMachineArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DomainJoinMachineResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1111,7 +1195,9 @@ pub fn managedidentities_projects_locations_global_domains_domain_join_machine(
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_domain_join_machine_builder(
-        client, domain, body,
+        client,
+        &args.domain,
+        &args.body,
     )?;
     managedidentities_projects_locations_global_domains_domain_join_machine_execute(builder)
 }
@@ -1209,6 +1295,15 @@ pub fn managedidentities_projects_locations_global_domains_enable_migration_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_enable_migration`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsEnableMigrationArgs {
+    /// Path parameter: domain
+    pub domain: String,
+    /// Request body.
+    pub body: EnableMigrationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}:enableMigration
 /// Enable Domain Migration
 ///
@@ -1221,14 +1316,15 @@ pub fn managedidentities_projects_locations_global_domains_enable_migration_exec
 
 pub fn managedidentities_projects_locations_global_domains_enable_migration(
     client: &SimpleHttpClient,
-    domain: &str,
-    body: &EnableMigrationRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsEnableMigrationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_enable_migration_builder(
-        client, domain, body,
+        client,
+        &args.domain,
+        &args.body,
     )?;
     managedidentities_projects_locations_global_domains_enable_migration_execute(builder)
 }
@@ -1326,6 +1422,15 @@ pub fn managedidentities_projects_locations_global_domains_extend_schema_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_extend_schema`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsExtendSchemaArgs {
+    /// Path parameter: domain
+    pub domain: String,
+    /// Request body.
+    pub body: ExtendSchemaRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}:extendSchema
 /// Extend Schema for Domain
 ///
@@ -1338,14 +1443,15 @@ pub fn managedidentities_projects_locations_global_domains_extend_schema_execute
 
 pub fn managedidentities_projects_locations_global_domains_extend_schema(
     client: &SimpleHttpClient,
-    domain: &str,
-    body: &ExtendSchemaRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsExtendSchemaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_extend_schema_builder(
-        client, domain, body,
+        client,
+        &args.domain,
+        &args.body,
     )?;
     managedidentities_projects_locations_global_domains_extend_schema_execute(builder)
 }
@@ -1440,6 +1546,13 @@ pub fn managedidentities_projects_locations_global_domains_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}
 /// Gets information about a domain.
 ///
@@ -1452,12 +1565,13 @@ pub fn managedidentities_projects_locations_global_domains_get_execute(
 
 pub fn managedidentities_projects_locations_global_domains_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Domain>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedidentities_projects_locations_global_domains_get_builder(client, name)?;
+    let builder =
+        managedidentities_projects_locations_global_domains_get_builder(client, &args.name)?;
     managedidentities_projects_locations_global_domains_get_execute(builder)
 }
 
@@ -1563,6 +1677,15 @@ pub fn managedidentities_projects_locations_global_domains_get_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1575,16 +1698,15 @@ pub fn managedidentities_projects_locations_global_domains_get_iam_policy_execut
 
 pub fn managedidentities_projects_locations_global_domains_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     managedidentities_projects_locations_global_domains_get_iam_policy_execute(builder)
 }
@@ -1681,6 +1803,13 @@ pub fn managedidentities_projects_locations_global_domains_get_ldapssettings_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_get_ldapssettings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsGetLdapssettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}/ldapssettings
 /// Gets the domain ldaps settings.
 ///
@@ -1693,7 +1822,7 @@ pub fn managedidentities_projects_locations_global_domains_get_ldapssettings_exe
 
 pub fn managedidentities_projects_locations_global_domains_get_ldapssettings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsGetLdapssettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LDAPSSettings>, ApiError>, P = ApiPending>
         + Send
@@ -1701,7 +1830,7 @@ pub fn managedidentities_projects_locations_global_domains_get_ldapssettings(
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_get_ldapssettings_builder(
-        client, name,
+        client, &args.name,
     )?;
     managedidentities_projects_locations_global_domains_get_ldapssettings_execute(builder)
 }
@@ -1822,6 +1951,21 @@ pub fn managedidentities_projects_locations_global_domains_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains
 /// Lists domains in a project.
 ///
@@ -1834,11 +1978,7 @@ pub fn managedidentities_projects_locations_global_domains_list_execute(
 
 pub fn managedidentities_projects_locations_global_domains_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDomainsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1846,7 +1986,12 @@ pub fn managedidentities_projects_locations_global_domains_list(
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     managedidentities_projects_locations_global_domains_list_execute(builder)
 }
@@ -1956,6 +2101,17 @@ pub fn managedidentities_projects_locations_global_domains_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Domain,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}
 /// Updates the metadata and configuration of a domain.
 ///
@@ -1968,15 +2124,16 @@ pub fn managedidentities_projects_locations_global_domains_patch_execute(
 
 pub fn managedidentities_projects_locations_global_domains_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Domain,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     managedidentities_projects_locations_global_domains_patch_execute(builder)
 }
@@ -2074,6 +2231,15 @@ pub fn managedidentities_projects_locations_global_domains_reconfigure_trust_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_reconfigure_trust`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsReconfigureTrustArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ReconfigureTrustRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}:reconfigureTrust
 /// Updates the DNS conditional forwarder.
 ///
@@ -2086,14 +2252,13 @@ pub fn managedidentities_projects_locations_global_domains_reconfigure_trust_exe
 
 pub fn managedidentities_projects_locations_global_domains_reconfigure_trust(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ReconfigureTrustRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsReconfigureTrustArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_reconfigure_trust_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     managedidentities_projects_locations_global_domains_reconfigure_trust_execute(builder)
 }
@@ -2195,6 +2360,15 @@ pub fn managedidentities_projects_locations_global_domains_reset_admin_password_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_reset_admin_password`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsResetAdminPasswordArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResetAdminPasswordRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}:resetAdminPassword
 /// Resets a domain's administrator password.
 ///
@@ -2207,8 +2381,7 @@ pub fn managedidentities_projects_locations_global_domains_reset_admin_password_
 
 pub fn managedidentities_projects_locations_global_domains_reset_admin_password(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResetAdminPasswordRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsResetAdminPasswordArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ResetAdminPasswordResponse>, ApiError>,
@@ -2218,7 +2391,7 @@ pub fn managedidentities_projects_locations_global_domains_reset_admin_password(
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_reset_admin_password_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     managedidentities_projects_locations_global_domains_reset_admin_password_execute(builder)
 }
@@ -2316,6 +2489,15 @@ pub fn managedidentities_projects_locations_global_domains_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RestoreDomainRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}:restore
 /// RestoreDomain restores domain backup mentioned in the RestoreDomainRequest
 ///
@@ -2328,14 +2510,14 @@ pub fn managedidentities_projects_locations_global_domains_restore_execute(
 
 pub fn managedidentities_projects_locations_global_domains_restore(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RestoreDomainRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        managedidentities_projects_locations_global_domains_restore_builder(client, name, body)?;
+    let builder = managedidentities_projects_locations_global_domains_restore_builder(
+        client, &args.name, &args.body,
+    )?;
     managedidentities_projects_locations_global_domains_restore_execute(builder)
 }
 
@@ -2432,6 +2614,15 @@ pub fn managedidentities_projects_locations_global_domains_set_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -2444,14 +2635,15 @@ pub fn managedidentities_projects_locations_global_domains_set_iam_policy_execut
 
 pub fn managedidentities_projects_locations_global_domains_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     managedidentities_projects_locations_global_domains_set_iam_policy_execute(builder)
 }
@@ -2553,6 +2745,15 @@ pub fn managedidentities_projects_locations_global_domains_test_iam_permissions_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2565,8 +2766,7 @@ pub fn managedidentities_projects_locations_global_domains_test_iam_permissions_
 
 pub fn managedidentities_projects_locations_global_domains_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2576,7 +2776,9 @@ pub fn managedidentities_projects_locations_global_domains_test_iam_permissions(
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     managedidentities_projects_locations_global_domains_test_iam_permissions_execute(builder)
 }
@@ -2686,6 +2888,17 @@ pub fn managedidentities_projects_locations_global_domains_update_ldapssettings_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_update_ldapssettings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsUpdateLdapssettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LDAPSSettings,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}/ldapssettings
 /// Patches a single ldaps settings.
 ///
@@ -2698,15 +2911,16 @@ pub fn managedidentities_projects_locations_global_domains_update_ldapssettings_
 
 pub fn managedidentities_projects_locations_global_domains_update_ldapssettings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &LDAPSSettings,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsUpdateLdapssettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_update_ldapssettings_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     managedidentities_projects_locations_global_domains_update_ldapssettings_execute(builder)
 }
@@ -2804,6 +3018,15 @@ pub fn managedidentities_projects_locations_global_domains_validate_trust_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_validate_trust`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsValidateTrustArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ValidateTrustRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}:validateTrust
 /// Validates a trust state, that the target domain is reachable, and that the target domain is able to accept incoming trust requests.
 ///
@@ -2816,14 +3039,13 @@ pub fn managedidentities_projects_locations_global_domains_validate_trust_execut
 
 pub fn managedidentities_projects_locations_global_domains_validate_trust(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ValidateTrustRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsValidateTrustArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_validate_trust_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     managedidentities_projects_locations_global_domains_validate_trust_execute(builder)
 }
@@ -2933,6 +3155,17 @@ pub fn managedidentities_projects_locations_global_domains_backups_create_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_backups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsBackupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupId
+    pub backupId: Option<String>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}/backups
 /// Creates a Backup for a domain.
 ///
@@ -2945,15 +3178,16 @@ pub fn managedidentities_projects_locations_global_domains_backups_create_execut
 
 pub fn managedidentities_projects_locations_global_domains_backups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backupId: Option<&str>,
-    body: &Backup,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsBackupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_backups_create_builder(
-        client, parent, backupId, body,
+        client,
+        &args.parent,
+        args.backupId.as_deref(),
+        &args.body,
     )?;
     managedidentities_projects_locations_global_domains_backups_create_execute(builder)
 }
@@ -3048,6 +3282,13 @@ pub fn managedidentities_projects_locations_global_domains_backups_delete_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}/backups/{backupsId}
 /// Deletes identified Backup.
 ///
@@ -3060,13 +3301,14 @@ pub fn managedidentities_projects_locations_global_domains_backups_delete_execut
 
 pub fn managedidentities_projects_locations_global_domains_backups_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsBackupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        managedidentities_projects_locations_global_domains_backups_delete_builder(client, name)?;
+    let builder = managedidentities_projects_locations_global_domains_backups_delete_builder(
+        client, &args.name,
+    )?;
     managedidentities_projects_locations_global_domains_backups_delete_execute(builder)
 }
 
@@ -3160,6 +3402,13 @@ pub fn managedidentities_projects_locations_global_domains_backups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}/backups/{backupsId}
 /// Gets details of a single Backup.
 ///
@@ -3172,13 +3421,14 @@ pub fn managedidentities_projects_locations_global_domains_backups_get_execute(
 
 pub fn managedidentities_projects_locations_global_domains_backups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsBackupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        managedidentities_projects_locations_global_domains_backups_get_builder(client, name)?;
+    let builder = managedidentities_projects_locations_global_domains_backups_get_builder(
+        client, &args.name,
+    )?;
     managedidentities_projects_locations_global_domains_backups_get_execute(builder)
 }
 
@@ -3284,6 +3534,15 @@ pub fn managedidentities_projects_locations_global_domains_backups_get_iam_polic
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_backups_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsBackupsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}/backups/{backupsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -3296,8 +3555,7 @@ pub fn managedidentities_projects_locations_global_domains_backups_get_iam_polic
 
 pub fn managedidentities_projects_locations_global_domains_backups_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsBackupsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -3305,8 +3563,8 @@ pub fn managedidentities_projects_locations_global_domains_backups_get_iam_polic
     let builder =
         managedidentities_projects_locations_global_domains_backups_get_iam_policy_builder(
             client,
-            resource,
-            options_requestedPolicyVersion,
+            &args.resource,
+            args.options_requestedPolicyVersion,
         )?;
     managedidentities_projects_locations_global_domains_backups_get_iam_policy_execute(builder)
 }
@@ -3427,6 +3685,21 @@ pub fn managedidentities_projects_locations_global_domains_backups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}/backups
 /// Lists Backup in a given project.
 ///
@@ -3439,11 +3712,7 @@ pub fn managedidentities_projects_locations_global_domains_backups_list_execute(
 
 pub fn managedidentities_projects_locations_global_domains_backups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsBackupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3451,7 +3720,12 @@ pub fn managedidentities_projects_locations_global_domains_backups_list(
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_backups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     managedidentities_projects_locations_global_domains_backups_list_execute(builder)
 }
@@ -3561,6 +3835,17 @@ pub fn managedidentities_projects_locations_global_domains_backups_patch_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_backups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsBackupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}/backups/{backupsId}
 /// Updates the labels for specified Backup.
 ///
@@ -3573,15 +3858,16 @@ pub fn managedidentities_projects_locations_global_domains_backups_patch_execute
 
 pub fn managedidentities_projects_locations_global_domains_backups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Backup,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsBackupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_backups_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     managedidentities_projects_locations_global_domains_backups_patch_execute(builder)
 }
@@ -3679,6 +3965,15 @@ pub fn managedidentities_projects_locations_global_domains_backups_set_iam_polic
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_backups_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsBackupsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}/backups/{backupsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3691,15 +3986,16 @@ pub fn managedidentities_projects_locations_global_domains_backups_set_iam_polic
 
 pub fn managedidentities_projects_locations_global_domains_backups_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsBackupsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         managedidentities_projects_locations_global_domains_backups_set_iam_policy_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     managedidentities_projects_locations_global_domains_backups_set_iam_policy_execute(builder)
 }
@@ -3801,6 +4097,15 @@ pub fn managedidentities_projects_locations_global_domains_backups_test_iam_perm
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_backups_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsBackupsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}/backups/{backupsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3813,8 +4118,7 @@ pub fn managedidentities_projects_locations_global_domains_backups_test_iam_perm
 
 pub fn managedidentities_projects_locations_global_domains_backups_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsBackupsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3825,7 +4129,9 @@ pub fn managedidentities_projects_locations_global_domains_backups_test_iam_perm
 > {
     let builder =
         managedidentities_projects_locations_global_domains_backups_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     managedidentities_projects_locations_global_domains_backups_test_iam_permissions_execute(
         builder,
@@ -3924,6 +4230,13 @@ pub fn managedidentities_projects_locations_global_domains_sql_integrations_get_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_sql_integrations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsSqlIntegrationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}/sqlIntegrations/{sqlIntegrationsId}
 /// Gets details of a single `sqlIntegration`.
 ///
@@ -3936,7 +4249,7 @@ pub fn managedidentities_projects_locations_global_domains_sql_integrations_get_
 
 pub fn managedidentities_projects_locations_global_domains_sql_integrations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsSqlIntegrationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SqlIntegration>, ApiError>, P = ApiPending>
         + Send
@@ -3944,7 +4257,7 @@ pub fn managedidentities_projects_locations_global_domains_sql_integrations_get(
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_domains_sql_integrations_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     managedidentities_projects_locations_global_domains_sql_integrations_get_execute(builder)
 }
@@ -4067,6 +4380,21 @@ pub fn managedidentities_projects_locations_global_domains_sql_integrations_list
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_domains_sql_integrations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalDomainsSqlIntegrationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}/sqlIntegrations
 /// Lists SqlIntegrations in a given domain.
 ///
@@ -4079,11 +4407,7 @@ pub fn managedidentities_projects_locations_global_domains_sql_integrations_list
 
 pub fn managedidentities_projects_locations_global_domains_sql_integrations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ManagedidentitiesProjectsLocationsGlobalDomainsSqlIntegrationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSqlIntegrationsResponse>, ApiError>,
@@ -4094,7 +4418,12 @@ pub fn managedidentities_projects_locations_global_domains_sql_integrations_list
 > {
     let builder =
         managedidentities_projects_locations_global_domains_sql_integrations_list_builder(
-            client, parent, filter, orderBy, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     managedidentities_projects_locations_global_domains_sql_integrations_list_execute(builder)
 }
@@ -4192,6 +4521,15 @@ pub fn managedidentities_projects_locations_global_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -4204,14 +4542,14 @@ pub fn managedidentities_projects_locations_global_operations_cancel_execute(
 
 pub fn managedidentities_projects_locations_global_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        managedidentities_projects_locations_global_operations_cancel_builder(client, name, body)?;
+    let builder = managedidentities_projects_locations_global_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     managedidentities_projects_locations_global_operations_cancel_execute(builder)
 }
 
@@ -4305,6 +4643,13 @@ pub fn managedidentities_projects_locations_global_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -4317,13 +4662,13 @@ pub fn managedidentities_projects_locations_global_operations_delete_execute(
 
 pub fn managedidentities_projects_locations_global_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedidentitiesProjectsLocationsGlobalOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        managedidentities_projects_locations_global_operations_delete_builder(client, name)?;
+        managedidentities_projects_locations_global_operations_delete_builder(client, &args.name)?;
     managedidentities_projects_locations_global_operations_delete_execute(builder)
 }
 
@@ -4417,6 +4762,13 @@ pub fn managedidentities_projects_locations_global_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -4429,12 +4781,13 @@ pub fn managedidentities_projects_locations_global_operations_get_execute(
 
 pub fn managedidentities_projects_locations_global_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedidentitiesProjectsLocationsGlobalOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedidentities_projects_locations_global_operations_get_builder(client, name)?;
+    let builder =
+        managedidentities_projects_locations_global_operations_get_builder(client, &args.name)?;
     managedidentities_projects_locations_global_operations_get_execute(builder)
 }
 
@@ -4554,6 +4907,21 @@ pub fn managedidentities_projects_locations_global_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -4566,11 +4934,7 @@ pub fn managedidentities_projects_locations_global_operations_list_execute(
 
 pub fn managedidentities_projects_locations_global_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ManagedidentitiesProjectsLocationsGlobalOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4579,11 +4943,11 @@ pub fn managedidentities_projects_locations_global_operations_list(
 > {
     let builder = managedidentities_projects_locations_global_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     managedidentities_projects_locations_global_operations_list_execute(builder)
 }
@@ -4693,6 +5057,17 @@ pub fn managedidentities_projects_locations_global_peerings_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_peerings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalPeeringsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: peeringId
+    pub peeringId: Option<String>,
+    /// Request body.
+    pub body: Peering,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/peerings
 /// Creates a Peering for Managed AD instance.
 ///
@@ -4705,15 +5080,16 @@ pub fn managedidentities_projects_locations_global_peerings_create_execute(
 
 pub fn managedidentities_projects_locations_global_peerings_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    peeringId: Option<&str>,
-    body: &Peering,
+    args: &ManagedidentitiesProjectsLocationsGlobalPeeringsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_peerings_create_builder(
-        client, parent, peeringId, body,
+        client,
+        &args.parent,
+        args.peeringId.as_deref(),
+        &args.body,
     )?;
     managedidentities_projects_locations_global_peerings_create_execute(builder)
 }
@@ -4808,6 +5184,13 @@ pub fn managedidentities_projects_locations_global_peerings_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_peerings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalPeeringsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/peerings/{peeringsId}
 /// Deletes identified Peering.
 ///
@@ -4820,13 +5203,13 @@ pub fn managedidentities_projects_locations_global_peerings_delete_execute(
 
 pub fn managedidentities_projects_locations_global_peerings_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedidentitiesProjectsLocationsGlobalPeeringsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        managedidentities_projects_locations_global_peerings_delete_builder(client, name)?;
+        managedidentities_projects_locations_global_peerings_delete_builder(client, &args.name)?;
     managedidentities_projects_locations_global_peerings_delete_execute(builder)
 }
 
@@ -4920,6 +5303,13 @@ pub fn managedidentities_projects_locations_global_peerings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_peerings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalPeeringsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/peerings/{peeringsId}
 /// Gets details of a single Peering.
 ///
@@ -4932,12 +5322,13 @@ pub fn managedidentities_projects_locations_global_peerings_get_execute(
 
 pub fn managedidentities_projects_locations_global_peerings_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedidentitiesProjectsLocationsGlobalPeeringsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Peering>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedidentities_projects_locations_global_peerings_get_builder(client, name)?;
+    let builder =
+        managedidentities_projects_locations_global_peerings_get_builder(client, &args.name)?;
     managedidentities_projects_locations_global_peerings_get_execute(builder)
 }
 
@@ -5043,6 +5434,15 @@ pub fn managedidentities_projects_locations_global_peerings_get_iam_policy_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_peerings_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalPeeringsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/peerings/{peeringsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -5055,16 +5455,15 @@ pub fn managedidentities_projects_locations_global_peerings_get_iam_policy_execu
 
 pub fn managedidentities_projects_locations_global_peerings_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ManagedidentitiesProjectsLocationsGlobalPeeringsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_peerings_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     managedidentities_projects_locations_global_peerings_get_iam_policy_execute(builder)
 }
@@ -5185,6 +5584,21 @@ pub fn managedidentities_projects_locations_global_peerings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_peerings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalPeeringsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/peerings
 /// Lists Peerings in a given project.
 ///
@@ -5197,11 +5611,7 @@ pub fn managedidentities_projects_locations_global_peerings_list_execute(
 
 pub fn managedidentities_projects_locations_global_peerings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ManagedidentitiesProjectsLocationsGlobalPeeringsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPeeringsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5209,7 +5619,12 @@ pub fn managedidentities_projects_locations_global_peerings_list(
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_peerings_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     managedidentities_projects_locations_global_peerings_list_execute(builder)
 }
@@ -5319,6 +5734,17 @@ pub fn managedidentities_projects_locations_global_peerings_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_peerings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalPeeringsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Peering,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/peerings/{peeringsId}
 /// Updates the labels for specified Peering.
 ///
@@ -5331,15 +5757,16 @@ pub fn managedidentities_projects_locations_global_peerings_patch_execute(
 
 pub fn managedidentities_projects_locations_global_peerings_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Peering,
+    args: &ManagedidentitiesProjectsLocationsGlobalPeeringsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_peerings_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     managedidentities_projects_locations_global_peerings_patch_execute(builder)
 }
@@ -5437,6 +5864,15 @@ pub fn managedidentities_projects_locations_global_peerings_set_iam_policy_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_peerings_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalPeeringsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/peerings/{peeringsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -5449,14 +5885,15 @@ pub fn managedidentities_projects_locations_global_peerings_set_iam_policy_execu
 
 pub fn managedidentities_projects_locations_global_peerings_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalPeeringsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedidentities_projects_locations_global_peerings_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     managedidentities_projects_locations_global_peerings_set_iam_policy_execute(builder)
 }
@@ -5558,6 +5995,15 @@ pub fn managedidentities_projects_locations_global_peerings_test_iam_permissions
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedidentities_projects_locations_global_peerings_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedidentitiesProjectsLocationsGlobalPeeringsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/peerings/{peeringsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -5570,8 +6016,7 @@ pub fn managedidentities_projects_locations_global_peerings_test_iam_permissions
 
 pub fn managedidentities_projects_locations_global_peerings_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ManagedidentitiesProjectsLocationsGlobalPeeringsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -5582,7 +6027,9 @@ pub fn managedidentities_projects_locations_global_peerings_test_iam_permissions
 > {
     let builder =
         managedidentities_projects_locations_global_peerings_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     managedidentities_projects_locations_global_peerings_test_iam_permissions_execute(builder)
 }

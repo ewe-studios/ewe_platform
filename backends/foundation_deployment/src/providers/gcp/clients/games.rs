@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET games/v1/accesstokens/generatePlayGroupingApiToken
 /// Generates a Play Grouping API token for the PGS user identified by the attached credential.
@@ -123,6 +125,15 @@ pub fn games_accesstokens_generate_play_grouping_api_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_accesstokens_generate_play_grouping_api_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesAccesstokensGeneratePlayGroupingApiTokenArgs {
+    /// Query parameter: packageName
+    pub packageName: Option<String>,
+    /// Query parameter: persona
+    pub persona: Option<String>,
+}
+
 /// GET games/v1/accesstokens/generatePlayGroupingApiToken
 /// Generates a Play Grouping API token for the PGS user identified by the attached credential.
 ///
@@ -135,8 +146,7 @@ pub fn games_accesstokens_generate_play_grouping_api_token_execute(
 
 pub fn games_accesstokens_generate_play_grouping_api_token(
     client: &SimpleHttpClient,
-    packageName: Option<&str>,
-    persona: Option<&str>,
+    args: &GamesAccesstokensGeneratePlayGroupingApiTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GeneratePlayGroupingApiTokenResponse>, ApiError>,
@@ -145,8 +155,11 @@ pub fn games_accesstokens_generate_play_grouping_api_token(
         + 'static,
     ApiError,
 > {
-    let builder =
-        games_accesstokens_generate_play_grouping_api_token_builder(client, packageName, persona)?;
+    let builder = games_accesstokens_generate_play_grouping_api_token_builder(
+        client,
+        args.packageName.as_deref(),
+        args.persona.as_deref(),
+    )?;
     games_accesstokens_generate_play_grouping_api_token_execute(builder)
 }
 
@@ -263,6 +276,17 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_accesstokens_generate_recall_play_grouping_api_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesAccesstokensGenerateRecallPlayGroupingApiTokenArgs {
+    /// Query parameter: packageName
+    pub packageName: Option<String>,
+    /// Query parameter: persona
+    pub persona: Option<String>,
+    /// Query parameter: recallSessionId
+    pub recallSessionId: Option<String>,
+}
+
 /// GET games/v1/accesstokens/generateRecallPlayGroupingApiToken
 /// Generates a Play Grouping API token for the PGS user identified by the Recall session ID provided in the request.
 ///
@@ -275,9 +299,7 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token_execute(
 
 pub fn games_accesstokens_generate_recall_play_grouping_api_token(
     client: &SimpleHttpClient,
-    packageName: Option<&str>,
-    persona: Option<&str>,
-    recallSessionId: Option<&str>,
+    args: &GamesAccesstokensGenerateRecallPlayGroupingApiTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateRecallPlayGroupingApiTokenResponse>, ApiError>,
@@ -288,9 +310,9 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token(
 > {
     let builder = games_accesstokens_generate_recall_play_grouping_api_token_builder(
         client,
-        packageName,
-        persona,
-        recallSessionId,
+        args.packageName.as_deref(),
+        args.persona.as_deref(),
+        args.recallSessionId.as_deref(),
     )?;
     games_accesstokens_generate_recall_play_grouping_api_token_execute(builder)
 }
@@ -405,6 +427,17 @@ pub fn games_achievement_definitions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_achievement_definitions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesAchievementDefinitionsListArgs {
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET games/v1/achievements
 /// Lists all the achievement definitions for your application.
 ///
@@ -417,9 +450,7 @@ pub fn games_achievement_definitions_list_execute(
 
 pub fn games_achievement_definitions_list(
     client: &SimpleHttpClient,
-    language: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GamesAchievementDefinitionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AchievementDefinitionsListResponse>, ApiError>,
@@ -428,8 +459,12 @@ pub fn games_achievement_definitions_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        games_achievement_definitions_list_builder(client, language, maxResults, pageToken)?;
+    let builder = games_achievement_definitions_list_builder(
+        client,
+        args.language.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     games_achievement_definitions_list_execute(builder)
 }
 
@@ -540,6 +575,17 @@ pub fn games_achievements_increment_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_achievements_increment`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesAchievementsIncrementArgs {
+    /// Path parameter: achievementId
+    pub achievementId: String,
+    /// Path parameter: stepsToIncrement
+    pub stepsToIncrement: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET games/v1/achievements/{achievementId}/increment
 /// Increments the steps of the achievement with the given ID for the currently authenticated player.
 ///
@@ -552,9 +598,7 @@ pub fn games_achievements_increment_execute(
 
 pub fn games_achievements_increment(
     client: &SimpleHttpClient,
-    achievementId: &str,
-    stepsToIncrement: &str,
-    requestId: Option<&str>,
+    args: &GamesAchievementsIncrementArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AchievementIncrementResponse>, ApiError>,
@@ -563,8 +607,12 @@ pub fn games_achievements_increment(
         + 'static,
     ApiError,
 > {
-    let builder =
-        games_achievements_increment_builder(client, achievementId, stepsToIncrement, requestId)?;
+    let builder = games_achievements_increment_builder(
+        client,
+        &args.achievementId,
+        &args.stepsToIncrement,
+        args.requestId.as_deref(),
+    )?;
     games_achievements_increment_execute(builder)
 }
 
@@ -686,6 +734,21 @@ pub fn games_achievements_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_achievements_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesAchievementsListArgs {
+    /// Path parameter: playerId
+    pub playerId: String,
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: state
+    pub state: Option<String>,
+}
+
 /// GET games/v1/players/{playerId}/achievements
 /// Lists the progress for all your application's achievements for the currently authenticated player.
 ///
@@ -698,11 +761,7 @@ pub fn games_achievements_list_execute(
 
 pub fn games_achievements_list(
     client: &SimpleHttpClient,
-    playerId: &str,
-    language: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    state: Option<&str>,
+    args: &GamesAchievementsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<PlayerAchievementListResponse>, ApiError>,
@@ -711,8 +770,14 @@ pub fn games_achievements_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        games_achievements_list_builder(client, playerId, language, maxResults, pageToken, state)?;
+    let builder = games_achievements_list_builder(
+        client,
+        &args.playerId,
+        args.language.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.state.as_deref(),
+    )?;
     games_achievements_list_execute(builder)
 }
 
@@ -808,6 +873,13 @@ pub fn games_achievements_reveal_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_achievements_reveal`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesAchievementsRevealArgs {
+    /// Path parameter: achievementId
+    pub achievementId: String,
+}
+
 /// GET games/v1/achievements/{achievementId}/reveal
 /// Sets the state of the achievement with the given ID to REVEALED for the currently authenticated player.
 ///
@@ -820,14 +892,14 @@ pub fn games_achievements_reveal_execute(
 
 pub fn games_achievements_reveal(
     client: &SimpleHttpClient,
-    achievementId: &str,
+    args: &GamesAchievementsRevealArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AchievementRevealResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_achievements_reveal_builder(client, achievementId)?;
+    let builder = games_achievements_reveal_builder(client, &args.achievementId)?;
     games_achievements_reveal_execute(builder)
 }
 
@@ -926,6 +998,15 @@ pub fn games_achievements_set_steps_at_least_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_achievements_set_steps_at_least`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesAchievementsSetStepsAtLeastArgs {
+    /// Path parameter: achievementId
+    pub achievementId: String,
+    /// Path parameter: steps
+    pub steps: String,
+}
+
 /// GET games/v1/achievements/{achievementId}/setStepsAtLeast
 /// Sets the steps for the currently authenticated player towards unlocking an achievement. If the steps parameter is less than the current number of steps that the player already gained for the achievement, the achievement is not modified.
 ///
@@ -938,8 +1019,7 @@ pub fn games_achievements_set_steps_at_least_execute(
 
 pub fn games_achievements_set_steps_at_least(
     client: &SimpleHttpClient,
-    achievementId: &str,
-    steps: &str,
+    args: &GamesAchievementsSetStepsAtLeastArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AchievementSetStepsAtLeastResponse>, ApiError>,
@@ -948,7 +1028,8 @@ pub fn games_achievements_set_steps_at_least(
         + 'static,
     ApiError,
 > {
-    let builder = games_achievements_set_steps_at_least_builder(client, achievementId, steps)?;
+    let builder =
+        games_achievements_set_steps_at_least_builder(client, &args.achievementId, &args.steps)?;
     games_achievements_set_steps_at_least_execute(builder)
 }
 
@@ -1044,6 +1125,13 @@ pub fn games_achievements_unlock_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_achievements_unlock`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesAchievementsUnlockArgs {
+    /// Path parameter: achievementId
+    pub achievementId: String,
+}
+
 /// GET games/v1/achievements/{achievementId}/unlock
 /// Unlocks this achievement for the currently authenticated player.
 ///
@@ -1056,14 +1144,14 @@ pub fn games_achievements_unlock_execute(
 
 pub fn games_achievements_unlock(
     client: &SimpleHttpClient,
-    achievementId: &str,
+    args: &GamesAchievementsUnlockArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AchievementUnlockResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_achievements_unlock_builder(client, achievementId)?;
+    let builder = games_achievements_unlock_builder(client, &args.achievementId)?;
     games_achievements_unlock_execute(builder)
 }
 
@@ -1160,6 +1248,13 @@ pub fn games_achievements_update_multiple_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_achievements_update_multiple`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesAchievementsUpdateMultipleArgs {
+    /// Request body.
+    pub body: AchievementUpdateMultipleRequest,
+}
+
 /// GET games/v1/achievements/updateMultiple
 /// Updates multiple achievements for the currently authenticated player.
 ///
@@ -1172,7 +1267,7 @@ pub fn games_achievements_update_multiple_execute(
 
 pub fn games_achievements_update_multiple(
     client: &SimpleHttpClient,
-    body: &AchievementUpdateMultipleRequest,
+    args: &GamesAchievementsUpdateMultipleArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AchievementUpdateMultipleResponse>, ApiError>,
@@ -1181,7 +1276,7 @@ pub fn games_achievements_update_multiple(
         + 'static,
     ApiError,
 > {
-    let builder = games_achievements_update_multiple_builder(client, body)?;
+    let builder = games_achievements_update_multiple_builder(client, &args.body)?;
     games_achievements_update_multiple_execute(builder)
 }
 
@@ -1291,6 +1386,17 @@ pub fn games_applications_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_applications_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesApplicationsGetArgs {
+    /// Path parameter: applicationId
+    pub applicationId: String,
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Query parameter: platformType
+    pub platformType: Option<String>,
+}
+
 /// GET games/v1/applications/{applicationId}
 /// Retrieves the metadata of the application with the given ID. If the requested application is not available for the specified `platformType`, the returned response will not include any instance data.
 ///
@@ -1303,14 +1409,17 @@ pub fn games_applications_get_execute(
 
 pub fn games_applications_get(
     client: &SimpleHttpClient,
-    applicationId: &str,
-    language: Option<&str>,
-    platformType: Option<&str>,
+    args: &GamesApplicationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Application>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_applications_get_builder(client, applicationId, language, platformType)?;
+    let builder = games_applications_get_builder(
+        client,
+        &args.applicationId,
+        args.language.as_deref(),
+        args.platformType.as_deref(),
+    )?;
     games_applications_get_execute(builder)
 }
 
@@ -1416,6 +1525,15 @@ pub fn games_applications_get_end_point_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_applications_get_end_point`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesApplicationsGetEndPointArgs {
+    /// Query parameter: applicationId
+    pub applicationId: Option<String>,
+    /// Query parameter: endPointType
+    pub endPointType: Option<String>,
+}
+
 /// GET games/v1/applications/getEndPoint
 /// Returns a URL for the requested end point type.
 ///
@@ -1428,13 +1546,16 @@ pub fn games_applications_get_end_point_execute(
 
 pub fn games_applications_get_end_point(
     client: &SimpleHttpClient,
-    applicationId: Option<&str>,
-    endPointType: Option<&str>,
+    args: &GamesApplicationsGetEndPointArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EndPoint>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_applications_get_end_point_builder(client, applicationId, endPointType)?;
+    let builder = games_applications_get_end_point_builder(
+        client,
+        args.applicationId.as_deref(),
+        args.endPointType.as_deref(),
+    )?;
     games_applications_get_end_point_execute(builder)
 }
 
@@ -1633,6 +1754,13 @@ pub fn games_applications_verify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_applications_verify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesApplicationsVerifyArgs {
+    /// Path parameter: applicationId
+    pub applicationId: String,
+}
+
 /// GET games/v1/applications/{applicationId}/verify
 /// Verifies the auth token provided with this request is for the application with the specified ID, and returns the ID of the player it was granted for.
 ///
@@ -1645,14 +1773,14 @@ pub fn games_applications_verify_execute(
 
 pub fn games_applications_verify(
     client: &SimpleHttpClient,
-    applicationId: &str,
+    args: &GamesApplicationsVerifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApplicationVerifyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_applications_verify_builder(client, applicationId)?;
+    let builder = games_applications_verify_builder(client, &args.applicationId)?;
     games_applications_verify_execute(builder)
 }
 
@@ -1764,6 +1892,17 @@ pub fn games_events_list_by_player_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_events_list_by_player`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesEventsListByPlayerArgs {
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET games/v1/events
 /// Returns a list showing the current progress on events in this application for the currently authenticated user.
 ///
@@ -1776,16 +1915,19 @@ pub fn games_events_list_by_player_execute(
 
 pub fn games_events_list_by_player(
     client: &SimpleHttpClient,
-    language: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GamesEventsListByPlayerArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlayerEventListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_events_list_by_player_builder(client, language, maxResults, pageToken)?;
+    let builder = games_events_list_by_player_builder(
+        client,
+        args.language.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     games_events_list_by_player_execute(builder)
 }
 
@@ -1899,6 +2041,17 @@ pub fn games_events_list_definitions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_events_list_definitions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesEventsListDefinitionsArgs {
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET games/v1/eventDefinitions
 /// Returns a list of the event definitions in this application.
 ///
@@ -1911,9 +2064,7 @@ pub fn games_events_list_definitions_execute(
 
 pub fn games_events_list_definitions(
     client: &SimpleHttpClient,
-    language: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GamesEventsListDefinitionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EventDefinitionListResponse>, ApiError>,
@@ -1922,7 +2073,12 @@ pub fn games_events_list_definitions(
         + 'static,
     ApiError,
 > {
-    let builder = games_events_list_definitions_builder(client, language, maxResults, pageToken)?;
+    let builder = games_events_list_definitions_builder(
+        client,
+        args.language.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     games_events_list_definitions_execute(builder)
 }
 
@@ -2029,6 +2185,15 @@ pub fn games_events_record_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_events_record`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesEventsRecordArgs {
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Request body.
+    pub body: EventRecordRequest,
+}
+
 /// GET games/v1/events
 /// Records a batch of changes to the number of times events have occurred for the currently authenticated user of this application.
 ///
@@ -2041,15 +2206,14 @@ pub fn games_events_record_execute(
 
 pub fn games_events_record(
     client: &SimpleHttpClient,
-    language: Option<&str>,
-    body: &EventRecordRequest,
+    args: &GamesEventsRecordArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventUpdateResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_events_record_builder(client, language, body)?;
+    let builder = games_events_record_builder(client, args.language.as_deref(), &args.body)?;
     games_events_record_execute(builder)
 }
 
@@ -2155,6 +2319,15 @@ pub fn games_leaderboards_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_leaderboards_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesLeaderboardsGetArgs {
+    /// Path parameter: leaderboardId
+    pub leaderboardId: String,
+    /// Query parameter: language
+    pub language: Option<String>,
+}
+
 /// GET games/v1/leaderboards/{leaderboardId}
 /// Retrieves the metadata of the leaderboard with the given ID.
 ///
@@ -2167,13 +2340,13 @@ pub fn games_leaderboards_get_execute(
 
 pub fn games_leaderboards_get(
     client: &SimpleHttpClient,
-    leaderboardId: &str,
-    language: Option<&str>,
+    args: &GamesLeaderboardsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Leaderboard>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_leaderboards_get_builder(client, leaderboardId, language)?;
+    let builder =
+        games_leaderboards_get_builder(client, &args.leaderboardId, args.language.as_deref())?;
     games_leaderboards_get_execute(builder)
 }
 
@@ -2285,6 +2458,17 @@ pub fn games_leaderboards_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_leaderboards_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesLeaderboardsListArgs {
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET games/v1/leaderboards
 /// Lists all the leaderboard metadata for your application.
 ///
@@ -2297,16 +2481,19 @@ pub fn games_leaderboards_list_execute(
 
 pub fn games_leaderboards_list(
     client: &SimpleHttpClient,
-    language: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GamesLeaderboardsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LeaderboardListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_leaderboards_list_builder(client, language, maxResults, pageToken)?;
+    let builder = games_leaderboards_list_builder(
+        client,
+        args.language.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     games_leaderboards_list_execute(builder)
 }
 
@@ -2533,6 +2720,21 @@ pub fn games_metagame_list_categories_by_player_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_metagame_list_categories_by_player`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesMetagameListCategoriesByPlayerArgs {
+    /// Path parameter: playerId
+    pub playerId: String,
+    /// Path parameter: collection
+    pub collection: String,
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET games/v1/players/{playerId}/categories/{collection}
 /// List play data aggregated per category for the player corresponding to `playerId`.
 ///
@@ -2545,11 +2747,7 @@ pub fn games_metagame_list_categories_by_player_execute(
 
 pub fn games_metagame_list_categories_by_player(
     client: &SimpleHttpClient,
-    playerId: &str,
-    collection: &str,
-    language: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GamesMetagameListCategoriesByPlayerArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CategoryListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2557,7 +2755,12 @@ pub fn games_metagame_list_categories_by_player(
     ApiError,
 > {
     let builder = games_metagame_list_categories_by_player_builder(
-        client, playerId, collection, language, maxResults, pageToken,
+        client,
+        &args.playerId,
+        &args.collection,
+        args.language.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
     )?;
     games_metagame_list_categories_by_player_execute(builder)
 }
@@ -2665,6 +2868,17 @@ pub fn games_players_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_players_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesPlayersGetArgs {
+    /// Path parameter: playerId
+    pub playerId: String,
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Query parameter: playerIdConsistencyToken
+    pub playerIdConsistencyToken: Option<String>,
+}
+
 /// GET games/v1/players/{playerId}
 /// Retrieves the Player resource with the given ID. To retrieve the player for the currently authenticated user, set `playerId` to me.
 ///
@@ -2677,14 +2891,17 @@ pub fn games_players_get_execute(
 
 pub fn games_players_get(
     client: &SimpleHttpClient,
-    playerId: &str,
-    language: Option<&str>,
-    playerIdConsistencyToken: Option<&str>,
+    args: &GamesPlayersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Player>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_players_get_builder(client, playerId, language, playerIdConsistencyToken)?;
+    let builder = games_players_get_builder(
+        client,
+        &args.playerId,
+        args.language.as_deref(),
+        args.playerIdConsistencyToken.as_deref(),
+    )?;
     games_players_get_execute(builder)
 }
 
@@ -2792,6 +3009,13 @@ pub fn games_players_get_multiple_application_player_ids_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_players_get_multiple_application_player_ids`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesPlayersGetMultipleApplicationPlayerIdsArgs {
+    /// Query parameter: applicationIds
+    pub applicationIds: Option<String>,
+}
+
 /// GET games/v1/players/me/multipleApplicationPlayerIds
 /// Get the application player ids for the currently authenticated player across all requested games by the same developer as the calling application. This will only return ids for players that actually have an id (scoped or otherwise) with that game.
 ///
@@ -2804,7 +3028,7 @@ pub fn games_players_get_multiple_application_player_ids_execute(
 
 pub fn games_players_get_multiple_application_player_ids(
     client: &SimpleHttpClient,
-    applicationIds: Option<&str>,
+    args: &GamesPlayersGetMultipleApplicationPlayerIdsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetMultipleApplicationPlayerIdsResponse>, ApiError>,
@@ -2813,8 +3037,10 @@ pub fn games_players_get_multiple_application_player_ids(
         + 'static,
     ApiError,
 > {
-    let builder =
-        games_players_get_multiple_application_player_ids_builder(client, applicationIds)?;
+    let builder = games_players_get_multiple_application_player_ids_builder(
+        client,
+        args.applicationIds.as_deref(),
+    )?;
     games_players_get_multiple_application_player_ids_execute(builder)
 }
 
@@ -3040,6 +3266,19 @@ pub fn games_players_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_players_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesPlayersListArgs {
+    /// Path parameter: collection
+    pub collection: String,
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET games/v1/players/me/players/{collection}
 /// Get the collection of players for the currently authenticated user.
 ///
@@ -3052,17 +3291,20 @@ pub fn games_players_list_execute(
 
 pub fn games_players_list(
     client: &SimpleHttpClient,
-    collection: &str,
-    language: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GamesPlayersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlayerListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_players_list_builder(client, collection, language, maxResults, pageToken)?;
+    let builder = games_players_list_builder(
+        client,
+        &args.collection,
+        args.language.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     games_players_list_execute(builder)
 }
 
@@ -3172,6 +3414,15 @@ pub fn games_recall_games_player_tokens_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_recall_games_player_tokens`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesRecallGamesPlayerTokensArgs {
+    /// Path parameter: sessionId
+    pub sessionId: String,
+    /// Query parameter: applicationIds
+    pub applicationIds: Option<String>,
+}
+
 /// GET games/v1/recall/gamesPlayerTokens/{sessionId}
 /// Retrieve the Recall tokens from all requested games that is associated with the PGS Player encoded in the provided recall session id. The API is only available for users that have an active PGS Player profile.
 ///
@@ -3184,8 +3435,7 @@ pub fn games_recall_games_player_tokens_execute(
 
 pub fn games_recall_games_player_tokens(
     client: &SimpleHttpClient,
-    sessionId: &str,
-    applicationIds: Option<&str>,
+    args: &GamesRecallGamesPlayerTokensArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RetrieveGamesPlayerTokensResponse>, ApiError>,
@@ -3194,7 +3444,11 @@ pub fn games_recall_games_player_tokens(
         + 'static,
     ApiError,
 > {
-    let builder = games_recall_games_player_tokens_builder(client, sessionId, applicationIds)?;
+    let builder = games_recall_games_player_tokens_builder(
+        client,
+        &args.sessionId,
+        args.applicationIds.as_deref(),
+    )?;
     games_recall_games_player_tokens_execute(builder)
 }
 
@@ -3293,6 +3547,13 @@ pub fn games_recall_last_token_from_all_developer_games_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_recall_last_token_from_all_developer_games`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesRecallLastTokenFromAllDeveloperGamesArgs {
+    /// Path parameter: sessionId
+    pub sessionId: String,
+}
+
 /// GET games/v1/recall/developerGamesLastPlayerToken/{sessionId}
 /// Retrieve the last Recall token from all developer games that is associated with the PGS Player encoded in the provided recall session id. The API is only available for users that have active PGS Player profile.
 ///
@@ -3305,7 +3566,7 @@ pub fn games_recall_last_token_from_all_developer_games_execute(
 
 pub fn games_recall_last_token_from_all_developer_games(
     client: &SimpleHttpClient,
-    sessionId: &str,
+    args: &GamesRecallLastTokenFromAllDeveloperGamesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RetrieveDeveloperGamesLastPlayerTokenResponse>, ApiError>,
@@ -3314,7 +3575,8 @@ pub fn games_recall_last_token_from_all_developer_games(
         + 'static,
     ApiError,
 > {
-    let builder = games_recall_last_token_from_all_developer_games_builder(client, sessionId)?;
+    let builder =
+        games_recall_last_token_from_all_developer_games_builder(client, &args.sessionId)?;
     games_recall_last_token_from_all_developer_games_execute(builder)
 }
 
@@ -3409,6 +3671,13 @@ pub fn games_recall_link_persona_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_recall_link_persona`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesRecallLinkPersonaArgs {
+    /// Request body.
+    pub body: LinkPersonaRequest,
+}
+
 /// GET games/v1/recall:linkPersona
 /// Associate the PGS Player principal encoded in the provided recall session id with an in-game account
 ///
@@ -3421,14 +3690,14 @@ pub fn games_recall_link_persona_execute(
 
 pub fn games_recall_link_persona(
     client: &SimpleHttpClient,
-    body: &LinkPersonaRequest,
+    args: &GamesRecallLinkPersonaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LinkPersonaResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_recall_link_persona_builder(client, body)?;
+    let builder = games_recall_link_persona_builder(client, &args.body)?;
     games_recall_link_persona_execute(builder)
 }
 
@@ -3523,6 +3792,13 @@ pub fn games_recall_reset_persona_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_recall_reset_persona`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesRecallResetPersonaArgs {
+    /// Request body.
+    pub body: ResetPersonaRequest,
+}
+
 /// GET games/v1/recall:resetPersona
 /// Delete all Recall tokens linking the given persona to any player (with or without a profile).
 ///
@@ -3535,14 +3811,14 @@ pub fn games_recall_reset_persona_execute(
 
 pub fn games_recall_reset_persona(
     client: &SimpleHttpClient,
-    body: &ResetPersonaRequest,
+    args: &GamesRecallResetPersonaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResetPersonaResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_recall_reset_persona_builder(client, body)?;
+    let builder = games_recall_reset_persona_builder(client, &args.body)?;
     games_recall_reset_persona_execute(builder)
 }
 
@@ -3640,6 +3916,13 @@ pub fn games_recall_retrieve_tokens_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_recall_retrieve_tokens`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesRecallRetrieveTokensArgs {
+    /// Path parameter: sessionId
+    pub sessionId: String,
+}
+
 /// GET games/v1/recall/tokens/{sessionId}
 /// Retrieve all Recall tokens associated with the PGS Player encoded in the provided recall session id. The API is only available for users that have active PGS Player profile.
 ///
@@ -3652,7 +3935,7 @@ pub fn games_recall_retrieve_tokens_execute(
 
 pub fn games_recall_retrieve_tokens(
     client: &SimpleHttpClient,
-    sessionId: &str,
+    args: &GamesRecallRetrieveTokensArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RetrievePlayerTokensResponse>, ApiError>,
@@ -3661,7 +3944,7 @@ pub fn games_recall_retrieve_tokens(
         + 'static,
     ApiError,
 > {
-    let builder = games_recall_retrieve_tokens_builder(client, sessionId)?;
+    let builder = games_recall_retrieve_tokens_builder(client, &args.sessionId)?;
     games_recall_retrieve_tokens_execute(builder)
 }
 
@@ -3756,6 +4039,13 @@ pub fn games_recall_unlink_persona_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_recall_unlink_persona`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesRecallUnlinkPersonaArgs {
+    /// Request body.
+    pub body: UnlinkPersonaRequest,
+}
+
 /// GET games/v1/recall:unlinkPersona
 /// Delete a Recall token linking the PGS Player principal identified by the Recall session and an in-game account identified either by the 'persona' or by the token value.
 ///
@@ -3768,14 +4058,14 @@ pub fn games_recall_unlink_persona_execute(
 
 pub fn games_recall_unlink_persona(
     client: &SimpleHttpClient,
-    body: &UnlinkPersonaRequest,
+    args: &GamesRecallUnlinkPersonaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UnlinkPersonaResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_recall_unlink_persona_builder(client, body)?;
+    let builder = games_recall_unlink_persona_builder(client, &args.body)?;
     games_recall_unlink_persona_execute(builder)
 }
 
@@ -3871,6 +4161,13 @@ pub fn games_revisions_check_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_revisions_check`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesRevisionsCheckArgs {
+    /// Path parameter: clientRevision
+    pub clientRevision: String,
+}
+
 /// GET games/v1/revisions/check
 /// Checks whether the games client is out of date.
 ///
@@ -3883,14 +4180,14 @@ pub fn games_revisions_check_execute(
 
 pub fn games_revisions_check(
     client: &SimpleHttpClient,
-    clientRevision: &str,
+    args: &GamesRevisionsCheckArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RevisionCheckResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_revisions_check_builder(client, clientRevision)?;
+    let builder = games_revisions_check_builder(client, &args.clientRevision)?;
     games_revisions_check_execute(builder)
 }
 
@@ -4014,6 +4311,25 @@ pub fn games_scores_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_scores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesScoresGetArgs {
+    /// Path parameter: playerId
+    pub playerId: String,
+    /// Path parameter: leaderboardId
+    pub leaderboardId: String,
+    /// Path parameter: timeSpan
+    pub timeSpan: String,
+    /// Query parameter: includeRankType
+    pub includeRankType: Option<String>,
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET games/v1/players/{playerId}/leaderboards/{leaderboardId}/scores/{timeSpan}
 /// Get high scores, and optionally ranks, in leaderboards for the currently authenticated player. For a specific time span, `leaderboardId` can be set to ALL to retrieve data for all leaderboards in a given time span. NOTE: You cannot ask for 'ALL' leaderboards and 'ALL' `timeSpans` in the same request; only one parameter may be set to 'ALL'.
 ///
@@ -4026,13 +4342,7 @@ pub fn games_scores_get_execute(
 
 pub fn games_scores_get(
     client: &SimpleHttpClient,
-    playerId: &str,
-    leaderboardId: &str,
-    timeSpan: &str,
-    includeRankType: Option<&str>,
-    language: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GamesScoresGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<PlayerLeaderboardScoreListResponse>, ApiError>,
@@ -4043,13 +4353,13 @@ pub fn games_scores_get(
 > {
     let builder = games_scores_get_builder(
         client,
-        playerId,
-        leaderboardId,
-        timeSpan,
-        includeRankType,
-        language,
-        maxResults,
-        pageToken,
+        &args.playerId,
+        &args.leaderboardId,
+        &args.timeSpan,
+        args.includeRankType.as_deref(),
+        args.language.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
     )?;
     games_scores_get_execute(builder)
 }
@@ -4168,6 +4478,23 @@ pub fn games_scores_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_scores_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesScoresListArgs {
+    /// Path parameter: leaderboardId
+    pub leaderboardId: String,
+    /// Path parameter: collection
+    pub collection: String,
+    /// Path parameter: timeSpan
+    pub timeSpan: String,
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET games/v1/leaderboards/{leaderboardId}/scores/{collection}
 /// Lists the scores in a leaderboard, starting from the top.
 ///
@@ -4180,12 +4507,7 @@ pub fn games_scores_list_execute(
 
 pub fn games_scores_list(
     client: &SimpleHttpClient,
-    leaderboardId: &str,
-    collection: &str,
-    timeSpan: &str,
-    language: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GamesScoresListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LeaderboardScores>, ApiError>, P = ApiPending>
         + Send
@@ -4194,12 +4516,12 @@ pub fn games_scores_list(
 > {
     let builder = games_scores_list_builder(
         client,
-        leaderboardId,
-        collection,
-        timeSpan,
-        language,
-        maxResults,
-        pageToken,
+        &args.leaderboardId,
+        &args.collection,
+        &args.timeSpan,
+        args.language.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
     )?;
     games_scores_list_execute(builder)
 }
@@ -4326,6 +4648,27 @@ pub fn games_scores_list_window_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_scores_list_window`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesScoresListWindowArgs {
+    /// Path parameter: leaderboardId
+    pub leaderboardId: String,
+    /// Path parameter: collection
+    pub collection: String,
+    /// Path parameter: timeSpan
+    pub timeSpan: String,
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resultsAbove
+    pub resultsAbove: Option<i32>,
+    /// Query parameter: returnTopIfAbsent
+    pub returnTopIfAbsent: Option<bool>,
+}
+
 /// GET games/v1/leaderboards/{leaderboardId}/window/{collection}
 /// Lists the scores in a leaderboard around (and including) a player's score.
 ///
@@ -4338,14 +4681,7 @@ pub fn games_scores_list_window_execute(
 
 pub fn games_scores_list_window(
     client: &SimpleHttpClient,
-    leaderboardId: &str,
-    collection: &str,
-    timeSpan: &str,
-    language: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    resultsAbove: Option<i32>,
-    returnTopIfAbsent: Option<bool>,
+    args: &GamesScoresListWindowArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LeaderboardScores>, ApiError>, P = ApiPending>
         + Send
@@ -4354,14 +4690,14 @@ pub fn games_scores_list_window(
 > {
     let builder = games_scores_list_window_builder(
         client,
-        leaderboardId,
-        collection,
-        timeSpan,
-        language,
-        maxResults,
-        pageToken,
-        resultsAbove,
-        returnTopIfAbsent,
+        &args.leaderboardId,
+        &args.collection,
+        &args.timeSpan,
+        args.language.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.resultsAbove,
+        args.returnTopIfAbsent,
     )?;
     games_scores_list_window_execute(builder)
 }
@@ -4475,6 +4811,19 @@ pub fn games_scores_submit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_scores_submit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesScoresSubmitArgs {
+    /// Path parameter: leaderboardId
+    pub leaderboardId: String,
+    /// Path parameter: score
+    pub score: String,
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Query parameter: scoreTag
+    pub scoreTag: Option<String>,
+}
+
 /// GET games/v1/leaderboards/{leaderboardId}/scores
 /// Submits a score to the specified leaderboard.
 ///
@@ -4487,17 +4836,20 @@ pub fn games_scores_submit_execute(
 
 pub fn games_scores_submit(
     client: &SimpleHttpClient,
-    leaderboardId: &str,
-    score: &str,
-    language: Option<&str>,
-    scoreTag: Option<&str>,
+    args: &GamesScoresSubmitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlayerScoreResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_scores_submit_builder(client, leaderboardId, score, language, scoreTag)?;
+    let builder = games_scores_submit_builder(
+        client,
+        &args.leaderboardId,
+        &args.score,
+        args.language.as_deref(),
+        args.scoreTag.as_deref(),
+    )?;
     games_scores_submit_execute(builder)
 }
 
@@ -4604,6 +4956,15 @@ pub fn games_scores_submit_multiple_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_scores_submit_multiple`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesScoresSubmitMultipleArgs {
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Request body.
+    pub body: PlayerScoreSubmissionList,
+}
+
 /// GET games/v1/leaderboards/scores
 /// Submits multiple scores to leaderboards.
 ///
@@ -4616,15 +4977,15 @@ pub fn games_scores_submit_multiple_execute(
 
 pub fn games_scores_submit_multiple(
     client: &SimpleHttpClient,
-    language: Option<&str>,
-    body: &PlayerScoreSubmissionList,
+    args: &GamesScoresSubmitMultipleArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlayerScoreListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_scores_submit_multiple_builder(client, language, body)?;
+    let builder =
+        games_scores_submit_multiple_builder(client, args.language.as_deref(), &args.body)?;
     games_scores_submit_multiple_execute(builder)
 }
 
@@ -4730,6 +5091,15 @@ pub fn games_snapshots_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_snapshots_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesSnapshotsGetArgs {
+    /// Path parameter: snapshotId
+    pub snapshotId: String,
+    /// Query parameter: language
+    pub language: Option<String>,
+}
+
 /// GET games/v1/snapshots/{snapshotId}
 /// Retrieves the metadata for a given snapshot ID.
 ///
@@ -4742,13 +5112,12 @@ pub fn games_snapshots_get_execute(
 
 pub fn games_snapshots_get(
     client: &SimpleHttpClient,
-    snapshotId: &str,
-    language: Option<&str>,
+    args: &GamesSnapshotsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_snapshots_get_builder(client, snapshotId, language)?;
+    let builder = games_snapshots_get_builder(client, &args.snapshotId, args.language.as_deref())?;
     games_snapshots_get_execute(builder)
 }
 
@@ -4864,6 +5233,19 @@ pub fn games_snapshots_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_snapshots_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesSnapshotsListArgs {
+    /// Path parameter: playerId
+    pub playerId: String,
+    /// Query parameter: language
+    pub language: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET games/v1/players/{playerId}/snapshots
 /// Retrieves a list of snapshots created by your application for the player corresponding to the player ID.
 ///
@@ -4876,17 +5258,20 @@ pub fn games_snapshots_list_execute(
 
 pub fn games_snapshots_list(
     client: &SimpleHttpClient,
-    playerId: &str,
-    language: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GamesSnapshotsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SnapshotListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_snapshots_list_builder(client, playerId, language, maxResults, pageToken)?;
+    let builder = games_snapshots_list_builder(
+        client,
+        &args.playerId,
+        args.language.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     games_snapshots_list_execute(builder)
 }
 

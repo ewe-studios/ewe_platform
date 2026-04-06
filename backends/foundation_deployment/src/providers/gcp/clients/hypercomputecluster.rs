@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn hypercomputecluster_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`hypercomputecluster_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HypercomputeclusterProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn hypercomputecluster_projects_locations_get_execute(
 
 pub fn hypercomputecluster_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HypercomputeclusterProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = hypercomputecluster_projects_locations_get_builder(client, name)?;
+    let builder = hypercomputecluster_projects_locations_get_builder(client, &args.name)?;
     hypercomputecluster_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn hypercomputecluster_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`hypercomputecluster_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HypercomputeclusterProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn hypercomputecluster_projects_locations_list_execute(
 
 pub fn hypercomputecluster_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &HypercomputeclusterProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn hypercomputecluster_projects_locations_list(
 > {
     let builder = hypercomputecluster_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     hypercomputecluster_projects_locations_list_execute(builder)
 }
@@ -386,6 +406,19 @@ pub fn hypercomputecluster_projects_locations_clusters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`hypercomputecluster_projects_locations_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HypercomputeclusterProjectsLocationsClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: clusterId
+    pub clusterId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Cluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
 /// Creates a new Cluster in a given project and location.
 ///
@@ -398,16 +431,17 @@ pub fn hypercomputecluster_projects_locations_clusters_create_execute(
 
 pub fn hypercomputecluster_projects_locations_clusters_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    clusterId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Cluster,
+    args: &HypercomputeclusterProjectsLocationsClustersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = hypercomputecluster_projects_locations_clusters_create_builder(
-        client, parent, clusterId, requestId, body,
+        client,
+        &args.parent,
+        args.clusterId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     hypercomputecluster_projects_locations_clusters_create_execute(builder)
 }
@@ -514,6 +548,15 @@ pub fn hypercomputecluster_projects_locations_clusters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`hypercomputecluster_projects_locations_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HypercomputeclusterProjectsLocationsClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
 /// Deletes a single Cluster.
 ///
@@ -526,14 +569,16 @@ pub fn hypercomputecluster_projects_locations_clusters_delete_execute(
 
 pub fn hypercomputecluster_projects_locations_clusters_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &HypercomputeclusterProjectsLocationsClustersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        hypercomputecluster_projects_locations_clusters_delete_builder(client, name, requestId)?;
+    let builder = hypercomputecluster_projects_locations_clusters_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     hypercomputecluster_projects_locations_clusters_delete_execute(builder)
 }
 
@@ -627,6 +672,13 @@ pub fn hypercomputecluster_projects_locations_clusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`hypercomputecluster_projects_locations_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HypercomputeclusterProjectsLocationsClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
 /// Gets details of a single Cluster.
 ///
@@ -639,12 +691,12 @@ pub fn hypercomputecluster_projects_locations_clusters_get_execute(
 
 pub fn hypercomputecluster_projects_locations_clusters_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HypercomputeclusterProjectsLocationsClustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = hypercomputecluster_projects_locations_clusters_get_builder(client, name)?;
+    let builder = hypercomputecluster_projects_locations_clusters_get_builder(client, &args.name)?;
     hypercomputecluster_projects_locations_clusters_get_execute(builder)
 }
 
@@ -764,6 +816,21 @@ pub fn hypercomputecluster_projects_locations_clusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`hypercomputecluster_projects_locations_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HypercomputeclusterProjectsLocationsClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
 /// Lists Clusters in a given project and location.
 ///
@@ -776,11 +843,7 @@ pub fn hypercomputecluster_projects_locations_clusters_list_execute(
 
 pub fn hypercomputecluster_projects_locations_clusters_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &HypercomputeclusterProjectsLocationsClustersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -788,7 +851,12 @@ pub fn hypercomputecluster_projects_locations_clusters_list(
     ApiError,
 > {
     let builder = hypercomputecluster_projects_locations_clusters_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     hypercomputecluster_projects_locations_clusters_list_execute(builder)
 }
@@ -902,6 +970,19 @@ pub fn hypercomputecluster_projects_locations_clusters_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`hypercomputecluster_projects_locations_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HypercomputeclusterProjectsLocationsClustersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Cluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
 /// Updates the parameters of a single Cluster.
 ///
@@ -914,16 +995,17 @@ pub fn hypercomputecluster_projects_locations_clusters_patch_execute(
 
 pub fn hypercomputecluster_projects_locations_clusters_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Cluster,
+    args: &HypercomputeclusterProjectsLocationsClustersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = hypercomputecluster_projects_locations_clusters_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     hypercomputecluster_projects_locations_clusters_patch_execute(builder)
 }
@@ -1021,6 +1103,15 @@ pub fn hypercomputecluster_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`hypercomputecluster_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HypercomputeclusterProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1033,14 +1124,14 @@ pub fn hypercomputecluster_projects_locations_operations_cancel_execute(
 
 pub fn hypercomputecluster_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &HypercomputeclusterProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        hypercomputecluster_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = hypercomputecluster_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     hypercomputecluster_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -1134,6 +1225,13 @@ pub fn hypercomputecluster_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`hypercomputecluster_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HypercomputeclusterProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1146,12 +1244,13 @@ pub fn hypercomputecluster_projects_locations_operations_delete_execute(
 
 pub fn hypercomputecluster_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HypercomputeclusterProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = hypercomputecluster_projects_locations_operations_delete_builder(client, name)?;
+    let builder =
+        hypercomputecluster_projects_locations_operations_delete_builder(client, &args.name)?;
     hypercomputecluster_projects_locations_operations_delete_execute(builder)
 }
 
@@ -1245,6 +1344,13 @@ pub fn hypercomputecluster_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`hypercomputecluster_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HypercomputeclusterProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1257,12 +1363,13 @@ pub fn hypercomputecluster_projects_locations_operations_get_execute(
 
 pub fn hypercomputecluster_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HypercomputeclusterProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = hypercomputecluster_projects_locations_operations_get_builder(client, name)?;
+    let builder =
+        hypercomputecluster_projects_locations_operations_get_builder(client, &args.name)?;
     hypercomputecluster_projects_locations_operations_get_execute(builder)
 }
 
@@ -1382,6 +1489,21 @@ pub fn hypercomputecluster_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`hypercomputecluster_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HypercomputeclusterProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1394,11 +1516,7 @@ pub fn hypercomputecluster_projects_locations_operations_list_execute(
 
 pub fn hypercomputecluster_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &HypercomputeclusterProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1407,11 +1525,11 @@ pub fn hypercomputecluster_projects_locations_operations_list(
 > {
     let builder = hypercomputecluster_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     hypercomputecluster_projects_locations_operations_list_execute(builder)
 }

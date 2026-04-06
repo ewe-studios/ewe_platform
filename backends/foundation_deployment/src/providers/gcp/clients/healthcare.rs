@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn healthcare_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn healthcare_projects_locations_get_execute(
 
 pub fn healthcare_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_get_builder(client, name)?;
+    let builder = healthcare_projects_locations_get_builder(client, &args.name)?;
     healthcare_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn healthcare_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
 ///
@@ -255,11 +279,7 @@ pub fn healthcare_projects_locations_list_execute(
 
 pub fn healthcare_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &HealthcareProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn healthcare_projects_locations_list(
 > {
     let builder = healthcare_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     healthcare_projects_locations_list_execute(builder)
 }
@@ -382,6 +402,17 @@ pub fn healthcare_projects_locations_datasets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: datasetId
+    pub datasetId: Option<String>,
+    /// Request body.
+    pub body: Dataset,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets
 /// Creates a new health dataset. Results are returned through the Operation interface which returns either an Operation.response which contains a Dataset or Operation.error. The metadata field type is OperationMetadata.
 ///
@@ -394,15 +425,17 @@ pub fn healthcare_projects_locations_datasets_create_execute(
 
 pub fn healthcare_projects_locations_datasets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    datasetId: Option<&str>,
-    body: &Dataset,
+    args: &HealthcareProjectsLocationsDatasetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_create_builder(client, parent, datasetId, body)?;
+    let builder = healthcare_projects_locations_datasets_create_builder(
+        client,
+        &args.parent,
+        args.datasetId.as_deref(),
+        &args.body,
+    )?;
     healthcare_projects_locations_datasets_create_execute(builder)
 }
 
@@ -499,6 +532,15 @@ pub fn healthcare_projects_locations_datasets_deidentify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_deidentify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDeidentifyArgs {
+    /// Path parameter: sourceDataset
+    pub sourceDataset: String,
+    /// Request body.
+    pub body: DeidentifyDatasetRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:deidentify
 /// Creates a new dataset containing de-identified data from the source dataset. The metadata field type is OperationMetadata. If the request is successful, the response field type is DeidentifySummary. If errors occur, error is set. The LRO result may still be successful if de-identification fails for some DICOM instances. The new de-identified dataset will not contain these failed resources. Failed resource totals are tracked in Operation.metadata. Error details are also logged to Cloud Logging. For more information, see [Viewing error logs in Cloud Logging](<https://cloud.google.`com/healthcare/docs/how-tos/logging`>).
 ///
@@ -511,14 +553,16 @@ pub fn healthcare_projects_locations_datasets_deidentify_execute(
 
 pub fn healthcare_projects_locations_datasets_deidentify(
     client: &SimpleHttpClient,
-    sourceDataset: &str,
-    body: &DeidentifyDatasetRequest,
+    args: &HealthcareProjectsLocationsDatasetsDeidentifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_deidentify_builder(client, sourceDataset, body)?;
+    let builder = healthcare_projects_locations_datasets_deidentify_builder(
+        client,
+        &args.sourceDataset,
+        &args.body,
+    )?;
     healthcare_projects_locations_datasets_deidentify_execute(builder)
 }
 
@@ -612,6 +656,13 @@ pub fn healthcare_projects_locations_datasets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
 /// Deletes the specified health dataset and all data contained in the dataset. Deleting a dataset does not affect the sources from which the dataset was imported (if any).
 ///
@@ -624,12 +675,12 @@ pub fn healthcare_projects_locations_datasets_delete_execute(
 
 pub fn healthcare_projects_locations_datasets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_delete_builder(client, name)?;
+    let builder = healthcare_projects_locations_datasets_delete_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_delete_execute(builder)
 }
 
@@ -723,6 +774,13 @@ pub fn healthcare_projects_locations_datasets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
 /// Gets any metadata associated with a dataset.
 ///
@@ -735,12 +793,12 @@ pub fn healthcare_projects_locations_datasets_get_execute(
 
 pub fn healthcare_projects_locations_datasets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_get_builder(client, name)?;
+    let builder = healthcare_projects_locations_datasets_get_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_get_execute(builder)
 }
 
@@ -846,6 +904,15 @@ pub fn healthcare_projects_locations_datasets_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -858,16 +925,15 @@ pub fn healthcare_projects_locations_datasets_get_iam_policy_execute(
 
 pub fn healthcare_projects_locations_datasets_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &HealthcareProjectsLocationsDatasetsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     healthcare_projects_locations_datasets_get_iam_policy_execute(builder)
 }
@@ -980,6 +1046,17 @@ pub fn healthcare_projects_locations_datasets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets
 /// Lists the health datasets in the current project.
 ///
@@ -992,17 +1069,19 @@ pub fn healthcare_projects_locations_datasets_list_execute(
 
 pub fn healthcare_projects_locations_datasets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDatasetsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = healthcare_projects_locations_datasets_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     healthcare_projects_locations_datasets_list_execute(builder)
 }
 
@@ -1111,6 +1190,17 @@ pub fn healthcare_projects_locations_datasets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Dataset,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
 /// Updates dataset metadata.
 ///
@@ -1123,15 +1213,17 @@ pub fn healthcare_projects_locations_datasets_patch_execute(
 
 pub fn healthcare_projects_locations_datasets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Dataset,
+    args: &HealthcareProjectsLocationsDatasetsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_patch_builder(client, name, updateMask, body)?;
+    let builder = healthcare_projects_locations_datasets_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     healthcare_projects_locations_datasets_patch_execute(builder)
 }
 
@@ -1228,6 +1320,15 @@ pub fn healthcare_projects_locations_datasets_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1240,14 +1341,16 @@ pub fn healthcare_projects_locations_datasets_set_iam_policy_execute(
 
 pub fn healthcare_projects_locations_datasets_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &HealthcareProjectsLocationsDatasetsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_set_iam_policy_builder(client, resource, body)?;
+    let builder = healthcare_projects_locations_datasets_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     healthcare_projects_locations_datasets_set_iam_policy_execute(builder)
 }
 
@@ -1348,6 +1451,15 @@ pub fn healthcare_projects_locations_datasets_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1360,8 +1472,7 @@ pub fn healthcare_projects_locations_datasets_test_iam_permissions_execute(
 
 pub fn healthcare_projects_locations_datasets_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &HealthcareProjectsLocationsDatasetsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1371,7 +1482,9 @@ pub fn healthcare_projects_locations_datasets_test_iam_permissions(
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_test_iam_permissions_execute(builder)
 }
@@ -1471,6 +1584,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_check_data_access_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_check_data_access`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresCheckDataAccessArgs {
+    /// Path parameter: consentStore
+    pub consentStore: String,
+    /// Request body.
+    pub body: CheckDataAccessRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}:checkDataAccess
 /// Checks if a particular data_id of a User data mapping in the specified consent store is consented for the specified use.
 ///
@@ -1483,8 +1605,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_check_data_access_e
 
 pub fn healthcare_projects_locations_datasets_consent_stores_check_data_access(
     client: &SimpleHttpClient,
-    consentStore: &str,
-    body: &CheckDataAccessRequest,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresCheckDataAccessArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CheckDataAccessResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1493,8 +1614,8 @@ pub fn healthcare_projects_locations_datasets_consent_stores_check_data_access(
 > {
     let builder = healthcare_projects_locations_datasets_consent_stores_check_data_access_builder(
         client,
-        consentStore,
-        body,
+        &args.consentStore,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_consent_stores_check_data_access_execute(builder)
 }
@@ -1606,6 +1727,17 @@ pub fn healthcare_projects_locations_datasets_consent_stores_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: consentStoreId
+    pub consentStoreId: Option<String>,
+    /// Request body.
+    pub body: ConsentStore,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores
 /// Creates a new consent store in the parent dataset. Attempting to create a consent store with the same ID as an existing store fails with an ALREADY_EXISTS error.
 ///
@@ -1618,9 +1750,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_create_execute(
 
 pub fn healthcare_projects_locations_datasets_consent_stores_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    consentStoreId: Option<&str>,
-    body: &ConsentStore,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConsentStore>, ApiError>, P = ApiPending>
         + Send
@@ -1629,9 +1759,9 @@ pub fn healthcare_projects_locations_datasets_consent_stores_create(
 > {
     let builder = healthcare_projects_locations_datasets_consent_stores_create_builder(
         client,
-        parent,
-        consentStoreId,
-        body,
+        &args.parent,
+        args.consentStoreId.as_deref(),
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_consent_stores_create_execute(builder)
 }
@@ -1726,6 +1856,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}
 /// Deletes the specified consent store and removes all the consent store's data.
 ///
@@ -1738,13 +1875,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_delete_execute(
 
 pub fn healthcare_projects_locations_datasets_consent_stores_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        healthcare_projects_locations_datasets_consent_stores_delete_builder(client, name)?;
+        healthcare_projects_locations_datasets_consent_stores_delete_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_consent_stores_delete_execute(builder)
 }
 
@@ -1845,6 +1982,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_evaluate_user_conse
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_evaluate_user_consents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresEvaluateUserConsentsArgs {
+    /// Path parameter: consentStore
+    pub consentStore: String,
+    /// Request body.
+    pub body: EvaluateUserConsentsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}:evaluateUserConsents
 /// Evaluates the user's Consents for all matching User data mappings. Note: User data mappings are indexed asynchronously, which can cause a slight delay between the time mappings are created or updated and when they are included in EvaluateUserConsents results.
 ///
@@ -1857,8 +2003,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_evaluate_user_conse
 
 pub fn healthcare_projects_locations_datasets_consent_stores_evaluate_user_consents(
     client: &SimpleHttpClient,
-    consentStore: &str,
-    body: &EvaluateUserConsentsRequest,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresEvaluateUserConsentsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EvaluateUserConsentsResponse>, ApiError>,
@@ -1870,8 +2015,8 @@ pub fn healthcare_projects_locations_datasets_consent_stores_evaluate_user_conse
     let builder =
         healthcare_projects_locations_datasets_consent_stores_evaluate_user_consents_builder(
             client,
-            consentStore,
-            body,
+            &args.consentStore,
+            &args.body,
         )?;
     healthcare_projects_locations_datasets_consent_stores_evaluate_user_consents_execute(builder)
 }
@@ -1968,6 +2113,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}
 /// Gets the specified consent store.
 ///
@@ -1980,14 +2132,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_get_execute(
 
 pub fn healthcare_projects_locations_datasets_consent_stores_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConsentStore>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_consent_stores_get_builder(client, name)?;
+    let builder =
+        healthcare_projects_locations_datasets_consent_stores_get_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_consent_stores_get_execute(builder)
 }
 
@@ -2093,6 +2246,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_get_iam_policy_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2105,16 +2267,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_get_iam_policy_exec
 
 pub fn healthcare_projects_locations_datasets_consent_stores_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_consent_stores_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     healthcare_projects_locations_datasets_consent_stores_get_iam_policy_execute(builder)
 }
@@ -2231,6 +2392,19 @@ pub fn healthcare_projects_locations_datasets_consent_stores_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores
 /// Lists the consent stores in the specified dataset.
 ///
@@ -2243,10 +2417,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_list_execute(
 
 pub fn healthcare_projects_locations_datasets_consent_stores_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListConsentStoresResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2254,7 +2425,11 @@ pub fn healthcare_projects_locations_datasets_consent_stores_list(
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_consent_stores_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     healthcare_projects_locations_datasets_consent_stores_list_execute(builder)
 }
@@ -2366,6 +2541,17 @@ pub fn healthcare_projects_locations_datasets_consent_stores_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ConsentStore,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}
 /// Updates the specified consent store.
 ///
@@ -2378,9 +2564,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_patch_execute(
 
 pub fn healthcare_projects_locations_datasets_consent_stores_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ConsentStore,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConsentStore>, ApiError>, P = ApiPending>
         + Send
@@ -2388,7 +2572,10 @@ pub fn healthcare_projects_locations_datasets_consent_stores_patch(
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_consent_stores_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_consent_stores_patch_execute(builder)
 }
@@ -2486,6 +2673,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_query_accessible_da
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_query_accessible_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresQueryAccessibleDataArgs {
+    /// Path parameter: consentStore
+    pub consentStore: String,
+    /// Request body.
+    pub body: QueryAccessibleDataRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}:queryAccessibleData
 /// Queries all data_ids that are consented for a specified use in the given consent store and writes them to a specified destination. The returned Operation includes a progress counter for the number of User data mappings processed. If the request is successful, a detailed response is returned of type QueryAccessibleDataResponse, contained in the response field when the operation finishes. The metadata field type is OperationMetadata. Errors are logged to Cloud Logging (see [Viewing error logs in Cloud Logging](<https://cloud.google.`com/healthcare/docs/how-tos/logging`>)). For example, the following sample log entry shows a failed to evaluate consent policy error that occurred during a QueryAccessibleData call to consent store `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/`consentStores`/{consent_store_id}`. json `jsonPayload`: { @type: "type.googleapis.`com/google`.cloud.healthcare.logging.QueryAccessibleDataLogEntry" error: { code: 9 message: "failed to evaluate consent policy" } `resourceName`: "`projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/`consentStores`/{consent_store_id}/consents/{consent_id}`" } `logName`: "`projects/{project_id}/logs/healthcare`.googleapis.com%2Fquery_accessible_data" operation: { id: "`projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/operations/{operation_id}`" producer: "healthcare.googleapis.`com/QueryAccessibleData`" } `receiveTimestamp`: "TIMESTAMP" resource: { labels: { consent_store_id: "{consent_store_id}" dataset_id: "{dataset_id}" location: "{location_id}" project_id: "{project_id}" } type: "healthcare_consent_store" } severity: "`ERROR`" timestamp: "TIMESTAMP"
 ///
@@ -2498,8 +2694,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_query_accessible_da
 
 pub fn healthcare_projects_locations_datasets_consent_stores_query_accessible_data(
     client: &SimpleHttpClient,
-    consentStore: &str,
-    body: &QueryAccessibleDataRequest,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresQueryAccessibleDataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -2507,8 +2702,8 @@ pub fn healthcare_projects_locations_datasets_consent_stores_query_accessible_da
     let builder =
         healthcare_projects_locations_datasets_consent_stores_query_accessible_data_builder(
             client,
-            consentStore,
-            body,
+            &args.consentStore,
+            &args.body,
         )?;
     healthcare_projects_locations_datasets_consent_stores_query_accessible_data_execute(builder)
 }
@@ -2606,6 +2801,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_set_iam_policy_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -2618,14 +2822,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_set_iam_policy_exec
 
 pub fn healthcare_projects_locations_datasets_consent_stores_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_consent_stores_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_consent_stores_set_iam_policy_execute(builder)
 }
@@ -2727,6 +2932,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_test_iam_permission
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2739,8 +2953,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_test_iam_permission
 
 pub fn healthcare_projects_locations_datasets_consent_stores_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2751,7 +2964,9 @@ pub fn healthcare_projects_locations_datasets_consent_stores_test_iam_permission
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     healthcare_projects_locations_datasets_consent_stores_test_iam_permissions_execute(builder)
 }
@@ -2863,6 +3078,17 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_attribute_definitions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: attributeDefinitionId
+    pub attributeDefinitionId: Option<String>,
+    /// Request body.
+    pub body: AttributeDefinition,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/attributeDefinitions
 /// Creates a new Attribute definition in the parent consent store.
 ///
@@ -2875,9 +3101,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
 
 pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    attributeDefinitionId: Option<&str>,
-    body: &AttributeDefinition,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AttributeDefinition>, ApiError>, P = ApiPending>
         + Send
@@ -2887,9 +3111,9 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
     let builder =
         healthcare_projects_locations_datasets_consent_stores_attribute_definitions_create_builder(
             client,
-            parent,
-            attributeDefinitionId,
-            body,
+            &args.parent,
+            args.attributeDefinitionId.as_deref(),
+            &args.body,
         )?;
     healthcare_projects_locations_datasets_consent_stores_attribute_definitions_create_execute(
         builder,
@@ -2986,6 +3210,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_attribute_definitions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/attributeDefinitions/{attributeDefinitionsId}
 /// Deletes the specified Attribute definition. Fails if the Attribute definition is referenced by any User data mapping, or the latest revision of any Consent.
 ///
@@ -2998,14 +3229,14 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
 
 pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_attribute_definitions_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     healthcare_projects_locations_datasets_consent_stores_attribute_definitions_delete_execute(
         builder,
@@ -3104,6 +3335,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_attribute_definitions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/attributeDefinitions/{attributeDefinitionsId}
 /// Gets the specified Attribute definition.
 ///
@@ -3116,7 +3354,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
 
 pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AttributeDefinition>, ApiError>, P = ApiPending>
         + Send
@@ -3125,7 +3363,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_attribute_definitions_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     healthcare_projects_locations_datasets_consent_stores_attribute_definitions_get_execute(builder)
 }
@@ -3244,6 +3482,19 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_attribute_definitions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/attributeDefinitions
 /// Lists the Attribute definitions in the specified consent store.
 ///
@@ -3256,10 +3507,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
 
 pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAttributeDefinitionsResponse>, ApiError>,
@@ -3270,7 +3518,11 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_attribute_definitions_list_builder(
-            client, parent, filter, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     healthcare_projects_locations_datasets_consent_stores_attribute_definitions_list_execute(
         builder,
@@ -3384,6 +3636,17 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_attribute_definitions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AttributeDefinition,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/attributeDefinitions/{attributeDefinitionsId}
 /// Updates the specified Attribute definition.
 ///
@@ -3396,9 +3659,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
 
 pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AttributeDefinition,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AttributeDefinition>, ApiError>, P = ApiPending>
         + Send
@@ -3407,7 +3668,10 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_attribute_definitions_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     healthcare_projects_locations_datasets_consent_stores_attribute_definitions_patch_execute(
         builder,
@@ -3509,6 +3773,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_c
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_consent_artifacts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentArtifactsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ConsentArtifact,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consentArtifacts
 /// Creates a new Consent artifact in the parent consent store.
 ///
@@ -3521,8 +3794,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_c
 
 pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ConsentArtifact,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresConsentArtifactsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConsentArtifact>, ApiError>, P = ApiPending>
         + Send
@@ -3531,7 +3803,9 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_c
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_consent_artifacts_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     healthcare_projects_locations_datasets_consent_stores_consent_artifacts_create_execute(builder)
 }
@@ -3626,6 +3900,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_d
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_consent_artifacts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentArtifactsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consentArtifacts/{consentArtifactsId}
 /// Deletes the specified Consent artifact. Fails if the artifact is referenced by the latest revision of any Consent.
 ///
@@ -3638,14 +3919,14 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_d
 
 pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresConsentArtifactsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_consent_artifacts_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     healthcare_projects_locations_datasets_consent_stores_consent_artifacts_delete_execute(builder)
 }
@@ -3742,6 +4023,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_g
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_consent_artifacts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentArtifactsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consentArtifacts/{consentArtifactsId}
 /// Gets the specified Consent artifact.
 ///
@@ -3754,7 +4042,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_g
 
 pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresConsentArtifactsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConsentArtifact>, ApiError>, P = ApiPending>
         + Send
@@ -3763,7 +4051,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_g
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_consent_artifacts_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     healthcare_projects_locations_datasets_consent_stores_consent_artifacts_get_execute(builder)
 }
@@ -3882,6 +4170,19 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_l
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_consent_artifacts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentArtifactsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consentArtifacts
 /// Lists the Consent artifacts in the specified consent store.
 ///
@@ -3894,10 +4195,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_l
 
 pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresConsentArtifactsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListConsentArtifactsResponse>, ApiError>,
@@ -3908,7 +4206,11 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_l
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_consent_artifacts_list_builder(
-            client, parent, filter, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     healthcare_projects_locations_datasets_consent_stores_consent_artifacts_list_execute(builder)
 }
@@ -4006,6 +4308,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_activate_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_consents_activate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentsActivateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ActivateConsentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}:activate
 /// Activates the latest revision of the specified Consent by committing a new revision with state updated to `ACTIVE`. If the latest revision of the specified Consent is in the `ACTIVE` state, no new revision is committed. A FAILED_PRECONDITION error occurs if the latest revision of the specified Consent is in the REJECTED or REVOKED state.
 ///
@@ -4018,14 +4329,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_activate_e
 
 pub fn healthcare_projects_locations_datasets_consent_stores_consents_activate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ActivateConsentRequest,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresConsentsActivateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Consent>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_consent_stores_consents_activate_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     healthcare_projects_locations_datasets_consent_stores_consents_activate_execute(builder)
 }
@@ -4123,6 +4433,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_create_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_consents_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Consent,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents
 /// Creates a new Consent in the parent consent store.
 ///
@@ -4135,14 +4454,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_create_exe
 
 pub fn healthcare_projects_locations_datasets_consent_stores_consents_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Consent,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresConsentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Consent>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_consent_stores_consents_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_consent_stores_consents_create_execute(builder)
 }
@@ -4237,6 +4557,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_delete_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_consents_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}
 /// Deletes the Consent and its revisions. To keep a record of the Consent but mark it inactive, see [RevokeConsent]. To delete a revision of a Consent, see [DeleteConsentRevision]. This operation does not delete the related Consent artifact.
 ///
@@ -4249,13 +4576,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_delete_exe
 
 pub fn healthcare_projects_locations_datasets_consent_stores_consents_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresConsentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_consent_stores_consents_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     healthcare_projects_locations_datasets_consent_stores_consents_delete_execute(builder)
 }
@@ -4350,6 +4677,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_delete_rev
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_consents_delete_revision`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentsDeleteRevisionArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}:deleteRevision
 /// Deletes the specified revision of a Consent. An INVALID_ARGUMENT error occurs if the specified revision is the latest revision.
 ///
@@ -4362,14 +4696,14 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_delete_rev
 
 pub fn healthcare_projects_locations_datasets_consent_stores_consents_delete_revision(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresConsentsDeleteRevisionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_consents_delete_revision_builder(
-            client, name,
+            client, &args.name,
         )?;
     healthcare_projects_locations_datasets_consent_stores_consents_delete_revision_execute(builder)
 }
@@ -4464,6 +4798,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_consents_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}
 /// Gets the specified revision of a Consent, or the latest revision if revision_id is not specified in the resource name.
 ///
@@ -4476,13 +4817,14 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_get_execut
 
 pub fn healthcare_projects_locations_datasets_consent_stores_consents_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresConsentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Consent>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_consent_stores_consents_get_builder(client, name)?;
+    let builder = healthcare_projects_locations_datasets_consent_stores_consents_get_builder(
+        client, &args.name,
+    )?;
     healthcare_projects_locations_datasets_consent_stores_consents_get_execute(builder)
 }
 
@@ -4598,6 +4940,19 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_consents_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents
 /// Lists the Consent in the given consent store, returning each Consent's latest revision.
 ///
@@ -4610,10 +4965,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_list_execu
 
 pub fn healthcare_projects_locations_datasets_consent_stores_consents_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresConsentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListConsentsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4621,7 +4973,11 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_list(
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_consent_stores_consents_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     healthcare_projects_locations_datasets_consent_stores_consents_list_execute(builder)
 }
@@ -4740,6 +5096,19 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_list_revis
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_consents_list_revisions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentsListRevisionsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}:listRevisions
 /// Lists the revisions of the specified Consent in reverse chronological order.
 ///
@@ -4752,10 +5121,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_list_revis
 
 pub fn healthcare_projects_locations_datasets_consent_stores_consents_list_revisions(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresConsentsListRevisionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListConsentRevisionsResponse>, ApiError>,
@@ -4766,7 +5132,11 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_list_revis
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_consents_list_revisions_builder(
-            client, name, filter, pageSize, pageToken,
+            client,
+            &args.name,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     healthcare_projects_locations_datasets_consent_stores_consents_list_revisions_execute(builder)
 }
@@ -4876,6 +5246,17 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_patch_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_consents_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Consent,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}
 /// Updates the latest revision of the specified Consent by committing a new revision with the changes. A FAILED_PRECONDITION error occurs if the latest revision of the specified Consent is in the REJECTED or REVOKED state.
 ///
@@ -4888,15 +5269,16 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_patch_exec
 
 pub fn healthcare_projects_locations_datasets_consent_stores_consents_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Consent,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresConsentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Consent>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_consent_stores_consents_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_consent_stores_consents_patch_execute(builder)
 }
@@ -4994,6 +5376,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_reject_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_consents_reject`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentsRejectArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RejectConsentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}:reject
 /// Rejects the latest revision of the specified Consent by committing a new revision with state updated to REJECTED. If the latest revision of the specified Consent is in the REJECTED state, no new revision is committed. A FAILED_PRECONDITION error occurs if the latest revision of the specified Consent is in the `ACTIVE` or REVOKED state.
 ///
@@ -5006,14 +5397,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_reject_exe
 
 pub fn healthcare_projects_locations_datasets_consent_stores_consents_reject(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RejectConsentRequest,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresConsentsRejectArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Consent>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_consent_stores_consents_reject_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     healthcare_projects_locations_datasets_consent_stores_consents_reject_execute(builder)
 }
@@ -5111,6 +5501,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_revoke_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_consents_revoke`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentsRevokeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RevokeConsentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}:revoke
 /// Revokes the latest revision of the specified Consent by committing a new revision with state updated to REVOKED. If the latest revision of the specified Consent is in the REVOKED state, no new revision is committed. A FAILED_PRECONDITION error occurs if the latest revision of the given consent is in DRAFT or REJECTED state.
 ///
@@ -5123,14 +5522,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_revoke_exe
 
 pub fn healthcare_projects_locations_datasets_consent_stores_consents_revoke(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RevokeConsentRequest,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresConsentsRevokeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Consent>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_consent_stores_consents_revoke_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     healthcare_projects_locations_datasets_consent_stores_consents_revoke_execute(builder)
 }
@@ -5232,6 +5630,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_user_data_mappings_archive`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsArchiveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ArchiveUserDataMappingRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/userDataMappings/{userDataMappingsId}:archive
 /// Archives the specified User data mapping.
 ///
@@ -5244,8 +5651,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 
 pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_archive(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ArchiveUserDataMappingRequest,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsArchiveArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ArchiveUserDataMappingResponse>, ApiError>,
@@ -5256,7 +5662,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_user_data_mappings_archive_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     healthcare_projects_locations_datasets_consent_stores_user_data_mappings_archive_execute(
         builder,
@@ -5358,6 +5764,15 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_user_data_mappings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UserDataMapping,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/userDataMappings
 /// Creates a new User data mapping in the parent consent store.
 ///
@@ -5370,8 +5785,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 
 pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UserDataMapping,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserDataMapping>, ApiError>, P = ApiPending>
         + Send
@@ -5380,7 +5794,9 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_user_data_mappings_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     healthcare_projects_locations_datasets_consent_stores_user_data_mappings_create_execute(builder)
 }
@@ -5475,6 +5891,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_user_data_mappings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/userDataMappings/{userDataMappingsId}
 /// Deletes the specified User data mapping.
 ///
@@ -5487,14 +5910,14 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 
 pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_user_data_mappings_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     healthcare_projects_locations_datasets_consent_stores_user_data_mappings_delete_execute(builder)
 }
@@ -5591,6 +6014,13 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_user_data_mappings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/userDataMappings/{userDataMappingsId}
 /// Gets the specified User data mapping.
 ///
@@ -5603,7 +6033,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 
 pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserDataMapping>, ApiError>, P = ApiPending>
         + Send
@@ -5612,7 +6042,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_user_data_mappings_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     healthcare_projects_locations_datasets_consent_stores_user_data_mappings_get_execute(builder)
 }
@@ -5731,6 +6161,19 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_user_data_mappings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/userDataMappings
 /// Lists the User data mappings in the specified consent store.
 ///
@@ -5743,10 +6186,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 
 pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListUserDataMappingsResponse>, ApiError>,
@@ -5757,7 +6197,11 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_user_data_mappings_list_builder(
-            client, parent, filter, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     healthcare_projects_locations_datasets_consent_stores_user_data_mappings_list_execute(builder)
 }
@@ -5869,6 +6313,17 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_consent_stores_user_data_mappings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: UserDataMapping,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/userDataMappings/{userDataMappingsId}
 /// Updates the specified User data mapping.
 ///
@@ -5881,9 +6336,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 
 pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &UserDataMapping,
+    args: &HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserDataMapping>, ApiError>, P = ApiPending>
         + Send
@@ -5892,7 +6345,10 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 > {
     let builder =
         healthcare_projects_locations_datasets_consent_stores_user_data_mappings_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     healthcare_projects_locations_datasets_consent_stores_user_data_mappings_patch_execute(builder)
 }
@@ -5999,6 +6455,15 @@ pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_get_iam_pol
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_data_mapper_workspaces_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDataMapperWorkspacesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dataMapperWorkspaces/{dataMapperWorkspacesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -6011,8 +6476,7 @@ pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_get_iam_pol
 
 pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &HealthcareProjectsLocationsDatasetsDataMapperWorkspacesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -6020,8 +6484,8 @@ pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_get_iam_pol
     let builder =
         healthcare_projects_locations_datasets_data_mapper_workspaces_get_iam_policy_builder(
             client,
-            resource,
-            options_requestedPolicyVersion,
+            &args.resource,
+            args.options_requestedPolicyVersion,
         )?;
     healthcare_projects_locations_datasets_data_mapper_workspaces_get_iam_policy_execute(builder)
 }
@@ -6119,6 +6583,15 @@ pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_set_iam_pol
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_data_mapper_workspaces_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDataMapperWorkspacesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dataMapperWorkspaces/{dataMapperWorkspacesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -6131,15 +6604,16 @@ pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_set_iam_pol
 
 pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &HealthcareProjectsLocationsDatasetsDataMapperWorkspacesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         healthcare_projects_locations_datasets_data_mapper_workspaces_set_iam_policy_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     healthcare_projects_locations_datasets_data_mapper_workspaces_set_iam_policy_execute(builder)
 }
@@ -6241,6 +6715,15 @@ pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_test_iam_pe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_data_mapper_workspaces_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDataMapperWorkspacesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dataMapperWorkspaces/{dataMapperWorkspacesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -6253,8 +6736,7 @@ pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_test_iam_pe
 
 pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &HealthcareProjectsLocationsDatasetsDataMapperWorkspacesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -6265,7 +6747,9 @@ pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_test_iam_pe
 > {
     let builder =
         healthcare_projects_locations_datasets_data_mapper_workspaces_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     healthcare_projects_locations_datasets_data_mapper_workspaces_test_iam_permissions_execute(
         builder,
@@ -6377,6 +6861,17 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dicomStoreId
+    pub dicomStoreId: Option<String>,
+    /// Request body.
+    pub body: DicomStore,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores
 /// Creates a new DICOM store within the parent dataset.
 ///
@@ -6389,18 +6884,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_create_execute(
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomStoreId: Option<&str>,
-    body: &DicomStore,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DicomStore>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_dicom_stores_create_builder(
         client,
-        parent,
-        dicomStoreId,
-        body,
+        &args.parent,
+        args.dicomStoreId.as_deref(),
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_dicom_stores_create_execute(builder)
 }
@@ -6498,6 +6991,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_deidentify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_deidentify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresDeidentifyArgs {
+    /// Path parameter: sourceStore
+    pub sourceStore: String,
+    /// Request body.
+    pub body: DeidentifyDicomStoreRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:deidentify
 /// De-identifies data from the source store and writes it to the destination store. The metadata field type is OperationMetadata. If the request is successful, the response field type is DeidentifyDicomStoreSummary. If errors occur, error is set. The LRO result may still be successful if de-identification fails for some DICOM instances. The output DICOM store will not contain these failed resources. Failed resource totals are tracked in Operation.metadata. Error details are also logged to Cloud Logging (see [Viewing error logs in Cloud Logging](<https://cloud.google.`com/healthcare/docs/how-tos/logging`>)).
 ///
@@ -6510,16 +7012,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_deidentify_execute(
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_deidentify(
     client: &SimpleHttpClient,
-    sourceStore: &str,
-    body: &DeidentifyDicomStoreRequest,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresDeidentifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_dicom_stores_deidentify_builder(
         client,
-        sourceStore,
-        body,
+        &args.sourceStore,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_dicom_stores_deidentify_execute(builder)
 }
@@ -6614,6 +7115,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}
 /// Deletes the specified DICOM store and removes all images that are contained within it.
 ///
@@ -6626,12 +7134,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_delete_execute(
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_dicom_stores_delete_builder(client, name)?;
+    let builder =
+        healthcare_projects_locations_datasets_dicom_stores_delete_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_dicom_stores_delete_execute(builder)
 }
 
@@ -6728,6 +7237,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresExportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExportDicomDataRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:export
 /// Exports data to the specified destination by copying it from the DICOM store. Errors are also logged to Cloud Logging. For more information, see [Viewing error logs in Cloud Logging](<https://cloud.google.`com/healthcare/docs/how-tos/logging`>). The metadata field type is OperationMetadata.
 ///
@@ -6740,14 +7258,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_export_execute(
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_export(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExportDicomDataRequest,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresExportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_dicom_stores_export_builder(client, name, body)?;
+    let builder = healthcare_projects_locations_datasets_dicom_stores_export_builder(
+        client, &args.name, &args.body,
+    )?;
     healthcare_projects_locations_datasets_dicom_stores_export_execute(builder)
 }
 
@@ -6841,6 +7359,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}
 /// Gets the specified DICOM store.
 ///
@@ -6853,12 +7378,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_get_execute(
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DicomStore>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_dicom_stores_get_builder(client, name)?;
+    let builder =
+        healthcare_projects_locations_datasets_dicom_stores_get_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_dicom_stores_get_execute(builder)
 }
 
@@ -6954,6 +7480,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_get_dicomstore_metric
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_get_dicomstore_metrics`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresGetDicomstoreMetricsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:getDICOMStoreMetrics
 /// Gets metrics associated with the DICOM store.
 ///
@@ -6966,7 +7499,7 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_get_dicomstore_metric
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_get_dicomstore_metrics(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresGetDicomstoreMetricsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DicomStoreMetrics>, ApiError>, P = ApiPending>
         + Send
@@ -6975,7 +7508,7 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_get_dicomstore_metric
 > {
     let builder =
         healthcare_projects_locations_datasets_dicom_stores_get_dicomstore_metrics_builder(
-            client, name,
+            client, &args.name,
         )?;
     healthcare_projects_locations_datasets_dicom_stores_get_dicomstore_metrics_execute(builder)
 }
@@ -7082,6 +7615,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_get_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -7094,16 +7636,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_get_iam_policy_execut
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_dicom_stores_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     healthcare_projects_locations_datasets_dicom_stores_get_iam_policy_execute(builder)
 }
@@ -7201,6 +7742,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresImportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ImportDicomDataRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:import
 /// Imports data into the DICOM store by copying it from the specified source. Errors are logged to Cloud Logging. For more information, see [Viewing error logs in Cloud Logging](<https://cloud.google.`com/healthcare/docs/how-tos/logging`>). The metadata field type is OperationMetadata.
 ///
@@ -7213,14 +7763,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_import_execute(
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_import(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ImportDicomDataRequest,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_dicom_stores_import_builder(client, name, body)?;
+    let builder = healthcare_projects_locations_datasets_dicom_stores_import_builder(
+        client, &args.name, &args.body,
+    )?;
     healthcare_projects_locations_datasets_dicom_stores_import_execute(builder)
 }
 
@@ -7336,6 +7886,19 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores
 /// Lists the DICOM stores in the given dataset.
 ///
@@ -7348,10 +7911,7 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_list_execute(
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDicomStoresResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7359,7 +7919,11 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_list(
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_dicom_stores_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     healthcare_projects_locations_datasets_dicom_stores_list_execute(builder)
 }
@@ -7469,6 +8033,17 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: DicomStore,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}
 /// Updates the specified DICOM store.
 ///
@@ -7481,15 +8056,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_patch_execute(
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &DicomStore,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DicomStore>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_dicom_stores_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_dicom_stores_patch_execute(builder)
 }
@@ -7586,6 +8162,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_instances_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_search_for_instances`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresSearchForInstancesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/instances
 /// SearchForInstances returns a list of matching instances. See [Search Transaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.6>). For details on the implementation of SearchForInstances, see [Search transaction](<https://cloud.google.`com/healthcare/docs/dicom`#search_transaction>) in the Cloud Healthcare API conformance statement. For samples that show how to call SearchForInstances, see [Search for DICOM data](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#search-dicom>).
 ///
@@ -7598,16 +8183,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_instances_
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_instances(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresSearchForInstancesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_dicom_stores_search_for_instances_builder(
         client,
-        parent,
-        dicomWebPath,
+        &args.parent,
+        &args.dicomWebPath,
     )?;
     healthcare_projects_locations_datasets_dicom_stores_search_for_instances_execute(builder)
 }
@@ -7704,6 +8288,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_series_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_search_for_series`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresSearchForSeriesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/series
 /// SearchForSeries returns a list of matching series. See [Search Transaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.6>). For details on the implementation of SearchForSeries, see [Search transaction](<https://cloud.google.`com/healthcare/docs/dicom`#search_transaction>) in the Cloud Healthcare API conformance statement. For samples that show how to call SearchForSeries, see [Search for DICOM data](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#search-dicom>).
 ///
@@ -7716,16 +8309,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_series_exe
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_series(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresSearchForSeriesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_dicom_stores_search_for_series_builder(
         client,
-        parent,
-        dicomWebPath,
+        &args.parent,
+        &args.dicomWebPath,
     )?;
     healthcare_projects_locations_datasets_dicom_stores_search_for_series_execute(builder)
 }
@@ -7822,6 +8414,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_studies_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_search_for_studies`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresSearchForStudiesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies
 /// SearchForStudies returns a list of matching studies. See [Search Transaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.6>). For details on the implementation of SearchForStudies, see [Search transaction](<https://cloud.google.`com/healthcare/docs/dicom`#search_transaction>) in the Cloud Healthcare API conformance statement. For samples that show how to call SearchForStudies, see [Search for DICOM data](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#search-dicom>).
 ///
@@ -7834,16 +8435,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_studies_ex
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_search_for_studies(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresSearchForStudiesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_dicom_stores_search_for_studies_builder(
         client,
-        parent,
-        dicomWebPath,
+        &args.parent,
+        &args.dicomWebPath,
     )?;
     healthcare_projects_locations_datasets_dicom_stores_search_for_studies_execute(builder)
 }
@@ -7941,6 +8541,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_set_blob_storage_sett
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_set_blob_storage_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresSetBlobStorageSettingsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetBlobStorageSettingsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:setBlobStorageSettings
 /// SetBlobStorageSettings sets the blob storage settings of the specified resources.
 ///
@@ -7953,15 +8562,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_set_blob_storage_sett
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_set_blob_storage_settings(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetBlobStorageSettingsRequest,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresSetBlobStorageSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         healthcare_projects_locations_datasets_dicom_stores_set_blob_storage_settings_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     healthcare_projects_locations_datasets_dicom_stores_set_blob_storage_settings_execute(builder)
 }
@@ -8059,6 +8669,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_set_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -8071,14 +8690,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_set_iam_policy_execut
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_dicom_stores_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_dicom_stores_set_iam_policy_execute(builder)
 }
@@ -8178,6 +8798,17 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_store_instances_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_store_instances`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStoreInstancesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+    /// Request body.
+    pub body: HttpBody,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies
 /// StoreInstances stores DICOM instances associated with study instance unique identifiers (SUID). See [Store Transaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.5>). For details on the implementation of StoreInstances, see [Store transaction](<https://cloud.google.`com/healthcare/docs/dicom`#store_transaction>) in the Cloud Healthcare API conformance statement. For samples that show how to call StoreInstances, see [Store DICOM data](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#store-dicom>).
 ///
@@ -8190,18 +8821,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_store_instances_execu
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_store_instances(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
-    body: &HttpBody,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStoreInstancesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_dicom_stores_store_instances_builder(
         client,
-        parent,
-        dicomWebPath,
-        body,
+        &args.parent,
+        &args.dicomWebPath,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_dicom_stores_store_instances_execute(builder)
 }
@@ -8303,6 +8932,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_test_iam_permissions_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -8315,8 +8953,7 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_test_iam_permissions_
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -8326,7 +8963,9 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_test_iam_permissions(
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_dicom_stores_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_dicom_stores_test_iam_permissions_execute(builder)
 }
@@ -8423,6 +9062,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_get
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_get_study_metrics`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresDicomWebStudiesGetStudyMetricsArgs {
+    /// Path parameter: study
+    pub study: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}:getStudyMetrics
 /// GetStudyMetrics returns metrics for a study.
 ///
@@ -8435,14 +9081,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_get
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_get_study_metrics(
     client: &SimpleHttpClient,
-    study: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresDicomWebStudiesGetStudyMetricsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StudyMetrics>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_get_study_metrics_builder(client, study)?;
+    let builder = healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_get_study_metrics_builder(client, &args.study)?;
     healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_get_study_metrics_execute(
         builder,
     )
@@ -8541,6 +9187,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_set
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_set_blob_storage_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresDicomWebStudiesSetBlobStorageSettingsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetBlobStorageSettingsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}:setBlobStorageSettings
 /// SetBlobStorageSettings sets the blob storage settings of the specified resources.
 ///
@@ -8553,13 +9208,12 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_set
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_set_blob_storage_settings(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetBlobStorageSettingsRequest,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresDicomWebStudiesSetBlobStorageSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_set_blob_storage_settings_builder(client, resource, body)?;
+    let builder = healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_set_blob_storage_settings_builder(client, &args.resource, &args.body)?;
     healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_set_blob_storage_settings_execute(builder)
 }
 
@@ -8655,6 +9309,13 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_ser
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_get_series_metrics`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresDicomWebStudiesSeriesGetSeriesMetricsArgs {
+    /// Path parameter: series
+    pub series: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}:getSeriesMetrics
 /// GetSeriesMetrics returns metrics for a series.
 ///
@@ -8667,14 +9328,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_ser
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_get_series_metrics(
     client: &SimpleHttpClient,
-    series: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresDicomWebStudiesSeriesGetSeriesMetricsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SeriesMetrics>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_get_series_metrics_builder(client, series)?;
+    let builder = healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_get_series_metrics_builder(client, &args.series)?;
     healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_get_series_metrics_execute(builder)
 }
 
@@ -8768,6 +9429,14 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_ser
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_instances_get_storage_info`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresDicomWebStudiesSeriesInstancesGetStorageInfoArgs
+{
+    /// Path parameter: resource
+    pub resource: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}:getStorageInfo
 /// GetStorageInfo returns the storage info of the specified resource.
 ///
@@ -8780,12 +9449,12 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_ser
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_instances_get_storage_info(
     client: &SimpleHttpClient,
-    resource: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresDicomWebStudiesSeriesInstancesGetStorageInfoArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StorageInfo>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_instances_get_storage_info_builder(client, resource)?;
+    let builder = healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_instances_get_storage_info_builder(client, &args.resource)?;
     healthcare_projects_locations_datasets_dicom_stores_dicom_web_studies_series_instances_get_storage_info_execute(builder)
 }
 
@@ -8881,6 +9550,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_delete_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}
 /// DeleteStudy deletes all instances within the given study. Delete requests are equivalent to the GET requests specified in the Retrieve transaction. The method returns an Operation which will be marked successful when the deletion is complete. Warning: Instances cannot be inserted into a study that is being deleted by an operation until the operation completes. For samples that show how to call DeleteStudy, see [Delete a study, series, or instance](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#delete-dicom>).
 ///
@@ -8893,16 +9571,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_delete_execut
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_dicom_stores_studies_delete_builder(
         client,
-        parent,
-        dicomWebPath,
+        &args.parent,
+        &args.dicomWebPath,
     )?;
     healthcare_projects_locations_datasets_dicom_stores_studies_delete_execute(builder)
 }
@@ -8999,6 +9676,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_meta
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesRetrieveMetadataArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/metadata
 /// RetrieveStudyMetadata returns instance associated with the given study presented as metadata. See [RetrieveTransaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.4>). For details on the implementation of RetrieveStudyMetadata, see [Metadata resources](<https://cloud.google.`com/healthcare/docs/dicom`#metadata_resources>) in the Cloud Healthcare API conformance statement. For samples that show how to call RetrieveStudyMetadata, see [Retrieve metadata](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#retrieve-metadata>).
 ///
@@ -9011,8 +9697,7 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_meta
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_metadata(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesRetrieveMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -9020,8 +9705,8 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_meta
     let builder =
         healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_metadata_builder(
             client,
-            parent,
-            dicomWebPath,
+            &args.parent,
+            &args.dicomWebPath,
         )?;
     healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_metadata_execute(builder)
 }
@@ -9118,6 +9803,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_stud
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_study`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesRetrieveStudyArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}
 /// RetrieveStudy returns all instances within the given study. See [RetrieveTransaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.4>). For details on the implementation of RetrieveStudy, see [DICOM `study/series/instances`](<https://cloud.google.`com/healthcare/docs/dicom`#dicom_studyseriesinstances>) in the Cloud Healthcare API conformance statement. For samples that show how to call RetrieveStudy, see [Retrieve DICOM data](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#retrieve-dicom>).
 ///
@@ -9130,8 +9824,7 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_stud
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_study(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesRetrieveStudyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -9139,8 +9832,8 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_stud
     let builder =
         healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_study_builder(
             client,
-            parent,
-            dicomWebPath,
+            &args.parent,
+            &args.dicomWebPath,
         )?;
     healthcare_projects_locations_datasets_dicom_stores_studies_retrieve_study_execute(builder)
 }
@@ -9237,6 +9930,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_search_for_in
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_search_for_instances`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesSearchForInstancesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/instances
 /// SearchForInstances returns a list of matching instances. See [Search Transaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.6>). For details on the implementation of SearchForInstances, see [Search transaction](<https://cloud.google.`com/healthcare/docs/dicom`#search_transaction>) in the Cloud Healthcare API conformance statement. For samples that show how to call SearchForInstances, see [Search for DICOM data](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#search-dicom>).
 ///
@@ -9249,8 +9951,7 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_search_for_in
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_search_for_instances(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesSearchForInstancesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -9258,8 +9959,8 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_search_for_in
     let builder =
         healthcare_projects_locations_datasets_dicom_stores_studies_search_for_instances_builder(
             client,
-            parent,
-            dicomWebPath,
+            &args.parent,
+            &args.dicomWebPath,
         )?;
     healthcare_projects_locations_datasets_dicom_stores_studies_search_for_instances_execute(
         builder,
@@ -9358,6 +10059,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_search_for_se
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_search_for_series`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesSearchForSeriesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series
 /// SearchForSeries returns a list of matching series. See [Search Transaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.6>). For details on the implementation of SearchForSeries, see [Search transaction](<https://cloud.google.`com/healthcare/docs/dicom`#search_transaction>) in the Cloud Healthcare API conformance statement. For samples that show how to call SearchForSeries, see [Search for DICOM data](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#search-dicom>).
 ///
@@ -9370,8 +10080,7 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_search_for_se
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_search_for_series(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesSearchForSeriesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -9379,8 +10088,8 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_search_for_se
     let builder =
         healthcare_projects_locations_datasets_dicom_stores_studies_search_for_series_builder(
             client,
-            parent,
-            dicomWebPath,
+            &args.parent,
+            &args.dicomWebPath,
         )?;
     healthcare_projects_locations_datasets_dicom_stores_studies_search_for_series_execute(builder)
 }
@@ -9480,6 +10189,17 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_store_instanc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_store_instances`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesStoreInstancesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+    /// Request body.
+    pub body: HttpBody,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}
 /// StoreInstances stores DICOM instances associated with study instance unique identifiers (SUID). See [Store Transaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.5>). For details on the implementation of StoreInstances, see [Store transaction](<https://cloud.google.`com/healthcare/docs/dicom`#store_transaction>) in the Cloud Healthcare API conformance statement. For samples that show how to call StoreInstances, see [Store DICOM data](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#store-dicom>).
 ///
@@ -9492,9 +10212,7 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_store_instanc
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_store_instances(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
-    body: &HttpBody,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesStoreInstancesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -9502,9 +10220,9 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_store_instanc
     let builder =
         healthcare_projects_locations_datasets_dicom_stores_studies_store_instances_builder(
             client,
-            parent,
-            dicomWebPath,
-            body,
+            &args.parent,
+            &args.dicomWebPath,
+            &args.body,
         )?;
     healthcare_projects_locations_datasets_dicom_stores_studies_store_instances_execute(builder)
 }
@@ -9601,6 +10319,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_delete
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_series_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}
 /// DeleteSeries deletes all instances within the given study and series. Delete requests are equivalent to the GET requests specified in the Retrieve transaction. The method returns an Operation which will be marked successful when the deletion is complete. Warning: Instances cannot be inserted into a series that is being deleted by an operation until the operation completes. For samples that show how to call DeleteSeries, see [Delete a study, series, or instance](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#delete-dicom>).
 ///
@@ -9613,8 +10340,7 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_delete
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -9622,8 +10348,8 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_delete
     let builder =
         healthcare_projects_locations_datasets_dicom_stores_studies_series_delete_builder(
             client,
-            parent,
-            dicomWebPath,
+            &args.parent,
+            &args.dicomWebPath,
         )?;
     healthcare_projects_locations_datasets_dicom_stores_studies_series_delete_execute(builder)
 }
@@ -9720,6 +10446,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_retrie
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesRetrieveMetadataArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/metadata
 /// RetrieveSeriesMetadata returns instance associated with the given study and series, presented as metadata. See [RetrieveTransaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.4>). For details on the implementation of RetrieveSeriesMetadata, see [Metadata resources](<https://cloud.google.`com/healthcare/docs/dicom`#metadata_resources>) in the Cloud Healthcare API conformance statement. For samples that show how to call RetrieveSeriesMetadata, see [Retrieve metadata](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#retrieve-metadata>).
 ///
@@ -9732,13 +10467,12 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_retrie
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_metadata(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesRetrieveMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_metadata_builder(client, parent, dicomWebPath)?;
+    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_metadata_builder(client, &args.parent, &args.dicomWebPath)?;
     healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_metadata_execute(
         builder,
     )
@@ -9836,6 +10570,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_retrie
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_series`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesRetrieveSeriesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}
 /// RetrieveSeries returns all instances within the given study and series. See [RetrieveTransaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.4>). For details on the implementation of RetrieveSeries, see [DICOM `study/series/instances`](<https://cloud.google.`com/healthcare/docs/dicom`#dicom_studyseriesinstances>) in the Cloud Healthcare API conformance statement. For samples that show how to call RetrieveSeries, see [Retrieve DICOM data](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#retrieve-dicom>).
 ///
@@ -9848,8 +10591,7 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_retrie
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_series(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesRetrieveSeriesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -9857,8 +10599,8 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_retrie
     let builder =
         healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_series_builder(
             client,
-            parent,
-            dicomWebPath,
+            &args.parent,
+            &args.dicomWebPath,
         )?;
     healthcare_projects_locations_datasets_dicom_stores_studies_series_retrieve_series_execute(
         builder,
@@ -9957,6 +10699,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_search
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_series_search_for_instances`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesSearchForInstancesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances
 /// SearchForInstances returns a list of matching instances. See [Search Transaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.6>). For details on the implementation of SearchForInstances, see [Search transaction](<https://cloud.google.`com/healthcare/docs/dicom`#search_transaction>) in the Cloud Healthcare API conformance statement. For samples that show how to call SearchForInstances, see [Search for DICOM data](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#search-dicom>).
 ///
@@ -9969,13 +10720,12 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_search
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_search_for_instances(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesSearchForInstancesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_search_for_instances_builder(client, parent, dicomWebPath)?;
+    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_search_for_instances_builder(client, &args.parent, &args.dicomWebPath)?;
     healthcare_projects_locations_datasets_dicom_stores_studies_series_search_for_instances_execute(
         builder,
     )
@@ -10073,6 +10823,15 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesInstancesDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}
 /// DeleteInstance deletes an instance associated with the given study, series, and SOP Instance UID. Delete requests are equivalent to the GET requests specified in the Retrieve transaction. Study and series search results can take a few seconds to be updated after an instance is deleted using DeleteInstance. For samples that show how to call DeleteInstance, see [Delete a study, series, or instance](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#delete-dicom>).
 ///
@@ -10085,13 +10844,12 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_delete_builder(client, parent, dicomWebPath)?;
+    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_delete_builder(client, &args.parent, &args.dicomWebPath)?;
     healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_delete_execute(
         builder,
     )
@@ -10189,6 +10947,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_instance`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesInstancesRetrieveInstanceArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}
 /// RetrieveInstance returns instance associated with the given study, series, and SOP Instance UID. See [RetrieveTransaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.4>). For details on the implementation of RetrieveInstance, see [DICOM `study/series/instances`](<https://cloud.google.`com/healthcare/docs/dicom`#dicom_studyseriesinstances>) and [DICOM instances](<https://cloud.google.`com/healthcare/docs/dicom`#dicom_instances>) in the Cloud Healthcare API conformance statement. For samples that show how to call RetrieveInstance, see [Retrieve an instance](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#retrieve-instance>).
 ///
@@ -10201,13 +10969,12 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_instance(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesInstancesRetrieveInstanceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_instance_builder(client, parent, dicomWebPath)?;
+    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_instance_builder(client, &args.parent, &args.dicomWebPath)?;
     healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_instance_execute(builder)
 }
 
@@ -10303,6 +11070,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesInstancesRetrieveMetadataArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}/metadata
 /// RetrieveInstanceMetadata returns instance associated with the given study, series, and SOP Instance UID presented as metadata. See [RetrieveTransaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.4>). For details on the implementation of RetrieveInstanceMetadata, see [Metadata resources](<https://cloud.google.`com/healthcare/docs/dicom`#metadata_resources>) in the Cloud Healthcare API conformance statement. For samples that show how to call RetrieveInstanceMetadata, see [Retrieve metadata](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#retrieve-metadata>).
 ///
@@ -10315,13 +11092,12 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_metadata(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesInstancesRetrieveMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_metadata_builder(client, parent, dicomWebPath)?;
+    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_metadata_builder(client, &args.parent, &args.dicomWebPath)?;
     healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_metadata_execute(builder)
 }
 
@@ -10429,6 +11205,18 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_rendered`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesInstancesRetrieveRenderedArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+    /// Query parameter: viewport
+    pub viewport: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}/rendered
 /// RetrieveRenderedInstance returns instance associated with the given study, series, and SOP Instance UID in an acceptable Rendered Media Type. See [RetrieveTransaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.4>). For details on the implementation of RetrieveRenderedInstance, see [Rendered resources](<https://cloud.google.`com/healthcare/docs/dicom`#rendered_resources>) in the Cloud Healthcare API conformance statement. For samples that show how to call RetrieveRenderedInstance, see [Retrieve consumer image formats](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#retrieve-consumer>).
 ///
@@ -10441,14 +11229,12 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_rendered(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
-    viewport: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesInstancesRetrieveRenderedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_rendered_builder(client, parent, dicomWebPath, viewport)?;
+    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_rendered_builder(client, &args.parent, &args.dicomWebPath, args.viewport.as_deref())?;
     healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_retrieve_rendered_execute(builder)
 }
 
@@ -10544,6 +11330,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_bulkdata_retrieve_bulkdata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesInstancesBulkdataRetrieveBulkdataArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}/bulkdata/{bulkdataId}/{bulkdataId1}
 /// Returns uncompressed, unencoded bytes representing the referenced bulkdata tag from an instance. See [Retrieve Transaction](<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.4>). For details on the implementation of RetrieveBulkdata, see [Bulkdata resources](<https://cloud.google.`com/healthcare/docs/dicom`#bulkdata-resources>) in the Cloud Healthcare API conformance statement. For samples that show how to call RetrieveBulkdata, see [Retrieve bulkdata](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#retrieve-bulkdata>).
 ///
@@ -10556,13 +11352,12 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_bulkdata_retrieve_bulkdata(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesInstancesBulkdataRetrieveBulkdataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_bulkdata_retrieve_bulkdata_builder(client, parent, dicomWebPath)?;
+    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_bulkdata_retrieve_bulkdata_builder(client, &args.parent, &args.dicomWebPath)?;
     healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_bulkdata_retrieve_bulkdata_execute(builder)
 }
 
@@ -10658,6 +11453,16 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_frames`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesInstancesFramesRetrieveFramesArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}/frames/{framesId}
 /// RetrieveFrames returns instances associated with the given study, series, SOP Instance UID and frame numbers. See [RetrieveTransaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.4}.> For details on the implementation of RetrieveFrames, see [DICOM frames](<https://cloud.google.`com/healthcare/docs/dicom`#dicom_frames>) in the Cloud Healthcare API conformance statement. For samples that show how to call RetrieveFrames, see [Retrieve DICOM data](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#retrieve-dicom>).
 ///
@@ -10670,13 +11475,12 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_frames(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesInstancesFramesRetrieveFramesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_frames_builder(client, parent, dicomWebPath)?;
+    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_frames_builder(client, &args.parent, &args.dicomWebPath)?;
     healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_frames_execute(builder)
 }
 
@@ -10784,6 +11588,18 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_rendered`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesInstancesFramesRetrieveRenderedArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: dicomWebPath
+    pub dicomWebPath: String,
+    /// Query parameter: viewport
+    pub viewport: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}/frames/{framesId}/rendered
 /// RetrieveRenderedFrames returns instances associated with the given study, series, SOP Instance UID and frame numbers in an acceptable Rendered Media Type. See [RetrieveTransaction] (<https://dicom.nema.`org/medical/dicom/current/output/html/part18`.html#sect_10.4>). For details on the implementation of RetrieveRenderedFrames, see [Rendered resources](<https://cloud.google.`com/healthcare/docs/dicom`#rendered_resources>) in the Cloud Healthcare API conformance statement. For samples that show how to call RetrieveRenderedFrames, see [Retrieve consumer image formats](<https://cloud.google.`com/healthcare/docs/how-tos/dicomweb`#retrieve-consumer>).
 ///
@@ -10796,14 +11612,12 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
 
 pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_rendered(
     client: &SimpleHttpClient,
-    parent: &str,
-    dicomWebPath: &str,
-    viewport: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesInstancesFramesRetrieveRenderedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_rendered_builder(client, parent, dicomWebPath, viewport)?;
+    let builder = healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_rendered_builder(client, &args.parent, &args.dicomWebPath, args.viewport.as_deref())?;
     healthcare_projects_locations_datasets_dicom_stores_studies_series_instances_frames_retrieve_rendered_execute(builder)
 }
 
@@ -10900,6 +11714,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_apply_admin_consents_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_apply_admin_consents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresApplyAdminConsentsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ApplyAdminConsentsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:applyAdminConsents
 /// Applies the admin Consent resources for the FHIR store and reindexes the underlying resources in the FHIR store according to the aggregate consents. This method also updates the consent_config.enforced_admin_consents field of the FhirStore unless validate_only=`true` in ApplyAdminConsentsRequest. Any admin Consent resource change after this operation execution (including deletion) requires you to call ApplyAdminConsents again for the change to take effect. This method returns an Operation that can be used to track the progress of the resources that were reindexed, by calling GetOperation. Upon completion, the ApplyAdminConsentsResponse additionally contains the number of resources that were reindexed. If at least one Consent resource contains an error or fails be be enforced for any reason, the method returns an error instead of an Operation. No resources will be reindexed and the consent_config.enforced_admin_consents field will be unchanged. To enforce a consent check for data access, consent_config.access_enforced must be set to `true` for the FhirStore. FHIR Consent is not supported in DSTU2 or R5.
 ///
@@ -10912,14 +11735,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_apply_admin_consents_e
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_apply_admin_consents(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ApplyAdminConsentsRequest,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresApplyAdminConsentsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_apply_admin_consents_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_apply_admin_consents_execute(builder)
 }
@@ -11017,6 +11839,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_apply_consents_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_apply_consents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresApplyConsentsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ApplyConsentsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:applyConsents
 /// Apply the Consent resources for the FHIR store and reindex the underlying resources in the FHIR store according to the aggregate consent. The aggregate consent of the patient in scope in this request replaces any previous call of this method. Any Consent resource change after this operation execution (including deletion) requires you to call ApplyConsents again to have effect. This method returns an Operation that can be used to track the progress of the consent resources that were processed by calling GetOperation. Upon completion, the ApplyConsentsResponse additionally contains the number of resources that was reindexed. Errors are logged to Cloud Logging (see [Viewing error logs in Cloud Logging](<https://cloud.google.`com/healthcare/docs/how-tos/logging`>)). To enforce consent check for data access, consent_config.access_enforced must be set to `true` for the FhirStore. FHIR Consent is not supported in DSTU2 or R5.
 ///
@@ -11029,14 +11860,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_apply_consents_execute
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_apply_consents(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ApplyConsentsRequest,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresApplyConsentsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_apply_consents_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_apply_consents_execute(builder)
 }
@@ -11155,6 +11985,21 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_bulk_export_group_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_bulk_export_group`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresBulkExportGroupArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: _since
+    pub _since: Option<String>,
+    /// Query parameter: _type
+    pub _type: Option<String>,
+    /// Query parameter: organizeOutputBy
+    pub organizeOutputBy: Option<String>,
+    /// Query parameter: outputFormat
+    pub outputFormat: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Group/{GroupId}/$export
 /// Bulk exports a Group resource and resources in the member field, including related resources for each Patient member. The export for each Patient is identical to a GetPatientEverything request. Implements the FHIR implementation guide [$export group of patients](<https://build.fhir.`org/ig/HL7/bulk-data/export`.html#endpoint---group-of-patients>). The following headers must be set in the request: * Accept: specifies the format of the OperationOutcome response. Only `application/fhir`+json is supported. * Prefer: specifies whether the response is immediate or asynchronous. Must be to respond-async because only asynchronous responses are supported. Specify the destination for the server to write result files by setting the Cloud Storage location bulk_export_gcs_destination on the FHIR store. URI of an existing Cloud Storage directory where the server writes result files, in the format gs://{bucket-id}/{`path/to/destination/dir}`. If there is no trailing slash, the service appends one when composing the object path. The user is responsible for creating the Cloud Storage bucket referenced. Supports the following query parameters: * _type: string of comma-delimited FHIR resource types. If provided, only resources of the specified type(s) are exported. * _since: if provided, only resources updated after the specified time are exported. * _outputFormat: optional, specify ndjson to export data in NDJSON format. Exported file names use the format: {export_id}_{resource_type}.ndjson. * `organizeOutputBy`: resource type to organize the output by. Required and must be set to Patient. When specified, output files are organized by instances of the specified resource type, including the resource, referenced resources, and resources that contain references to that resource. On success, the Content-Location header of response is set to a URL that you can use to query the status of the export. The URL is in the format `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/`fhirStores`/{fhir_store_id}/operations/{export_id}`. See get-fhir-operation-status for more information. Errors generated by the FHIR store contain a JSON-encoded OperationOutcome resource describing the reason for the error.
 ///
@@ -11167,22 +12012,18 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_bulk_export_group_exec
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_bulk_export_group(
     client: &SimpleHttpClient,
-    name: &str,
-    _since: Option<&str>,
-    _type: Option<&str>,
-    organizeOutputBy: Option<&str>,
-    outputFormat: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresBulkExportGroupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_bulk_export_group_builder(
         client,
-        name,
-        _since,
-        _type,
-        organizeOutputBy,
-        outputFormat,
+        &args.name,
+        args._since.as_deref(),
+        args._type.as_deref(),
+        args.organizeOutputBy.as_deref(),
+        args.outputFormat.as_deref(),
     )?;
     healthcare_projects_locations_datasets_fhir_stores_bulk_export_group_execute(builder)
 }
@@ -11280,6 +12121,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_bulk_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_bulk_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresBulkDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: BulkDeleteResourcesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:bulkDelete
 /// Bulk deletes the FHIR resources from the given FHIR store. This method returns an Operation that can be used to track the progress of the deletion by calling GetOperation. The success and secondary_success counters correspond to the deleted current version and historical versions, respectively.
 ///
@@ -11292,14 +12142,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_bulk_delete_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_bulk_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &BulkDeleteResourcesRequest,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresBulkDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_fhir_stores_bulk_delete_builder(client, name, body)?;
+    let builder = healthcare_projects_locations_datasets_fhir_stores_bulk_delete_builder(
+        client, &args.name, &args.body,
+    )?;
     healthcare_projects_locations_datasets_fhir_stores_bulk_delete_execute(builder)
 }
 
@@ -11408,6 +12258,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: fhirStoreId
+    pub fhirStoreId: Option<String>,
+    /// Request body.
+    pub body: FhirStore,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores
 /// Creates a new FHIR store within the parent dataset.
 ///
@@ -11420,18 +12281,16 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_create_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    fhirStoreId: Option<&str>,
-    body: &FhirStore,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FhirStore>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_create_builder(
         client,
-        parent,
-        fhirStoreId,
-        body,
+        &args.parent,
+        args.fhirStoreId.as_deref(),
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_create_execute(builder)
 }
@@ -11529,6 +12388,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_deidentify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_deidentify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresDeidentifyArgs {
+    /// Path parameter: sourceStore
+    pub sourceStore: String,
+    /// Request body.
+    pub body: DeidentifyFhirStoreRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:deidentify
 /// De-identifies data from the source store and writes it to the destination store. The metadata field type is OperationMetadata. If the request is successful, the response field type is DeidentifyFhirStoreSummary. If errors occur, error is set. Error details are also logged to Cloud Logging (see [Viewing error logs in Cloud Logging](<https://cloud.google.`com/healthcare/docs/how-tos/logging`>)).
 ///
@@ -11541,16 +12409,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_deidentify_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_deidentify(
     client: &SimpleHttpClient,
-    sourceStore: &str,
-    body: &DeidentifyFhirStoreRequest,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresDeidentifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_deidentify_builder(
         client,
-        sourceStore,
-        body,
+        &args.sourceStore,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_deidentify_execute(builder)
 }
@@ -11645,6 +12512,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}
 /// Deletes the specified FHIR store and removes all resources within it.
 ///
@@ -11657,12 +12531,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_delete_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_fhir_stores_delete_builder(client, name)?;
+    let builder =
+        healthcare_projects_locations_datasets_fhir_stores_delete_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_fhir_stores_delete_execute(builder)
 }
 
@@ -11770,6 +12645,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_explain_data_access_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_explain_data_access`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresExplainDataAccessArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: resourceId
+    pub resourceId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:explainDataAccess
 /// Explains all the `permitted/denied` actor, purpose and environment for a given resource. FHIR Consent is not supported in DSTU2 or R5.
 ///
@@ -11782,8 +12666,7 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_explain_data_access_ex
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_explain_data_access(
     client: &SimpleHttpClient,
-    name: &str,
-    resourceId: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresExplainDataAccessArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExplainDataAccessResponse>, ApiError>, P = ApiPending>
         + Send
@@ -11791,7 +12674,9 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_explain_data_access(
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_explain_data_access_builder(
-        client, name, resourceId,
+        client,
+        &args.name,
+        args.resourceId.as_deref(),
     )?;
     healthcare_projects_locations_datasets_fhir_stores_explain_data_access_execute(builder)
 }
@@ -11889,6 +12774,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresExportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExportResourcesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:export
 /// Export resources from the FHIR store to the specified destination. This method returns an Operation that can be used to track the status of the export by calling GetOperation. To improve performance, it is recommended to make the type filter as specific as possible, including only the resource types that are absolutely needed. This minimizes the size of the initial dataset to be processed and is the most effective way to improve performance. While post-filters like _since are useful for refining results, they do not speed up the initial data retrieval phase, which is primarily governed by the type filter. Immediate fatal errors appear in the error field, errors are also logged to Cloud Logging (see [Viewing error logs in Cloud Logging](<https://cloud.google.`com/healthcare/docs/how-tos/logging`>)). Otherwise, when the operation finishes, a detailed response of type ExportResourcesResponse is returned in the response field. The metadata field type for this operation is OperationMetadata.
 ///
@@ -11901,14 +12795,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_export_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_export(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExportResourcesRequest,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresExportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_fhir_stores_export_builder(client, name, body)?;
+    let builder = healthcare_projects_locations_datasets_fhir_stores_export_builder(
+        client, &args.name, &args.body,
+    )?;
     healthcare_projects_locations_datasets_fhir_stores_export_execute(builder)
 }
 
@@ -12002,6 +12896,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}
 /// Gets the configuration of the specified FHIR store.
 ///
@@ -12014,12 +12915,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_get_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FhirStore>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_fhir_stores_get_builder(client, name)?;
+    let builder =
+        healthcare_projects_locations_datasets_fhir_stores_get_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_fhir_stores_get_execute(builder)
 }
 
@@ -12115,6 +13017,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_get_fhirstore_metrics_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_get_fhirstore_metrics`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresGetFhirstoreMetricsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:getFHIRStoreMetrics
 /// Gets metrics associated with the FHIR store.
 ///
@@ -12127,7 +13036,7 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_get_fhirstore_metrics_
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_get_fhirstore_metrics(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresGetFhirstoreMetricsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FhirStoreMetrics>, ApiError>, P = ApiPending>
         + Send
@@ -12135,7 +13044,7 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_get_fhirstore_metrics(
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_get_fhirstore_metrics_builder(
-        client, name,
+        client, &args.name,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_get_fhirstore_metrics_execute(builder)
 }
@@ -12242,6 +13151,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_get_iam_policy_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -12254,16 +13172,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_get_iam_policy_execute
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_get_iam_policy_execute(builder)
 }
@@ -12361,6 +13278,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresImportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ImportResourcesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:import
 /// Imports resources to the FHIR store by loading data from the specified sources. This method is optimized to load large quantities of data using import semantics that ignore some FHIR store configuration options and are not suitable for all use cases. It is primarily intended to load data into an empty FHIR store that is not being used by other clients. In cases where this method is not appropriate, consider using ExecuteBundle to load data. Every resource in the input must contain a client-supplied ID. Each resource is stored using the supplied ID regardless of the enable_update_create setting on the FHIR store. It is strongly advised not to include or encode any sensitive data such as patient identifiers in client-specified resource IDs. Those IDs are part of the FHIR resource path recorded in Cloud Audit Logs and Cloud P`ub/Sub` notifications. Those IDs can also be contained in reference fields within other resources. The import process does not enforce referential integrity, regardless of the disable_referential_integrity setting on the FHIR store. This allows the import of resources with arbitrary interdependencies without considering grouping or ordering, but if the input data contains invalid references or if some resources fail to be imported, the FHIR store might be left in a state that violates referential integrity. The import process does not trigger P`ub/Sub` notification or BigQuery streaming update, regardless of how those are configured on the FHIR store. If a resource with the specified ID already exists, the most recent version of the resource is overwritten without creating a new historical version, regardless of the disable_resource_versioning setting on the FHIR store. If transient failures occur during the import, it's possible that successfully imported resources will be overwritten more than once. The import operation is idempotent unless the input data contains multiple valid resources with the same ID but different contents. In that case, after the import completes, the store contains exactly one resource with that ID but there is no ordering guarantee on which version of the contents it will have. The operation result counters do not count duplicate IDs as an error and count one success for each resource in the input, which might result in a success count larger than the number of resources in the FHIR store. This often occurs when importing data organized in bundles produced by Patient-everything where each bundle contains its own copy of a resource such as Practitioner that might be referred to by many patients. If some resources fail to import, for example due to parsing errors, successfully imported resources are not rolled back. The location and format of the input data is specified by the parameters in ImportResourcesRequest. Note that if no format is specified, this method assumes the BUNDLE format. When using the BUNDLE format this method ignores the Bundle.type field, except that history bundles are rejected, and does not apply any of the bundle processing semantics for batch or transaction bundles. Unlike in ExecuteBundle, transaction bundles are not executed as a single transaction and bundle-internal references are not rewritten. The bundle is treated as a collection of resources to be written as provided in Bundle.entry.resource, ignoring Bundle.entry.request. As an example, this allows the import of searchset bundles produced by a FHIR search or Patient-everything operation. This method returns an Operation that can be used to track the status of the import by calling GetOperation. Immediate fatal errors appear in the error field, errors are also logged to Cloud Logging (see [Viewing error logs in Cloud Logging](<https://cloud.google.`com/healthcare/docs/how-tos/logging`>)). Otherwise, when the operation finishes, a detailed response of type ImportResourcesResponse is returned in the response field. The metadata field type for this operation is OperationMetadata.
 ///
@@ -12373,14 +13299,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_import_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_import(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ImportResourcesRequest,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_fhir_stores_import_builder(client, name, body)?;
+    let builder = healthcare_projects_locations_datasets_fhir_stores_import_builder(
+        client, &args.name, &args.body,
+    )?;
     healthcare_projects_locations_datasets_fhir_stores_import_execute(builder)
 }
 
@@ -12496,6 +13422,19 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores
 /// Lists the FHIR stores in the given dataset.
 ///
@@ -12508,10 +13447,7 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_list_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFhirStoresResponse>, ApiError>, P = ApiPending>
         + Send
@@ -12519,7 +13455,11 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_list(
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     healthcare_projects_locations_datasets_fhir_stores_list_execute(builder)
 }
@@ -12629,6 +13569,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: FhirStore,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}
 /// Updates the configuration of the specified FHIR store.
 ///
@@ -12641,15 +13592,16 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_patch_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &FhirStore,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FhirStore>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_patch_execute(builder)
 }
@@ -12747,6 +13699,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_rollback_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_rollback`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresRollbackArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RollbackFhirResourcesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:rollback
 /// Rolls back resources from the FHIR store to the specified time. This method returns an Operation that can be used to track the status of the rollback by calling GetOperation. Immediate fatal errors appear in the error field, errors are also logged to Cloud Logging (see [Viewing error logs in Cloud Logging](<https://cloud.google.`com/healthcare/docs/how-tos/logging`>)). Otherwise, when the operation finishes, a detailed response of type RollbackFhirResourcesResponse is returned in the response field. The metadata field type for this operation is OperationMetadata.
 ///
@@ -12759,14 +13720,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_rollback_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_rollback(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RollbackFhirResourcesRequest,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresRollbackArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_fhir_stores_rollback_builder(client, name, body)?;
+    let builder = healthcare_projects_locations_datasets_fhir_stores_rollback_builder(
+        client, &args.name, &args.body,
+    )?;
     healthcare_projects_locations_datasets_fhir_stores_rollback_execute(builder)
 }
 
@@ -12863,6 +13824,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_set_iam_policy_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -12875,14 +13845,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_set_iam_policy_execute
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_set_iam_policy_execute(builder)
 }
@@ -12984,6 +13955,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_test_iam_permissions_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -12996,8 +13976,7 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_test_iam_permissions_e
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -13007,7 +13986,9 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_test_iam_permissions(
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_test_iam_permissions_execute(builder)
 }
@@ -13105,6 +14086,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: HttpBody,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Binary
 /// Creates a FHIR Binary resource. This method can be used to create a Binary resource either by using one of the accepted FHIR JSON content types, or as a raw data stream. If a resource is created with this method using the FHIR content type this method's behavior is the same as [fhir.create](<https://cloud.google.`com/healthcare-api/docs/reference/rest/v1/projects`.locations.datasets.`fhirStores`.`fhir/create`>). If a resource type other than Binary is used in the request it's treated in the same way as non-FHIR data (e.g., images, zip archives, pdf files, documents). When a non-FHIR content type is used in the request, a Binary resource will be generated, and the uploaded data will be stored in the content field (DSTU2 and STU3), or the data field (R4 and R5). The Binary resource's `contentType` will be filled in using the value of the Content-Type header, and the `securityContext` field (not present in DSTU2) will be populated from the X-Security-Context header if it exists. At this time `securityContext` has no special behavior in the Cloud Healthcare API. Note: the limit on data ingested through this method is 1 GB. For best performance, use a non-FHIR data type instead of wrapping the data in a Binary resource. Some of the Healthcare API features, such as [exporting to BigQuery](<https://cloud.google.`com/healthcare-api/docs/how-tos/fhir-export-bigquery`>) or [P`ub/Sub` notifications](<https://cloud.google.`com/healthcare-api/docs/fhir-pubsub`#behavior_when_a_fhir_resource_is_too_large_or_traffic_is_high>) with full resource content, do not support Binary resources that are larger than 10 MB. In these cases the resource's data field will be omitted. Instead, the "<http://hl7.`org/fhir/StructureDefinition/data-absent-reason`"> extension will be present to indicate that including the data is unsupported. On success, an empty 201 Created response is returned. The newly created resource's ID and version are returned in the Location header. Using Prefer: representation=resource is not allowed for this method. The definition of the Binary REST API can be found at <https://hl7.`org/fhir/binary`.html#rest.>
 ///
@@ -13117,14 +14107,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_ex
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &HttpBody,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir__binary_create_execute(builder)
 }
@@ -13219,6 +14210,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryReadArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Binary/{BinaryId}
 /// Gets the contents of a FHIR Binary resource. This method can be used to retrieve a Binary resource either by using the FHIR JSON mimetype as the value for the Accept header, or as a raw data stream. If the FHIR Accept type is used this method will return a Binary resource with the data base64-encoded, regardless of how the resource was created. The resource data can be retrieved in base64-decoded form if the Accept type of the request matches the value of the resource's `contentType` field. The definition of the Binary REST API can be found at <https://hl7.`org/fhir/binary`.html#rest.>
 ///
@@ -13231,13 +14229,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_exec
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryReadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_builder(client, name)?;
+    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_builder(
+        client, &args.name,
+    )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir__binary_read_execute(builder)
 }
 
@@ -13334,6 +14333,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: HttpBody,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Binary/{BinaryId}
 /// Updates the entire contents of a Binary resource. If the specified resource does not exist and the FHIR store has enable_update_create set, creates the resource with the client-specified ID. It is strongly advised not to include or encode any sensitive data such as patient identifiers in client-specified resource IDs. Those IDs are part of the FHIR resource path recorded in Cloud Audit Logs and P`ub/Sub` notifications. Those IDs can also be contained in reference fields within other resources. This method can be used to update a Binary resource either by using one of the accepted FHIR JSON content types, or as a raw data stream. If a resource is updated with this method using the FHIR content type this method's behavior is the same as update. If a resource type other than Binary is used in the request it will be treated in the same way as non-FHIR data. When a non-FHIR content type is used in the request, a Binary resource will be generated using the ID from the resource path, and the uploaded data will be stored in the content field (DSTU2 and STU3), or the data field (R4 and R5). The Binary resource's `contentType` will be filled in using the value of the Content-Type header, and the `securityContext` field (not present in DSTU2) will be populated from the X-Security-Context header if it exists. At this time `securityContext` has no special behavior in the Cloud Healthcare API. Note: the limit on data ingested through this method is 2 GB. For best performance, use a non-FHIR data type instead of wrapping the data in a Binary resource. Some of the Healthcare API features, such as [exporting to BigQuery](<https://cloud.google.`com/healthcare-api/docs/how-tos/fhir-export-bigquery`>) or [P`ub/Sub` notifications](<https://cloud.google.`com/healthcare-api/docs/fhir-pubsub`#behavior_when_a_fhir_resource_is_too_large_or_traffic_is_high>) with full resource content, do not support Binary resources that are larger than 10 MB. In these cases the resource's data field will be omitted. Instead, the "<http://hl7.`org/fhir/StructureDefinition/data-absent-reason`"> extension will be present to indicate that including the data is unsupported. On success, an empty 200 `OK` response will be returned, or a 201 Created if the resource did not exit. The resource's ID and version are returned in the Location header. Using Prefer: representation=resource is not allowed for this method. The definition of the Binary REST API can be found at <https://hl7.`org/fhir/binary`.html#rest.>
 ///
@@ -13346,14 +14354,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_ex
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &HttpBody,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir__binary_update_execute(builder)
 }
@@ -13448,6 +14455,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryVreadArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Binary/{BinaryId}/_history/{_historyId}
 /// Gets the contents of a version (current or historical) of a FHIR Binary resource by version ID. This method can be used to retrieve a Binary resource version either by using the FHIR JSON mimetype as the value for the Accept header, or as a raw data stream. If the FHIR Accept type is used this method will return a Binary resource with the data base64-encoded, regardless of how the resource version was created. The resource data can be retrieved in base64-decoded form if the Accept type of the request matches the value of the resource version's `contentType` field. The definition of the Binary REST API can be found at <https://hl7.`org/fhir/binary`.html#rest.>
 ///
@@ -13460,13 +14474,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_exe
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirBinaryVreadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_builder(
-        client, name,
+        client, &args.name,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir__binary_vread_execute(builder)
 }
@@ -13561,6 +14575,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcem
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirConsentEnforcementStatusArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Consent/{ConsentId}/$consent-enforcement-status
 /// Returns the consent enforcement status of a single consent resource. On success, the response body contains a JSON-encoded representation of a Parameters (<http://hl7.`org/fhir/parameters`.html>) FHIR resource, containing the current enforcement status. Does not support DSTU2.
 ///
@@ -13573,12 +14594,12 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcem
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirConsentEnforcementStatusArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_builder(client, name)?;
+    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_fhir_stores_fhir__consent_enforcement_status_execute(
         builder,
     )
@@ -13690,6 +14711,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirPatientConsentEnforcementStatusArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: _count
+    pub _count: Option<i32>,
+    /// Query parameter: _page_token
+    pub _page_token: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Patient/{PatientId}/$consent-enforcement-status
 /// Returns the consent enforcement status of all consent resources for a patient. On success, the response body contains a JSON-encoded representation of a bundle of Parameters (<http://hl7.`org/fhir/parameters`.html>) FHIR resources, containing the current enforcement status for each consent resource of the patient. Does not support DSTU2.
 ///
@@ -13702,14 +14734,12 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status(
     client: &SimpleHttpClient,
-    name: &str,
-    _count: Option<i32>,
-    _page_token: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirPatientConsentEnforcementStatusArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_builder(client, name, _count, _page_token)?;
+    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_builder(client, &args.name, args._count, args._page_token.as_deref())?;
     healthcare_projects_locations_datasets_fhir_stores_fhir__patient_consent_enforcement_status_execute(builder)
 }
 
@@ -13835,6 +14865,25 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everythi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirPatientEverythingArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: _count
+    pub _count: Option<i32>,
+    /// Query parameter: _page_token
+    pub _page_token: Option<String>,
+    /// Query parameter: _since
+    pub _since: Option<String>,
+    /// Query parameter: _type
+    pub _type: Option<String>,
+    /// Query parameter: end
+    pub end: Option<String>,
+    /// Query parameter: start
+    pub start: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Patient/{PatientId}/$everything
 /// Retrieves a Patient resource and resources related to that patient. Implements the FHIR extended operation Patient-everything ([DSTU2](<https://hl7.`org/fhir/DSTU2/patient-operations`.html#everything>), [STU3](<https://hl7.`org/fhir/STU3/patient-operations`.html#everything>), [R4](<https://hl7.`org/fhir/R4/patient-operation-everything`.html>), [R5](<https://hl7.`org/fhir/R5/patient-operation-everything`.html>)). On success, the response body contains a JSON-encoded representation of a Bundle resource of type searchset, containing the results of the operation. Errors generated by the FHIR store contain a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead. The resources in scope for the response are: * The patient resource itself. * All the resources directly referenced by the patient resource. * Resources directly referencing the patient resource that meet the inclusion criteria. The inclusion criteria are based on the membership rules in the patient compartment definition ([DSTU2](<http://hl7.`org/fhir/DSTU2/compartment-patient`.html>), [STU3](<http://www.hl7.`org/fhir/stu3/compartmentdefinition-patient`.html>), [R4](<http://hl7.`org/fhir/R4/compartmentdefinition-patient`.html>), [R5](<http://hl7.`org/fhir/R5/compartmentdefinition-patient`.html>)), which details the eligible resource types and referencing search parameters. For samples that show how to call Patient-everything, see [Getting all patient compartment resources](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-resources`#getting_all_patient_compartment_resources>).
 ///
@@ -13847,13 +14896,7 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everythi
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything(
     client: &SimpleHttpClient,
-    name: &str,
-    _count: Option<i32>,
-    _page_token: Option<&str>,
-    _since: Option<&str>,
-    _type: Option<&str>,
-    end: Option<&str>,
-    start: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirPatientEverythingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -13861,13 +14904,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everythi
     let builder =
         healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_builder(
             client,
-            name,
-            _count,
-            _page_token,
-            _since,
-            _type,
-            end,
-            start,
+            &args.name,
+            args._count,
+            args._page_token.as_deref(),
+            args._since.as_deref(),
+            args._type.as_deref(),
+            args.end.as_deref(),
+            args.start.as_deref(),
         )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir__patient_everything_execute(builder)
 }
@@ -13962,6 +15005,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirResourcePurgeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/{fhirId1}/$purge
 /// Deletes all the historical versions of a resource (excluding the current version) from the FHIR store. To remove all versions of a resource, first delete the current version and then call this method. This is not a FHIR standard operation. For samples that show how to call Resource-purge, see [Deleting historical versions of a FHIR resource](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-resources`#deleting_historical_versions_of_a_fhir_resource>).
 ///
@@ -13974,13 +15024,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_e
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirResourcePurgeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_builder(
-        client, name,
+        client, &args.name,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir__resource_purge_execute(builder)
 }
@@ -14092,6 +15142,19 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirResourceValidateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: type
+    pub type_rs: String,
+    /// Query parameter: profile
+    pub profile: Option<String>,
+    /// Request body.
+    pub body: HttpBody,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/$validate
 /// Validates an input FHIR resource's conformance to its profiles and the profiles configured on the FHIR store. Implements the FHIR extended operation $validate ([DSTU2](<https://hl7.`org/fhir/DSTU2/resource-operations`.html#validate>), [STU3](<https://hl7.`org/fhir/STU3/resource-operations`.html#validate>), [R4](<https://hl7.`org/fhir/R4/resource-operation-validate`.html>). or [R5](<https://hl7.`org/fhir/R5/resource-operation-validate`.html>)). The request body must contain a JSON-encoded FHIR resource, and the request headers must contain Content-Type: `application/fhir`+json. The Parameters input syntax is not supported. The profile query parameter can be used to request that the resource only be validated against a specific profile. If a profile with the given URL cannot be found in the FHIR store then an error is returned. Errors generated by validation contain a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead.
 ///
@@ -14104,17 +15167,18 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validat
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate(
     client: &SimpleHttpClient,
-    parent: &str,
-    type_rs: &str,
-    profile: Option<&str>,
-    body: &HttpBody,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirResourceValidateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_builder(
-            client, parent, type_rs, profile, body,
+            client,
+            &args.parent,
+            &args.type_rs,
+            args.profile.as_deref(),
+            &args.body,
         )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir__resource_validate_execute(builder)
 }
@@ -14229,6 +15293,19 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_bulk_export_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_bulk_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirBulkExportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: _since
+    pub _since: Option<String>,
+    /// Query parameter: _type
+    pub _type: Option<String>,
+    /// Query parameter: outputFormat
+    pub outputFormat: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/$export
 /// Bulk exports all resources from the FHIR store to the specified destination. Implements the FHIR implementation guide [system level $export](<https://build.fhir.`org/ig/HL7/bulk-data/export`.html#endpoint---system-level-export>). The following headers must be set in the request: * Accept: specifies the format of the OperationOutcome response. Only `application/fhir`+json is supported. * Prefer: specifies whether the response is immediate or asynchronous. Must be to respond-async because only asynchronous responses are supported. Specify the destination for the server to write result files by setting the Cloud Storage location bulk_export_gcs_destination on the FHIR store. URI of an existing Cloud Storage directory where the server writes result files, in the format gs://{bucket-id}/{`path/to/destination/dir}`. If there is no trailing slash, the service appends one when composing the object path. The user is responsible for creating the Cloud Storage bucket referenced. Supports the following query parameters: * _type: string of comma-delimited FHIR resource types. If provided, only the resources of the specified type(s) are exported. * _since: if provided, only the resources that are updated after the specified time are exported. * _outputFormat: optional, specify ndjson to export data in NDJSON format. Exported file names use the format: {export_id}_{resource_type}.ndjson. On success, the Content-Location header of the response is set to a URL that the user can use to query the status of the export. The URL is in the format: `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/`fhirStores`/{fhir_store_id}/operations/{export_id}`. See get-fhir-operation-status for more information. Errors generated by the FHIR store contain a JSON-encoded OperationOutcome resource describing the reason for the error.
 ///
@@ -14241,20 +15318,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_bulk_export_execu
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_bulk_export(
     client: &SimpleHttpClient,
-    name: &str,
-    _since: Option<&str>,
-    _type: Option<&str>,
-    outputFormat: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirBulkExportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_fhir_bulk_export_builder(
         client,
-        name,
-        _since,
-        _type,
-        outputFormat,
+        &args.name,
+        args._since.as_deref(),
+        args._type.as_deref(),
+        args.outputFormat.as_deref(),
     )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir_bulk_export_execute(builder)
 }
@@ -14349,6 +15423,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_capabilities_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_capabilities`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirCapabilitiesArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/metadata
 /// Gets the FHIR capability statement ([STU3](<https://hl7.`org/fhir/STU3/capabilitystatement`.html>), [R4](<https://hl7.`org/fhir/R4/capabilitystatement`.html>), [R5](<https://hl7.`org/fhir/R5/capabilitystatement`.html>)), or the [conformance statement](<https://hl7.`org/fhir/DSTU2/conformance`.html>) in the DSTU2 case for the store, which contains a description of functionality supported by the server. Implements the FHIR standard capabilities interaction ([STU3](<https://hl7.`org/fhir/STU3/http`.html#capabilities>), [R4](<https://hl7.`org/fhir/R4/http`.html#capabilities>), [R5](<https://hl7.`org/fhir/R5/http`.html#capabilities>)), or the [conformance interaction](<https://hl7.`org/fhir/DSTU2/http`.html#conformance>) in the DSTU2 case. On success, the response body contains a JSON-encoded representation of a CapabilityStatement resource.
 ///
@@ -14361,13 +15442,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_capabilities_exec
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_capabilities(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirCapabilitiesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_fhir_stores_fhir_capabilities_builder(client, name)?;
+    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir_capabilities_builder(
+        client, &args.name,
+    )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir_capabilities_execute(builder)
 }
 
@@ -14463,6 +15545,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_delet
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirConditionalDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: type
+    pub type_rs: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}
 /// Deletes a FHIR resource that match an identifier search query. Implements the FHIR standard conditional delete interaction, limited to searching by resource identifier. If multiple resources match, 412 Precondition Failed error will be returned. Search term for identifier should be in the pattern identifier=system|value or identifier=value - similar to the search method on resources with a specific identifier. Note: Unless resource versioning is disabled by setting the disable_resource_versioning flag on the FHIR store, the deleted resource is moved to a history repository that can still be retrieved through vread and related methods, unless they are removed by the purge method. For samples that show how to call `conditionalDelete`, see [Conditionally deleting a FHIR resource](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-resources`#conditionally_deleting_a_fhir_resource>).
 ///
@@ -14475,15 +15566,16 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_delet
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    type_rs: &str,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirConditionalDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_delete_builder(
-            client, parent, type_rs,
+            client,
+            &args.parent,
+            &args.type_rs,
         )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_delete_execute(builder)
 }
@@ -14583,6 +15675,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_patch
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirConditionalPatchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: type
+    pub type_rs: String,
+    /// Request body.
+    pub body: HttpBody,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}
 /// If a resource is found with the identifier specified in the query parameters, updates part of that resource by applying the operations specified in a [JSON Patch](<http://jsonpatch.com/>) document. Implements the FHIR standard conditional patch interaction, limited to searching by resource identifier. DSTU2 doesn't define a conditional patch method, but the server supports it in the same way it supports STU3. Search term for identifier should be in the pattern identifier=system|value or identifier=value - similar to the search method on resources with a specific identifier. If the search criteria identify more than one match, the request returns a 412 Precondition Failed error. If the search criteria doesn't identify any matches, the request returns a 404 Not Found error. The request body must contain a JSON Patch document, and the request headers must contain Content-Type: `application/json-patch`+json. On success, the response body contains a JSON-encoded representation of the updated resource, including the server-assigned version ID. Errors generated by the FHIR store contain a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead. For samples that show how to call `conditionalPatch`, see [Conditionally patching a FHIR resource](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-resources`#conditionally_patching_a_fhir_resource>).
 ///
@@ -14595,16 +15698,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_patch
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_patch(
     client: &SimpleHttpClient,
-    parent: &str,
-    type_rs: &str,
-    body: &HttpBody,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirConditionalPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_patch_builder(
-            client, parent, type_rs, body,
+            client,
+            &args.parent,
+            &args.type_rs,
+            &args.body,
         )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_patch_execute(builder)
 }
@@ -14704,6 +15808,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_updat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirConditionalUpdateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: type
+    pub type_rs: String,
+    /// Request body.
+    pub body: HttpBody,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}
 /// If a resource is found with the identifier specified in the query parameters, updates the entire contents of that resource. Implements the FHIR standard conditional update interaction, limited to searching by resource identifier. Search term for identifier should be in the pattern identifier=system|value or identifier=value - similar to the search method on resources with a specific identifier. If the search criteria identify more than one match, the request returns a 412 Precondition Failed error. If the search criteria identify zero matches, and the supplied resource body contains an id, and the FHIR store has enable_update_create set, creates the resource with the client-specified ID. It is strongly advised not to include or encode any sensitive data such as patient identifiers in client-specified resource IDs. Those IDs are part of the FHIR resource path recorded in Cloud Audit Logs and P`ub/Sub` notifications. Those IDs can also be contained in reference fields within other resources. If the search criteria identify zero matches, and the supplied resource body does not contain an id, the resource is created with a server-assigned ID as per the create method. The request body must contain a JSON-encoded FHIR resource, and the request headers must contain Content-Type: `application/fhir`+json. On success, the response body contains a JSON-encoded representation of the updated resource, including the server-assigned version ID. Errors generated by the FHIR store contain a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead. For samples that show how to call `conditionalUpdate`, see [Conditionally updating a FHIR resource](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-resources`#conditionally_updating_a_fhir_resource>).
 ///
@@ -14716,16 +15831,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_updat
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_update(
     client: &SimpleHttpClient,
-    parent: &str,
-    type_rs: &str,
-    body: &HttpBody,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirConditionalUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_update_builder(
-            client, parent, type_rs, body,
+            client,
+            &args.parent,
+            &args.type_rs,
+            &args.body,
         )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir_conditional_update_execute(builder)
 }
@@ -14825,6 +15941,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: type
+    pub type_rs: String,
+    /// Request body.
+    pub body: HttpBody,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}
 /// Creates a FHIR resource. Implements the FHIR standard create interaction ([DSTU2](<https://hl7.`org/fhir/DSTU2/http`.html#create>), [STU3](<https://hl7.`org/fhir/STU3/http`.html#create>), [R4](<https://hl7.`org/fhir/R4/http`.html#create>), [R5](<https://hl7.`org/fhir/R5/http`.html#create>)), which creates a new resource with a server-assigned resource ID. Also supports the FHIR standard conditional create interaction ([DSTU2](<https://hl7.`org/fhir/DSTU2/http`.html#ccreate>), [STU3](<https://hl7.`org/fhir/STU3/http`.html#ccreate>), [R4](<https://hl7.`org/fhir/R4/http`.html#ccreate>), [R5](<https://hl7.`org/fhir/R5/http`.html#ccreate>)), specified by supplying an If-None-Exist header containing a FHIR search query, limited to searching by resource identifier. If no resources match this search query, the server processes the create operation as normal. When using conditional create, the search term for identifier should be in the pattern identifier=system|value or identifier=value - similar to the search method on resources with a specific identifier. The request body must contain a JSON-encoded FHIR resource, and the request headers must contain Content-Type: `application/fhir`+json. On success, the response body contains a JSON-encoded representation of the resource as it was created on the server, including the server-assigned resource ID and version ID. Errors generated by the FHIR store contain a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead. For samples that show how to call create, see [Creating a FHIR resource](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-resources`#creating_a_fhir_resource>).
 ///
@@ -14837,15 +15964,16 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_create_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    type_rs: &str,
-    body: &HttpBody,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_fhir_create_builder(
-        client, parent, type_rs, body,
+        client,
+        &args.parent,
+        &args.type_rs,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir_create_execute(builder)
 }
@@ -14940,6 +16068,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/{fhirId1}
 /// Deletes a FHIR resource. Implements the FHIR standard delete interaction ([DSTU2](<https://hl7.`org/fhir/DSTU2/http`.html#delete>), [STU3](<https://hl7.`org/fhir/STU3/http`.html#delete>), [R4](<https://hl7.`org/fhir/R4/http`.html#delete>), [R5](<https://hl7.`org/fhir/R5/http`.html#delete>)). Note: Unless resource versioning is disabled by setting the disable_resource_versioning flag on the FHIR store, the deleted resources will be moved to a history repository that can still be retrieved through vread and related methods, unless they are removed by the purge method. For samples that show how to call delete, see [Deleting a FHIR resource](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-resources`#deleting_a_fhir_resource>).
 ///
@@ -14952,13 +16087,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_delete_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        healthcare_projects_locations_datasets_fhir_stores_fhir_delete_builder(client, name)?;
+        healthcare_projects_locations_datasets_fhir_stores_fhir_delete_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_fhir_stores_fhir_delete_execute(builder)
 }
 
@@ -15055,6 +16190,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_execute_bundle_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_execute_bundle`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirExecuteBundleArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: HttpBody,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir
 /// Executes all the requests in the given Bundle. Implements the FHIR standard `batch/transaction` interaction ([DSTU2](<https://hl7.`org/fhir/DSTU2/http`.html#transaction>), [STU3](<https://hl7.`org/fhir/STU3/http`.html#transaction>), [R4](<https://hl7.`org/fhir/R4/http`.html#transaction>), [R5](<https://hl7.`org/fhir/R5/http`.html#transaction>)). Supports all interactions within a bundle, except search. This method accepts Bundles of type batch and transaction, processing them according to the batch processing rules ([DSTU2](<https://hl7.`org/fhir/DSTU2/http`.html#2.1.0.16.1>), [STU3](<https://hl7.`org/fhir/STU3/http`.html#2.21.0.17.1>), [R4](<https://hl7.`org/fhir/R4/http`.html#brules>), [R5](<https://hl7.`org/fhir/R5/http`.html#brules>)) and transaction processing rules ([DSTU2](<https://hl7.`org/fhir/DSTU2/http`.html#2.1.0.16.2>), [STU3](<https://hl7.`org/fhir/STU3/http`.html#2.21.0.17.2>), [R4](<https://hl7.`org/fhir/R4/http`.html#trules>), [R5](<https://hl7.`org/fhir/R5/http`.html#trules>)). The request body must contain a JSON-encoded FHIR Bundle resource, and the request headers must contain Content-Type: `application/fhir`+json. For a batch bundle or a successful transaction, the response body contains a JSON-encoded representation of a Bundle resource of type batch-response or transaction-response containing one entry for each entry in the request, with the outcome of processing the entry. In the case of an error for a transaction bundle, the response body contains a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead. This method checks permissions for each request in the bundle. The `executeBundle` permission is required to call this method, but you must also grant sufficient permissions to execute the individual requests in the bundle. For example, if the bundle contains a request to create a FHIR resource, the caller must also have been granted the healthcare.`fhirResources`.create permission. You can use audit logs to view the permissions for `executeBundle` and each request in the bundle. For more information, see [Viewing Cloud Audit logs](<https://cloud.google.`com/healthcare-api/docs/how-tos/audit-logging`>). For samples that show how to call `executeBundle`, see [Managing FHIR resources using FHIR bundles](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-bundles`>).
 ///
@@ -15067,14 +16211,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_execute_bundle_ex
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_execute_bundle(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &HttpBody,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirExecuteBundleArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_fhir_execute_bundle_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir_execute_bundle_execute(builder)
 }
@@ -15193,6 +16338,21 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_history_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_history`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirHistoryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: _at
+    pub _at: Option<String>,
+    /// Query parameter: _count
+    pub _count: Option<i32>,
+    /// Query parameter: _page_token
+    pub _page_token: Option<String>,
+    /// Query parameter: _since
+    pub _since: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/{fhirId1}/_history
 /// Lists all the versions of a resource (including the current version and deleted versions) from the FHIR store. Implements the per-resource form of the FHIR standard history interaction ([DSTU2](<https://hl7.`org/fhir/DSTU2/http`.html#history>), [STU3](<https://hl7.`org/fhir/STU3/http`.html#history>), [R4](<https://hl7.`org/fhir/R4/http`.html#history>), [R5](<https://hl7.`org/fhir/R5/http`.html#history>)). On success, the response body contains a JSON-encoded representation of a Bundle resource of type history, containing the version history sorted from most recent to oldest versions. Errors generated by the FHIR store contain a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead. For samples that show how to call history, see [Listing FHIR resource versions](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-resources`#listing_fhir_resource_versions>).
 ///
@@ -15205,22 +16365,18 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_history_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_history(
     client: &SimpleHttpClient,
-    name: &str,
-    _at: Option<&str>,
-    _count: Option<i32>,
-    _page_token: Option<&str>,
-    _since: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirHistoryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_fhir_history_builder(
         client,
-        name,
-        _at,
-        _count,
-        _page_token,
-        _since,
+        &args.name,
+        args._at.as_deref(),
+        args._count,
+        args._page_token.as_deref(),
+        args._since.as_deref(),
     )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir_history_execute(builder)
 }
@@ -15318,6 +16474,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: HttpBody,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/{fhirId1}
 /// Updates part of an existing resource by applying the operations specified in a [JSON Patch](<http://jsonpatch.com/>) document. Implements the FHIR standard patch interaction ([STU3](<https://hl7.`org/fhir/STU3/http`.html#patch>), [R4](<https://hl7.`org/fhir/R4/http`.html#patch>), [R5](<https://hl7.`org/fhir/R5/http`.html#patch>)). DSTU2 doesn't define a patch method, but the server supports it in the same way it supports STU3. The request body must contain a JSON Patch document, and the request headers must contain Content-Type: `application/json-patch`+json. On success, the response body contains a JSON-encoded representation of the updated resource, including the server-assigned version ID. Errors generated by the FHIR store contain a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead. For samples that show how to call patch, see [Patching a FHIR resource](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-resources`#patching_a_fhir_resource>).
 ///
@@ -15330,14 +16495,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patch_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &HttpBody,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_fhir_stores_fhir_patch_builder(client, name, body)?;
+    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir_patch_builder(
+        client, &args.name, &args.body,
+    )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir_patch_execute(builder)
 }
 
@@ -15431,6 +16596,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_read_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_read`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirReadArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/{fhirId1}
 /// Gets the contents of a FHIR resource. Implements the FHIR standard read interaction ([DSTU2](<https://hl7.`org/fhir/DSTU2/http`.html#read>), [STU3](<https://hl7.`org/fhir/STU3/http`.html#read>), [R4](<https://hl7.`org/fhir/R4/http`.html#read>), [R5](<https://hl7.`org/fhir/R5/http`.html#read>)). Also supports the FHIR standard conditional read interaction ([DSTU2](<https://hl7.`org/fhir/DSTU2/http`.html#cread>), [STU3](<https://hl7.`org/fhir/STU3/http`.html#cread>), [R4](<https://hl7.`org/fhir/R4/http`.html#cread>), [R5](<https://hl7.`org/fhir/R5/http`.html#cread>)) specified by supplying an If-Modified-Since header with a `date/time` value or an If-None-Match header with an ETag value. On success, the response body contains a JSON-encoded representation of the resource. Errors generated by the FHIR store contain a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead. For samples that show how to call read, see [Getting a FHIR resource](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-resources`#getting_a_fhir_resource>).
 ///
@@ -15443,13 +16615,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_read_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_read(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirReadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        healthcare_projects_locations_datasets_fhir_stores_fhir_read_builder(client, name)?;
+        healthcare_projects_locations_datasets_fhir_stores_fhir_read_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_fhir_stores_fhir_read_execute(builder)
 }
 
@@ -15558,6 +16730,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: resourceType
+    pub resourceType: Option<String>,
+    /// Request body.
+    pub body: HttpBody,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/_search
 /// Searches for resources in the given FHIR store according to criteria specified as query parameters. Implements the FHIR standard search interaction ([DSTU2](<https://hl7.`org/fhir/DSTU2/http`.html#search>), [STU3](<https://hl7.`org/fhir/STU3/http`.html#search>), [R4](<https://hl7.`org/fhir/R4/http`.html#search>), [R5](<https://hl7.`org/fhir/R5/http`.html#search>)) using the search semantics described in the FHIR Search specification ([DSTU2](<https://hl7.`org/fhir/DSTU2/search`.html>), [STU3](<https://hl7.`org/fhir/STU3/search`.html>), [R4](<https://hl7.`org/fhir/R4/search`.html>), [R5](<https://hl7.`org/fhir/R5/search`.html>)). Supports four methods of search defined by the specification: * GET [base]?[parameters] to search across all resources. * GET [base]/[type]?[parameters] to search resources of a specified type. * POST [base]/_search?[parameters] as an alternate form having the same semantics as the GET method across all resources. * POST [base]/[type]/_search?[parameters] as an alternate form having the same semantics as the GET method for the specified type. The GET and POST methods do not support compartment searches. The POST method does not support `application/x-www-form-urlencoded` search parameters. On success, the response body contains a JSON-encoded representation of a Bundle resource of type searchset, containing the results of the search. Errors generated by the FHIR store contain a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead. The server's capability statement, retrieved through capabilities, indicates what search parameters are supported on each FHIR resource. A list of all search parameters defined by the specification can be found in the FHIR Search Parameter Registry ([STU3](<https://hl7.`org/fhir/STU3/searchparameter-registry`.html>), [R4](<https://hl7.`org/fhir/R4/searchparameter-registry`.html>), [R5](<https://hl7.`org/fhir/R5/searchparameter-registry`.html>)). FHIR search parameters for DSTU2 can be found on each resource's definition page. Supported search modifiers: :missing, :exact, :contains, :text, :in, :not-in, :above, :below, :[type], :not, and recurse (DSTU2 and STU3) or :iterate (R4 and R5). Supported search result parameters: _sort, _count, _include, _revinclude, _summary=text, _summary=data, and _elements. The maximum number of search results returned defaults to 100, which can be overridden by the _count parameter up to a maximum limit of 1000. The server might return fewer resources than requested to prevent excessively large responses. If there are additional results, the returned Bundle contains a link of relation "next", which has a _page_token parameter for an opaque pagination token that can be used to retrieve the next page. Resources with a total size larger than 5MB or a field count larger than 50,000 might not be fully searchable as the server might trim its generated search index in those cases. Note: FHIR resources are indexed asynchronously, so there might be a slight delay between the time a resource is created or changed, and the time when the change reflects in search results. The only exception is resource identifier data, which is indexed synchronously as a special index. As a result, searching using resource identifier is not subject to indexing delay. To use the special synchronous index, the search term for identifier should be in the pattern identifier=[system]|[value] or identifier=[value], and any of the following search result parameters can be used: * _count * _include * _revinclude * _summary * _elements If your query contains any other search parameters, the standard asynchronous index will be used instead. Note that searching against the special index is optimized for resolving a small number of matches. The search isn't optimized if your identifier search criteria matches a large number (i.e. more than 2,000) of resources. For a search query that will match a large number of resources, you can avoiding using the special synchronous index by including an additional _sort parameter in your query. Use _sort=-_lastUpdated if you want to keep the default sorting order. For samples and detailed information, see [Searching for FHIR resources](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-search`>) and [Advanced FHIR search features](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-advanced-search`>).
 ///
@@ -15570,18 +16753,16 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_search_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    resourceType: Option<&str>,
-    body: &HttpBody,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirSearchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_fhir_search_builder(
         client,
-        parent,
-        resourceType,
-        body,
+        &args.parent,
+        args.resourceType.as_deref(),
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir_search_execute(builder)
 }
@@ -15681,6 +16862,17 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_search_type_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_search_type`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirSearchTypeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: resourceType
+    pub resourceType: String,
+    /// Request body.
+    pub body: HttpBody,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{resourceType}/_search
 /// Searches for resources in the given FHIR store according to criteria specified as query parameters. Implements the FHIR standard search interaction ([DSTU2](<https://hl7.`org/fhir/DSTU2/http`.html#search>), [STU3](<https://hl7.`org/fhir/STU3/http`.html#search>), [R4](<https://hl7.`org/fhir/R4/http`.html#search>), [R5](<https://hl7.`org/fhir/R5/http`.html#search>)) using the search semantics described in the FHIR Search specification ([DSTU2](<https://hl7.`org/fhir/DSTU2/search`.html>), [STU3](<https://hl7.`org/fhir/STU3/search`.html>), [R4](<https://hl7.`org/fhir/R4/search`.html>), [R5](<https://hl7.`org/fhir/R5/search`.html>)). Supports four methods of search defined by the specification: * GET [base]?[parameters] to search across all resources. * GET [base]/[type]?[parameters] to search resources of a specified type. * POST [base]/_search?[parameters] as an alternate form having the same semantics as the GET method across all resources. * POST [base]/[type]/_search?[parameters] as an alternate form having the same semantics as the GET method for the specified type. The GET and POST methods do not support compartment searches. The POST method does not support `application/x-www-form-urlencoded` search parameters. On success, the response body contains a JSON-encoded representation of a Bundle resource of type searchset, containing the results of the search. Errors generated by the FHIR store contain a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead. The server's capability statement, retrieved through capabilities, indicates what search parameters are supported on each FHIR resource. A list of all search parameters defined by the specification can be found in the FHIR Search Parameter Registry ([STU3](<https://hl7.`org/fhir/STU3/searchparameter-registry`.html>), [R4](<https://hl7.`org/fhir/R4/searchparameter-registry`.html>), [R5](<https://hl7.`org/fhir/R5/searchparameter-registry`.html>)). FHIR search parameters for DSTU2 can be found on each resource's definition page. Supported search modifiers: :missing, :exact, :contains, :text, :in, :not-in, :above, :below, :[type], :not, and recurse (DSTU2 and STU3) or :iterate (R4 and R5). Supported search result parameters: _sort, _count, _include, _revinclude, _summary=text, _summary=data, and _elements. The maximum number of search results returned defaults to 100, which can be overridden by the _count parameter up to a maximum limit of 1000. The server might return fewer resources than requested to prevent excessively large responses. If there are additional results, the returned Bundle contains a link of relation "next", which has a _page_token parameter for an opaque pagination token that can be used to retrieve the next page. Resources with a total size larger than 5MB or a field count larger than 50,000 might not be fully searchable as the server might trim its generated search index in those cases. Note: FHIR resources are indexed asynchronously, so there might be a slight delay between the time a resource is created or changed, and the time when the change reflects in search results. The only exception is resource identifier data, which is indexed synchronously as a special index. As a result, searching using resource identifier is not subject to indexing delay. To use the special synchronous index, the search term for identifier should be in the pattern identifier=[system]|[value] or identifier=[value], and any of the following search result parameters can be used: * _count * _include * _revinclude * _summary * _elements If your query contains any other search parameters, the standard asynchronous index will be used instead. Note that searching against the special index is optimized for resolving a small number of matches. The search isn't optimized if your identifier search criteria matches a large number (i.e. more than 2,000) of resources. For a search query that will match a large number of resources, you can avoiding using the special synchronous index by including an additional _sort parameter in your query. Use _sort=-_lastUpdated if you want to keep the default sorting order. For samples and detailed information, see [Searching for FHIR resources](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-search`>) and [Advanced FHIR search features](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-advanced-search`>).
 ///
@@ -15693,18 +16885,16 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_search_type_execu
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_search_type(
     client: &SimpleHttpClient,
-    parent: &str,
-    resourceType: &str,
-    body: &HttpBody,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirSearchTypeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_fhir_stores_fhir_search_type_builder(
         client,
-        parent,
-        resourceType,
-        body,
+        &args.parent,
+        &args.resourceType,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir_search_type_execute(builder)
 }
@@ -15802,6 +16992,15 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: HttpBody,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/{fhirId1}
 /// Updates the entire contents of a resource. Implements the FHIR standard update interaction ([DSTU2](<https://hl7.`org/fhir/DSTU2/http`.html#update>), [STU3](<https://hl7.`org/fhir/STU3/http`.html#update>), [R4](<https://hl7.`org/fhir/R4/http`.html#update>), [R5](<https://hl7.`org/fhir/R5/http`.html#update>)). If the specified resource does not exist and the FHIR store has enable_update_create set, creates the resource with the client-specified ID. It is strongly advised not to include or encode any sensitive data such as patient identifiers in client-specified resource IDs. Those IDs are part of the FHIR resource path recorded in Cloud Audit Logs and P`ub/Sub` notifications. Those IDs can also be contained in reference fields within other resources. The request body must contain a JSON-encoded FHIR resource, and the request headers must contain Content-Type: `application/fhir`+json. The resource must contain an id element having an identical value to the ID in the REST path of the request. On success, the response body contains a JSON-encoded representation of the updated resource, including the server-assigned version ID. Errors generated by the FHIR store contain a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead. The conditional update interaction If-None-Match is supported, including the wildcard behaviour, as defined by the R5 spec. This functionality is supported in R4 and R5. For samples that show how to call update, see [Updating a FHIR resource](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-resources`#updating_a_fhir_resource>).
 ///
@@ -15814,14 +17013,14 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_update_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &HttpBody,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_fhir_stores_fhir_update_builder(client, name, body)?;
+    let builder = healthcare_projects_locations_datasets_fhir_stores_fhir_update_builder(
+        client, &args.name, &args.body,
+    )?;
     healthcare_projects_locations_datasets_fhir_stores_fhir_update_execute(builder)
 }
 
@@ -15915,6 +17114,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_vread_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_fhir_vread`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirVreadArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/{fhirId1}/_history/{_historyId}
 /// Gets the contents of a version (current or historical) of a FHIR resource by version ID. Implements the FHIR standard vread interaction ([DSTU2](<https://hl7.`org/fhir/DSTU2/http`.html#vread>), [STU3](<https://hl7.`org/fhir/STU3/http`.html#vread>), [R4](<https://hl7.`org/fhir/R4/http`.html#vread>), [R5](<https://hl7.`org/fhir/R5/http`.html#vread>)). On success, the response body contains a JSON-encoded representation of the resource. Errors generated by the FHIR store contain a JSON-encoded OperationOutcome resource describing the reason for the error. If the request cannot be mapped to a valid API method on a FHIR store, a generic GCP error might be returned instead. For samples that show how to call vread, see [Retrieving a FHIR resource version](<https://cloud.google.`com/healthcare/docs/how-tos/fhir-resources`#retrieving_a_fhir_resource_version>).
 ///
@@ -15927,13 +17133,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_vread_execute(
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_vread(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresFhirVreadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        healthcare_projects_locations_datasets_fhir_stores_fhir_vread_builder(client, name)?;
+        healthcare_projects_locations_datasets_fhir_stores_fhir_vread_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_fhir_stores_fhir_vread_execute(builder)
 }
 
@@ -16027,6 +17233,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_operations_delete_fhir
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_operations_delete_fhir_operation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresOperationsDeleteFhirOperationArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/operations/{operationsId}
 /// Deletes operations as defined in the FHIR specification. Implements the FHIR implementation guide [bulk data delete request](<https://build.fhir.`org/ig/HL7/bulk-data/export`.html#bulk-data-delete-request>). Returns success if the operation was successfully cancelled. If the operation is complete, or has already been cancelled, returns an error response.
 ///
@@ -16039,12 +17252,12 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_operations_delete_fhir
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_operations_delete_fhir_operation(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresOperationsDeleteFhirOperationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_fhir_stores_operations_delete_fhir_operation_builder(client, name)?;
+    let builder = healthcare_projects_locations_datasets_fhir_stores_operations_delete_fhir_operation_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_fhir_stores_operations_delete_fhir_operation_execute(
         builder,
     )
@@ -16140,6 +17353,13 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_operations_get_fhir_op
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_fhir_stores_operations_get_fhir_operation_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsFhirStoresOperationsGetFhirOperationStatusArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/operations/{operationsId}
 /// Gets the status of operations as defined in the FHIR specification. Implements the FHIR implementation guide [bulk data status request](<https://build.fhir.`org/ig/HL7/bulk-data/export`.html#bulk-data-status-request>). Operations can have one of these states: * in-progress: response status code is 202 and X-Progress header is set to in progress. * complete: response status code is 200 and the body is a JSON-encoded operation response as defined by the spec. For a bulk export, this response is defined in <https://build.fhir.`org/ig/HL7/bulk-data/export`.html#response---complete-status.> * error: response status code is 5XX, and the body is a JSON-encoded OperationOutcome resource describing the reason for the error.
 ///
@@ -16152,12 +17372,12 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_operations_get_fhir_op
 
 pub fn healthcare_projects_locations_datasets_fhir_stores_operations_get_fhir_operation_status(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsFhirStoresOperationsGetFhirOperationStatusArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_fhir_stores_operations_get_fhir_operation_status_builder(client, name)?;
+    let builder = healthcare_projects_locations_datasets_fhir_stores_operations_get_fhir_operation_status_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_fhir_stores_operations_get_fhir_operation_status_execute(
         builder,
     )
@@ -16268,6 +17488,17 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: hl7V2StoreId
+    pub hl7V2StoreId: Option<String>,
+    /// Request body.
+    pub body: Hl7V2Store,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores
 /// Creates a new HL7v2 store within the parent dataset.
 ///
@@ -16280,18 +17511,16 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_create_execute(
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    hl7V2StoreId: Option<&str>,
-    body: &Hl7V2Store,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Hl7V2Store>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_hl7_v2_stores_create_builder(
         client,
-        parent,
-        hl7V2StoreId,
-        body,
+        &args.parent,
+        args.hl7V2StoreId.as_deref(),
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_hl7_v2_stores_create_execute(builder)
 }
@@ -16386,6 +17615,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}
 /// Deletes the specified HL7v2 store and removes all messages that it contains.
 ///
@@ -16398,13 +17634,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_delete_execute(
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        healthcare_projects_locations_datasets_hl7_v2_stores_delete_builder(client, name)?;
+        healthcare_projects_locations_datasets_hl7_v2_stores_delete_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_hl7_v2_stores_delete_execute(builder)
 }
 
@@ -16501,6 +17737,15 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresExportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExportMessagesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}:export
 /// Exports the messages to a destination. To filter messages to be exported, define a filter using the start and end time, relative to the message generation time (MSH.7). This API returns an Operation that can be used to track the status of the job by calling GetOperation. Immediate fatal errors appear in the error field. Otherwise, when the operation finishes, a detailed response of type ExportMessagesResponse is returned in the response field. The metadata field type for this operation is OperationMetadata.
 ///
@@ -16513,14 +17758,14 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_export_execute(
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_export(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExportMessagesRequest,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresExportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_hl7_v2_stores_export_builder(client, name, body)?;
+    let builder = healthcare_projects_locations_datasets_hl7_v2_stores_export_builder(
+        client, &args.name, &args.body,
+    )?;
     healthcare_projects_locations_datasets_hl7_v2_stores_export_execute(builder)
 }
 
@@ -16614,6 +17859,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}
 /// Gets the specified HL7v2 store.
 ///
@@ -16626,12 +17878,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_execute(
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Hl7V2Store>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_hl7_v2_stores_get_builder(client, name)?;
+    let builder =
+        healthcare_projects_locations_datasets_hl7_v2_stores_get_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_hl7_v2_stores_get_execute(builder)
 }
 
@@ -16727,6 +17980,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metr
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metrics`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresGetHl7v2StoreMetricsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}:getHL7v2StoreMetrics
 /// Gets metrics associated with the HL7v2 store.
 ///
@@ -16739,7 +17999,7 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metr
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metrics(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresGetHl7v2StoreMetricsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Hl7V2StoreMetrics>, ApiError>, P = ApiPending>
         + Send
@@ -16748,7 +18008,7 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metr
 > {
     let builder =
         healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metrics_builder(
-            client, name,
+            client, &args.name,
         )?;
     healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metrics_execute(builder)
 }
@@ -16855,6 +18115,15 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_iam_policy_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -16867,16 +18136,15 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_iam_policy_execu
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_hl7_v2_stores_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     healthcare_projects_locations_datasets_hl7_v2_stores_get_iam_policy_execute(builder)
 }
@@ -16974,6 +18242,15 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresImportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ImportMessagesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}:import
 /// Import messages to the HL7v2 store by loading data from the specified sources. This method is optimized to load large quantities of data using import semantics that ignore some HL7v2 store configuration options and are not suitable for all use cases. It is primarily intended to load data into an empty HL7v2 store that is not being used by other clients. An existing message will be overwritten if a duplicate message is imported. A duplicate message is a message with the same raw bytes as a message that already exists in this HL7v2 store. When a message is overwritten, its labels will also be overwritten. The import operation is idempotent unless the input data contains multiple valid messages with the same raw bytes but different labels. In that case, after the import completes, the store contains exactly one message with those raw bytes but there is no ordering guarantee on which version of the labels it has. The operation result counters do not count duplicated raw bytes as an error and count one success for each message in the input, which might result in a success count larger than the number of messages in the HL7v2 store. If some messages fail to import, for example due to parsing errors, successfully imported messages are not rolled back. This method returns an Operation that can be used to track the status of the import by calling GetOperation. Immediate fatal errors appear in the error field, errors are also logged to Cloud Logging (see [Viewing error logs in Cloud Logging](<https://cloud.google.`com/healthcare/docs/how-tos/logging`>)). Otherwise, when the operation finishes, a response of type ImportMessagesResponse is returned in the response field. The metadata field type for this operation is OperationMetadata.
 ///
@@ -16986,14 +18263,14 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_import_execute(
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_import(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ImportMessagesRequest,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_hl7_v2_stores_import_builder(client, name, body)?;
+    let builder = healthcare_projects_locations_datasets_hl7_v2_stores_import_builder(
+        client, &args.name, &args.body,
+    )?;
     healthcare_projects_locations_datasets_hl7_v2_stores_import_execute(builder)
 }
 
@@ -17109,6 +18386,19 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores
 /// Lists the HL7v2 stores in the given dataset.
 ///
@@ -17121,10 +18411,7 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_list_execute(
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListHl7V2StoresResponse>, ApiError>, P = ApiPending>
         + Send
@@ -17132,7 +18419,11 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_list(
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_hl7_v2_stores_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     healthcare_projects_locations_datasets_hl7_v2_stores_list_execute(builder)
 }
@@ -17242,6 +18533,17 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Hl7V2Store,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}
 /// Updates the HL7v2 store.
 ///
@@ -17254,15 +18556,16 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_patch_execute(
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Hl7V2Store,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Hl7V2Store>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_hl7_v2_stores_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_hl7_v2_stores_patch_execute(builder)
 }
@@ -17360,6 +18663,15 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_rollback_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_rollback`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresRollbackArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RollbackHl7V2MessagesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}:rollback
 /// Rolls back messages from the HL7v2 store to the specified time. This method returns an Operation that can be used to track the status of the rollback by calling GetOperation. Immediate fatal errors appear in the error field, errors are also logged to Cloud Logging (see [Viewing error logs in Cloud Logging](<https://cloud.google.`com/healthcare/docs/how-tos/logging`>)). Otherwise, when the operation finishes, a detailed response of type RollbackHl7V2MessagesResponse is returned in the response field. The metadata field type for this operation is OperationMetadata.
 ///
@@ -17372,14 +18684,14 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_rollback_execute(
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_rollback(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RollbackHl7V2MessagesRequest,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresRollbackArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_hl7_v2_stores_rollback_builder(client, name, body)?;
+    let builder = healthcare_projects_locations_datasets_hl7_v2_stores_rollback_builder(
+        client, &args.name, &args.body,
+    )?;
     healthcare_projects_locations_datasets_hl7_v2_stores_rollback_execute(builder)
 }
 
@@ -17476,6 +18788,15 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_set_iam_policy_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -17488,14 +18809,15 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_set_iam_policy_execu
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_hl7_v2_stores_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_hl7_v2_stores_set_iam_policy_execute(builder)
 }
@@ -17597,6 +18919,15 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_test_iam_permissions
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -17609,8 +18940,7 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_test_iam_permissions
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -17621,7 +18951,9 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_test_iam_permissions
 > {
     let builder =
         healthcare_projects_locations_datasets_hl7_v2_stores_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     healthcare_projects_locations_datasets_hl7_v2_stores_test_iam_permissions_execute(builder)
 }
@@ -17719,6 +19051,15 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_create_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_messages_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresMessagesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateMessageRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}/messages
 /// Parses and stores an HL7v2 message. This method triggers an asynchronous notification to any P`ub/Sub` topic configured in Hl7V2Store.Hl7V2NotificationConfig, if the filtering matches the message. If an MLLP adapter is configured to listen to a P`ub/Sub` topic, the adapter transmits the message when a notification is received.
 ///
@@ -17731,14 +19072,15 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_create_exec
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateMessageRequest,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresMessagesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_hl7_v2_stores_messages_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_hl7_v2_stores_messages_create_execute(builder)
 }
@@ -17833,6 +19175,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_delete_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_messages_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresMessagesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}/messages/{messagesId}
 /// Deletes an HL7v2 message.
 ///
@@ -17845,13 +19194,14 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_delete_exec
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresMessagesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_hl7_v2_stores_messages_delete_builder(client, name)?;
+    let builder = healthcare_projects_locations_datasets_hl7_v2_stores_messages_delete_builder(
+        client, &args.name,
+    )?;
     healthcare_projects_locations_datasets_hl7_v2_stores_messages_delete_execute(builder)
 }
 
@@ -17957,6 +19307,15 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_messages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresMessagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}/messages/{messagesId}
 /// Gets an HL7v2 message.
 ///
@@ -17969,14 +19328,15 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_get_execute
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresMessagesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_hl7_v2_stores_messages_get_builder(
-        client, name, view,
+        client,
+        &args.name,
+        args.view.as_deref(),
     )?;
     healthcare_projects_locations_datasets_hl7_v2_stores_messages_get_execute(builder)
 }
@@ -18076,6 +19436,15 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_ingest_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_messages_ingest`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresMessagesIngestArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: IngestMessageRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}/messages:ingest
 /// Parses and stores an HL7v2 message. This method triggers an asynchronous notification to any P`ub/Sub` topic configured in Hl7V2Store.Hl7V2NotificationConfig, if the filtering matches the message. If an MLLP adapter is configured to listen to a P`ub/Sub` topic, the adapter transmits the message when a notification is received. If the method is successful, it generates a response containing an HL7v2 acknowledgment (ACK) message. If the method encounters an error, it returns a negative acknowledgment (NACK) message. This behavior is suitable for replying to HL7v2 interface systems that expect these acknowledgments.
 ///
@@ -18088,8 +19457,7 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_ingest_exec
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_ingest(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &IngestMessageRequest,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresMessagesIngestArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IngestMessageResponse>, ApiError>, P = ApiPending>
         + Send
@@ -18097,7 +19465,9 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_ingest(
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_hl7_v2_stores_messages_ingest_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_hl7_v2_stores_messages_ingest_execute(builder)
 }
@@ -18222,6 +19592,23 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_messages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresMessagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}/messages
 /// Lists all the messages in the given HL7v2 store with support for filtering. Note: HL7v2 messages are indexed asynchronously, so there might be a slight delay between the time a message is created and when it can be found through a filter.
 ///
@@ -18234,12 +19621,7 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_list_execut
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresMessagesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListMessagesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -18247,7 +19629,13 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_list(
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_hl7_v2_stores_messages_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     healthcare_projects_locations_datasets_hl7_v2_stores_messages_list_execute(builder)
 }
@@ -18357,6 +19745,17 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_patch_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_hl7_v2_stores_messages_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresMessagesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Message,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}/messages/{messagesId}
 /// Update the message. The contents of the message in Message.data and data extracted from the contents such as Message.create_time cannot be altered. Only the Message.labels field is allowed to be updated. The labels in the request are merged with the existing set of labels. Existing labels with the same keys are updated.
 ///
@@ -18369,15 +19768,16 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_patch_execu
 
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Message,
+    args: &HealthcareProjectsLocationsDatasetsHl7V2StoresMessagesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = healthcare_projects_locations_datasets_hl7_v2_stores_messages_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     healthcare_projects_locations_datasets_hl7_v2_stores_messages_patch_execute(builder)
 }
@@ -18475,6 +19875,15 @@ pub fn healthcare_projects_locations_datasets_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -18487,14 +19896,14 @@ pub fn healthcare_projects_locations_datasets_operations_cancel_execute(
 
 pub fn healthcare_projects_locations_datasets_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &HealthcareProjectsLocationsDatasetsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        healthcare_projects_locations_datasets_operations_cancel_builder(client, name, body)?;
+    let builder = healthcare_projects_locations_datasets_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     healthcare_projects_locations_datasets_operations_cancel_execute(builder)
 }
 
@@ -18588,6 +19997,13 @@ pub fn healthcare_projects_locations_datasets_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -18600,12 +20016,13 @@ pub fn healthcare_projects_locations_datasets_operations_get_execute(
 
 pub fn healthcare_projects_locations_datasets_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthcareProjectsLocationsDatasetsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = healthcare_projects_locations_datasets_operations_get_builder(client, name)?;
+    let builder =
+        healthcare_projects_locations_datasets_operations_get_builder(client, &args.name)?;
     healthcare_projects_locations_datasets_operations_get_execute(builder)
 }
 
@@ -18725,6 +20142,21 @@ pub fn healthcare_projects_locations_datasets_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_datasets_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsDatasetsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -18737,11 +20169,7 @@ pub fn healthcare_projects_locations_datasets_operations_list_execute(
 
 pub fn healthcare_projects_locations_datasets_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &HealthcareProjectsLocationsDatasetsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -18750,11 +20178,11 @@ pub fn healthcare_projects_locations_datasets_operations_list(
 > {
     let builder = healthcare_projects_locations_datasets_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     healthcare_projects_locations_datasets_operations_list_execute(builder)
 }
@@ -18854,6 +20282,15 @@ pub fn healthcare_projects_locations_services_nlp_analyze_entities_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`healthcare_projects_locations_services_nlp_analyze_entities`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthcareProjectsLocationsServicesNlpAnalyzeEntitiesArgs {
+    /// Path parameter: nlpService
+    pub nlpService: String,
+    /// Request body.
+    pub body: AnalyzeEntitiesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/nlp:analyzeEntities
 /// Analyze heathcare entity in a document. Its response includes the recognized entity mentions and the relationships between them. AnalyzeEntities uses context aware models to detect entities.
 ///
@@ -18866,8 +20303,7 @@ pub fn healthcare_projects_locations_services_nlp_analyze_entities_execute(
 
 pub fn healthcare_projects_locations_services_nlp_analyze_entities(
     client: &SimpleHttpClient,
-    nlpService: &str,
-    body: &AnalyzeEntitiesRequest,
+    args: &HealthcareProjectsLocationsServicesNlpAnalyzeEntitiesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnalyzeEntitiesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -18875,7 +20311,9 @@ pub fn healthcare_projects_locations_services_nlp_analyze_entities(
     ApiError,
 > {
     let builder = healthcare_projects_locations_services_nlp_analyze_entities_builder(
-        client, nlpService, body,
+        client,
+        &args.nlpService,
+        &args.body,
     )?;
     healthcare_projects_locations_services_nlp_analyze_entities_execute(builder)
 }

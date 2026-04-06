@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}:explain
 /// Performs explanation on the data in the request. {% dynamic include "/ai-`platform/includes/___explain-request`" %}
@@ -108,6 +110,15 @@ pub fn ml_projects_explain_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_explain`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsExplainArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudMlV1__ExplainRequest,
+}
+
 /// GET v1/projects/{projectsId}:explain
 /// Performs explanation on the data in the request. {% dynamic include "/ai-`platform/includes/___explain-request`" %}
 ///
@@ -120,15 +131,14 @@ pub fn ml_projects_explain_execute(
 
 pub fn ml_projects_explain(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudMlV1__ExplainRequest,
+    args: &MlProjectsExplainArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApi__HttpBody>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_explain_builder(client, name, body)?;
+    let builder = ml_projects_explain_builder(client, &args.name, &args.body)?;
     ml_projects_explain_execute(builder)
 }
 
@@ -223,6 +233,13 @@ pub fn ml_projects_get_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_get_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsGetConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}:getConfig
 /// Get the service account information associated with your project. You need this information in order to grant the service account permissions for the Google Cloud Storage location where you put your model training code for training the model with Google Cloud Machine Learning.
 ///
@@ -235,7 +252,7 @@ pub fn ml_projects_get_config_execute(
 
 pub fn ml_projects_get_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MlProjectsGetConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudMlV1__GetConfigResponse>, ApiError>,
@@ -244,7 +261,7 @@ pub fn ml_projects_get_config(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_get_config_builder(client, name)?;
+    let builder = ml_projects_get_config_builder(client, &args.name)?;
     ml_projects_get_config_execute(builder)
 }
 
@@ -340,6 +357,15 @@ pub fn ml_projects_predict_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_predict`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsPredictArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudMlV1__PredictRequest,
+}
+
 /// GET v1/projects/{projectsId}:predict
 /// Performs online prediction on the data in the request. {% dynamic include "/ai-`platform/includes/___predict-request`" %}
 ///
@@ -352,15 +378,14 @@ pub fn ml_projects_predict_execute(
 
 pub fn ml_projects_predict(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudMlV1__PredictRequest,
+    args: &MlProjectsPredictArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApi__HttpBody>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_predict_builder(client, name, body)?;
+    let builder = ml_projects_predict_builder(client, &args.name, &args.body)?;
     ml_projects_predict_execute(builder)
 }
 
@@ -459,6 +484,15 @@ pub fn ml_projects_jobs_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_jobs_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsJobsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudMlV1__CancelJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/jobs/{jobsId}:cancel
 /// Cancels a running job.
 ///
@@ -471,15 +505,14 @@ pub fn ml_projects_jobs_cancel_execute(
 
 pub fn ml_projects_jobs_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudMlV1__CancelJobRequest,
+    args: &MlProjectsJobsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobuf__Empty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_jobs_cancel_builder(client, name, body)?;
+    let builder = ml_projects_jobs_cancel_builder(client, &args.name, &args.body)?;
     ml_projects_jobs_cancel_execute(builder)
 }
 
@@ -575,6 +608,15 @@ pub fn ml_projects_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudMlV1__Job,
+}
+
 /// GET v1/projects/{projectsId}/jobs
 /// Creates a training or a batch prediction job.
 ///
@@ -587,15 +629,14 @@ pub fn ml_projects_jobs_create_execute(
 
 pub fn ml_projects_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudMlV1__Job,
+    args: &MlProjectsJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudMlV1__Job>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_jobs_create_builder(client, parent, body)?;
+    let builder = ml_projects_jobs_create_builder(client, &args.parent, &args.body)?;
     ml_projects_jobs_create_execute(builder)
 }
 
@@ -688,6 +729,13 @@ pub fn ml_projects_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/jobs/{jobsId}
 /// Describes a job.
 ///
@@ -700,14 +748,14 @@ pub fn ml_projects_jobs_get_execute(
 
 pub fn ml_projects_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MlProjectsJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudMlV1__Job>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_jobs_get_builder(client, name)?;
+    let builder = ml_projects_jobs_get_builder(client, &args.name)?;
     ml_projects_jobs_get_execute(builder)
 }
 
@@ -815,6 +863,15 @@ pub fn ml_projects_jobs_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_jobs_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsJobsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/jobs/{jobsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -827,16 +884,18 @@ pub fn ml_projects_jobs_get_iam_policy_execute(
 
 pub fn ml_projects_jobs_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &MlProjectsJobsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1__Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        ml_projects_jobs_get_iam_policy_builder(client, resource, options_requestedPolicyVersion)?;
+    let builder = ml_projects_jobs_get_iam_policy_builder(
+        client,
+        &args.resource,
+        args.options_requestedPolicyVersion,
+    )?;
     ml_projects_jobs_get_iam_policy_execute(builder)
 }
 
@@ -951,6 +1010,19 @@ pub fn ml_projects_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/jobs
 /// Lists the jobs in the project. If there are no jobs that match the request parameters, the list request returns an empty response body: {}.
 ///
@@ -963,10 +1035,7 @@ pub fn ml_projects_jobs_list_execute(
 
 pub fn ml_projects_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MlProjectsJobsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudMlV1__ListJobsResponse>, ApiError>,
@@ -975,7 +1044,13 @@ pub fn ml_projects_jobs_list(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_jobs_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = ml_projects_jobs_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     ml_projects_jobs_list_execute(builder)
 }
 
@@ -1083,6 +1158,17 @@ pub fn ml_projects_jobs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_jobs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsJobsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudMlV1__Job,
+}
+
 /// GET v1/projects/{projectsId}/jobs/{jobsId}
 /// Updates a specific job resource. Currently the only supported fields to update are labels.
 ///
@@ -1095,16 +1181,15 @@ pub fn ml_projects_jobs_patch_execute(
 
 pub fn ml_projects_jobs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudMlV1__Job,
+    args: &MlProjectsJobsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudMlV1__Job>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_jobs_patch_builder(client, name, updateMask, body)?;
+    let builder =
+        ml_projects_jobs_patch_builder(client, &args.name, args.updateMask.as_deref(), &args.body)?;
     ml_projects_jobs_patch_execute(builder)
 }
 
@@ -1203,6 +1288,15 @@ pub fn ml_projects_jobs_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_jobs_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsJobsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1__SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/jobs/{jobsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1215,15 +1309,14 @@ pub fn ml_projects_jobs_set_iam_policy_execute(
 
 pub fn ml_projects_jobs_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1__SetIamPolicyRequest,
+    args: &MlProjectsJobsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1__Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_jobs_set_iam_policy_builder(client, resource, body)?;
+    let builder = ml_projects_jobs_set_iam_policy_builder(client, &args.resource, &args.body)?;
     ml_projects_jobs_set_iam_policy_execute(builder)
 }
 
@@ -1325,6 +1418,15 @@ pub fn ml_projects_jobs_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_jobs_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsJobsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1__TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/jobs/{jobsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1337,8 +1439,7 @@ pub fn ml_projects_jobs_test_iam_permissions_execute(
 
 pub fn ml_projects_jobs_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1__TestIamPermissionsRequest,
+    args: &MlProjectsJobsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1__TestIamPermissionsResponse>, ApiError>,
@@ -1347,7 +1448,8 @@ pub fn ml_projects_jobs_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_jobs_test_iam_permissions_builder(client, resource, body)?;
+    let builder =
+        ml_projects_jobs_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     ml_projects_jobs_test_iam_permissions_execute(builder)
 }
 
@@ -1443,6 +1545,13 @@ pub fn ml_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Get the complete list of CMLE capabilities in a location, along with their location-specific properties.
 ///
@@ -1455,14 +1564,14 @@ pub fn ml_projects_locations_get_execute(
 
 pub fn ml_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MlProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudMlV1__Location>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_get_builder(client, name)?;
+    let builder = ml_projects_locations_get_builder(client, &args.name)?;
     ml_projects_locations_get_execute(builder)
 }
 
@@ -1573,6 +1682,17 @@ pub fn ml_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// List all locations that provides at least one type of CMLE capability.
 ///
@@ -1585,9 +1705,7 @@ pub fn ml_projects_locations_list_execute(
 
 pub fn ml_projects_locations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MlProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudMlV1__ListLocationsResponse>, ApiError>,
@@ -1596,7 +1714,12 @@ pub fn ml_projects_locations_list(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = ml_projects_locations_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     ml_projects_locations_list_execute(builder)
 }
 
@@ -1692,6 +1815,13 @@ pub fn ml_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1704,14 +1834,14 @@ pub fn ml_projects_locations_operations_cancel_execute(
 
 pub fn ml_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MlProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobuf__Empty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_operations_cancel_builder(client, name)?;
+    let builder = ml_projects_locations_operations_cancel_builder(client, &args.name)?;
     ml_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -1809,6 +1939,13 @@ pub fn ml_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1821,7 +1958,7 @@ pub fn ml_projects_locations_operations_get_execute(
 
 pub fn ml_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MlProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunning__Operation>, ApiError>,
@@ -1830,7 +1967,7 @@ pub fn ml_projects_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_operations_get_builder(client, name)?;
+    let builder = ml_projects_locations_operations_get_builder(client, &args.name)?;
     ml_projects_locations_operations_get_execute(builder)
 }
 
@@ -1941,6 +2078,17 @@ pub fn ml_projects_locations_studies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_studies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsStudiesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: studyId
+    pub studyId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudMlV1__Study,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies
 /// Creates a study.
 ///
@@ -1953,16 +2101,19 @@ pub fn ml_projects_locations_studies_create_execute(
 
 pub fn ml_projects_locations_studies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    studyId: Option<&str>,
-    body: &GoogleCloudMlV1__Study,
+    args: &MlProjectsLocationsStudiesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudMlV1__Study>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_studies_create_builder(client, parent, studyId, body)?;
+    let builder = ml_projects_locations_studies_create_builder(
+        client,
+        &args.parent,
+        args.studyId.as_deref(),
+        &args.body,
+    )?;
     ml_projects_locations_studies_create_execute(builder)
 }
 
@@ -2058,6 +2209,13 @@ pub fn ml_projects_locations_studies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_studies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsStudiesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}
 /// Deletes a study.
 ///
@@ -2070,14 +2228,14 @@ pub fn ml_projects_locations_studies_delete_execute(
 
 pub fn ml_projects_locations_studies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MlProjectsLocationsStudiesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobuf__Empty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_studies_delete_builder(client, name)?;
+    let builder = ml_projects_locations_studies_delete_builder(client, &args.name)?;
     ml_projects_locations_studies_delete_execute(builder)
 }
 
@@ -2173,6 +2331,13 @@ pub fn ml_projects_locations_studies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_studies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsStudiesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}
 /// Gets a study.
 ///
@@ -2185,14 +2350,14 @@ pub fn ml_projects_locations_studies_get_execute(
 
 pub fn ml_projects_locations_studies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MlProjectsLocationsStudiesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudMlV1__Study>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_studies_get_builder(client, name)?;
+    let builder = ml_projects_locations_studies_get_builder(client, &args.name)?;
     ml_projects_locations_studies_get_execute(builder)
 }
 
@@ -2290,6 +2455,13 @@ pub fn ml_projects_locations_studies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_studies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsStudiesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies
 /// Lists all the studies in a region for an associated project.
 ///
@@ -2302,7 +2474,7 @@ pub fn ml_projects_locations_studies_list_execute(
 
 pub fn ml_projects_locations_studies_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &MlProjectsLocationsStudiesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudMlV1__ListStudiesResponse>, ApiError>,
@@ -2311,7 +2483,7 @@ pub fn ml_projects_locations_studies_list(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_studies_list_builder(client, parent)?;
+    let builder = ml_projects_locations_studies_list_builder(client, &args.parent)?;
     ml_projects_locations_studies_list_execute(builder)
 }
 
@@ -2410,6 +2582,15 @@ pub fn ml_projects_locations_studies_trials_add_measurement_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_studies_trials_add_measurement`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsStudiesTrialsAddMeasurementArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudMlV1__AddTrialMeasurementRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}:addMeasurement
 /// Adds a measurement of the objective metrics to a trial. This measurement is assumed to have been taken before the trial is complete.
 ///
@@ -2422,15 +2603,16 @@ pub fn ml_projects_locations_studies_trials_add_measurement_execute(
 
 pub fn ml_projects_locations_studies_trials_add_measurement(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudMlV1__AddTrialMeasurementRequest,
+    args: &MlProjectsLocationsStudiesTrialsAddMeasurementArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudMlV1__Trial>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_studies_trials_add_measurement_builder(client, name, body)?;
+    let builder = ml_projects_locations_studies_trials_add_measurement_builder(
+        client, &args.name, &args.body,
+    )?;
     ml_projects_locations_studies_trials_add_measurement_execute(builder)
 }
 
@@ -2531,6 +2713,15 @@ pub fn ml_projects_locations_studies_trials_check_early_stopping_state_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_studies_trials_check_early_stopping_state`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsStudiesTrialsCheckEarlyStoppingStateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudMlV1__CheckTrialEarlyStoppingStateRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}:checkEarlyStoppingState
 /// Checks whether a trial should stop or not. Returns a long-running operation. When the operation is successful, it will contain a CheckTrialEarlyStoppingStateResponse.
 ///
@@ -2543,8 +2734,7 @@ pub fn ml_projects_locations_studies_trials_check_early_stopping_state_execute(
 
 pub fn ml_projects_locations_studies_trials_check_early_stopping_state(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudMlV1__CheckTrialEarlyStoppingStateRequest,
+    args: &MlProjectsLocationsStudiesTrialsCheckEarlyStoppingStateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunning__Operation>, ApiError>,
@@ -2554,7 +2744,7 @@ pub fn ml_projects_locations_studies_trials_check_early_stopping_state(
     ApiError,
 > {
     let builder = ml_projects_locations_studies_trials_check_early_stopping_state_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     ml_projects_locations_studies_trials_check_early_stopping_state_execute(builder)
 }
@@ -2654,6 +2844,15 @@ pub fn ml_projects_locations_studies_trials_complete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_studies_trials_complete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsStudiesTrialsCompleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudMlV1__CompleteTrialRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}:complete
 /// Marks a trial as complete.
 ///
@@ -2666,15 +2865,15 @@ pub fn ml_projects_locations_studies_trials_complete_execute(
 
 pub fn ml_projects_locations_studies_trials_complete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudMlV1__CompleteTrialRequest,
+    args: &MlProjectsLocationsStudiesTrialsCompleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudMlV1__Trial>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_studies_trials_complete_builder(client, name, body)?;
+    let builder =
+        ml_projects_locations_studies_trials_complete_builder(client, &args.name, &args.body)?;
     ml_projects_locations_studies_trials_complete_execute(builder)
 }
 
@@ -2773,6 +2972,15 @@ pub fn ml_projects_locations_studies_trials_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_studies_trials_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsStudiesTrialsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudMlV1__Trial,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}/trials
 /// Adds a user provided trial to a study.
 ///
@@ -2785,15 +2993,15 @@ pub fn ml_projects_locations_studies_trials_create_execute(
 
 pub fn ml_projects_locations_studies_trials_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudMlV1__Trial,
+    args: &MlProjectsLocationsStudiesTrialsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudMlV1__Trial>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_studies_trials_create_builder(client, parent, body)?;
+    let builder =
+        ml_projects_locations_studies_trials_create_builder(client, &args.parent, &args.body)?;
     ml_projects_locations_studies_trials_create_execute(builder)
 }
 
@@ -2889,6 +3097,13 @@ pub fn ml_projects_locations_studies_trials_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_studies_trials_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsStudiesTrialsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}
 /// Deletes a trial.
 ///
@@ -2901,14 +3116,14 @@ pub fn ml_projects_locations_studies_trials_delete_execute(
 
 pub fn ml_projects_locations_studies_trials_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MlProjectsLocationsStudiesTrialsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobuf__Empty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_studies_trials_delete_builder(client, name)?;
+    let builder = ml_projects_locations_studies_trials_delete_builder(client, &args.name)?;
     ml_projects_locations_studies_trials_delete_execute(builder)
 }
 
@@ -3004,6 +3219,13 @@ pub fn ml_projects_locations_studies_trials_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_studies_trials_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsStudiesTrialsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}
 /// Gets a trial.
 ///
@@ -3016,14 +3238,14 @@ pub fn ml_projects_locations_studies_trials_get_execute(
 
 pub fn ml_projects_locations_studies_trials_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MlProjectsLocationsStudiesTrialsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudMlV1__Trial>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_studies_trials_get_builder(client, name)?;
+    let builder = ml_projects_locations_studies_trials_get_builder(client, &args.name)?;
     ml_projects_locations_studies_trials_get_execute(builder)
 }
 
@@ -3121,6 +3343,13 @@ pub fn ml_projects_locations_studies_trials_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_studies_trials_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsStudiesTrialsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}/trials
 /// Lists the trials associated with a study.
 ///
@@ -3133,7 +3362,7 @@ pub fn ml_projects_locations_studies_trials_list_execute(
 
 pub fn ml_projects_locations_studies_trials_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &MlProjectsLocationsStudiesTrialsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudMlV1__ListTrialsResponse>, ApiError>,
@@ -3142,7 +3371,7 @@ pub fn ml_projects_locations_studies_trials_list(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_studies_trials_list_builder(client, parent)?;
+    let builder = ml_projects_locations_studies_trials_list_builder(client, &args.parent)?;
     ml_projects_locations_studies_trials_list_execute(builder)
 }
 
@@ -3244,6 +3473,15 @@ pub fn ml_projects_locations_studies_trials_list_optimal_trials_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_studies_trials_list_optimal_trials`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsStudiesTrialsListOptimalTrialsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudMlV1__ListOptimalTrialsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}/trials:listOptimalTrials
 /// Lists the pareto-optimal trials for multi-objective study or the optimal trials for single-objective study. The definition of pareto-optimal can be checked in wiki page. <https://en.wikipedia.`org/wiki/Pareto_efficiency`>
 ///
@@ -3256,8 +3494,7 @@ pub fn ml_projects_locations_studies_trials_list_optimal_trials_execute(
 
 pub fn ml_projects_locations_studies_trials_list_optimal_trials(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudMlV1__ListOptimalTrialsRequest,
+    args: &MlProjectsLocationsStudiesTrialsListOptimalTrialsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudMlV1__ListOptimalTrialsResponse>, ApiError>,
@@ -3266,8 +3503,11 @@ pub fn ml_projects_locations_studies_trials_list_optimal_trials(
         + 'static,
     ApiError,
 > {
-    let builder =
-        ml_projects_locations_studies_trials_list_optimal_trials_builder(client, parent, body)?;
+    let builder = ml_projects_locations_studies_trials_list_optimal_trials_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     ml_projects_locations_studies_trials_list_optimal_trials_execute(builder)
 }
 
@@ -3366,6 +3606,15 @@ pub fn ml_projects_locations_studies_trials_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_studies_trials_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsStudiesTrialsStopArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudMlV1__StopTrialRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}:stop
 /// Stops a trial.
 ///
@@ -3378,15 +3627,15 @@ pub fn ml_projects_locations_studies_trials_stop_execute(
 
 pub fn ml_projects_locations_studies_trials_stop(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudMlV1__StopTrialRequest,
+    args: &MlProjectsLocationsStudiesTrialsStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudMlV1__Trial>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_studies_trials_stop_builder(client, name, body)?;
+    let builder =
+        ml_projects_locations_studies_trials_stop_builder(client, &args.name, &args.body)?;
     ml_projects_locations_studies_trials_stop_execute(builder)
 }
 
@@ -3487,6 +3736,15 @@ pub fn ml_projects_locations_studies_trials_suggest_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_locations_studies_trials_suggest`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsLocationsStudiesTrialsSuggestArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudMlV1__SuggestTrialsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}/trials:suggest
 /// Adds one or more trials to a study, with parameter values suggested by AI Platform Vizier. Returns a long-running operation associated with the generation of trial suggestions. When this long-running operation succeeds, it will contain a SuggestTrialsResponse.
 ///
@@ -3499,8 +3757,7 @@ pub fn ml_projects_locations_studies_trials_suggest_execute(
 
 pub fn ml_projects_locations_studies_trials_suggest(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudMlV1__SuggestTrialsRequest,
+    args: &MlProjectsLocationsStudiesTrialsSuggestArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunning__Operation>, ApiError>,
@@ -3509,7 +3766,8 @@ pub fn ml_projects_locations_studies_trials_suggest(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_studies_trials_suggest_builder(client, parent, body)?;
+    let builder =
+        ml_projects_locations_studies_trials_suggest_builder(client, &args.parent, &args.body)?;
     ml_projects_locations_studies_trials_suggest_execute(builder)
 }
 
@@ -3605,6 +3863,15 @@ pub fn ml_projects_models_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_models_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsModelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudMlV1__Model,
+}
+
 /// GET v1/projects/{projectsId}/models
 /// Creates a model which will later contain one or more versions. You must add at least one version before you can request predictions from the model. Add versions by calling projects.models.versions.create.
 ///
@@ -3617,15 +3884,14 @@ pub fn ml_projects_models_create_execute(
 
 pub fn ml_projects_models_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudMlV1__Model,
+    args: &MlProjectsModelsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudMlV1__Model>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_models_create_builder(client, parent, body)?;
+    let builder = ml_projects_models_create_builder(client, &args.parent, &args.body)?;
     ml_projects_models_create_execute(builder)
 }
 
@@ -3720,6 +3986,13 @@ pub fn ml_projects_models_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_models_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsModelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/models/{modelsId}
 /// Deletes a model. You can only delete a model if there are no versions in it. You can delete versions by calling projects.models.versions.delete.
 ///
@@ -3732,7 +4005,7 @@ pub fn ml_projects_models_delete_execute(
 
 pub fn ml_projects_models_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MlProjectsModelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunning__Operation>, ApiError>,
@@ -3741,7 +4014,7 @@ pub fn ml_projects_models_delete(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_models_delete_builder(client, name)?;
+    let builder = ml_projects_models_delete_builder(client, &args.name)?;
     ml_projects_models_delete_execute(builder)
 }
 
@@ -3834,6 +4107,13 @@ pub fn ml_projects_models_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_models_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsModelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/models/{modelsId}
 /// Gets information about a model, including its name, the description (if set), and the default version (if at least one version of the model has been deployed).
 ///
@@ -3846,14 +4126,14 @@ pub fn ml_projects_models_get_execute(
 
 pub fn ml_projects_models_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MlProjectsModelsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudMlV1__Model>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_models_get_builder(client, name)?;
+    let builder = ml_projects_models_get_builder(client, &args.name)?;
     ml_projects_models_get_execute(builder)
 }
 
@@ -3961,6 +4241,15 @@ pub fn ml_projects_models_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_models_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsModelsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/models/{modelsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -3973,8 +4262,7 @@ pub fn ml_projects_models_get_iam_policy_execute(
 
 pub fn ml_projects_models_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &MlProjectsModelsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1__Policy>, ApiError>, P = ApiPending>
         + Send
@@ -3983,8 +4271,8 @@ pub fn ml_projects_models_get_iam_policy(
 > {
     let builder = ml_projects_models_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     ml_projects_models_get_iam_policy_execute(builder)
 }
@@ -4100,6 +4388,19 @@ pub fn ml_projects_models_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_models_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsModelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/models
 /// Lists the models in a project. Each project can contain multiple models, and each model can have multiple versions. If there are no models that match the request parameters, the list request returns an empty response body: {}.
 ///
@@ -4112,10 +4413,7 @@ pub fn ml_projects_models_list_execute(
 
 pub fn ml_projects_models_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MlProjectsModelsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudMlV1__ListModelsResponse>, ApiError>,
@@ -4124,7 +4422,13 @@ pub fn ml_projects_models_list(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_models_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = ml_projects_models_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     ml_projects_models_list_execute(builder)
 }
 
@@ -4234,6 +4538,17 @@ pub fn ml_projects_models_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_models_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsModelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudMlV1__Model,
+}
+
 /// GET v1/projects/{projectsId}/models/{modelsId}
 /// Updates a specific model resource. Currently the only supported fields to update are description and default_version.name.
 ///
@@ -4246,9 +4561,7 @@ pub fn ml_projects_models_patch_execute(
 
 pub fn ml_projects_models_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudMlV1__Model,
+    args: &MlProjectsModelsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunning__Operation>, ApiError>,
@@ -4257,7 +4570,12 @@ pub fn ml_projects_models_patch(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_models_patch_builder(client, name, updateMask, body)?;
+    let builder = ml_projects_models_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     ml_projects_models_patch_execute(builder)
 }
 
@@ -4356,6 +4674,15 @@ pub fn ml_projects_models_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_models_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsModelsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1__SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/models/{modelsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -4368,15 +4695,14 @@ pub fn ml_projects_models_set_iam_policy_execute(
 
 pub fn ml_projects_models_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1__SetIamPolicyRequest,
+    args: &MlProjectsModelsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1__Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_models_set_iam_policy_builder(client, resource, body)?;
+    let builder = ml_projects_models_set_iam_policy_builder(client, &args.resource, &args.body)?;
     ml_projects_models_set_iam_policy_execute(builder)
 }
 
@@ -4478,6 +4804,15 @@ pub fn ml_projects_models_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_models_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsModelsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1__TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/models/{modelsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -4490,8 +4825,7 @@ pub fn ml_projects_models_test_iam_permissions_execute(
 
 pub fn ml_projects_models_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1__TestIamPermissionsRequest,
+    args: &MlProjectsModelsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1__TestIamPermissionsResponse>, ApiError>,
@@ -4500,7 +4834,8 @@ pub fn ml_projects_models_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_models_test_iam_permissions_builder(client, resource, body)?;
+    let builder =
+        ml_projects_models_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     ml_projects_models_test_iam_permissions_execute(builder)
 }
 
@@ -4601,6 +4936,15 @@ pub fn ml_projects_models_versions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_models_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsModelsVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudMlV1__Version,
+}
+
 /// GET v1/projects/{projectsId}/models/{modelsId}/versions
 /// Creates a new version of a model from a trained TensorFlow model. If the version created in the cloud by this call is the first deployed version of the specified model, it will be made the default version of the model. When you add a version to a model that already has one or more versions, the default version does not automatically change. If you want a new version to be the default, you must call projects.models.versions.`setDefault`.
 ///
@@ -4613,8 +4957,7 @@ pub fn ml_projects_models_versions_create_execute(
 
 pub fn ml_projects_models_versions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudMlV1__Version,
+    args: &MlProjectsModelsVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunning__Operation>, ApiError>,
@@ -4623,7 +4966,7 @@ pub fn ml_projects_models_versions_create(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_models_versions_create_builder(client, parent, body)?;
+    let builder = ml_projects_models_versions_create_builder(client, &args.parent, &args.body)?;
     ml_projects_models_versions_create_execute(builder)
 }
 
@@ -4721,6 +5064,13 @@ pub fn ml_projects_models_versions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_models_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsModelsVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/models/{modelsId}/versions/{versionsId}
 /// Deletes a model version. Each model can have multiple versions deployed and in use at any given time. Use this method to remove a single version. Note: You cannot delete the version that is set as the default version of the model unless it is the only remaining version.
 ///
@@ -4733,7 +5083,7 @@ pub fn ml_projects_models_versions_delete_execute(
 
 pub fn ml_projects_models_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MlProjectsModelsVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunning__Operation>, ApiError>,
@@ -4742,7 +5092,7 @@ pub fn ml_projects_models_versions_delete(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_models_versions_delete_builder(client, name)?;
+    let builder = ml_projects_models_versions_delete_builder(client, &args.name)?;
     ml_projects_models_versions_delete_execute(builder)
 }
 
@@ -4838,6 +5188,13 @@ pub fn ml_projects_models_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_models_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsModelsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/models/{modelsId}/versions/{versionsId}
 /// Gets information about a model version. Models can have multiple versions. You can call projects.models.versions.list to get the same information that this method returns for all of the versions of a model.
 ///
@@ -4850,14 +5207,14 @@ pub fn ml_projects_models_versions_get_execute(
 
 pub fn ml_projects_models_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MlProjectsModelsVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudMlV1__Version>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_models_versions_get_builder(client, name)?;
+    let builder = ml_projects_models_versions_get_builder(client, &args.name)?;
     ml_projects_models_versions_get_execute(builder)
 }
 
@@ -4975,6 +5332,19 @@ pub fn ml_projects_models_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_models_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsModelsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/models/{modelsId}/versions
 /// Gets basic information about all the versions of a model. If you expect that a model has many versions, or if you need to handle only a limited number of results at a time, you can request that the list be retrieved in batches (called pages). If there are no versions that match the request parameters, the list request returns an empty response body: {}.
 ///
@@ -4987,10 +5357,7 @@ pub fn ml_projects_models_versions_list_execute(
 
 pub fn ml_projects_models_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MlProjectsModelsVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudMlV1__ListVersionsResponse>, ApiError>,
@@ -4999,8 +5366,13 @@ pub fn ml_projects_models_versions_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        ml_projects_models_versions_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = ml_projects_models_versions_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     ml_projects_models_versions_list_execute(builder)
 }
 
@@ -5113,6 +5485,17 @@ pub fn ml_projects_models_versions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_models_versions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsModelsVersionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudMlV1__Version,
+}
+
 /// GET v1/projects/{projectsId}/models/{modelsId}/versions/{versionsId}
 /// Updates the specified Version resource. Currently the only update-able fields are description, `requestLoggingConfig`, `autoScaling`.`minNodes`, and `manualScaling`.nodes.
 ///
@@ -5125,9 +5508,7 @@ pub fn ml_projects_models_versions_patch_execute(
 
 pub fn ml_projects_models_versions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudMlV1__Version,
+    args: &MlProjectsModelsVersionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunning__Operation>, ApiError>,
@@ -5136,7 +5517,12 @@ pub fn ml_projects_models_versions_patch(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_models_versions_patch_builder(client, name, updateMask, body)?;
+    let builder = ml_projects_models_versions_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     ml_projects_models_versions_patch_execute(builder)
 }
 
@@ -5235,6 +5621,15 @@ pub fn ml_projects_models_versions_set_default_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_models_versions_set_default`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsModelsVersionsSetDefaultArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudMlV1__SetDefaultVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/models/{modelsId}/versions/{versionsId}:setDefault
 /// Designates a version to be the default for the model. The default version is used for prediction requests made against the model that don't specify a version. The first version to be created for a model is automatically set as the default. You must make any subsequent changes to the default version setting manually using this method.
 ///
@@ -5247,15 +5642,14 @@ pub fn ml_projects_models_versions_set_default_execute(
 
 pub fn ml_projects_models_versions_set_default(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudMlV1__SetDefaultVersionRequest,
+    args: &MlProjectsModelsVersionsSetDefaultArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudMlV1__Version>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_models_versions_set_default_builder(client, name, body)?;
+    let builder = ml_projects_models_versions_set_default_builder(client, &args.name, &args.body)?;
     ml_projects_models_versions_set_default_execute(builder)
 }
 
@@ -5351,6 +5745,13 @@ pub fn ml_projects_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -5363,14 +5764,14 @@ pub fn ml_projects_operations_cancel_execute(
 
 pub fn ml_projects_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MlProjectsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobuf__Empty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_operations_cancel_builder(client, name)?;
+    let builder = ml_projects_operations_cancel_builder(client, &args.name)?;
     ml_projects_operations_cancel_execute(builder)
 }
 
@@ -5468,6 +5869,13 @@ pub fn ml_projects_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -5480,7 +5888,7 @@ pub fn ml_projects_operations_get_execute(
 
 pub fn ml_projects_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MlProjectsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunning__Operation>, ApiError>,
@@ -5489,7 +5897,7 @@ pub fn ml_projects_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_operations_get_builder(client, name)?;
+    let builder = ml_projects_operations_get_builder(client, &args.name)?;
     ml_projects_operations_get_execute(builder)
 }
 
@@ -5608,6 +6016,21 @@ pub fn ml_projects_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ml_projects_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MlProjectsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -5620,11 +6043,7 @@ pub fn ml_projects_operations_list_execute(
 
 pub fn ml_projects_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &MlProjectsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunning__ListOperationsResponse>, ApiError>,
@@ -5635,11 +6054,11 @@ pub fn ml_projects_operations_list(
 > {
     let builder = ml_projects_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     ml_projects_operations_list_execute(builder)
 }

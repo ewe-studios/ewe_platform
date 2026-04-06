@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
@@ -103,6 +105,13 @@ pub fn speech_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`speech_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpeechOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -115,12 +124,12 @@ pub fn speech_operations_get_execute(
 
 pub fn speech_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpeechOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = speech_operations_get_builder(client, name)?;
+    let builder = speech_operations_get_builder(client, &args.name)?;
     speech_operations_get_execute(builder)
 }
 
@@ -240,6 +249,21 @@ pub fn speech_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`speech_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpeechOperationsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -252,11 +276,7 @@ pub fn speech_operations_list_execute(
 
 pub fn speech_operations_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    name: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &SpeechOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -265,11 +285,11 @@ pub fn speech_operations_list(
 > {
     let builder = speech_operations_list_builder(
         client,
-        filter,
-        name,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        args.filter.as_deref(),
+        args.name.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     speech_operations_list_execute(builder)
 }
@@ -367,6 +387,15 @@ pub fn speech_projects_locations_custom_classes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`speech_projects_locations_custom_classes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpeechProjectsLocationsCustomClassesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateCustomClassRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/customClasses
 /// Create a custom class.
 ///
@@ -379,13 +408,13 @@ pub fn speech_projects_locations_custom_classes_create_execute(
 
 pub fn speech_projects_locations_custom_classes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateCustomClassRequest,
+    args: &SpeechProjectsLocationsCustomClassesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = speech_projects_locations_custom_classes_create_builder(client, parent, body)?;
+    let builder =
+        speech_projects_locations_custom_classes_create_builder(client, &args.parent, &args.body)?;
     speech_projects_locations_custom_classes_create_execute(builder)
 }
 
@@ -479,6 +508,13 @@ pub fn speech_projects_locations_custom_classes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`speech_projects_locations_custom_classes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpeechProjectsLocationsCustomClassesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/customClasses/{customClassesId}
 /// Delete a custom class.
 ///
@@ -491,12 +527,12 @@ pub fn speech_projects_locations_custom_classes_delete_execute(
 
 pub fn speech_projects_locations_custom_classes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpeechProjectsLocationsCustomClassesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = speech_projects_locations_custom_classes_delete_builder(client, name)?;
+    let builder = speech_projects_locations_custom_classes_delete_builder(client, &args.name)?;
     speech_projects_locations_custom_classes_delete_execute(builder)
 }
 
@@ -590,6 +626,13 @@ pub fn speech_projects_locations_custom_classes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`speech_projects_locations_custom_classes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpeechProjectsLocationsCustomClassesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/customClasses/{customClassesId}
 /// Get a custom class.
 ///
@@ -602,12 +645,12 @@ pub fn speech_projects_locations_custom_classes_get_execute(
 
 pub fn speech_projects_locations_custom_classes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpeechProjectsLocationsCustomClassesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = speech_projects_locations_custom_classes_get_builder(client, name)?;
+    let builder = speech_projects_locations_custom_classes_get_builder(client, &args.name)?;
     speech_projects_locations_custom_classes_get_execute(builder)
 }
 
@@ -719,6 +762,17 @@ pub fn speech_projects_locations_custom_classes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`speech_projects_locations_custom_classes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpeechProjectsLocationsCustomClassesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/customClasses
 /// List custom classes.
 ///
@@ -731,17 +785,19 @@ pub fn speech_projects_locations_custom_classes_list_execute(
 
 pub fn speech_projects_locations_custom_classes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SpeechProjectsLocationsCustomClassesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCustomClassesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        speech_projects_locations_custom_classes_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = speech_projects_locations_custom_classes_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     speech_projects_locations_custom_classes_list_execute(builder)
 }
 
@@ -850,6 +906,17 @@ pub fn speech_projects_locations_custom_classes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`speech_projects_locations_custom_classes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpeechProjectsLocationsCustomClassesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CustomClass,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/customClasses/{customClassesId}
 /// Update a custom class.
 ///
@@ -862,15 +929,17 @@ pub fn speech_projects_locations_custom_classes_patch_execute(
 
 pub fn speech_projects_locations_custom_classes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &CustomClass,
+    args: &SpeechProjectsLocationsCustomClassesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        speech_projects_locations_custom_classes_patch_builder(client, name, updateMask, body)?;
+    let builder = speech_projects_locations_custom_classes_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     speech_projects_locations_custom_classes_patch_execute(builder)
 }
 
@@ -967,6 +1036,15 @@ pub fn speech_projects_locations_phrase_sets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`speech_projects_locations_phrase_sets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpeechProjectsLocationsPhraseSetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreatePhraseSetRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/phraseSets
 /// Create a set of phrase hints. Each item in the set can be a single word or a multi-word phrase. The items in the PhraseSet are favored by the recognition model when you send a call that includes the PhraseSet.
 ///
@@ -979,13 +1057,13 @@ pub fn speech_projects_locations_phrase_sets_create_execute(
 
 pub fn speech_projects_locations_phrase_sets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreatePhraseSetRequest,
+    args: &SpeechProjectsLocationsPhraseSetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PhraseSet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = speech_projects_locations_phrase_sets_create_builder(client, parent, body)?;
+    let builder =
+        speech_projects_locations_phrase_sets_create_builder(client, &args.parent, &args.body)?;
     speech_projects_locations_phrase_sets_create_execute(builder)
 }
 
@@ -1079,6 +1157,13 @@ pub fn speech_projects_locations_phrase_sets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`speech_projects_locations_phrase_sets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpeechProjectsLocationsPhraseSetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/phraseSets/{phraseSetsId}
 /// Delete a phrase set.
 ///
@@ -1091,12 +1176,12 @@ pub fn speech_projects_locations_phrase_sets_delete_execute(
 
 pub fn speech_projects_locations_phrase_sets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpeechProjectsLocationsPhraseSetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = speech_projects_locations_phrase_sets_delete_builder(client, name)?;
+    let builder = speech_projects_locations_phrase_sets_delete_builder(client, &args.name)?;
     speech_projects_locations_phrase_sets_delete_execute(builder)
 }
 
@@ -1190,6 +1275,13 @@ pub fn speech_projects_locations_phrase_sets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`speech_projects_locations_phrase_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpeechProjectsLocationsPhraseSetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/phraseSets/{phraseSetsId}
 /// Get a phrase set.
 ///
@@ -1202,12 +1294,12 @@ pub fn speech_projects_locations_phrase_sets_get_execute(
 
 pub fn speech_projects_locations_phrase_sets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpeechProjectsLocationsPhraseSetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PhraseSet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = speech_projects_locations_phrase_sets_get_builder(client, name)?;
+    let builder = speech_projects_locations_phrase_sets_get_builder(client, &args.name)?;
     speech_projects_locations_phrase_sets_get_execute(builder)
 }
 
@@ -1319,6 +1411,17 @@ pub fn speech_projects_locations_phrase_sets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`speech_projects_locations_phrase_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpeechProjectsLocationsPhraseSetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/phraseSets
 /// List phrase sets.
 ///
@@ -1331,17 +1434,19 @@ pub fn speech_projects_locations_phrase_sets_list_execute(
 
 pub fn speech_projects_locations_phrase_sets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SpeechProjectsLocationsPhraseSetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPhraseSetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        speech_projects_locations_phrase_sets_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = speech_projects_locations_phrase_sets_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     speech_projects_locations_phrase_sets_list_execute(builder)
 }
 
@@ -1450,6 +1555,17 @@ pub fn speech_projects_locations_phrase_sets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`speech_projects_locations_phrase_sets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpeechProjectsLocationsPhraseSetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: PhraseSet,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/phraseSets/{phraseSetsId}
 /// Update a phrase set.
 ///
@@ -1462,15 +1578,17 @@ pub fn speech_projects_locations_phrase_sets_patch_execute(
 
 pub fn speech_projects_locations_phrase_sets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &PhraseSet,
+    args: &SpeechProjectsLocationsPhraseSetsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PhraseSet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        speech_projects_locations_phrase_sets_patch_builder(client, name, updateMask, body)?;
+    let builder = speech_projects_locations_phrase_sets_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     speech_projects_locations_phrase_sets_patch_execute(builder)
 }
 
@@ -1563,6 +1681,13 @@ pub fn speech_speech_longrunningrecognize_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`speech_speech_longrunningrecognize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpeechSpeechLongrunningrecognizeArgs {
+    /// Request body.
+    pub body: LongRunningRecognizeRequest,
+}
+
 /// GET v1/speech:longrunningrecognize
 /// Performs asynchronous speech recognition: receive results via the google.longrunning.Operations interface. Returns either an Operation.error or an Operation.response which contains a LongRunningRecognizeResponse message. For more information on asynchronous speech recognition, see the [how-to](<https://cloud.google.`com/speech-to-text/docs/async-recognize`>).
 ///
@@ -1575,12 +1700,12 @@ pub fn speech_speech_longrunningrecognize_execute(
 
 pub fn speech_speech_longrunningrecognize(
     client: &SimpleHttpClient,
-    body: &LongRunningRecognizeRequest,
+    args: &SpeechSpeechLongrunningrecognizeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = speech_speech_longrunningrecognize_builder(client, body)?;
+    let builder = speech_speech_longrunningrecognize_builder(client, &args.body)?;
     speech_speech_longrunningrecognize_execute(builder)
 }
 
@@ -1675,6 +1800,13 @@ pub fn speech_speech_recognize_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`speech_speech_recognize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpeechSpeechRecognizeArgs {
+    /// Request body.
+    pub body: RecognizeRequest,
+}
+
 /// GET v1/speech:recognize
 /// Performs synchronous speech recognition: receive results after all audio has been sent and processed.
 ///
@@ -1687,13 +1819,13 @@ pub fn speech_speech_recognize_execute(
 
 pub fn speech_speech_recognize(
     client: &SimpleHttpClient,
-    body: &RecognizeRequest,
+    args: &SpeechSpeechRecognizeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RecognizeResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = speech_speech_recognize_builder(client, body)?;
+    let builder = speech_speech_recognize_builder(client, &args.body)?;
     speech_speech_recognize_execute(builder)
 }

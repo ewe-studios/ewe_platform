@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/accessPolicies
 /// Creates an access policy. This method fails if the organization already has an access policy. The long-running operation has a successful status after the access policy propagates to long-lasting storage. Syntactic and basic semantic errors are returned in metadata as a BadRequest proto.
@@ -105,6 +107,13 @@ pub fn accesscontextmanager_access_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesCreateArgs {
+    /// Request body.
+    pub body: AccessPolicy,
+}
+
 /// GET v1/accessPolicies
 /// Creates an access policy. This method fails if the organization already has an access policy. The long-running operation has a successful status after the access policy propagates to long-lasting storage. Syntactic and basic semantic errors are returned in metadata as a BadRequest proto.
 ///
@@ -117,12 +126,12 @@ pub fn accesscontextmanager_access_policies_create_execute(
 
 pub fn accesscontextmanager_access_policies_create(
     client: &SimpleHttpClient,
-    body: &AccessPolicy,
+    args: &AccesscontextmanagerAccessPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_access_policies_create_builder(client, body)?;
+    let builder = accesscontextmanager_access_policies_create_builder(client, &args.body)?;
     accesscontextmanager_access_policies_create_execute(builder)
 }
 
@@ -216,6 +225,13 @@ pub fn accesscontextmanager_access_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}
 /// Deletes an access policy based on the resource name. The long-running operation has a successful status after the access policy is removed from long-lasting storage.
 ///
@@ -228,12 +244,12 @@ pub fn accesscontextmanager_access_policies_delete_execute(
 
 pub fn accesscontextmanager_access_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccesscontextmanagerAccessPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_access_policies_delete_builder(client, name)?;
+    let builder = accesscontextmanager_access_policies_delete_builder(client, &args.name)?;
     accesscontextmanager_access_policies_delete_execute(builder)
 }
 
@@ -329,6 +345,13 @@ pub fn accesscontextmanager_access_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}
 /// Returns an access policy based on the name.
 ///
@@ -341,14 +364,14 @@ pub fn accesscontextmanager_access_policies_get_execute(
 
 pub fn accesscontextmanager_access_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccesscontextmanagerAccessPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccessPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_access_policies_get_builder(client, name)?;
+    let builder = accesscontextmanager_access_policies_get_builder(client, &args.name)?;
     accesscontextmanager_access_policies_get_execute(builder)
 }
 
@@ -445,6 +468,15 @@ pub fn accesscontextmanager_access_policies_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}:getIamPolicy
 /// Gets the IAM policy for the specified Access Context Manager access policy.
 ///
@@ -457,14 +489,16 @@ pub fn accesscontextmanager_access_policies_get_iam_policy_execute(
 
 pub fn accesscontextmanager_access_policies_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &AccesscontextmanagerAccessPoliciesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        accesscontextmanager_access_policies_get_iam_policy_builder(client, resource, body)?;
+    let builder = accesscontextmanager_access_policies_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     accesscontextmanager_access_policies_get_iam_policy_execute(builder)
 }
 
@@ -578,6 +612,17 @@ pub fn accesscontextmanager_access_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/accessPolicies
 /// Lists all access policies in an organization.
 ///
@@ -590,9 +635,7 @@ pub fn accesscontextmanager_access_policies_list_execute(
 
 pub fn accesscontextmanager_access_policies_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
+    args: &AccesscontextmanagerAccessPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAccessPoliciesResponse>, ApiError>,
@@ -601,8 +644,12 @@ pub fn accesscontextmanager_access_policies_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        accesscontextmanager_access_policies_list_builder(client, pageSize, pageToken, parent)?;
+    let builder = accesscontextmanager_access_policies_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
+    )?;
     accesscontextmanager_access_policies_list_execute(builder)
 }
 
@@ -711,6 +758,17 @@ pub fn accesscontextmanager_access_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AccessPolicy,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}
 /// Updates an access policy. The long-running operation from this RPC has a successful status after the changes to the access policy propagate to long-lasting storage.
 ///
@@ -723,15 +781,17 @@ pub fn accesscontextmanager_access_policies_patch_execute(
 
 pub fn accesscontextmanager_access_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AccessPolicy,
+    args: &AccesscontextmanagerAccessPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        accesscontextmanager_access_policies_patch_builder(client, name, updateMask, body)?;
+    let builder = accesscontextmanager_access_policies_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     accesscontextmanager_access_policies_patch_execute(builder)
 }
 
@@ -828,6 +888,15 @@ pub fn accesscontextmanager_access_policies_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}:setIamPolicy
 /// Sets the IAM policy for the specified Access Context Manager access policy. This method replaces the existing IAM policy on the access policy. The IAM policy controls the set of users who can perform specific operations on the Access Context Manager access policy.
 ///
@@ -840,14 +909,16 @@ pub fn accesscontextmanager_access_policies_set_iam_policy_execute(
 
 pub fn accesscontextmanager_access_policies_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &AccesscontextmanagerAccessPoliciesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        accesscontextmanager_access_policies_set_iam_policy_builder(client, resource, body)?;
+    let builder = accesscontextmanager_access_policies_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     accesscontextmanager_access_policies_set_iam_policy_execute(builder)
 }
 
@@ -948,6 +1019,15 @@ pub fn accesscontextmanager_access_policies_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}:testIamPermissions
 /// Returns the IAM permissions that the caller has on the specified Access Context Manager resource. The resource can be an AccessPolicy, AccessLevel, or ServicePerimeter. This method does not support other resources.
 ///
@@ -960,8 +1040,7 @@ pub fn accesscontextmanager_access_policies_test_iam_permissions_execute(
 
 pub fn accesscontextmanager_access_policies_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &AccesscontextmanagerAccessPoliciesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -970,8 +1049,11 @@ pub fn accesscontextmanager_access_policies_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        accesscontextmanager_access_policies_test_iam_permissions_builder(client, resource, body)?;
+    let builder = accesscontextmanager_access_policies_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     accesscontextmanager_access_policies_test_iam_permissions_execute(builder)
 }
 
@@ -1068,6 +1150,15 @@ pub fn accesscontextmanager_access_policies_access_levels_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_access_levels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAccessLevelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AccessLevel,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/accessLevels
 /// Creates an access level. The long-running operation from this RPC has a successful status after the access level propagates to long-lasting storage. If access levels contain errors, an error response is returned for the first error encountered.
 ///
@@ -1080,14 +1171,16 @@ pub fn accesscontextmanager_access_policies_access_levels_create_execute(
 
 pub fn accesscontextmanager_access_policies_access_levels_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AccessLevel,
+    args: &AccesscontextmanagerAccessPoliciesAccessLevelsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        accesscontextmanager_access_policies_access_levels_create_builder(client, parent, body)?;
+    let builder = accesscontextmanager_access_policies_access_levels_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     accesscontextmanager_access_policies_access_levels_create_execute(builder)
 }
 
@@ -1181,6 +1274,13 @@ pub fn accesscontextmanager_access_policies_access_levels_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_access_levels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAccessLevelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
 /// Deletes an access level based on the resource name. The long-running operation from this RPC has a successful status after the access level has been removed from long-lasting storage.
 ///
@@ -1193,12 +1293,13 @@ pub fn accesscontextmanager_access_policies_access_levels_delete_execute(
 
 pub fn accesscontextmanager_access_policies_access_levels_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccesscontextmanagerAccessPoliciesAccessLevelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_access_policies_access_levels_delete_builder(client, name)?;
+    let builder =
+        accesscontextmanager_access_policies_access_levels_delete_builder(client, &args.name)?;
     accesscontextmanager_access_policies_access_levels_delete_execute(builder)
 }
 
@@ -1304,6 +1405,15 @@ pub fn accesscontextmanager_access_policies_access_levels_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_access_levels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAccessLevelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: accessLevelFormat
+    pub accessLevelFormat: Option<String>,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
 /// Gets an access level based on the resource name.
 ///
@@ -1316,16 +1426,15 @@ pub fn accesscontextmanager_access_policies_access_levels_get_execute(
 
 pub fn accesscontextmanager_access_policies_access_levels_get(
     client: &SimpleHttpClient,
-    name: &str,
-    accessLevelFormat: Option<&str>,
+    args: &AccesscontextmanagerAccessPoliciesAccessLevelsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccessLevel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = accesscontextmanager_access_policies_access_levels_get_builder(
         client,
-        name,
-        accessLevelFormat,
+        &args.name,
+        args.accessLevelFormat.as_deref(),
     )?;
     accesscontextmanager_access_policies_access_levels_get_execute(builder)
 }
@@ -1442,6 +1551,19 @@ pub fn accesscontextmanager_access_policies_access_levels_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_access_levels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAccessLevelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: accessLevelFormat
+    pub accessLevelFormat: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/accessLevels
 /// Lists all access levels for an access policy.
 ///
@@ -1454,10 +1576,7 @@ pub fn accesscontextmanager_access_policies_access_levels_list_execute(
 
 pub fn accesscontextmanager_access_policies_access_levels_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    accessLevelFormat: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AccesscontextmanagerAccessPoliciesAccessLevelsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAccessLevelsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1466,10 +1585,10 @@ pub fn accesscontextmanager_access_policies_access_levels_list(
 > {
     let builder = accesscontextmanager_access_policies_access_levels_list_builder(
         client,
-        parent,
-        accessLevelFormat,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.accessLevelFormat.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     accesscontextmanager_access_policies_access_levels_list_execute(builder)
 }
@@ -1579,6 +1698,17 @@ pub fn accesscontextmanager_access_policies_access_levels_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_access_levels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAccessLevelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AccessLevel,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
 /// Updates an access level. The long-running operation from this RPC has a successful status after the changes to the access level propagate to long-lasting storage. If access levels contain errors, an error response is returned for the first error encountered.
 ///
@@ -1591,15 +1721,16 @@ pub fn accesscontextmanager_access_policies_access_levels_patch_execute(
 
 pub fn accesscontextmanager_access_policies_access_levels_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AccessLevel,
+    args: &AccesscontextmanagerAccessPoliciesAccessLevelsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = accesscontextmanager_access_policies_access_levels_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     accesscontextmanager_access_policies_access_levels_patch_execute(builder)
 }
@@ -1697,6 +1828,15 @@ pub fn accesscontextmanager_access_policies_access_levels_replace_all_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_access_levels_replace_all`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAccessLevelsReplaceAllArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ReplaceAccessLevelsRequest,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/accessLevels:replaceAll
 /// Replaces all existing access levels in an access policy with the access levels provided. This is done atomically. The long-running operation from this RPC has a successful status after all replacements propagate to long-lasting storage. If the replacement contains errors, an error response is returned for the first error encountered. Upon error, the replacement is cancelled, and existing access levels are not affected. The Operation.response field contains ReplaceAccessLevelsResponse. Removing access levels contained in existing service perimeters result in an error.
 ///
@@ -1709,14 +1849,15 @@ pub fn accesscontextmanager_access_policies_access_levels_replace_all_execute(
 
 pub fn accesscontextmanager_access_policies_access_levels_replace_all(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ReplaceAccessLevelsRequest,
+    args: &AccesscontextmanagerAccessPoliciesAccessLevelsReplaceAllArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = accesscontextmanager_access_policies_access_levels_replace_all_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     accesscontextmanager_access_policies_access_levels_replace_all_execute(builder)
 }
@@ -1818,6 +1959,15 @@ pub fn accesscontextmanager_access_policies_access_levels_test_iam_permissions_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_access_levels_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAccessLevelsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}:testIamPermissions
 /// Returns the IAM permissions that the caller has on the specified Access Context Manager resource. The resource can be an AccessPolicy, AccessLevel, or ServicePerimeter. This method does not support other resources.
 ///
@@ -1830,8 +1980,7 @@ pub fn accesscontextmanager_access_policies_access_levels_test_iam_permissions_e
 
 pub fn accesscontextmanager_access_policies_access_levels_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &AccesscontextmanagerAccessPoliciesAccessLevelsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1841,7 +1990,9 @@ pub fn accesscontextmanager_access_policies_access_levels_test_iam_permissions(
     ApiError,
 > {
     let builder = accesscontextmanager_access_policies_access_levels_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     accesscontextmanager_access_policies_access_levels_test_iam_permissions_execute(builder)
 }
@@ -1939,6 +2090,15 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_authorized_orgs_descs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AuthorizedOrgsDesc,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs
 /// Creates an authorized orgs desc. The long-running operation from this RPC has a successful status after the authorized orgs desc propagates to long-lasting storage. If a authorized orgs desc contains errors, an error response is returned for the first error encountered. The name of this AuthorizedOrgsDesc will be assigned during creation.
 ///
@@ -1951,14 +2111,15 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_create_execute
 
 pub fn accesscontextmanager_access_policies_authorized_orgs_descs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AuthorizedOrgsDesc,
+    args: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = accesscontextmanager_access_policies_authorized_orgs_descs_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     accesscontextmanager_access_policies_authorized_orgs_descs_create_execute(builder)
 }
@@ -2053,6 +2214,13 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_authorized_orgs_descs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs/{authorizedOrgsDescsId}
 /// Deletes an authorized orgs desc based on the resource name. The long-running operation from this RPC has a successful status after the authorized orgs desc is removed from long-lasting storage.
 ///
@@ -2065,13 +2233,14 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_delete_execute
 
 pub fn accesscontextmanager_access_policies_authorized_orgs_descs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        accesscontextmanager_access_policies_authorized_orgs_descs_delete_builder(client, name)?;
+    let builder = accesscontextmanager_access_policies_authorized_orgs_descs_delete_builder(
+        client, &args.name,
+    )?;
     accesscontextmanager_access_policies_authorized_orgs_descs_delete_execute(builder)
 }
 
@@ -2167,6 +2336,13 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_authorized_orgs_descs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs/{authorizedOrgsDescsId}
 /// Gets an authorized orgs desc based on the resource name.
 ///
@@ -2179,7 +2355,7 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_get_execute(
 
 pub fn accesscontextmanager_access_policies_authorized_orgs_descs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthorizedOrgsDesc>, ApiError>, P = ApiPending>
         + Send
@@ -2187,7 +2363,7 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_get(
     ApiError,
 > {
     let builder =
-        accesscontextmanager_access_policies_authorized_orgs_descs_get_builder(client, name)?;
+        accesscontextmanager_access_policies_authorized_orgs_descs_get_builder(client, &args.name)?;
     accesscontextmanager_access_policies_authorized_orgs_descs_get_execute(builder)
 }
 
@@ -2301,6 +2477,17 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_authorized_orgs_descs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs
 /// Lists all authorized orgs descs for an access policy.
 ///
@@ -2313,9 +2500,7 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_list_execute(
 
 pub fn accesscontextmanager_access_policies_authorized_orgs_descs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAuthorizedOrgsDescsResponse>, ApiError>,
@@ -2325,7 +2510,10 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_list(
     ApiError,
 > {
     let builder = accesscontextmanager_access_policies_authorized_orgs_descs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     accesscontextmanager_access_policies_authorized_orgs_descs_list_execute(builder)
 }
@@ -2435,6 +2623,17 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_authorized_orgs_descs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AuthorizedOrgsDesc,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs/{authorizedOrgsDescsId}
 /// Updates an authorized orgs desc. The long-running operation from this RPC has a successful status after the authorized orgs desc propagates to long-lasting storage. If a authorized orgs desc contains errors, an error response is returned for the first error encountered. Only the organization list in AuthorizedOrgsDesc can be updated. The name, authorization_type, asset_type and authorization_direction cannot be updated.
 ///
@@ -2447,15 +2646,16 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_patch_execute(
 
 pub fn accesscontextmanager_access_policies_authorized_orgs_descs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AuthorizedOrgsDesc,
+    args: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = accesscontextmanager_access_policies_authorized_orgs_descs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     accesscontextmanager_access_policies_authorized_orgs_descs_patch_execute(builder)
 }
@@ -2553,6 +2753,15 @@ pub fn accesscontextmanager_access_policies_service_perimeters_commit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_service_perimeters_commit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesServicePerimetersCommitArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CommitServicePerimetersRequest,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters:commit
 /// Commits the dry-run specification for all the service perimeters in an access policy. A commit operation on a service perimeter involves copying its spec field to the status field of the service perimeter. Only service perimeters with use_explicit_dry_run_spec field set to `true` are affected by a commit operation. The long-running operation from this RPC has a successful status after the dry-run specifications for all the service perimeters have been committed. If a commit fails, it causes the long-running operation to return an error response and the entire commit operation is cancelled. When successful, the Operation.response field contains CommitServicePerimetersResponse. The dry_run and the spec fields are cleared after a successful commit operation.
 ///
@@ -2565,14 +2774,15 @@ pub fn accesscontextmanager_access_policies_service_perimeters_commit_execute(
 
 pub fn accesscontextmanager_access_policies_service_perimeters_commit(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CommitServicePerimetersRequest,
+    args: &AccesscontextmanagerAccessPoliciesServicePerimetersCommitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = accesscontextmanager_access_policies_service_perimeters_commit_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     accesscontextmanager_access_policies_service_perimeters_commit_execute(builder)
 }
@@ -2670,6 +2880,15 @@ pub fn accesscontextmanager_access_policies_service_perimeters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_service_perimeters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesServicePerimetersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ServicePerimeter,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters
 /// Creates a service perimeter. The long-running operation from this RPC has a successful status after the service perimeter propagates to long-lasting storage. If a service perimeter contains errors, an error response is returned for the first error encountered.
 ///
@@ -2682,14 +2901,15 @@ pub fn accesscontextmanager_access_policies_service_perimeters_create_execute(
 
 pub fn accesscontextmanager_access_policies_service_perimeters_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ServicePerimeter,
+    args: &AccesscontextmanagerAccessPoliciesServicePerimetersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = accesscontextmanager_access_policies_service_perimeters_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     accesscontextmanager_access_policies_service_perimeters_create_execute(builder)
 }
@@ -2784,6 +3004,13 @@ pub fn accesscontextmanager_access_policies_service_perimeters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_service_perimeters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesServicePerimetersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}
 /// Deletes a service perimeter based on the resource name. The long-running operation from this RPC has a successful status after the service perimeter is removed from long-lasting storage.
 ///
@@ -2796,13 +3023,13 @@ pub fn accesscontextmanager_access_policies_service_perimeters_delete_execute(
 
 pub fn accesscontextmanager_access_policies_service_perimeters_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccesscontextmanagerAccessPoliciesServicePerimetersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        accesscontextmanager_access_policies_service_perimeters_delete_builder(client, name)?;
+        accesscontextmanager_access_policies_service_perimeters_delete_builder(client, &args.name)?;
     accesscontextmanager_access_policies_service_perimeters_delete_execute(builder)
 }
 
@@ -2898,6 +3125,13 @@ pub fn accesscontextmanager_access_policies_service_perimeters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_service_perimeters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesServicePerimetersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}
 /// Gets a service perimeter based on the resource name.
 ///
@@ -2910,7 +3144,7 @@ pub fn accesscontextmanager_access_policies_service_perimeters_get_execute(
 
 pub fn accesscontextmanager_access_policies_service_perimeters_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccesscontextmanagerAccessPoliciesServicePerimetersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ServicePerimeter>, ApiError>, P = ApiPending>
         + Send
@@ -2918,7 +3152,7 @@ pub fn accesscontextmanager_access_policies_service_perimeters_get(
     ApiError,
 > {
     let builder =
-        accesscontextmanager_access_policies_service_perimeters_get_builder(client, name)?;
+        accesscontextmanager_access_policies_service_perimeters_get_builder(client, &args.name)?;
     accesscontextmanager_access_policies_service_perimeters_get_execute(builder)
 }
 
@@ -3032,6 +3266,17 @@ pub fn accesscontextmanager_access_policies_service_perimeters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_service_perimeters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesServicePerimetersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters
 /// Lists all service perimeters for an access policy.
 ///
@@ -3044,9 +3289,7 @@ pub fn accesscontextmanager_access_policies_service_perimeters_list_execute(
 
 pub fn accesscontextmanager_access_policies_service_perimeters_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AccesscontextmanagerAccessPoliciesServicePerimetersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListServicePerimetersResponse>, ApiError>,
@@ -3056,7 +3299,10 @@ pub fn accesscontextmanager_access_policies_service_perimeters_list(
     ApiError,
 > {
     let builder = accesscontextmanager_access_policies_service_perimeters_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     accesscontextmanager_access_policies_service_perimeters_list_execute(builder)
 }
@@ -3166,6 +3412,17 @@ pub fn accesscontextmanager_access_policies_service_perimeters_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_service_perimeters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesServicePerimetersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ServicePerimeter,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}
 /// Updates a service perimeter. The long-running operation from this RPC has a successful status after the service perimeter propagates to long-lasting storage. If a service perimeter contains errors, an error response is returned for the first error encountered.
 ///
@@ -3178,15 +3435,16 @@ pub fn accesscontextmanager_access_policies_service_perimeters_patch_execute(
 
 pub fn accesscontextmanager_access_policies_service_perimeters_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ServicePerimeter,
+    args: &AccesscontextmanagerAccessPoliciesServicePerimetersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = accesscontextmanager_access_policies_service_perimeters_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     accesscontextmanager_access_policies_service_perimeters_patch_execute(builder)
 }
@@ -3284,6 +3542,15 @@ pub fn accesscontextmanager_access_policies_service_perimeters_replace_all_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_service_perimeters_replace_all`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesServicePerimetersReplaceAllArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ReplaceServicePerimetersRequest,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters:replaceAll
 /// Replace all existing service perimeters in an access policy with the service perimeters provided. This is done atomically. The long-running operation from this RPC has a successful status after all replacements propagate to long-lasting storage. Replacements containing errors result in an error response for the first error encountered. Upon an error, replacement are cancelled and existing service perimeters are not affected. The Operation.response field contains ReplaceServicePerimetersResponse.
 ///
@@ -3296,14 +3563,15 @@ pub fn accesscontextmanager_access_policies_service_perimeters_replace_all_execu
 
 pub fn accesscontextmanager_access_policies_service_perimeters_replace_all(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ReplaceServicePerimetersRequest,
+    args: &AccesscontextmanagerAccessPoliciesServicePerimetersReplaceAllArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = accesscontextmanager_access_policies_service_perimeters_replace_all_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     accesscontextmanager_access_policies_service_perimeters_replace_all_execute(builder)
 }
@@ -3405,6 +3673,15 @@ pub fn accesscontextmanager_access_policies_service_perimeters_test_iam_permissi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_access_policies_service_perimeters_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesServicePerimetersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}:testIamPermissions
 /// Returns the IAM permissions that the caller has on the specified Access Context Manager resource. The resource can be an AccessPolicy, AccessLevel, or ServicePerimeter. This method does not support other resources.
 ///
@@ -3417,8 +3694,7 @@ pub fn accesscontextmanager_access_policies_service_perimeters_test_iam_permissi
 
 pub fn accesscontextmanager_access_policies_service_perimeters_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &AccesscontextmanagerAccessPoliciesServicePerimetersTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3429,7 +3705,9 @@ pub fn accesscontextmanager_access_policies_service_perimeters_test_iam_permissi
 > {
     let builder =
         accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_execute(builder)
 }
@@ -3527,6 +3805,15 @@ pub fn accesscontextmanager_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -3539,13 +3826,12 @@ pub fn accesscontextmanager_operations_cancel_execute(
 
 pub fn accesscontextmanager_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &AccesscontextmanagerOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_operations_cancel_builder(client, name, body)?;
+    let builder = accesscontextmanager_operations_cancel_builder(client, &args.name, &args.body)?;
     accesscontextmanager_operations_cancel_execute(builder)
 }
 
@@ -3639,6 +3925,13 @@ pub fn accesscontextmanager_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -3651,12 +3944,12 @@ pub fn accesscontextmanager_operations_delete_execute(
 
 pub fn accesscontextmanager_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccesscontextmanagerOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_operations_delete_builder(client, name)?;
+    let builder = accesscontextmanager_operations_delete_builder(client, &args.name)?;
     accesscontextmanager_operations_delete_execute(builder)
 }
 
@@ -3750,6 +4043,13 @@ pub fn accesscontextmanager_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -3762,12 +4062,12 @@ pub fn accesscontextmanager_operations_get_execute(
 
 pub fn accesscontextmanager_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccesscontextmanagerOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_operations_get_builder(client, name)?;
+    let builder = accesscontextmanager_operations_get_builder(client, &args.name)?;
     accesscontextmanager_operations_get_execute(builder)
 }
 
@@ -3887,6 +4187,21 @@ pub fn accesscontextmanager_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -3899,11 +4214,7 @@ pub fn accesscontextmanager_operations_list_execute(
 
 pub fn accesscontextmanager_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &AccesscontextmanagerOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3912,11 +4223,11 @@ pub fn accesscontextmanager_operations_list(
 > {
     let builder = accesscontextmanager_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     accesscontextmanager_operations_list_execute(builder)
 }
@@ -4014,6 +4325,15 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_create_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_organizations_gcp_user_access_bindings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerOrganizationsGcpUserAccessBindingsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GcpUserAccessBinding,
+}
+
 /// GET v1/organizations/{organizationsId}/gcpUserAccessBindings
 /// Creates a GcpUserAccessBinding. If the client specifies a name, the server ignores it. Fails if a resource already exists with the same group_key. Completion of this long-running operation does not necessarily signify that the new binding is deployed onto all affected users, which may take more time.
 ///
@@ -4026,14 +4346,15 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_create_execut
 
 pub fn accesscontextmanager_organizations_gcp_user_access_bindings_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GcpUserAccessBinding,
+    args: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = accesscontextmanager_organizations_gcp_user_access_bindings_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     accesscontextmanager_organizations_gcp_user_access_bindings_create_execute(builder)
 }
@@ -4128,6 +4449,13 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_delete_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_organizations_gcp_user_access_bindings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerOrganizationsGcpUserAccessBindingsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/gcpUserAccessBindings/{gcpUserAccessBindingsId}
 /// Deletes a GcpUserAccessBinding. Completion of this long-running operation does not necessarily signify that the binding deletion is deployed onto all affected users, which may take more time.
 ///
@@ -4140,13 +4468,14 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_delete_execut
 
 pub fn accesscontextmanager_organizations_gcp_user_access_bindings_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        accesscontextmanager_organizations_gcp_user_access_bindings_delete_builder(client, name)?;
+    let builder = accesscontextmanager_organizations_gcp_user_access_bindings_delete_builder(
+        client, &args.name,
+    )?;
     accesscontextmanager_organizations_gcp_user_access_bindings_delete_execute(builder)
 }
 
@@ -4242,6 +4571,13 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_organizations_gcp_user_access_bindings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerOrganizationsGcpUserAccessBindingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/gcpUserAccessBindings/{gcpUserAccessBindingsId}
 /// Gets the GcpUserAccessBinding with the given name.
 ///
@@ -4254,15 +4590,16 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_get_execute(
 
 pub fn accesscontextmanager_organizations_gcp_user_access_bindings_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GcpUserAccessBinding>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        accesscontextmanager_organizations_gcp_user_access_bindings_get_builder(client, name)?;
+    let builder = accesscontextmanager_organizations_gcp_user_access_bindings_get_builder(
+        client, &args.name,
+    )?;
     accesscontextmanager_organizations_gcp_user_access_bindings_get_execute(builder)
 }
 
@@ -4376,6 +4713,17 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_organizations_gcp_user_access_bindings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerOrganizationsGcpUserAccessBindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/gcpUserAccessBindings
 /// Lists all GcpUserAccessBindings for a Google Cloud organization.
 ///
@@ -4388,9 +4736,7 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_list_execute(
 
 pub fn accesscontextmanager_organizations_gcp_user_access_bindings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListGcpUserAccessBindingsResponse>, ApiError>,
@@ -4400,7 +4746,10 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_list(
     ApiError,
 > {
     let builder = accesscontextmanager_organizations_gcp_user_access_bindings_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     accesscontextmanager_organizations_gcp_user_access_bindings_list_execute(builder)
 }
@@ -4514,6 +4863,19 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_patch_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_organizations_gcp_user_access_bindings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerOrganizationsGcpUserAccessBindingsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: append
+    pub append: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GcpUserAccessBinding,
+}
+
 /// GET v1/organizations/{organizationsId}/gcpUserAccessBindings/{gcpUserAccessBindingsId}
 /// Updates a GcpUserAccessBinding. Completion of this long-running operation does not necessarily signify that the changed binding is deployed onto all affected users, which may take more time.
 ///
@@ -4526,16 +4888,17 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_patch_execute
 
 pub fn accesscontextmanager_organizations_gcp_user_access_bindings_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    append: Option<bool>,
-    updateMask: Option<&str>,
-    body: &GcpUserAccessBinding,
+    args: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = accesscontextmanager_organizations_gcp_user_access_bindings_patch_builder(
-        client, name, append, updateMask, body,
+        client,
+        &args.name,
+        args.append,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     accesscontextmanager_organizations_gcp_user_access_bindings_patch_execute(builder)
 }
@@ -4646,6 +5009,15 @@ pub fn accesscontextmanager_permissions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_permissions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerPermissionsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/permissions
 /// Lists all supported permissions in VPCSC Granular Controls.
 ///
@@ -4658,8 +5030,7 @@ pub fn accesscontextmanager_permissions_list_execute(
 
 pub fn accesscontextmanager_permissions_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AccesscontextmanagerPermissionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSupportedPermissionsResponse>, ApiError>,
@@ -4668,7 +5039,11 @@ pub fn accesscontextmanager_permissions_list(
         + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_permissions_list_builder(client, pageSize, pageToken)?;
+    let builder = accesscontextmanager_permissions_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     accesscontextmanager_permissions_list_execute(builder)
 }
 
@@ -4764,6 +5139,13 @@ pub fn accesscontextmanager_services_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_services_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerServicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/services/{name}
 /// Returns a VPC-SC supported service based on the service name.
 ///
@@ -4776,14 +5158,14 @@ pub fn accesscontextmanager_services_get_execute(
 
 pub fn accesscontextmanager_services_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AccesscontextmanagerServicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SupportedService>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_services_get_builder(client, name)?;
+    let builder = accesscontextmanager_services_get_builder(client, &args.name)?;
     accesscontextmanager_services_get_execute(builder)
 }
 
@@ -4893,6 +5275,15 @@ pub fn accesscontextmanager_services_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`accesscontextmanager_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerServicesListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/services
 /// Lists all VPC-SC supported services.
 ///
@@ -4905,8 +5296,7 @@ pub fn accesscontextmanager_services_list_execute(
 
 pub fn accesscontextmanager_services_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AccesscontextmanagerServicesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSupportedServicesResponse>, ApiError>,
@@ -4915,6 +5305,10 @@ pub fn accesscontextmanager_services_list(
         + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_services_list_builder(client, pageSize, pageToken)?;
+    let builder = accesscontextmanager_services_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     accesscontextmanager_services_list_execute(builder)
 }

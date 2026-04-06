@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/addressGroups/{addressGroupsId}:addItems
 /// Adds items to an address group.
@@ -109,6 +111,15 @@ pub fn networksecurity_organizations_locations_address_groups_add_items_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_address_groups_add_items`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsAddressGroupsAddItemsArgs {
+    /// Path parameter: addressGroup
+    pub addressGroup: String,
+    /// Request body.
+    pub body: AddAddressGroupItemsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/addressGroups/{addressGroupsId}:addItems
 /// Adds items to an address group.
 ///
@@ -121,16 +132,15 @@ pub fn networksecurity_organizations_locations_address_groups_add_items_execute(
 
 pub fn networksecurity_organizations_locations_address_groups_add_items(
     client: &SimpleHttpClient,
-    addressGroup: &str,
-    body: &AddAddressGroupItemsRequest,
+    args: &NetworksecurityOrganizationsLocationsAddressGroupsAddItemsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_address_groups_add_items_builder(
         client,
-        addressGroup,
-        body,
+        &args.addressGroup,
+        &args.body,
     )?;
     networksecurity_organizations_locations_address_groups_add_items_execute(builder)
 }
@@ -228,6 +238,15 @@ pub fn networksecurity_organizations_locations_address_groups_clone_items_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_address_groups_clone_items`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsAddressGroupsCloneItemsArgs {
+    /// Path parameter: addressGroup
+    pub addressGroup: String,
+    /// Request body.
+    pub body: CloneAddressGroupItemsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/addressGroups/{addressGroupsId}:cloneItems
 /// Clones items from one address group to another.
 ///
@@ -240,16 +259,15 @@ pub fn networksecurity_organizations_locations_address_groups_clone_items_execut
 
 pub fn networksecurity_organizations_locations_address_groups_clone_items(
     client: &SimpleHttpClient,
-    addressGroup: &str,
-    body: &CloneAddressGroupItemsRequest,
+    args: &NetworksecurityOrganizationsLocationsAddressGroupsCloneItemsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_address_groups_clone_items_builder(
         client,
-        addressGroup,
-        body,
+        &args.addressGroup,
+        &args.body,
     )?;
     networksecurity_organizations_locations_address_groups_clone_items_execute(builder)
 }
@@ -363,6 +381,19 @@ pub fn networksecurity_organizations_locations_address_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_address_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsAddressGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: addressGroupId
+    pub addressGroupId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: AddressGroup,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/addressGroups
 /// Creates a new address group in a given project and location.
 ///
@@ -375,20 +406,17 @@ pub fn networksecurity_organizations_locations_address_groups_create_execute(
 
 pub fn networksecurity_organizations_locations_address_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    addressGroupId: Option<&str>,
-    requestId: Option<&str>,
-    body: &AddressGroup,
+    args: &NetworksecurityOrganizationsLocationsAddressGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_address_groups_create_builder(
         client,
-        parent,
-        addressGroupId,
-        requestId,
-        body,
+        &args.parent,
+        args.addressGroupId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networksecurity_organizations_locations_address_groups_create_execute(builder)
 }
@@ -495,6 +523,15 @@ pub fn networksecurity_organizations_locations_address_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_address_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsAddressGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/addressGroups/{addressGroupsId}
 /// Deletes an address group.
 ///
@@ -507,14 +544,15 @@ pub fn networksecurity_organizations_locations_address_groups_delete_execute(
 
 pub fn networksecurity_organizations_locations_address_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworksecurityOrganizationsLocationsAddressGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_address_groups_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     networksecurity_organizations_locations_address_groups_delete_execute(builder)
 }
@@ -611,6 +649,13 @@ pub fn networksecurity_organizations_locations_address_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_address_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsAddressGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/addressGroups/{addressGroupsId}
 /// Gets details of a single address group.
 ///
@@ -623,14 +668,15 @@ pub fn networksecurity_organizations_locations_address_groups_get_execute(
 
 pub fn networksecurity_organizations_locations_address_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityOrganizationsLocationsAddressGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddressGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = networksecurity_organizations_locations_address_groups_get_builder(client, name)?;
+    let builder =
+        networksecurity_organizations_locations_address_groups_get_builder(client, &args.name)?;
     networksecurity_organizations_locations_address_groups_get_execute(builder)
 }
 
@@ -746,6 +792,19 @@ pub fn networksecurity_organizations_locations_address_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_address_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsAddressGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/addressGroups
 /// Lists address groups in a given project and location.
 ///
@@ -758,10 +817,7 @@ pub fn networksecurity_organizations_locations_address_groups_list_execute(
 
 pub fn networksecurity_organizations_locations_address_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworksecurityOrganizationsLocationsAddressGroupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAddressGroupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -770,10 +826,10 @@ pub fn networksecurity_organizations_locations_address_groups_list(
 > {
     let builder = networksecurity_organizations_locations_address_groups_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     networksecurity_organizations_locations_address_groups_list_execute(builder)
 }
@@ -888,6 +944,17 @@ pub fn networksecurity_organizations_locations_address_groups_list_references_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_address_groups_list_references`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsAddressGroupsListReferencesArgs {
+    /// Path parameter: addressGroup
+    pub addressGroup: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/addressGroups/{addressGroupsId}:listReferences
 /// Lists references of an address group.
 ///
@@ -900,9 +967,7 @@ pub fn networksecurity_organizations_locations_address_groups_list_references_ex
 
 pub fn networksecurity_organizations_locations_address_groups_list_references(
     client: &SimpleHttpClient,
-    addressGroup: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityOrganizationsLocationsAddressGroupsListReferencesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAddressGroupReferencesResponse>, ApiError>,
@@ -913,9 +978,9 @@ pub fn networksecurity_organizations_locations_address_groups_list_references(
 > {
     let builder = networksecurity_organizations_locations_address_groups_list_references_builder(
         client,
-        addressGroup,
-        pageSize,
-        pageToken,
+        &args.addressGroup,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_organizations_locations_address_groups_list_references_execute(builder)
 }
@@ -1029,6 +1094,19 @@ pub fn networksecurity_organizations_locations_address_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_address_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsAddressGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AddressGroup,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/addressGroups/{addressGroupsId}
 /// Updates parameters of an address group.
 ///
@@ -1041,16 +1119,17 @@ pub fn networksecurity_organizations_locations_address_groups_patch_execute(
 
 pub fn networksecurity_organizations_locations_address_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AddressGroup,
+    args: &NetworksecurityOrganizationsLocationsAddressGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_address_groups_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_organizations_locations_address_groups_patch_execute(builder)
 }
@@ -1148,6 +1227,15 @@ pub fn networksecurity_organizations_locations_address_groups_remove_items_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_address_groups_remove_items`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsAddressGroupsRemoveItemsArgs {
+    /// Path parameter: addressGroup
+    pub addressGroup: String,
+    /// Request body.
+    pub body: RemoveAddressGroupItemsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/addressGroups/{addressGroupsId}:removeItems
 /// Removes items from an address group.
 ///
@@ -1160,16 +1248,15 @@ pub fn networksecurity_organizations_locations_address_groups_remove_items_execu
 
 pub fn networksecurity_organizations_locations_address_groups_remove_items(
     client: &SimpleHttpClient,
-    addressGroup: &str,
-    body: &RemoveAddressGroupItemsRequest,
+    args: &NetworksecurityOrganizationsLocationsAddressGroupsRemoveItemsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_address_groups_remove_items_builder(
         client,
-        addressGroup,
-        body,
+        &args.addressGroup,
+        &args.body,
     )?;
     networksecurity_organizations_locations_address_groups_remove_items_execute(builder)
 }
@@ -1283,6 +1370,19 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_firewall_endpoints_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsFirewallEndpointsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: firewallEndpointId
+    pub firewallEndpointId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: FirewallEndpoint,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/firewallEndpoints
 /// Creates a new FirewallEndpoint in a given organization and location.
 ///
@@ -1295,20 +1395,17 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_create_execute
 
 pub fn networksecurity_organizations_locations_firewall_endpoints_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    firewallEndpointId: Option<&str>,
-    requestId: Option<&str>,
-    body: &FirewallEndpoint,
+    args: &NetworksecurityOrganizationsLocationsFirewallEndpointsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_firewall_endpoints_create_builder(
         client,
-        parent,
-        firewallEndpointId,
-        requestId,
-        body,
+        &args.parent,
+        args.firewallEndpointId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networksecurity_organizations_locations_firewall_endpoints_create_execute(builder)
 }
@@ -1415,6 +1512,15 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_firewall_endpoints_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsFirewallEndpointsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/firewallEndpoints/{firewallEndpointsId}
 /// Deletes a single org Endpoint.
 ///
@@ -1427,14 +1533,15 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_delete_execute
 
 pub fn networksecurity_organizations_locations_firewall_endpoints_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworksecurityOrganizationsLocationsFirewallEndpointsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_firewall_endpoints_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     networksecurity_organizations_locations_firewall_endpoints_delete_execute(builder)
 }
@@ -1531,6 +1638,13 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_firewall_endpoints_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsFirewallEndpointsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/firewallEndpoints/{firewallEndpointsId}
 /// Gets details of a single org Endpoint.
 ///
@@ -1543,7 +1657,7 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_get_execute(
 
 pub fn networksecurity_organizations_locations_firewall_endpoints_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityOrganizationsLocationsFirewallEndpointsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FirewallEndpoint>, ApiError>, P = ApiPending>
         + Send
@@ -1551,7 +1665,7 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_get(
     ApiError,
 > {
     let builder =
-        networksecurity_organizations_locations_firewall_endpoints_get_builder(client, name)?;
+        networksecurity_organizations_locations_firewall_endpoints_get_builder(client, &args.name)?;
     networksecurity_organizations_locations_firewall_endpoints_get_execute(builder)
 }
 
@@ -1673,6 +1787,21 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_firewall_endpoints_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsFirewallEndpointsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/firewallEndpoints
 /// Lists FirewallEndpoints in a given organization and location.
 ///
@@ -1685,11 +1814,7 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_list_execute(
 
 pub fn networksecurity_organizations_locations_firewall_endpoints_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityOrganizationsLocationsFirewallEndpointsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListFirewallEndpointsResponse>, ApiError>,
@@ -1699,7 +1824,12 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_list(
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_firewall_endpoints_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_organizations_locations_firewall_endpoints_list_execute(builder)
 }
@@ -1813,6 +1943,19 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_firewall_endpoints_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsFirewallEndpointsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: FirewallEndpoint,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/firewallEndpoints/{firewallEndpointsId}
 /// Update a single org Endpoint.
 ///
@@ -1825,16 +1968,17 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_patch_execute(
 
 pub fn networksecurity_organizations_locations_firewall_endpoints_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &FirewallEndpoint,
+    args: &NetworksecurityOrganizationsLocationsFirewallEndpointsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_firewall_endpoints_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_organizations_locations_firewall_endpoints_patch_execute(builder)
 }
@@ -1932,6 +2076,15 @@ pub fn networksecurity_organizations_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1944,14 +2097,14 @@ pub fn networksecurity_organizations_locations_operations_cancel_execute(
 
 pub fn networksecurity_organizations_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &NetworksecurityOrganizationsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        networksecurity_organizations_locations_operations_cancel_builder(client, name, body)?;
+    let builder = networksecurity_organizations_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     networksecurity_organizations_locations_operations_cancel_execute(builder)
 }
 
@@ -2045,6 +2198,13 @@ pub fn networksecurity_organizations_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -2057,12 +2217,13 @@ pub fn networksecurity_organizations_locations_operations_delete_execute(
 
 pub fn networksecurity_organizations_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityOrganizationsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networksecurity_organizations_locations_operations_delete_builder(client, name)?;
+    let builder =
+        networksecurity_organizations_locations_operations_delete_builder(client, &args.name)?;
     networksecurity_organizations_locations_operations_delete_execute(builder)
 }
 
@@ -2156,6 +2317,13 @@ pub fn networksecurity_organizations_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2168,12 +2336,13 @@ pub fn networksecurity_organizations_locations_operations_get_execute(
 
 pub fn networksecurity_organizations_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityOrganizationsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networksecurity_organizations_locations_operations_get_builder(client, name)?;
+    let builder =
+        networksecurity_organizations_locations_operations_get_builder(client, &args.name)?;
     networksecurity_organizations_locations_operations_get_execute(builder)
 }
 
@@ -2293,6 +2462,21 @@ pub fn networksecurity_organizations_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -2305,11 +2489,7 @@ pub fn networksecurity_organizations_locations_operations_list_execute(
 
 pub fn networksecurity_organizations_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworksecurityOrganizationsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2318,11 +2498,11 @@ pub fn networksecurity_organizations_locations_operations_list(
 > {
     let builder = networksecurity_organizations_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     networksecurity_organizations_locations_operations_list_execute(builder)
 }
@@ -2432,6 +2612,17 @@ pub fn networksecurity_organizations_locations_security_profile_groups_create_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_security_profile_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsSecurityProfileGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: securityProfileGroupId
+    pub securityProfileGroupId: Option<String>,
+    /// Request body.
+    pub body: SecurityProfileGroup,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/securityProfileGroups
 /// Creates a new SecurityProfileGroup in a given organization and location.
 ///
@@ -2444,18 +2635,16 @@ pub fn networksecurity_organizations_locations_security_profile_groups_create_ex
 
 pub fn networksecurity_organizations_locations_security_profile_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    securityProfileGroupId: Option<&str>,
-    body: &SecurityProfileGroup,
+    args: &NetworksecurityOrganizationsLocationsSecurityProfileGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_security_profile_groups_create_builder(
         client,
-        parent,
-        securityProfileGroupId,
-        body,
+        &args.parent,
+        args.securityProfileGroupId.as_deref(),
+        &args.body,
     )?;
     networksecurity_organizations_locations_security_profile_groups_create_execute(builder)
 }
@@ -2562,6 +2751,15 @@ pub fn networksecurity_organizations_locations_security_profile_groups_delete_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_security_profile_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsSecurityProfileGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/securityProfileGroups/{securityProfileGroupsId}
 /// Deletes a single SecurityProfileGroup.
 ///
@@ -2574,14 +2772,15 @@ pub fn networksecurity_organizations_locations_security_profile_groups_delete_ex
 
 pub fn networksecurity_organizations_locations_security_profile_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &NetworksecurityOrganizationsLocationsSecurityProfileGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_security_profile_groups_delete_builder(
-        client, name, etag,
+        client,
+        &args.name,
+        args.etag.as_deref(),
     )?;
     networksecurity_organizations_locations_security_profile_groups_delete_execute(builder)
 }
@@ -2678,6 +2877,13 @@ pub fn networksecurity_organizations_locations_security_profile_groups_get_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_security_profile_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsSecurityProfileGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/securityProfileGroups/{securityProfileGroupsId}
 /// Gets details of a single SecurityProfileGroup.
 ///
@@ -2690,15 +2896,16 @@ pub fn networksecurity_organizations_locations_security_profile_groups_get_execu
 
 pub fn networksecurity_organizations_locations_security_profile_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityOrganizationsLocationsSecurityProfileGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecurityProfileGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        networksecurity_organizations_locations_security_profile_groups_get_builder(client, name)?;
+    let builder = networksecurity_organizations_locations_security_profile_groups_get_builder(
+        client, &args.name,
+    )?;
     networksecurity_organizations_locations_security_profile_groups_get_execute(builder)
 }
 
@@ -2812,6 +3019,17 @@ pub fn networksecurity_organizations_locations_security_profile_groups_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_security_profile_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsSecurityProfileGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/securityProfileGroups
 /// Lists SecurityProfileGroups in a given organization and location.
 ///
@@ -2824,9 +3042,7 @@ pub fn networksecurity_organizations_locations_security_profile_groups_list_exec
 
 pub fn networksecurity_organizations_locations_security_profile_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityOrganizationsLocationsSecurityProfileGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSecurityProfileGroupsResponse>, ApiError>,
@@ -2836,7 +3052,10 @@ pub fn networksecurity_organizations_locations_security_profile_groups_list(
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_security_profile_groups_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_organizations_locations_security_profile_groups_list_execute(builder)
 }
@@ -2946,6 +3165,17 @@ pub fn networksecurity_organizations_locations_security_profile_groups_patch_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_security_profile_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsSecurityProfileGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SecurityProfileGroup,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/securityProfileGroups/{securityProfileGroupsId}
 /// Updates the parameters of a single SecurityProfileGroup.
 ///
@@ -2958,15 +3188,16 @@ pub fn networksecurity_organizations_locations_security_profile_groups_patch_exe
 
 pub fn networksecurity_organizations_locations_security_profile_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SecurityProfileGroup,
+    args: &NetworksecurityOrganizationsLocationsSecurityProfileGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_security_profile_groups_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_organizations_locations_security_profile_groups_patch_execute(builder)
 }
@@ -3076,6 +3307,17 @@ pub fn networksecurity_organizations_locations_security_profiles_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_security_profiles_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsSecurityProfilesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: securityProfileId
+    pub securityProfileId: Option<String>,
+    /// Request body.
+    pub body: SecurityProfile,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/securityProfiles
 /// Creates a new SecurityProfile in a given organization and location.
 ///
@@ -3088,18 +3330,16 @@ pub fn networksecurity_organizations_locations_security_profiles_create_execute(
 
 pub fn networksecurity_organizations_locations_security_profiles_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    securityProfileId: Option<&str>,
-    body: &SecurityProfile,
+    args: &NetworksecurityOrganizationsLocationsSecurityProfilesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_security_profiles_create_builder(
         client,
-        parent,
-        securityProfileId,
-        body,
+        &args.parent,
+        args.securityProfileId.as_deref(),
+        &args.body,
     )?;
     networksecurity_organizations_locations_security_profiles_create_execute(builder)
 }
@@ -3206,6 +3446,15 @@ pub fn networksecurity_organizations_locations_security_profiles_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_security_profiles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsSecurityProfilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/securityProfiles/{securityProfilesId}
 /// Deletes a single SecurityProfile.
 ///
@@ -3218,14 +3467,15 @@ pub fn networksecurity_organizations_locations_security_profiles_delete_execute(
 
 pub fn networksecurity_organizations_locations_security_profiles_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &NetworksecurityOrganizationsLocationsSecurityProfilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_security_profiles_delete_builder(
-        client, name, etag,
+        client,
+        &args.name,
+        args.etag.as_deref(),
     )?;
     networksecurity_organizations_locations_security_profiles_delete_execute(builder)
 }
@@ -3322,6 +3572,13 @@ pub fn networksecurity_organizations_locations_security_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_security_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsSecurityProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/securityProfiles/{securityProfilesId}
 /// Gets details of a single SecurityProfile.
 ///
@@ -3334,7 +3591,7 @@ pub fn networksecurity_organizations_locations_security_profiles_get_execute(
 
 pub fn networksecurity_organizations_locations_security_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityOrganizationsLocationsSecurityProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecurityProfile>, ApiError>, P = ApiPending>
         + Send
@@ -3342,7 +3599,7 @@ pub fn networksecurity_organizations_locations_security_profiles_get(
     ApiError,
 > {
     let builder =
-        networksecurity_organizations_locations_security_profiles_get_builder(client, name)?;
+        networksecurity_organizations_locations_security_profiles_get_builder(client, &args.name)?;
     networksecurity_organizations_locations_security_profiles_get_execute(builder)
 }
 
@@ -3456,6 +3713,17 @@ pub fn networksecurity_organizations_locations_security_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_security_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsSecurityProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/securityProfiles
 /// Lists SecurityProfiles in a given organization and location.
 ///
@@ -3468,9 +3736,7 @@ pub fn networksecurity_organizations_locations_security_profiles_list_execute(
 
 pub fn networksecurity_organizations_locations_security_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityOrganizationsLocationsSecurityProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSecurityProfilesResponse>, ApiError>,
@@ -3480,7 +3746,10 @@ pub fn networksecurity_organizations_locations_security_profiles_list(
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_security_profiles_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_organizations_locations_security_profiles_list_execute(builder)
 }
@@ -3590,6 +3859,17 @@ pub fn networksecurity_organizations_locations_security_profiles_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_organizations_locations_security_profiles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityOrganizationsLocationsSecurityProfilesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SecurityProfile,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/securityProfiles/{securityProfilesId}
 /// Updates the parameters of a single SecurityProfile.
 ///
@@ -3602,15 +3882,16 @@ pub fn networksecurity_organizations_locations_security_profiles_patch_execute(
 
 pub fn networksecurity_organizations_locations_security_profiles_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SecurityProfile,
+    args: &NetworksecurityOrganizationsLocationsSecurityProfilesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_organizations_locations_security_profiles_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_organizations_locations_security_profiles_patch_execute(builder)
 }
@@ -3705,6 +3986,13 @@ pub fn networksecurity_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -3717,12 +4005,12 @@ pub fn networksecurity_projects_locations_get_execute(
 
 pub fn networksecurity_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networksecurity_projects_locations_get_builder(client, name)?;
+    let builder = networksecurity_projects_locations_get_builder(client, &args.name)?;
     networksecurity_projects_locations_get_execute(builder)
 }
 
@@ -3842,6 +4130,21 @@ pub fn networksecurity_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -3854,11 +4157,7 @@ pub fn networksecurity_projects_locations_list_execute(
 
 pub fn networksecurity_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3867,11 +4166,11 @@ pub fn networksecurity_projects_locations_list(
 > {
     let builder = networksecurity_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_list_execute(builder)
 }
@@ -3969,6 +4268,15 @@ pub fn networksecurity_projects_locations_address_groups_add_items_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_address_groups_add_items`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAddressGroupsAddItemsArgs {
+    /// Path parameter: addressGroup
+    pub addressGroup: String,
+    /// Request body.
+    pub body: AddAddressGroupItemsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addressGroups/{addressGroupsId}:addItems
 /// Adds items to an address group.
 ///
@@ -3981,16 +4289,15 @@ pub fn networksecurity_projects_locations_address_groups_add_items_execute(
 
 pub fn networksecurity_projects_locations_address_groups_add_items(
     client: &SimpleHttpClient,
-    addressGroup: &str,
-    body: &AddAddressGroupItemsRequest,
+    args: &NetworksecurityProjectsLocationsAddressGroupsAddItemsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_address_groups_add_items_builder(
         client,
-        addressGroup,
-        body,
+        &args.addressGroup,
+        &args.body,
     )?;
     networksecurity_projects_locations_address_groups_add_items_execute(builder)
 }
@@ -4088,6 +4395,15 @@ pub fn networksecurity_projects_locations_address_groups_clone_items_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_address_groups_clone_items`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAddressGroupsCloneItemsArgs {
+    /// Path parameter: addressGroup
+    pub addressGroup: String,
+    /// Request body.
+    pub body: CloneAddressGroupItemsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addressGroups/{addressGroupsId}:cloneItems
 /// Clones items from one address group to another.
 ///
@@ -4100,16 +4416,15 @@ pub fn networksecurity_projects_locations_address_groups_clone_items_execute(
 
 pub fn networksecurity_projects_locations_address_groups_clone_items(
     client: &SimpleHttpClient,
-    addressGroup: &str,
-    body: &CloneAddressGroupItemsRequest,
+    args: &NetworksecurityProjectsLocationsAddressGroupsCloneItemsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_address_groups_clone_items_builder(
         client,
-        addressGroup,
-        body,
+        &args.addressGroup,
+        &args.body,
     )?;
     networksecurity_projects_locations_address_groups_clone_items_execute(builder)
 }
@@ -4223,6 +4538,19 @@ pub fn networksecurity_projects_locations_address_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_address_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAddressGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: addressGroupId
+    pub addressGroupId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: AddressGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addressGroups
 /// Creates a new address group in a given project and location.
 ///
@@ -4235,20 +4563,17 @@ pub fn networksecurity_projects_locations_address_groups_create_execute(
 
 pub fn networksecurity_projects_locations_address_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    addressGroupId: Option<&str>,
-    requestId: Option<&str>,
-    body: &AddressGroup,
+    args: &NetworksecurityProjectsLocationsAddressGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_address_groups_create_builder(
         client,
-        parent,
-        addressGroupId,
-        requestId,
-        body,
+        &args.parent,
+        args.addressGroupId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_address_groups_create_execute(builder)
 }
@@ -4355,6 +4680,15 @@ pub fn networksecurity_projects_locations_address_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_address_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAddressGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addressGroups/{addressGroupsId}
 /// Deletes a single address group.
 ///
@@ -4367,14 +4701,16 @@ pub fn networksecurity_projects_locations_address_groups_delete_execute(
 
 pub fn networksecurity_projects_locations_address_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworksecurityProjectsLocationsAddressGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        networksecurity_projects_locations_address_groups_delete_builder(client, name, requestId)?;
+    let builder = networksecurity_projects_locations_address_groups_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     networksecurity_projects_locations_address_groups_delete_execute(builder)
 }
 
@@ -4470,6 +4806,13 @@ pub fn networksecurity_projects_locations_address_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_address_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAddressGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addressGroups/{addressGroupsId}
 /// Gets details of a single address group.
 ///
@@ -4482,14 +4825,15 @@ pub fn networksecurity_projects_locations_address_groups_get_execute(
 
 pub fn networksecurity_projects_locations_address_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsAddressGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddressGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = networksecurity_projects_locations_address_groups_get_builder(client, name)?;
+    let builder =
+        networksecurity_projects_locations_address_groups_get_builder(client, &args.name)?;
     networksecurity_projects_locations_address_groups_get_execute(builder)
 }
 
@@ -4597,6 +4941,15 @@ pub fn networksecurity_projects_locations_address_groups_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_address_groups_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAddressGroupsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addressGroups/{addressGroupsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -4609,8 +4962,7 @@ pub fn networksecurity_projects_locations_address_groups_get_iam_policy_execute(
 
 pub fn networksecurity_projects_locations_address_groups_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &NetworksecurityProjectsLocationsAddressGroupsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -4619,8 +4971,8 @@ pub fn networksecurity_projects_locations_address_groups_get_iam_policy(
 > {
     let builder = networksecurity_projects_locations_address_groups_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     networksecurity_projects_locations_address_groups_get_iam_policy_execute(builder)
 }
@@ -4737,6 +5089,19 @@ pub fn networksecurity_projects_locations_address_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_address_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAddressGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addressGroups
 /// Lists address groups in a given project and location.
 ///
@@ -4749,10 +5114,7 @@ pub fn networksecurity_projects_locations_address_groups_list_execute(
 
 pub fn networksecurity_projects_locations_address_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworksecurityProjectsLocationsAddressGroupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAddressGroupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4761,10 +5123,10 @@ pub fn networksecurity_projects_locations_address_groups_list(
 > {
     let builder = networksecurity_projects_locations_address_groups_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     networksecurity_projects_locations_address_groups_list_execute(builder)
 }
@@ -4879,6 +5241,17 @@ pub fn networksecurity_projects_locations_address_groups_list_references_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_address_groups_list_references`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAddressGroupsListReferencesArgs {
+    /// Path parameter: addressGroup
+    pub addressGroup: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addressGroups/{addressGroupsId}:listReferences
 /// Lists references of an address group.
 ///
@@ -4891,9 +5264,7 @@ pub fn networksecurity_projects_locations_address_groups_list_references_execute
 
 pub fn networksecurity_projects_locations_address_groups_list_references(
     client: &SimpleHttpClient,
-    addressGroup: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsAddressGroupsListReferencesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAddressGroupReferencesResponse>, ApiError>,
@@ -4904,9 +5275,9 @@ pub fn networksecurity_projects_locations_address_groups_list_references(
 > {
     let builder = networksecurity_projects_locations_address_groups_list_references_builder(
         client,
-        addressGroup,
-        pageSize,
-        pageToken,
+        &args.addressGroup,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_address_groups_list_references_execute(builder)
 }
@@ -5020,6 +5391,19 @@ pub fn networksecurity_projects_locations_address_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_address_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAddressGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AddressGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addressGroups/{addressGroupsId}
 /// Updates the parameters of a single address group.
 ///
@@ -5032,16 +5416,17 @@ pub fn networksecurity_projects_locations_address_groups_patch_execute(
 
 pub fn networksecurity_projects_locations_address_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AddressGroup,
+    args: &NetworksecurityProjectsLocationsAddressGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_address_groups_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_address_groups_patch_execute(builder)
 }
@@ -5139,6 +5524,15 @@ pub fn networksecurity_projects_locations_address_groups_remove_items_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_address_groups_remove_items`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAddressGroupsRemoveItemsArgs {
+    /// Path parameter: addressGroup
+    pub addressGroup: String,
+    /// Request body.
+    pub body: RemoveAddressGroupItemsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addressGroups/{addressGroupsId}:removeItems
 /// Removes items from an address group.
 ///
@@ -5151,16 +5545,15 @@ pub fn networksecurity_projects_locations_address_groups_remove_items_execute(
 
 pub fn networksecurity_projects_locations_address_groups_remove_items(
     client: &SimpleHttpClient,
-    addressGroup: &str,
-    body: &RemoveAddressGroupItemsRequest,
+    args: &NetworksecurityProjectsLocationsAddressGroupsRemoveItemsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_address_groups_remove_items_builder(
         client,
-        addressGroup,
-        body,
+        &args.addressGroup,
+        &args.body,
     )?;
     networksecurity_projects_locations_address_groups_remove_items_execute(builder)
 }
@@ -5260,6 +5653,15 @@ pub fn networksecurity_projects_locations_address_groups_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_address_groups_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAddressGroupsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addressGroups/{addressGroupsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -5272,8 +5674,7 @@ pub fn networksecurity_projects_locations_address_groups_set_iam_policy_execute(
 
 pub fn networksecurity_projects_locations_address_groups_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &NetworksecurityProjectsLocationsAddressGroupsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -5281,7 +5682,9 @@ pub fn networksecurity_projects_locations_address_groups_set_iam_policy(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_address_groups_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     networksecurity_projects_locations_address_groups_set_iam_policy_execute(builder)
 }
@@ -5383,6 +5786,15 @@ pub fn networksecurity_projects_locations_address_groups_test_iam_permissions_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_address_groups_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAddressGroupsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addressGroups/{addressGroupsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -5395,8 +5807,7 @@ pub fn networksecurity_projects_locations_address_groups_test_iam_permissions_ex
 
 pub fn networksecurity_projects_locations_address_groups_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &NetworksecurityProjectsLocationsAddressGroupsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -5406,7 +5817,9 @@ pub fn networksecurity_projects_locations_address_groups_test_iam_permissions(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_address_groups_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     networksecurity_projects_locations_address_groups_test_iam_permissions_execute(builder)
 }
@@ -5516,6 +5929,17 @@ pub fn networksecurity_projects_locations_authorization_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_authorization_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAuthorizationPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: authorizationPolicyId
+    pub authorizationPolicyId: Option<String>,
+    /// Request body.
+    pub body: AuthorizationPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizationPolicies
 /// Creates a new AuthorizationPolicy in a given project and location.
 ///
@@ -5528,18 +5952,16 @@ pub fn networksecurity_projects_locations_authorization_policies_create_execute(
 
 pub fn networksecurity_projects_locations_authorization_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    authorizationPolicyId: Option<&str>,
-    body: &AuthorizationPolicy,
+    args: &NetworksecurityProjectsLocationsAuthorizationPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_authorization_policies_create_builder(
         client,
-        parent,
-        authorizationPolicyId,
-        body,
+        &args.parent,
+        args.authorizationPolicyId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_authorization_policies_create_execute(builder)
 }
@@ -5634,6 +6056,13 @@ pub fn networksecurity_projects_locations_authorization_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_authorization_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAuthorizationPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizationPolicies/{authorizationPoliciesId}
 /// Deletes a single AuthorizationPolicy.
 ///
@@ -5646,13 +6075,14 @@ pub fn networksecurity_projects_locations_authorization_policies_delete_execute(
 
 pub fn networksecurity_projects_locations_authorization_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsAuthorizationPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        networksecurity_projects_locations_authorization_policies_delete_builder(client, name)?;
+    let builder = networksecurity_projects_locations_authorization_policies_delete_builder(
+        client, &args.name,
+    )?;
     networksecurity_projects_locations_authorization_policies_delete_execute(builder)
 }
 
@@ -5748,6 +6178,13 @@ pub fn networksecurity_projects_locations_authorization_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_authorization_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAuthorizationPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizationPolicies/{authorizationPoliciesId}
 /// Gets details of a single AuthorizationPolicy.
 ///
@@ -5760,7 +6197,7 @@ pub fn networksecurity_projects_locations_authorization_policies_get_execute(
 
 pub fn networksecurity_projects_locations_authorization_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsAuthorizationPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthorizationPolicy>, ApiError>, P = ApiPending>
         + Send
@@ -5768,7 +6205,7 @@ pub fn networksecurity_projects_locations_authorization_policies_get(
     ApiError,
 > {
     let builder =
-        networksecurity_projects_locations_authorization_policies_get_builder(client, name)?;
+        networksecurity_projects_locations_authorization_policies_get_builder(client, &args.name)?;
     networksecurity_projects_locations_authorization_policies_get_execute(builder)
 }
 
@@ -5876,6 +6313,15 @@ pub fn networksecurity_projects_locations_authorization_policies_get_iam_policy_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_authorization_policies_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAuthorizationPoliciesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizationPolicies/{authorizationPoliciesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -5888,8 +6334,7 @@ pub fn networksecurity_projects_locations_authorization_policies_get_iam_policy_
 
 pub fn networksecurity_projects_locations_authorization_policies_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &NetworksecurityProjectsLocationsAuthorizationPoliciesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -5898,8 +6343,8 @@ pub fn networksecurity_projects_locations_authorization_policies_get_iam_policy(
 > {
     let builder = networksecurity_projects_locations_authorization_policies_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     networksecurity_projects_locations_authorization_policies_get_iam_policy_execute(builder)
 }
@@ -6014,6 +6459,17 @@ pub fn networksecurity_projects_locations_authorization_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_authorization_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAuthorizationPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizationPolicies
 /// Lists AuthorizationPolicies in a given project and location.
 ///
@@ -6026,9 +6482,7 @@ pub fn networksecurity_projects_locations_authorization_policies_list_execute(
 
 pub fn networksecurity_projects_locations_authorization_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsAuthorizationPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAuthorizationPoliciesResponse>, ApiError>,
@@ -6038,7 +6492,10 @@ pub fn networksecurity_projects_locations_authorization_policies_list(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_authorization_policies_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_authorization_policies_list_execute(builder)
 }
@@ -6148,6 +6605,17 @@ pub fn networksecurity_projects_locations_authorization_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_authorization_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAuthorizationPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AuthorizationPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizationPolicies/{authorizationPoliciesId}
 /// Updates the parameters of a single AuthorizationPolicy.
 ///
@@ -6160,15 +6628,16 @@ pub fn networksecurity_projects_locations_authorization_policies_patch_execute(
 
 pub fn networksecurity_projects_locations_authorization_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AuthorizationPolicy,
+    args: &NetworksecurityProjectsLocationsAuthorizationPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_authorization_policies_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_authorization_policies_patch_execute(builder)
 }
@@ -6268,6 +6737,15 @@ pub fn networksecurity_projects_locations_authorization_policies_set_iam_policy_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_authorization_policies_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAuthorizationPoliciesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizationPolicies/{authorizationPoliciesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -6280,8 +6758,7 @@ pub fn networksecurity_projects_locations_authorization_policies_set_iam_policy_
 
 pub fn networksecurity_projects_locations_authorization_policies_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &NetworksecurityProjectsLocationsAuthorizationPoliciesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -6289,7 +6766,9 @@ pub fn networksecurity_projects_locations_authorization_policies_set_iam_policy(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_authorization_policies_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     networksecurity_projects_locations_authorization_policies_set_iam_policy_execute(builder)
 }
@@ -6391,6 +6870,15 @@ pub fn networksecurity_projects_locations_authorization_policies_test_iam_permis
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_authorization_policies_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAuthorizationPoliciesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizationPolicies/{authorizationPoliciesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -6403,8 +6891,7 @@ pub fn networksecurity_projects_locations_authorization_policies_test_iam_permis
 
 pub fn networksecurity_projects_locations_authorization_policies_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &NetworksecurityProjectsLocationsAuthorizationPoliciesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -6415,7 +6902,9 @@ pub fn networksecurity_projects_locations_authorization_policies_test_iam_permis
 > {
     let builder =
         networksecurity_projects_locations_authorization_policies_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     networksecurity_projects_locations_authorization_policies_test_iam_permissions_execute(builder)
 }
@@ -6529,6 +7018,19 @@ pub fn networksecurity_projects_locations_authz_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_authz_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAuthzPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: authzPolicyId
+    pub authzPolicyId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: AuthzPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authzPolicies
 /// Creates a new AuthzPolicy in a given project and location.
 ///
@@ -6541,20 +7043,17 @@ pub fn networksecurity_projects_locations_authz_policies_create_execute(
 
 pub fn networksecurity_projects_locations_authz_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    authzPolicyId: Option<&str>,
-    requestId: Option<&str>,
-    body: &AuthzPolicy,
+    args: &NetworksecurityProjectsLocationsAuthzPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_authz_policies_create_builder(
         client,
-        parent,
-        authzPolicyId,
-        requestId,
-        body,
+        &args.parent,
+        args.authzPolicyId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_authz_policies_create_execute(builder)
 }
@@ -6661,6 +7160,15 @@ pub fn networksecurity_projects_locations_authz_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_authz_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAuthzPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authzPolicies/{authzPoliciesId}
 /// Deletes a single AuthzPolicy.
 ///
@@ -6673,14 +7181,16 @@ pub fn networksecurity_projects_locations_authz_policies_delete_execute(
 
 pub fn networksecurity_projects_locations_authz_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworksecurityProjectsLocationsAuthzPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        networksecurity_projects_locations_authz_policies_delete_builder(client, name, requestId)?;
+    let builder = networksecurity_projects_locations_authz_policies_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     networksecurity_projects_locations_authz_policies_delete_execute(builder)
 }
 
@@ -6774,6 +7284,13 @@ pub fn networksecurity_projects_locations_authz_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_authz_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAuthzPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authzPolicies/{authzPoliciesId}
 /// Gets details of a single AuthzPolicy.
 ///
@@ -6786,12 +7303,13 @@ pub fn networksecurity_projects_locations_authz_policies_get_execute(
 
 pub fn networksecurity_projects_locations_authz_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsAuthzPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthzPolicy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networksecurity_projects_locations_authz_policies_get_builder(client, name)?;
+    let builder =
+        networksecurity_projects_locations_authz_policies_get_builder(client, &args.name)?;
     networksecurity_projects_locations_authz_policies_get_execute(builder)
 }
 
@@ -6899,6 +7417,15 @@ pub fn networksecurity_projects_locations_authz_policies_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_authz_policies_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAuthzPoliciesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authzPolicies/{authzPoliciesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -6911,8 +7438,7 @@ pub fn networksecurity_projects_locations_authz_policies_get_iam_policy_execute(
 
 pub fn networksecurity_projects_locations_authz_policies_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &NetworksecurityProjectsLocationsAuthzPoliciesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -6921,8 +7447,8 @@ pub fn networksecurity_projects_locations_authz_policies_get_iam_policy(
 > {
     let builder = networksecurity_projects_locations_authz_policies_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     networksecurity_projects_locations_authz_policies_get_iam_policy_execute(builder)
 }
@@ -7043,6 +7569,21 @@ pub fn networksecurity_projects_locations_authz_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_authz_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAuthzPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authzPolicies
 /// Lists AuthzPolicies in a given project and location.
 ///
@@ -7055,11 +7596,7 @@ pub fn networksecurity_projects_locations_authz_policies_list_execute(
 
 pub fn networksecurity_projects_locations_authz_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsAuthzPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAuthzPoliciesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7067,7 +7604,12 @@ pub fn networksecurity_projects_locations_authz_policies_list(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_authz_policies_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_authz_policies_list_execute(builder)
 }
@@ -7181,6 +7723,19 @@ pub fn networksecurity_projects_locations_authz_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_authz_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAuthzPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AuthzPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authzPolicies/{authzPoliciesId}
 /// Updates the parameters of a single AuthzPolicy.
 ///
@@ -7193,16 +7748,17 @@ pub fn networksecurity_projects_locations_authz_policies_patch_execute(
 
 pub fn networksecurity_projects_locations_authz_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AuthzPolicy,
+    args: &NetworksecurityProjectsLocationsAuthzPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_authz_policies_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_authz_policies_patch_execute(builder)
 }
@@ -7302,6 +7858,15 @@ pub fn networksecurity_projects_locations_authz_policies_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_authz_policies_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAuthzPoliciesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authzPolicies/{authzPoliciesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -7314,8 +7879,7 @@ pub fn networksecurity_projects_locations_authz_policies_set_iam_policy_execute(
 
 pub fn networksecurity_projects_locations_authz_policies_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &NetworksecurityProjectsLocationsAuthzPoliciesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -7323,7 +7887,9 @@ pub fn networksecurity_projects_locations_authz_policies_set_iam_policy(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_authz_policies_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     networksecurity_projects_locations_authz_policies_set_iam_policy_execute(builder)
 }
@@ -7425,6 +7991,15 @@ pub fn networksecurity_projects_locations_authz_policies_test_iam_permissions_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_authz_policies_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsAuthzPoliciesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authzPolicies/{authzPoliciesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -7437,8 +8012,7 @@ pub fn networksecurity_projects_locations_authz_policies_test_iam_permissions_ex
 
 pub fn networksecurity_projects_locations_authz_policies_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &NetworksecurityProjectsLocationsAuthzPoliciesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -7448,7 +8022,9 @@ pub fn networksecurity_projects_locations_authz_policies_test_iam_permissions(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_authz_policies_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     networksecurity_projects_locations_authz_policies_test_iam_permissions_execute(builder)
 }
@@ -7558,6 +8134,17 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_create_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_backend_authentication_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsBackendAuthenticationConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backendAuthenticationConfigId
+    pub backendAuthenticationConfigId: Option<String>,
+    /// Request body.
+    pub body: BackendAuthenticationConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backendAuthenticationConfigs
 /// Creates a new BackendAuthenticationConfig in a given project and location.
 ///
@@ -7570,18 +8157,16 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_create_
 
 pub fn networksecurity_projects_locations_backend_authentication_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backendAuthenticationConfigId: Option<&str>,
-    body: &BackendAuthenticationConfig,
+    args: &NetworksecurityProjectsLocationsBackendAuthenticationConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_backend_authentication_configs_create_builder(
         client,
-        parent,
-        backendAuthenticationConfigId,
-        body,
+        &args.parent,
+        args.backendAuthenticationConfigId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_backend_authentication_configs_create_execute(builder)
 }
@@ -7688,6 +8273,15 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_delete_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_backend_authentication_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsBackendAuthenticationConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backendAuthenticationConfigs/{backendAuthenticationConfigsId}
 /// Deletes a single BackendAuthenticationConfig to BackendAuthenticationConfig.
 ///
@@ -7700,14 +8294,15 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_delete_
 
 pub fn networksecurity_projects_locations_backend_authentication_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &NetworksecurityProjectsLocationsBackendAuthenticationConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_backend_authentication_configs_delete_builder(
-        client, name, etag,
+        client,
+        &args.name,
+        args.etag.as_deref(),
     )?;
     networksecurity_projects_locations_backend_authentication_configs_delete_execute(builder)
 }
@@ -7806,6 +8401,13 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_backend_authentication_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsBackendAuthenticationConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backendAuthenticationConfigs/{backendAuthenticationConfigsId}
 /// Gets details of a single BackendAuthenticationConfig to BackendAuthenticationConfig.
 ///
@@ -7818,7 +8420,7 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_get_exe
 
 pub fn networksecurity_projects_locations_backend_authentication_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsBackendAuthenticationConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BackendAuthenticationConfig>, ApiError>,
@@ -7828,7 +8430,7 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_get(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_backend_authentication_configs_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     networksecurity_projects_locations_backend_authentication_configs_get_execute(builder)
 }
@@ -7943,6 +8545,17 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_backend_authentication_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsBackendAuthenticationConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backendAuthenticationConfigs
 /// Lists BackendAuthenticationConfigs in a given project and location.
 ///
@@ -7955,9 +8568,7 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_list_ex
 
 pub fn networksecurity_projects_locations_backend_authentication_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsBackendAuthenticationConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBackendAuthenticationConfigsResponse>, ApiError>,
@@ -7967,7 +8578,10 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_list(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_backend_authentication_configs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_backend_authentication_configs_list_execute(builder)
 }
@@ -8077,6 +8691,17 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_patch_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_backend_authentication_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsBackendAuthenticationConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: BackendAuthenticationConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backendAuthenticationConfigs/{backendAuthenticationConfigsId}
 /// Updates the parameters of a single BackendAuthenticationConfig to BackendAuthenticationConfig.
 ///
@@ -8089,15 +8714,16 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_patch_e
 
 pub fn networksecurity_projects_locations_backend_authentication_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &BackendAuthenticationConfig,
+    args: &NetworksecurityProjectsLocationsBackendAuthenticationConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_backend_authentication_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_backend_authentication_configs_patch_execute(builder)
 }
@@ -8207,6 +8833,17 @@ pub fn networksecurity_projects_locations_client_tls_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_client_tls_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsClientTlsPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: clientTlsPolicyId
+    pub clientTlsPolicyId: Option<String>,
+    /// Request body.
+    pub body: ClientTlsPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clientTlsPolicies
 /// Creates a new ClientTlsPolicy in a given project and location.
 ///
@@ -8219,18 +8856,16 @@ pub fn networksecurity_projects_locations_client_tls_policies_create_execute(
 
 pub fn networksecurity_projects_locations_client_tls_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    clientTlsPolicyId: Option<&str>,
-    body: &ClientTlsPolicy,
+    args: &NetworksecurityProjectsLocationsClientTlsPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_client_tls_policies_create_builder(
         client,
-        parent,
-        clientTlsPolicyId,
-        body,
+        &args.parent,
+        args.clientTlsPolicyId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_client_tls_policies_create_execute(builder)
 }
@@ -8325,6 +8960,13 @@ pub fn networksecurity_projects_locations_client_tls_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_client_tls_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsClientTlsPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clientTlsPolicies/{clientTlsPoliciesId}
 /// Deletes a single ClientTlsPolicy.
 ///
@@ -8337,13 +8979,13 @@ pub fn networksecurity_projects_locations_client_tls_policies_delete_execute(
 
 pub fn networksecurity_projects_locations_client_tls_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsClientTlsPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        networksecurity_projects_locations_client_tls_policies_delete_builder(client, name)?;
+        networksecurity_projects_locations_client_tls_policies_delete_builder(client, &args.name)?;
     networksecurity_projects_locations_client_tls_policies_delete_execute(builder)
 }
 
@@ -8439,6 +9081,13 @@ pub fn networksecurity_projects_locations_client_tls_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_client_tls_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsClientTlsPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clientTlsPolicies/{clientTlsPoliciesId}
 /// Gets details of a single ClientTlsPolicy.
 ///
@@ -8451,14 +9100,15 @@ pub fn networksecurity_projects_locations_client_tls_policies_get_execute(
 
 pub fn networksecurity_projects_locations_client_tls_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsClientTlsPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ClientTlsPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = networksecurity_projects_locations_client_tls_policies_get_builder(client, name)?;
+    let builder =
+        networksecurity_projects_locations_client_tls_policies_get_builder(client, &args.name)?;
     networksecurity_projects_locations_client_tls_policies_get_execute(builder)
 }
 
@@ -8566,6 +9216,15 @@ pub fn networksecurity_projects_locations_client_tls_policies_get_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_client_tls_policies_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsClientTlsPoliciesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clientTlsPolicies/{clientTlsPoliciesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -8578,8 +9237,7 @@ pub fn networksecurity_projects_locations_client_tls_policies_get_iam_policy_exe
 
 pub fn networksecurity_projects_locations_client_tls_policies_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &NetworksecurityProjectsLocationsClientTlsPoliciesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -8588,8 +9246,8 @@ pub fn networksecurity_projects_locations_client_tls_policies_get_iam_policy(
 > {
     let builder = networksecurity_projects_locations_client_tls_policies_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     networksecurity_projects_locations_client_tls_policies_get_iam_policy_execute(builder)
 }
@@ -8704,6 +9362,17 @@ pub fn networksecurity_projects_locations_client_tls_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_client_tls_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsClientTlsPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clientTlsPolicies
 /// Lists ClientTlsPolicies in a given project and location.
 ///
@@ -8716,9 +9385,7 @@ pub fn networksecurity_projects_locations_client_tls_policies_list_execute(
 
 pub fn networksecurity_projects_locations_client_tls_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsClientTlsPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListClientTlsPoliciesResponse>, ApiError>,
@@ -8728,7 +9395,10 @@ pub fn networksecurity_projects_locations_client_tls_policies_list(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_client_tls_policies_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_client_tls_policies_list_execute(builder)
 }
@@ -8838,6 +9508,17 @@ pub fn networksecurity_projects_locations_client_tls_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_client_tls_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsClientTlsPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ClientTlsPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clientTlsPolicies/{clientTlsPoliciesId}
 /// Updates the parameters of a single ClientTlsPolicy.
 ///
@@ -8850,15 +9531,16 @@ pub fn networksecurity_projects_locations_client_tls_policies_patch_execute(
 
 pub fn networksecurity_projects_locations_client_tls_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ClientTlsPolicy,
+    args: &NetworksecurityProjectsLocationsClientTlsPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_client_tls_policies_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_client_tls_policies_patch_execute(builder)
 }
@@ -8958,6 +9640,15 @@ pub fn networksecurity_projects_locations_client_tls_policies_set_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_client_tls_policies_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsClientTlsPoliciesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clientTlsPolicies/{clientTlsPoliciesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -8970,8 +9661,7 @@ pub fn networksecurity_projects_locations_client_tls_policies_set_iam_policy_exe
 
 pub fn networksecurity_projects_locations_client_tls_policies_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &NetworksecurityProjectsLocationsClientTlsPoliciesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -8979,7 +9669,9 @@ pub fn networksecurity_projects_locations_client_tls_policies_set_iam_policy(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_client_tls_policies_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     networksecurity_projects_locations_client_tls_policies_set_iam_policy_execute(builder)
 }
@@ -9081,6 +9773,15 @@ pub fn networksecurity_projects_locations_client_tls_policies_test_iam_permissio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_client_tls_policies_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsClientTlsPoliciesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clientTlsPolicies/{clientTlsPoliciesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -9093,8 +9794,7 @@ pub fn networksecurity_projects_locations_client_tls_policies_test_iam_permissio
 
 pub fn networksecurity_projects_locations_client_tls_policies_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &NetworksecurityProjectsLocationsClientTlsPoliciesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -9105,7 +9805,9 @@ pub fn networksecurity_projects_locations_client_tls_policies_test_iam_permissio
 > {
     let builder =
         networksecurity_projects_locations_client_tls_policies_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     networksecurity_projects_locations_client_tls_policies_test_iam_permissions_execute(builder)
 }
@@ -9217,6 +9919,17 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_dns_threat_detectors_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsDnsThreatDetectorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dnsThreatDetectorId
+    pub dnsThreatDetectorId: Option<String>,
+    /// Request body.
+    pub body: DnsThreatDetector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dnsThreatDetectors
 /// Creates a new DnsThreatDetector in a given project and location.
 ///
@@ -9229,9 +9942,7 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_create_execute(
 
 pub fn networksecurity_projects_locations_dns_threat_detectors_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dnsThreatDetectorId: Option<&str>,
-    body: &DnsThreatDetector,
+    args: &NetworksecurityProjectsLocationsDnsThreatDetectorsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DnsThreatDetector>, ApiError>, P = ApiPending>
         + Send
@@ -9240,9 +9951,9 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_create(
 > {
     let builder = networksecurity_projects_locations_dns_threat_detectors_create_builder(
         client,
-        parent,
-        dnsThreatDetectorId,
-        body,
+        &args.parent,
+        args.dnsThreatDetectorId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_dns_threat_detectors_create_execute(builder)
 }
@@ -9337,6 +10048,13 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_dns_threat_detectors_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsDnsThreatDetectorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dnsThreatDetectors/{dnsThreatDetectorsId}
 /// Deletes a single DnsThreatDetector.
 ///
@@ -9349,13 +10067,13 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_delete_execute(
 
 pub fn networksecurity_projects_locations_dns_threat_detectors_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsDnsThreatDetectorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        networksecurity_projects_locations_dns_threat_detectors_delete_builder(client, name)?;
+        networksecurity_projects_locations_dns_threat_detectors_delete_builder(client, &args.name)?;
     networksecurity_projects_locations_dns_threat_detectors_delete_execute(builder)
 }
 
@@ -9451,6 +10169,13 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_dns_threat_detectors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsDnsThreatDetectorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dnsThreatDetectors/{dnsThreatDetectorsId}
 /// Gets the details of a single DnsThreatDetector.
 ///
@@ -9463,7 +10188,7 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_get_execute(
 
 pub fn networksecurity_projects_locations_dns_threat_detectors_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsDnsThreatDetectorsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DnsThreatDetector>, ApiError>, P = ApiPending>
         + Send
@@ -9471,7 +10196,7 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_get(
     ApiError,
 > {
     let builder =
-        networksecurity_projects_locations_dns_threat_detectors_get_builder(client, name)?;
+        networksecurity_projects_locations_dns_threat_detectors_get_builder(client, &args.name)?;
     networksecurity_projects_locations_dns_threat_detectors_get_execute(builder)
 }
 
@@ -9585,6 +10310,17 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_dns_threat_detectors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsDnsThreatDetectorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dnsThreatDetectors
 /// Lists DnsThreatDetectors in a given project and location.
 ///
@@ -9597,9 +10333,7 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_list_execute(
 
 pub fn networksecurity_projects_locations_dns_threat_detectors_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsDnsThreatDetectorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDnsThreatDetectorsResponse>, ApiError>,
@@ -9609,7 +10343,10 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_list(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_dns_threat_detectors_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_dns_threat_detectors_list_execute(builder)
 }
@@ -9721,6 +10458,17 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_dns_threat_detectors_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsDnsThreatDetectorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: DnsThreatDetector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dnsThreatDetectors/{dnsThreatDetectorsId}
 /// Updates a single DnsThreatDetector.
 ///
@@ -9733,9 +10481,7 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_patch_execute(
 
 pub fn networksecurity_projects_locations_dns_threat_detectors_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &DnsThreatDetector,
+    args: &NetworksecurityProjectsLocationsDnsThreatDetectorsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DnsThreatDetector>, ApiError>, P = ApiPending>
         + Send
@@ -9743,7 +10489,10 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_patch(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_dns_threat_detectors_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_dns_threat_detectors_patch_execute(builder)
 }
@@ -9857,6 +10606,19 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_create_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_firewall_endpoint_associations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsFirewallEndpointAssociationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: firewallEndpointAssociationId
+    pub firewallEndpointAssociationId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: FirewallEndpointAssociation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/firewallEndpointAssociations
 /// Creates a new FirewallEndpointAssociation in a given project and location.
 ///
@@ -9869,20 +10631,17 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_create_
 
 pub fn networksecurity_projects_locations_firewall_endpoint_associations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    firewallEndpointAssociationId: Option<&str>,
-    requestId: Option<&str>,
-    body: &FirewallEndpointAssociation,
+    args: &NetworksecurityProjectsLocationsFirewallEndpointAssociationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_firewall_endpoint_associations_create_builder(
         client,
-        parent,
-        firewallEndpointAssociationId,
-        requestId,
-        body,
+        &args.parent,
+        args.firewallEndpointAssociationId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_firewall_endpoint_associations_create_execute(builder)
 }
@@ -9989,6 +10748,15 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_delete_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_firewall_endpoint_associations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsFirewallEndpointAssociationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/firewallEndpointAssociations/{firewallEndpointAssociationsId}
 /// Deletes a single FirewallEndpointAssociation.
 ///
@@ -10001,14 +10769,15 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_delete_
 
 pub fn networksecurity_projects_locations_firewall_endpoint_associations_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworksecurityProjectsLocationsFirewallEndpointAssociationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_firewall_endpoint_associations_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     networksecurity_projects_locations_firewall_endpoint_associations_delete_execute(builder)
 }
@@ -10107,6 +10876,13 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_firewall_endpoint_associations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsFirewallEndpointAssociationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/firewallEndpointAssociations/{firewallEndpointAssociationsId}
 /// Gets details of a single FirewallEndpointAssociation.
 ///
@@ -10119,7 +10895,7 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_get_exe
 
 pub fn networksecurity_projects_locations_firewall_endpoint_associations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsFirewallEndpointAssociationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FirewallEndpointAssociation>, ApiError>,
@@ -10129,7 +10905,7 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_get(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_firewall_endpoint_associations_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     networksecurity_projects_locations_firewall_endpoint_associations_get_execute(builder)
 }
@@ -10252,6 +11028,21 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_firewall_endpoint_associations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsFirewallEndpointAssociationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/firewallEndpointAssociations
 /// Lists Associations in a given project and location.
 ///
@@ -10264,11 +11055,7 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_list_ex
 
 pub fn networksecurity_projects_locations_firewall_endpoint_associations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsFirewallEndpointAssociationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListFirewallEndpointAssociationsResponse>, ApiError>,
@@ -10278,7 +11065,12 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_list(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_firewall_endpoint_associations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_firewall_endpoint_associations_list_execute(builder)
 }
@@ -10392,6 +11184,19 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_patch_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_firewall_endpoint_associations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsFirewallEndpointAssociationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: FirewallEndpointAssociation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/firewallEndpointAssociations/{firewallEndpointAssociationsId}
 /// Update a single FirewallEndpointAssociation.
 ///
@@ -10404,16 +11209,17 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_patch_e
 
 pub fn networksecurity_projects_locations_firewall_endpoint_associations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &FirewallEndpointAssociation,
+    args: &NetworksecurityProjectsLocationsFirewallEndpointAssociationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_firewall_endpoint_associations_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_firewall_endpoint_associations_patch_execute(builder)
 }
@@ -10523,6 +11329,17 @@ pub fn networksecurity_projects_locations_gateway_security_policies_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_gateway_security_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsGatewaySecurityPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: gatewaySecurityPolicyId
+    pub gatewaySecurityPolicyId: Option<String>,
+    /// Request body.
+    pub body: GatewaySecurityPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gatewaySecurityPolicies
 /// Creates a new GatewaySecurityPolicy in a given project and location.
 ///
@@ -10535,18 +11352,16 @@ pub fn networksecurity_projects_locations_gateway_security_policies_create_execu
 
 pub fn networksecurity_projects_locations_gateway_security_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    gatewaySecurityPolicyId: Option<&str>,
-    body: &GatewaySecurityPolicy,
+    args: &NetworksecurityProjectsLocationsGatewaySecurityPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_gateway_security_policies_create_builder(
         client,
-        parent,
-        gatewaySecurityPolicyId,
-        body,
+        &args.parent,
+        args.gatewaySecurityPolicyId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_gateway_security_policies_create_execute(builder)
 }
@@ -10641,6 +11456,13 @@ pub fn networksecurity_projects_locations_gateway_security_policies_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_gateway_security_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsGatewaySecurityPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}
 /// Deletes a single GatewaySecurityPolicy.
 ///
@@ -10653,13 +11475,14 @@ pub fn networksecurity_projects_locations_gateway_security_policies_delete_execu
 
 pub fn networksecurity_projects_locations_gateway_security_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsGatewaySecurityPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        networksecurity_projects_locations_gateway_security_policies_delete_builder(client, name)?;
+    let builder = networksecurity_projects_locations_gateway_security_policies_delete_builder(
+        client, &args.name,
+    )?;
     networksecurity_projects_locations_gateway_security_policies_delete_execute(builder)
 }
 
@@ -10755,6 +11578,13 @@ pub fn networksecurity_projects_locations_gateway_security_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_gateway_security_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsGatewaySecurityPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}
 /// Gets details of a single GatewaySecurityPolicy.
 ///
@@ -10767,15 +11597,16 @@ pub fn networksecurity_projects_locations_gateway_security_policies_get_execute(
 
 pub fn networksecurity_projects_locations_gateway_security_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsGatewaySecurityPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GatewaySecurityPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        networksecurity_projects_locations_gateway_security_policies_get_builder(client, name)?;
+    let builder = networksecurity_projects_locations_gateway_security_policies_get_builder(
+        client, &args.name,
+    )?;
     networksecurity_projects_locations_gateway_security_policies_get_execute(builder)
 }
 
@@ -10889,6 +11720,17 @@ pub fn networksecurity_projects_locations_gateway_security_policies_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_gateway_security_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsGatewaySecurityPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gatewaySecurityPolicies
 /// Lists GatewaySecurityPolicies in a given project and location.
 ///
@@ -10901,9 +11743,7 @@ pub fn networksecurity_projects_locations_gateway_security_policies_list_execute
 
 pub fn networksecurity_projects_locations_gateway_security_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsGatewaySecurityPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListGatewaySecurityPoliciesResponse>, ApiError>,
@@ -10913,7 +11753,10 @@ pub fn networksecurity_projects_locations_gateway_security_policies_list(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_gateway_security_policies_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_gateway_security_policies_list_execute(builder)
 }
@@ -11023,6 +11866,17 @@ pub fn networksecurity_projects_locations_gateway_security_policies_patch_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_gateway_security_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsGatewaySecurityPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GatewaySecurityPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}
 /// Updates the parameters of a single GatewaySecurityPolicy.
 ///
@@ -11035,15 +11889,16 @@ pub fn networksecurity_projects_locations_gateway_security_policies_patch_execut
 
 pub fn networksecurity_projects_locations_gateway_security_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GatewaySecurityPolicy,
+    args: &NetworksecurityProjectsLocationsGatewaySecurityPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_gateway_security_policies_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_gateway_security_policies_patch_execute(builder)
 }
@@ -11153,6 +12008,17 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_create
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_gateway_security_policies_rules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsGatewaySecurityPoliciesRulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: gatewaySecurityPolicyRuleId
+    pub gatewaySecurityPolicyRuleId: Option<String>,
+    /// Request body.
+    pub body: GatewaySecurityPolicyRule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}/rules
 /// Creates a new GatewaySecurityPolicy in a given project and location.
 ///
@@ -11165,9 +12031,7 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_create
 
 pub fn networksecurity_projects_locations_gateway_security_policies_rules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    gatewaySecurityPolicyRuleId: Option<&str>,
-    body: &GatewaySecurityPolicyRule,
+    args: &NetworksecurityProjectsLocationsGatewaySecurityPoliciesRulesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -11175,9 +12039,9 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_create
     let builder =
         networksecurity_projects_locations_gateway_security_policies_rules_create_builder(
             client,
-            parent,
-            gatewaySecurityPolicyRuleId,
-            body,
+            &args.parent,
+            args.gatewaySecurityPolicyRuleId.as_deref(),
+            &args.body,
         )?;
     networksecurity_projects_locations_gateway_security_policies_rules_create_execute(builder)
 }
@@ -11272,6 +12136,13 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_delete
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_gateway_security_policies_rules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsGatewaySecurityPoliciesRulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}/rules/{rulesId}
 /// Deletes a single GatewaySecurityPolicyRule.
 ///
@@ -11284,14 +12155,14 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_delete
 
 pub fn networksecurity_projects_locations_gateway_security_policies_rules_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsGatewaySecurityPoliciesRulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         networksecurity_projects_locations_gateway_security_policies_rules_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     networksecurity_projects_locations_gateway_security_policies_rules_delete_execute(builder)
 }
@@ -11388,6 +12259,13 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_get_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_gateway_security_policies_rules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsGatewaySecurityPoliciesRulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}/rules/{rulesId}
 /// Gets details of a single GatewaySecurityPolicyRule.
 ///
@@ -11400,7 +12278,7 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_get_ex
 
 pub fn networksecurity_projects_locations_gateway_security_policies_rules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsGatewaySecurityPoliciesRulesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GatewaySecurityPolicyRule>, ApiError>, P = ApiPending>
         + Send
@@ -11408,7 +12286,7 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_get(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_gateway_security_policies_rules_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     networksecurity_projects_locations_gateway_security_policies_rules_get_execute(builder)
 }
@@ -11523,6 +12401,17 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_list_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_gateway_security_policies_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsGatewaySecurityPoliciesRulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}/rules
 /// Lists GatewaySecurityPolicyRules in a given project and location.
 ///
@@ -11535,9 +12424,7 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_list_e
 
 pub fn networksecurity_projects_locations_gateway_security_policies_rules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsGatewaySecurityPoliciesRulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListGatewaySecurityPolicyRulesResponse>, ApiError>,
@@ -11547,7 +12434,10 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_list(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_gateway_security_policies_rules_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_gateway_security_policies_rules_list_execute(builder)
 }
@@ -11657,6 +12547,17 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_patch_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_gateway_security_policies_rules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsGatewaySecurityPoliciesRulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GatewaySecurityPolicyRule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}/rules/{rulesId}
 /// Updates the parameters of a single GatewaySecurityPolicyRule.
 ///
@@ -11669,15 +12570,16 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_patch_
 
 pub fn networksecurity_projects_locations_gateway_security_policies_rules_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GatewaySecurityPolicyRule,
+    args: &NetworksecurityProjectsLocationsGatewaySecurityPoliciesRulesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_gateway_security_policies_rules_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_gateway_security_policies_rules_patch_execute(builder)
 }
@@ -11791,6 +12693,19 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_create_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_deployment_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptDeploymentGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: interceptDeploymentGroupId
+    pub interceptDeploymentGroupId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: InterceptDeploymentGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptDeploymentGroups
 /// Creates a deployment group in a given project and location. See <https://google.aip.`dev/133`.>
 ///
@@ -11803,20 +12718,17 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_create_exe
 
 pub fn networksecurity_projects_locations_intercept_deployment_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    interceptDeploymentGroupId: Option<&str>,
-    requestId: Option<&str>,
-    body: &InterceptDeploymentGroup,
+    args: &NetworksecurityProjectsLocationsInterceptDeploymentGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_intercept_deployment_groups_create_builder(
         client,
-        parent,
-        interceptDeploymentGroupId,
-        requestId,
-        body,
+        &args.parent,
+        args.interceptDeploymentGroupId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_intercept_deployment_groups_create_execute(builder)
 }
@@ -11923,6 +12835,15 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_delete_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_deployment_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptDeploymentGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptDeploymentGroups/{interceptDeploymentGroupsId}
 /// Deletes a deployment group. See <https://google.aip.`dev/135`.>
 ///
@@ -11935,14 +12856,15 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_delete_exe
 
 pub fn networksecurity_projects_locations_intercept_deployment_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworksecurityProjectsLocationsInterceptDeploymentGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_intercept_deployment_groups_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     networksecurity_projects_locations_intercept_deployment_groups_delete_execute(builder)
 }
@@ -12039,6 +12961,13 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_deployment_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptDeploymentGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptDeploymentGroups/{interceptDeploymentGroupsId}
 /// Gets a specific deployment group. See <https://google.aip.`dev/131`.>
 ///
@@ -12051,15 +12980,16 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_get_execut
 
 pub fn networksecurity_projects_locations_intercept_deployment_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsInterceptDeploymentGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InterceptDeploymentGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        networksecurity_projects_locations_intercept_deployment_groups_get_builder(client, name)?;
+    let builder = networksecurity_projects_locations_intercept_deployment_groups_get_builder(
+        client, &args.name,
+    )?;
     networksecurity_projects_locations_intercept_deployment_groups_get_execute(builder)
 }
 
@@ -12181,6 +13111,21 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_deployment_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptDeploymentGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptDeploymentGroups
 /// Lists deployment groups in a given project and location. See <https://google.aip.`dev/132`.>
 ///
@@ -12193,11 +13138,7 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_list_execu
 
 pub fn networksecurity_projects_locations_intercept_deployment_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsInterceptDeploymentGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInterceptDeploymentGroupsResponse>, ApiError>,
@@ -12207,7 +13148,12 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_list(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_intercept_deployment_groups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_intercept_deployment_groups_list_execute(builder)
 }
@@ -12321,6 +13267,19 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_patch_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_deployment_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptDeploymentGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: InterceptDeploymentGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptDeploymentGroups/{interceptDeploymentGroupsId}
 /// Updates a deployment group. See <https://google.aip.`dev/134`.>
 ///
@@ -12333,16 +13292,17 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_patch_exec
 
 pub fn networksecurity_projects_locations_intercept_deployment_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &InterceptDeploymentGroup,
+    args: &NetworksecurityProjectsLocationsInterceptDeploymentGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_intercept_deployment_groups_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_intercept_deployment_groups_patch_execute(builder)
 }
@@ -12456,6 +13416,19 @@ pub fn networksecurity_projects_locations_intercept_deployments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: interceptDeploymentId
+    pub interceptDeploymentId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: InterceptDeployment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptDeployments
 /// Creates a deployment in a given project and location. See <https://google.aip.`dev/133`.>
 ///
@@ -12468,20 +13441,17 @@ pub fn networksecurity_projects_locations_intercept_deployments_create_execute(
 
 pub fn networksecurity_projects_locations_intercept_deployments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    interceptDeploymentId: Option<&str>,
-    requestId: Option<&str>,
-    body: &InterceptDeployment,
+    args: &NetworksecurityProjectsLocationsInterceptDeploymentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_intercept_deployments_create_builder(
         client,
-        parent,
-        interceptDeploymentId,
-        requestId,
-        body,
+        &args.parent,
+        args.interceptDeploymentId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_intercept_deployments_create_execute(builder)
 }
@@ -12588,6 +13558,15 @@ pub fn networksecurity_projects_locations_intercept_deployments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptDeploymentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptDeployments/{interceptDeploymentsId}
 /// Deletes a deployment. See <https://google.aip.`dev/135`.>
 ///
@@ -12600,14 +13579,15 @@ pub fn networksecurity_projects_locations_intercept_deployments_delete_execute(
 
 pub fn networksecurity_projects_locations_intercept_deployments_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworksecurityProjectsLocationsInterceptDeploymentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_intercept_deployments_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     networksecurity_projects_locations_intercept_deployments_delete_execute(builder)
 }
@@ -12704,6 +13684,13 @@ pub fn networksecurity_projects_locations_intercept_deployments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptDeployments/{interceptDeploymentsId}
 /// Gets a specific deployment. See <https://google.aip.`dev/131`.>
 ///
@@ -12716,7 +13703,7 @@ pub fn networksecurity_projects_locations_intercept_deployments_get_execute(
 
 pub fn networksecurity_projects_locations_intercept_deployments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsInterceptDeploymentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InterceptDeployment>, ApiError>, P = ApiPending>
         + Send
@@ -12724,7 +13711,7 @@ pub fn networksecurity_projects_locations_intercept_deployments_get(
     ApiError,
 > {
     let builder =
-        networksecurity_projects_locations_intercept_deployments_get_builder(client, name)?;
+        networksecurity_projects_locations_intercept_deployments_get_builder(client, &args.name)?;
     networksecurity_projects_locations_intercept_deployments_get_execute(builder)
 }
 
@@ -12846,6 +13833,21 @@ pub fn networksecurity_projects_locations_intercept_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptDeployments
 /// Lists deployments in a given project and location. See <https://google.aip.`dev/132`.>
 ///
@@ -12858,11 +13860,7 @@ pub fn networksecurity_projects_locations_intercept_deployments_list_execute(
 
 pub fn networksecurity_projects_locations_intercept_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsInterceptDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInterceptDeploymentsResponse>, ApiError>,
@@ -12872,7 +13870,12 @@ pub fn networksecurity_projects_locations_intercept_deployments_list(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_intercept_deployments_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_intercept_deployments_list_execute(builder)
 }
@@ -12986,6 +13989,19 @@ pub fn networksecurity_projects_locations_intercept_deployments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_deployments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptDeploymentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: InterceptDeployment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptDeployments/{interceptDeploymentsId}
 /// Updates a deployment. See <https://google.aip.`dev/134`.>
 ///
@@ -12998,16 +14014,17 @@ pub fn networksecurity_projects_locations_intercept_deployments_patch_execute(
 
 pub fn networksecurity_projects_locations_intercept_deployments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &InterceptDeployment,
+    args: &NetworksecurityProjectsLocationsInterceptDeploymentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_intercept_deployments_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_intercept_deployments_patch_execute(builder)
 }
@@ -13121,6 +14138,19 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_endpoint_group_associations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupAssociationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: interceptEndpointGroupAssociationId
+    pub interceptEndpointGroupAssociationId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: InterceptEndpointGroupAssociation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroupAssociations
 /// Creates an association in a given project and location. See <https://google.aip.`dev/133`.>
 ///
@@ -13133,10 +14163,7 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
 
 pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    interceptEndpointGroupAssociationId: Option<&str>,
-    requestId: Option<&str>,
-    body: &InterceptEndpointGroupAssociation,
+    args: &NetworksecurityProjectsLocationsInterceptEndpointGroupAssociationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -13144,10 +14171,10 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
     let builder =
         networksecurity_projects_locations_intercept_endpoint_group_associations_create_builder(
             client,
-            parent,
-            interceptEndpointGroupAssociationId,
-            requestId,
-            body,
+            &args.parent,
+            args.interceptEndpointGroupAssociationId.as_deref(),
+            args.requestId.as_deref(),
+            &args.body,
         )?;
     networksecurity_projects_locations_intercept_endpoint_group_associations_create_execute(builder)
 }
@@ -13254,6 +14281,15 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_endpoint_group_associations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupAssociationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroupAssociations/{interceptEndpointGroupAssociationsId}
 /// Deletes an association. See <https://google.aip.`dev/135`.>
 ///
@@ -13266,15 +14302,16 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
 
 pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworksecurityProjectsLocationsInterceptEndpointGroupAssociationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         networksecurity_projects_locations_intercept_endpoint_group_associations_delete_builder(
-            client, name, requestId,
+            client,
+            &args.name,
+            args.requestId.as_deref(),
         )?;
     networksecurity_projects_locations_intercept_endpoint_group_associations_delete_execute(builder)
 }
@@ -13373,6 +14410,13 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_endpoint_group_associations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupAssociationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroupAssociations/{interceptEndpointGroupAssociationsId}
 /// Gets a specific association. See <https://google.aip.`dev/131`.>
 ///
@@ -13385,7 +14429,7 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
 
 pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsInterceptEndpointGroupAssociationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<InterceptEndpointGroupAssociation>, ApiError>,
@@ -13396,7 +14440,7 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
 > {
     let builder =
         networksecurity_projects_locations_intercept_endpoint_group_associations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     networksecurity_projects_locations_intercept_endpoint_group_associations_get_execute(builder)
 }
@@ -13520,6 +14564,21 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_endpoint_group_associations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupAssociationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroupAssociations
 /// Lists associations in a given project and location. See <https://google.aip.`dev/132`.>
 ///
@@ -13532,11 +14591,7 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
 
 pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsInterceptEndpointGroupAssociationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInterceptEndpointGroupAssociationsResponse>, ApiError>,
@@ -13547,7 +14602,12 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
 > {
     let builder =
         networksecurity_projects_locations_intercept_endpoint_group_associations_list_builder(
-            client, parent, filter, orderBy, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     networksecurity_projects_locations_intercept_endpoint_group_associations_list_execute(builder)
 }
@@ -13661,6 +14721,19 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_endpoint_group_associations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupAssociationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: InterceptEndpointGroupAssociation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroupAssociations/{interceptEndpointGroupAssociationsId}
 /// Updates an association. See <https://google.aip.`dev/134`.>
 ///
@@ -13673,17 +14746,18 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
 
 pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &InterceptEndpointGroupAssociation,
+    args: &NetworksecurityProjectsLocationsInterceptEndpointGroupAssociationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         networksecurity_projects_locations_intercept_endpoint_group_associations_patch_builder(
-            client, name, requestId, updateMask, body,
+            client,
+            &args.name,
+            args.requestId.as_deref(),
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     networksecurity_projects_locations_intercept_endpoint_group_associations_patch_execute(builder)
 }
@@ -13797,6 +14871,19 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_endpoint_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: interceptEndpointGroupId
+    pub interceptEndpointGroupId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: InterceptEndpointGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroups
 /// Creates an endpoint group in a given project and location. See <https://google.aip.`dev/133`.>
 ///
@@ -13809,20 +14896,17 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_create_execu
 
 pub fn networksecurity_projects_locations_intercept_endpoint_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    interceptEndpointGroupId: Option<&str>,
-    requestId: Option<&str>,
-    body: &InterceptEndpointGroup,
+    args: &NetworksecurityProjectsLocationsInterceptEndpointGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_intercept_endpoint_groups_create_builder(
         client,
-        parent,
-        interceptEndpointGroupId,
-        requestId,
-        body,
+        &args.parent,
+        args.interceptEndpointGroupId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_intercept_endpoint_groups_create_execute(builder)
 }
@@ -13929,6 +15013,15 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_endpoint_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroups/{interceptEndpointGroupsId}
 /// Deletes an endpoint group. See <https://google.aip.`dev/135`.>
 ///
@@ -13941,14 +15034,15 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_delete_execu
 
 pub fn networksecurity_projects_locations_intercept_endpoint_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworksecurityProjectsLocationsInterceptEndpointGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_intercept_endpoint_groups_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     networksecurity_projects_locations_intercept_endpoint_groups_delete_execute(builder)
 }
@@ -14045,6 +15139,13 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_endpoint_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroups/{interceptEndpointGroupsId}
 /// Gets a specific endpoint group. See <https://google.aip.`dev/131`.>
 ///
@@ -14057,15 +15158,16 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_get_execute(
 
 pub fn networksecurity_projects_locations_intercept_endpoint_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsInterceptEndpointGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InterceptEndpointGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        networksecurity_projects_locations_intercept_endpoint_groups_get_builder(client, name)?;
+    let builder = networksecurity_projects_locations_intercept_endpoint_groups_get_builder(
+        client, &args.name,
+    )?;
     networksecurity_projects_locations_intercept_endpoint_groups_get_execute(builder)
 }
 
@@ -14187,6 +15289,21 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_endpoint_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroups
 /// Lists endpoint groups in a given project and location. See <https://google.aip.`dev/132`.>
 ///
@@ -14199,11 +15316,7 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_list_execute
 
 pub fn networksecurity_projects_locations_intercept_endpoint_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsInterceptEndpointGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInterceptEndpointGroupsResponse>, ApiError>,
@@ -14213,7 +15326,12 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_list(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_intercept_endpoint_groups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_intercept_endpoint_groups_list_execute(builder)
 }
@@ -14327,6 +15445,19 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_patch_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_intercept_endpoint_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: InterceptEndpointGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroups/{interceptEndpointGroupsId}
 /// Updates an endpoint group. See <https://google.aip.`dev/134`.>
 ///
@@ -14339,16 +15470,17 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_patch_execut
 
 pub fn networksecurity_projects_locations_intercept_endpoint_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &InterceptEndpointGroup,
+    args: &NetworksecurityProjectsLocationsInterceptEndpointGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_intercept_endpoint_groups_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_intercept_endpoint_groups_patch_execute(builder)
 }
@@ -14462,6 +15594,19 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_create_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_deployment_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringDeploymentGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: mirroringDeploymentGroupId
+    pub mirroringDeploymentGroupId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: MirroringDeploymentGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringDeploymentGroups
 /// Creates a deployment group in a given project and location. See <https://google.aip.`dev/133`.>
 ///
@@ -14474,20 +15619,17 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_create_exe
 
 pub fn networksecurity_projects_locations_mirroring_deployment_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    mirroringDeploymentGroupId: Option<&str>,
-    requestId: Option<&str>,
-    body: &MirroringDeploymentGroup,
+    args: &NetworksecurityProjectsLocationsMirroringDeploymentGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_mirroring_deployment_groups_create_builder(
         client,
-        parent,
-        mirroringDeploymentGroupId,
-        requestId,
-        body,
+        &args.parent,
+        args.mirroringDeploymentGroupId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_mirroring_deployment_groups_create_execute(builder)
 }
@@ -14594,6 +15736,15 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_delete_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_deployment_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringDeploymentGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringDeploymentGroups/{mirroringDeploymentGroupsId}
 /// Deletes a deployment group. See <https://google.aip.`dev/135`.>
 ///
@@ -14606,14 +15757,15 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_delete_exe
 
 pub fn networksecurity_projects_locations_mirroring_deployment_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworksecurityProjectsLocationsMirroringDeploymentGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_mirroring_deployment_groups_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     networksecurity_projects_locations_mirroring_deployment_groups_delete_execute(builder)
 }
@@ -14710,6 +15862,13 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_deployment_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringDeploymentGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringDeploymentGroups/{mirroringDeploymentGroupsId}
 /// Gets a specific deployment group. See <https://google.aip.`dev/131`.>
 ///
@@ -14722,15 +15881,16 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_get_execut
 
 pub fn networksecurity_projects_locations_mirroring_deployment_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsMirroringDeploymentGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MirroringDeploymentGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        networksecurity_projects_locations_mirroring_deployment_groups_get_builder(client, name)?;
+    let builder = networksecurity_projects_locations_mirroring_deployment_groups_get_builder(
+        client, &args.name,
+    )?;
     networksecurity_projects_locations_mirroring_deployment_groups_get_execute(builder)
 }
 
@@ -14852,6 +16012,21 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_deployment_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringDeploymentGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringDeploymentGroups
 /// Lists deployment groups in a given project and location. See <https://google.aip.`dev/132`.>
 ///
@@ -14864,11 +16039,7 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_list_execu
 
 pub fn networksecurity_projects_locations_mirroring_deployment_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsMirroringDeploymentGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMirroringDeploymentGroupsResponse>, ApiError>,
@@ -14878,7 +16049,12 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_list(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_mirroring_deployment_groups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_mirroring_deployment_groups_list_execute(builder)
 }
@@ -14992,6 +16168,19 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_patch_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_deployment_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringDeploymentGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: MirroringDeploymentGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringDeploymentGroups/{mirroringDeploymentGroupsId}
 /// Updates a deployment group. See <https://google.aip.`dev/134`.>
 ///
@@ -15004,16 +16193,17 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_patch_exec
 
 pub fn networksecurity_projects_locations_mirroring_deployment_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &MirroringDeploymentGroup,
+    args: &NetworksecurityProjectsLocationsMirroringDeploymentGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_mirroring_deployment_groups_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_mirroring_deployment_groups_patch_execute(builder)
 }
@@ -15127,6 +16317,19 @@ pub fn networksecurity_projects_locations_mirroring_deployments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: mirroringDeploymentId
+    pub mirroringDeploymentId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: MirroringDeployment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringDeployments
 /// Creates a deployment in a given project and location. See <https://google.aip.`dev/133`.>
 ///
@@ -15139,20 +16342,17 @@ pub fn networksecurity_projects_locations_mirroring_deployments_create_execute(
 
 pub fn networksecurity_projects_locations_mirroring_deployments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    mirroringDeploymentId: Option<&str>,
-    requestId: Option<&str>,
-    body: &MirroringDeployment,
+    args: &NetworksecurityProjectsLocationsMirroringDeploymentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_mirroring_deployments_create_builder(
         client,
-        parent,
-        mirroringDeploymentId,
-        requestId,
-        body,
+        &args.parent,
+        args.mirroringDeploymentId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_mirroring_deployments_create_execute(builder)
 }
@@ -15259,6 +16459,15 @@ pub fn networksecurity_projects_locations_mirroring_deployments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringDeploymentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringDeployments/{mirroringDeploymentsId}
 /// Deletes a deployment. See <https://google.aip.`dev/135`.>
 ///
@@ -15271,14 +16480,15 @@ pub fn networksecurity_projects_locations_mirroring_deployments_delete_execute(
 
 pub fn networksecurity_projects_locations_mirroring_deployments_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworksecurityProjectsLocationsMirroringDeploymentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_mirroring_deployments_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     networksecurity_projects_locations_mirroring_deployments_delete_execute(builder)
 }
@@ -15375,6 +16585,13 @@ pub fn networksecurity_projects_locations_mirroring_deployments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringDeployments/{mirroringDeploymentsId}
 /// Gets a specific deployment. See <https://google.aip.`dev/131`.>
 ///
@@ -15387,7 +16604,7 @@ pub fn networksecurity_projects_locations_mirroring_deployments_get_execute(
 
 pub fn networksecurity_projects_locations_mirroring_deployments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsMirroringDeploymentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MirroringDeployment>, ApiError>, P = ApiPending>
         + Send
@@ -15395,7 +16612,7 @@ pub fn networksecurity_projects_locations_mirroring_deployments_get(
     ApiError,
 > {
     let builder =
-        networksecurity_projects_locations_mirroring_deployments_get_builder(client, name)?;
+        networksecurity_projects_locations_mirroring_deployments_get_builder(client, &args.name)?;
     networksecurity_projects_locations_mirroring_deployments_get_execute(builder)
 }
 
@@ -15517,6 +16734,21 @@ pub fn networksecurity_projects_locations_mirroring_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringDeployments
 /// Lists deployments in a given project and location. See <https://google.aip.`dev/132`.>
 ///
@@ -15529,11 +16761,7 @@ pub fn networksecurity_projects_locations_mirroring_deployments_list_execute(
 
 pub fn networksecurity_projects_locations_mirroring_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsMirroringDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMirroringDeploymentsResponse>, ApiError>,
@@ -15543,7 +16771,12 @@ pub fn networksecurity_projects_locations_mirroring_deployments_list(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_mirroring_deployments_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_mirroring_deployments_list_execute(builder)
 }
@@ -15657,6 +16890,19 @@ pub fn networksecurity_projects_locations_mirroring_deployments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_deployments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringDeploymentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: MirroringDeployment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringDeployments/{mirroringDeploymentsId}
 /// Updates a deployment. See <https://google.aip.`dev/134`.>
 ///
@@ -15669,16 +16915,17 @@ pub fn networksecurity_projects_locations_mirroring_deployments_patch_execute(
 
 pub fn networksecurity_projects_locations_mirroring_deployments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &MirroringDeployment,
+    args: &NetworksecurityProjectsLocationsMirroringDeploymentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_mirroring_deployments_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_mirroring_deployments_patch_execute(builder)
 }
@@ -15792,6 +17039,19 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_endpoint_group_associations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupAssociationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: mirroringEndpointGroupAssociationId
+    pub mirroringEndpointGroupAssociationId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: MirroringEndpointGroupAssociation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroupAssociations
 /// Creates an association in a given project and location. See <https://google.aip.`dev/133`.>
 ///
@@ -15804,10 +17064,7 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
 
 pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    mirroringEndpointGroupAssociationId: Option<&str>,
-    requestId: Option<&str>,
-    body: &MirroringEndpointGroupAssociation,
+    args: &NetworksecurityProjectsLocationsMirroringEndpointGroupAssociationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -15815,10 +17072,10 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
     let builder =
         networksecurity_projects_locations_mirroring_endpoint_group_associations_create_builder(
             client,
-            parent,
-            mirroringEndpointGroupAssociationId,
-            requestId,
-            body,
+            &args.parent,
+            args.mirroringEndpointGroupAssociationId.as_deref(),
+            args.requestId.as_deref(),
+            &args.body,
         )?;
     networksecurity_projects_locations_mirroring_endpoint_group_associations_create_execute(builder)
 }
@@ -15925,6 +17182,15 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_endpoint_group_associations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupAssociationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroupAssociations/{mirroringEndpointGroupAssociationsId}
 /// Deletes an association. See <https://google.aip.`dev/135`.>
 ///
@@ -15937,15 +17203,16 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
 
 pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworksecurityProjectsLocationsMirroringEndpointGroupAssociationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         networksecurity_projects_locations_mirroring_endpoint_group_associations_delete_builder(
-            client, name, requestId,
+            client,
+            &args.name,
+            args.requestId.as_deref(),
         )?;
     networksecurity_projects_locations_mirroring_endpoint_group_associations_delete_execute(builder)
 }
@@ -16044,6 +17311,13 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_endpoint_group_associations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupAssociationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroupAssociations/{mirroringEndpointGroupAssociationsId}
 /// Gets a specific association. See <https://google.aip.`dev/131`.>
 ///
@@ -16056,7 +17330,7 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
 
 pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsMirroringEndpointGroupAssociationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<MirroringEndpointGroupAssociation>, ApiError>,
@@ -16067,7 +17341,7 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
 > {
     let builder =
         networksecurity_projects_locations_mirroring_endpoint_group_associations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     networksecurity_projects_locations_mirroring_endpoint_group_associations_get_execute(builder)
 }
@@ -16191,6 +17465,21 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_endpoint_group_associations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupAssociationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroupAssociations
 /// Lists associations in a given project and location. See <https://google.aip.`dev/132`.>
 ///
@@ -16203,11 +17492,7 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
 
 pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsMirroringEndpointGroupAssociationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMirroringEndpointGroupAssociationsResponse>, ApiError>,
@@ -16218,7 +17503,12 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
 > {
     let builder =
         networksecurity_projects_locations_mirroring_endpoint_group_associations_list_builder(
-            client, parent, filter, orderBy, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     networksecurity_projects_locations_mirroring_endpoint_group_associations_list_execute(builder)
 }
@@ -16332,6 +17622,19 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_endpoint_group_associations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupAssociationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: MirroringEndpointGroupAssociation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroupAssociations/{mirroringEndpointGroupAssociationsId}
 /// Updates an association. See <https://google.aip.`dev/134`.>
 ///
@@ -16344,17 +17647,18 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
 
 pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &MirroringEndpointGroupAssociation,
+    args: &NetworksecurityProjectsLocationsMirroringEndpointGroupAssociationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         networksecurity_projects_locations_mirroring_endpoint_group_associations_patch_builder(
-            client, name, requestId, updateMask, body,
+            client,
+            &args.name,
+            args.requestId.as_deref(),
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     networksecurity_projects_locations_mirroring_endpoint_group_associations_patch_execute(builder)
 }
@@ -16468,6 +17772,19 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_endpoint_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: mirroringEndpointGroupId
+    pub mirroringEndpointGroupId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: MirroringEndpointGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroups
 /// Creates an endpoint group in a given project and location. See <https://google.aip.`dev/133`.>
 ///
@@ -16480,20 +17797,17 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_create_execu
 
 pub fn networksecurity_projects_locations_mirroring_endpoint_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    mirroringEndpointGroupId: Option<&str>,
-    requestId: Option<&str>,
-    body: &MirroringEndpointGroup,
+    args: &NetworksecurityProjectsLocationsMirroringEndpointGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_mirroring_endpoint_groups_create_builder(
         client,
-        parent,
-        mirroringEndpointGroupId,
-        requestId,
-        body,
+        &args.parent,
+        args.mirroringEndpointGroupId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_mirroring_endpoint_groups_create_execute(builder)
 }
@@ -16600,6 +17914,15 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_endpoint_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroups/{mirroringEndpointGroupsId}
 /// Deletes an endpoint group. See <https://google.aip.`dev/135`.>
 ///
@@ -16612,14 +17935,15 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_delete_execu
 
 pub fn networksecurity_projects_locations_mirroring_endpoint_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworksecurityProjectsLocationsMirroringEndpointGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_mirroring_endpoint_groups_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     networksecurity_projects_locations_mirroring_endpoint_groups_delete_execute(builder)
 }
@@ -16716,6 +18040,13 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_endpoint_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroups/{mirroringEndpointGroupsId}
 /// Gets a specific endpoint group. See <https://google.aip.`dev/131`.>
 ///
@@ -16728,15 +18059,16 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_get_execute(
 
 pub fn networksecurity_projects_locations_mirroring_endpoint_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsMirroringEndpointGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MirroringEndpointGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        networksecurity_projects_locations_mirroring_endpoint_groups_get_builder(client, name)?;
+    let builder = networksecurity_projects_locations_mirroring_endpoint_groups_get_builder(
+        client, &args.name,
+    )?;
     networksecurity_projects_locations_mirroring_endpoint_groups_get_execute(builder)
 }
 
@@ -16858,6 +18190,21 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_endpoint_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroups
 /// Lists endpoint groups in a given project and location. See <https://google.aip.`dev/132`.>
 ///
@@ -16870,11 +18217,7 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_list_execute
 
 pub fn networksecurity_projects_locations_mirroring_endpoint_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsMirroringEndpointGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMirroringEndpointGroupsResponse>, ApiError>,
@@ -16884,7 +18227,12 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_list(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_mirroring_endpoint_groups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_mirroring_endpoint_groups_list_execute(builder)
 }
@@ -16998,6 +18346,19 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_patch_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_mirroring_endpoint_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: MirroringEndpointGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroups/{mirroringEndpointGroupsId}
 /// Updates an endpoint group. See <https://google.aip.`dev/134`.>
 ///
@@ -17010,16 +18371,17 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_patch_execut
 
 pub fn networksecurity_projects_locations_mirroring_endpoint_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &MirroringEndpointGroup,
+    args: &NetworksecurityProjectsLocationsMirroringEndpointGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_mirroring_endpoint_groups_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_mirroring_endpoint_groups_patch_execute(builder)
 }
@@ -17117,6 +18479,15 @@ pub fn networksecurity_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -17129,13 +18500,14 @@ pub fn networksecurity_projects_locations_operations_cancel_execute(
 
 pub fn networksecurity_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &NetworksecurityProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networksecurity_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = networksecurity_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     networksecurity_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -17229,6 +18601,13 @@ pub fn networksecurity_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -17241,12 +18620,12 @@ pub fn networksecurity_projects_locations_operations_delete_execute(
 
 pub fn networksecurity_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networksecurity_projects_locations_operations_delete_builder(client, name)?;
+    let builder = networksecurity_projects_locations_operations_delete_builder(client, &args.name)?;
     networksecurity_projects_locations_operations_delete_execute(builder)
 }
 
@@ -17340,6 +18719,13 @@ pub fn networksecurity_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -17352,12 +18738,12 @@ pub fn networksecurity_projects_locations_operations_get_execute(
 
 pub fn networksecurity_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networksecurity_projects_locations_operations_get_builder(client, name)?;
+    let builder = networksecurity_projects_locations_operations_get_builder(client, &args.name)?;
     networksecurity_projects_locations_operations_get_execute(builder)
 }
 
@@ -17477,6 +18863,21 @@ pub fn networksecurity_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -17489,11 +18890,7 @@ pub fn networksecurity_projects_locations_operations_list_execute(
 
 pub fn networksecurity_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworksecurityProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -17502,11 +18899,11 @@ pub fn networksecurity_projects_locations_operations_list(
 > {
     let builder = networksecurity_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     networksecurity_projects_locations_operations_list_execute(builder)
 }
@@ -17616,6 +19013,17 @@ pub fn networksecurity_projects_locations_server_tls_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_server_tls_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsServerTlsPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: serverTlsPolicyId
+    pub serverTlsPolicyId: Option<String>,
+    /// Request body.
+    pub body: ServerTlsPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serverTlsPolicies
 /// Creates a new ServerTlsPolicy in a given project and location.
 ///
@@ -17628,18 +19036,16 @@ pub fn networksecurity_projects_locations_server_tls_policies_create_execute(
 
 pub fn networksecurity_projects_locations_server_tls_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    serverTlsPolicyId: Option<&str>,
-    body: &ServerTlsPolicy,
+    args: &NetworksecurityProjectsLocationsServerTlsPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_server_tls_policies_create_builder(
         client,
-        parent,
-        serverTlsPolicyId,
-        body,
+        &args.parent,
+        args.serverTlsPolicyId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_server_tls_policies_create_execute(builder)
 }
@@ -17734,6 +19140,13 @@ pub fn networksecurity_projects_locations_server_tls_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_server_tls_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsServerTlsPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serverTlsPolicies/{serverTlsPoliciesId}
 /// Deletes a single ServerTlsPolicy.
 ///
@@ -17746,13 +19159,13 @@ pub fn networksecurity_projects_locations_server_tls_policies_delete_execute(
 
 pub fn networksecurity_projects_locations_server_tls_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsServerTlsPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        networksecurity_projects_locations_server_tls_policies_delete_builder(client, name)?;
+        networksecurity_projects_locations_server_tls_policies_delete_builder(client, &args.name)?;
     networksecurity_projects_locations_server_tls_policies_delete_execute(builder)
 }
 
@@ -17848,6 +19261,13 @@ pub fn networksecurity_projects_locations_server_tls_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_server_tls_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsServerTlsPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serverTlsPolicies/{serverTlsPoliciesId}
 /// Gets details of a single ServerTlsPolicy.
 ///
@@ -17860,14 +19280,15 @@ pub fn networksecurity_projects_locations_server_tls_policies_get_execute(
 
 pub fn networksecurity_projects_locations_server_tls_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsServerTlsPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ServerTlsPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = networksecurity_projects_locations_server_tls_policies_get_builder(client, name)?;
+    let builder =
+        networksecurity_projects_locations_server_tls_policies_get_builder(client, &args.name)?;
     networksecurity_projects_locations_server_tls_policies_get_execute(builder)
 }
 
@@ -17975,6 +19396,15 @@ pub fn networksecurity_projects_locations_server_tls_policies_get_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_server_tls_policies_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsServerTlsPoliciesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serverTlsPolicies/{serverTlsPoliciesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -17987,8 +19417,7 @@ pub fn networksecurity_projects_locations_server_tls_policies_get_iam_policy_exe
 
 pub fn networksecurity_projects_locations_server_tls_policies_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &NetworksecurityProjectsLocationsServerTlsPoliciesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -17997,8 +19426,8 @@ pub fn networksecurity_projects_locations_server_tls_policies_get_iam_policy(
 > {
     let builder = networksecurity_projects_locations_server_tls_policies_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     networksecurity_projects_locations_server_tls_policies_get_iam_policy_execute(builder)
 }
@@ -18117,6 +19546,19 @@ pub fn networksecurity_projects_locations_server_tls_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_server_tls_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsServerTlsPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serverTlsPolicies
 /// Lists ServerTlsPolicies in a given project and location.
 ///
@@ -18129,10 +19571,7 @@ pub fn networksecurity_projects_locations_server_tls_policies_list_execute(
 
 pub fn networksecurity_projects_locations_server_tls_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworksecurityProjectsLocationsServerTlsPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListServerTlsPoliciesResponse>, ApiError>,
@@ -18143,10 +19582,10 @@ pub fn networksecurity_projects_locations_server_tls_policies_list(
 > {
     let builder = networksecurity_projects_locations_server_tls_policies_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     networksecurity_projects_locations_server_tls_policies_list_execute(builder)
 }
@@ -18256,6 +19695,17 @@ pub fn networksecurity_projects_locations_server_tls_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_server_tls_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsServerTlsPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ServerTlsPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serverTlsPolicies/{serverTlsPoliciesId}
 /// Updates the parameters of a single ServerTlsPolicy.
 ///
@@ -18268,15 +19718,16 @@ pub fn networksecurity_projects_locations_server_tls_policies_patch_execute(
 
 pub fn networksecurity_projects_locations_server_tls_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ServerTlsPolicy,
+    args: &NetworksecurityProjectsLocationsServerTlsPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_server_tls_policies_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_server_tls_policies_patch_execute(builder)
 }
@@ -18376,6 +19827,15 @@ pub fn networksecurity_projects_locations_server_tls_policies_set_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_server_tls_policies_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsServerTlsPoliciesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serverTlsPolicies/{serverTlsPoliciesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -18388,8 +19848,7 @@ pub fn networksecurity_projects_locations_server_tls_policies_set_iam_policy_exe
 
 pub fn networksecurity_projects_locations_server_tls_policies_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &NetworksecurityProjectsLocationsServerTlsPoliciesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -18397,7 +19856,9 @@ pub fn networksecurity_projects_locations_server_tls_policies_set_iam_policy(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_server_tls_policies_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     networksecurity_projects_locations_server_tls_policies_set_iam_policy_execute(builder)
 }
@@ -18499,6 +19960,15 @@ pub fn networksecurity_projects_locations_server_tls_policies_test_iam_permissio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_server_tls_policies_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsServerTlsPoliciesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serverTlsPolicies/{serverTlsPoliciesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -18511,8 +19981,7 @@ pub fn networksecurity_projects_locations_server_tls_policies_test_iam_permissio
 
 pub fn networksecurity_projects_locations_server_tls_policies_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &NetworksecurityProjectsLocationsServerTlsPoliciesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -18523,7 +19992,9 @@ pub fn networksecurity_projects_locations_server_tls_policies_test_iam_permissio
 > {
     let builder =
         networksecurity_projects_locations_server_tls_policies_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     networksecurity_projects_locations_server_tls_policies_test_iam_permissions_execute(builder)
 }
@@ -18633,6 +20104,17 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_tls_inspection_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsTlsInspectionPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: tlsInspectionPolicyId
+    pub tlsInspectionPolicyId: Option<String>,
+    /// Request body.
+    pub body: TlsInspectionPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tlsInspectionPolicies
 /// Creates a new TlsInspectionPolicy in a given project and location.
 ///
@@ -18645,18 +20127,16 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_create_execute
 
 pub fn networksecurity_projects_locations_tls_inspection_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    tlsInspectionPolicyId: Option<&str>,
-    body: &TlsInspectionPolicy,
+    args: &NetworksecurityProjectsLocationsTlsInspectionPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_tls_inspection_policies_create_builder(
         client,
-        parent,
-        tlsInspectionPolicyId,
-        body,
+        &args.parent,
+        args.tlsInspectionPolicyId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_tls_inspection_policies_create_execute(builder)
 }
@@ -18763,6 +20243,15 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_tls_inspection_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsTlsInspectionPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tlsInspectionPolicies/{tlsInspectionPoliciesId}
 /// Deletes a single TlsInspectionPolicy.
 ///
@@ -18775,14 +20264,13 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_delete_execute
 
 pub fn networksecurity_projects_locations_tls_inspection_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &NetworksecurityProjectsLocationsTlsInspectionPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_tls_inspection_policies_delete_builder(
-        client, name, force,
+        client, &args.name, args.force,
     )?;
     networksecurity_projects_locations_tls_inspection_policies_delete_execute(builder)
 }
@@ -18879,6 +20367,13 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_tls_inspection_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsTlsInspectionPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tlsInspectionPolicies/{tlsInspectionPoliciesId}
 /// Gets details of a single TlsInspectionPolicy.
 ///
@@ -18891,7 +20386,7 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_get_execute(
 
 pub fn networksecurity_projects_locations_tls_inspection_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsTlsInspectionPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TlsInspectionPolicy>, ApiError>, P = ApiPending>
         + Send
@@ -18899,7 +20394,7 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_get(
     ApiError,
 > {
     let builder =
-        networksecurity_projects_locations_tls_inspection_policies_get_builder(client, name)?;
+        networksecurity_projects_locations_tls_inspection_policies_get_builder(client, &args.name)?;
     networksecurity_projects_locations_tls_inspection_policies_get_execute(builder)
 }
 
@@ -19013,6 +20508,17 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_tls_inspection_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsTlsInspectionPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tlsInspectionPolicies
 /// Lists TlsInspectionPolicies in a given project and location.
 ///
@@ -19025,9 +20531,7 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_list_execute(
 
 pub fn networksecurity_projects_locations_tls_inspection_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsTlsInspectionPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListTlsInspectionPoliciesResponse>, ApiError>,
@@ -19037,7 +20541,10 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_list(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_tls_inspection_policies_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_tls_inspection_policies_list_execute(builder)
 }
@@ -19147,6 +20654,17 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_tls_inspection_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsTlsInspectionPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: TlsInspectionPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tlsInspectionPolicies/{tlsInspectionPoliciesId}
 /// Updates the parameters of a single TlsInspectionPolicy.
 ///
@@ -19159,15 +20677,16 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_patch_execute(
 
 pub fn networksecurity_projects_locations_tls_inspection_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &TlsInspectionPolicy,
+    args: &NetworksecurityProjectsLocationsTlsInspectionPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_tls_inspection_policies_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_tls_inspection_policies_patch_execute(builder)
 }
@@ -19277,6 +20796,17 @@ pub fn networksecurity_projects_locations_url_lists_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_url_lists_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsUrlListsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: urlListId
+    pub urlListId: Option<String>,
+    /// Request body.
+    pub body: UrlList,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/urlLists
 /// Creates a new UrlList in a given project and location.
 ///
@@ -19289,15 +20819,16 @@ pub fn networksecurity_projects_locations_url_lists_create_execute(
 
 pub fn networksecurity_projects_locations_url_lists_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    urlListId: Option<&str>,
-    body: &UrlList,
+    args: &NetworksecurityProjectsLocationsUrlListsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networksecurity_projects_locations_url_lists_create_builder(
-        client, parent, urlListId, body,
+        client,
+        &args.parent,
+        args.urlListId.as_deref(),
+        &args.body,
     )?;
     networksecurity_projects_locations_url_lists_create_execute(builder)
 }
@@ -19392,6 +20923,13 @@ pub fn networksecurity_projects_locations_url_lists_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_url_lists_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsUrlListsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/urlLists/{urlListsId}
 /// Deletes a single UrlList.
 ///
@@ -19404,12 +20942,12 @@ pub fn networksecurity_projects_locations_url_lists_delete_execute(
 
 pub fn networksecurity_projects_locations_url_lists_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsUrlListsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networksecurity_projects_locations_url_lists_delete_builder(client, name)?;
+    let builder = networksecurity_projects_locations_url_lists_delete_builder(client, &args.name)?;
     networksecurity_projects_locations_url_lists_delete_execute(builder)
 }
 
@@ -19503,6 +21041,13 @@ pub fn networksecurity_projects_locations_url_lists_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_url_lists_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsUrlListsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/urlLists/{urlListsId}
 /// Gets details of a single UrlList.
 ///
@@ -19515,12 +21060,12 @@ pub fn networksecurity_projects_locations_url_lists_get_execute(
 
 pub fn networksecurity_projects_locations_url_lists_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworksecurityProjectsLocationsUrlListsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UrlList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networksecurity_projects_locations_url_lists_get_builder(client, name)?;
+    let builder = networksecurity_projects_locations_url_lists_get_builder(client, &args.name)?;
     networksecurity_projects_locations_url_lists_get_execute(builder)
 }
 
@@ -19632,6 +21177,17 @@ pub fn networksecurity_projects_locations_url_lists_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_url_lists_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsUrlListsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/urlLists
 /// Lists UrlLists in a given project and location.
 ///
@@ -19644,9 +21200,7 @@ pub fn networksecurity_projects_locations_url_lists_list_execute(
 
 pub fn networksecurity_projects_locations_url_lists_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworksecurityProjectsLocationsUrlListsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListUrlListsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -19654,7 +21208,10 @@ pub fn networksecurity_projects_locations_url_lists_list(
     ApiError,
 > {
     let builder = networksecurity_projects_locations_url_lists_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networksecurity_projects_locations_url_lists_list_execute(builder)
 }
@@ -19764,6 +21321,17 @@ pub fn networksecurity_projects_locations_url_lists_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networksecurity_projects_locations_url_lists_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworksecurityProjectsLocationsUrlListsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: UrlList,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/urlLists/{urlListsId}
 /// Updates the parameters of a single UrlList.
 ///
@@ -19776,14 +21344,16 @@ pub fn networksecurity_projects_locations_url_lists_patch_execute(
 
 pub fn networksecurity_projects_locations_url_lists_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &UrlList,
+    args: &NetworksecurityProjectsLocationsUrlListsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        networksecurity_projects_locations_url_lists_patch_builder(client, name, updateMask, body)?;
+    let builder = networksecurity_projects_locations_url_lists_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     networksecurity_projects_locations_url_lists_patch_execute(builder)
 }

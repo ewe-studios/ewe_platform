@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET projects/{projectsId}/datasets/{datasetsId}
 /// Deletes the dataset specified by the `datasetId` value. Before you can delete a dataset, you must delete all its tables, either manually or by specifying `deleteContents`. Immediately after deletion, you can create another dataset with the same name.
@@ -116,6 +118,17 @@ pub fn bigquery_datasets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_datasets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryDatasetsDeleteArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Query parameter: deleteContents
+    pub deleteContents: Option<bool>,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}
 /// Deletes the dataset specified by the `datasetId` value. Before you can delete a dataset, you must delete all its tables, either manually or by specifying `deleteContents`. Immediately after deletion, you can create another dataset with the same name.
 ///
@@ -128,14 +141,17 @@ pub fn bigquery_datasets_delete_execute(
 
 pub fn bigquery_datasets_delete(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    deleteContents: Option<bool>,
+    args: &BigqueryDatasetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_datasets_delete_builder(client, projectId, datasetId, deleteContents)?;
+    let builder = bigquery_datasets_delete_builder(
+        client,
+        &args.projectId,
+        &args.datasetId,
+        args.deleteContents,
+    )?;
     bigquery_datasets_delete_execute(builder)
 }
 
@@ -246,6 +262,19 @@ pub fn bigquery_datasets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_datasets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryDatasetsGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Query parameter: accessPolicyVersion
+    pub accessPolicyVersion: Option<i32>,
+    /// Query parameter: datasetView
+    pub datasetView: Option<String>,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}
 /// Returns the dataset specified by `datasetID`.
 ///
@@ -258,20 +287,17 @@ pub fn bigquery_datasets_get_execute(
 
 pub fn bigquery_datasets_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    accessPolicyVersion: Option<i32>,
-    datasetView: Option<&str>,
+    args: &BigqueryDatasetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigquery_datasets_get_builder(
         client,
-        projectId,
-        datasetId,
-        accessPolicyVersion,
-        datasetView,
+        &args.projectId,
+        &args.datasetId,
+        args.accessPolicyVersion,
+        args.datasetView.as_deref(),
     )?;
     bigquery_datasets_get_execute(builder)
 }
@@ -381,6 +407,17 @@ pub fn bigquery_datasets_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_datasets_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryDatasetsInsertArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Query parameter: accessPolicyVersion
+    pub accessPolicyVersion: Option<i32>,
+    /// Request body.
+    pub body: Dataset,
+}
+
 /// GET projects/{projectsId}/datasets
 /// Creates a new empty dataset.
 ///
@@ -393,14 +430,17 @@ pub fn bigquery_datasets_insert_execute(
 
 pub fn bigquery_datasets_insert(
     client: &SimpleHttpClient,
-    projectId: &str,
-    accessPolicyVersion: Option<i32>,
-    body: &Dataset,
+    args: &BigqueryDatasetsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_datasets_insert_builder(client, projectId, accessPolicyVersion, body)?;
+    let builder = bigquery_datasets_insert_builder(
+        client,
+        &args.projectId,
+        args.accessPolicyVersion,
+        &args.body,
+    )?;
     bigquery_datasets_insert_execute(builder)
 }
 
@@ -518,6 +558,21 @@ pub fn bigquery_datasets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_datasets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryDatasetsListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Query parameter: all
+    pub all: Option<bool>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET projects/{projectsId}/datasets
 /// Lists all datasets in the specified project to which the user has been granted the READER dataset role.
 ///
@@ -530,17 +585,19 @@ pub fn bigquery_datasets_list_execute(
 
 pub fn bigquery_datasets_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    all: Option<bool>,
-    filter: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigqueryDatasetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatasetList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigquery_datasets_list_builder(client, projectId, all, filter, maxResults, pageToken)?;
+    let builder = bigquery_datasets_list_builder(
+        client,
+        &args.projectId,
+        args.all,
+        args.filter.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     bigquery_datasets_list_execute(builder)
 }
 
@@ -654,6 +711,21 @@ pub fn bigquery_datasets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_datasets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryDatasetsPatchArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Query parameter: accessPolicyVersion
+    pub accessPolicyVersion: Option<i32>,
+    /// Query parameter: updateMode
+    pub updateMode: Option<String>,
+    /// Request body.
+    pub body: Dataset,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}
 /// Updates information in an existing dataset. The update method replaces the entire dataset resource, whereas the patch method only replaces fields that are provided in the submitted dataset resource. This method supports RFC5789 patch semantics.
 ///
@@ -666,22 +738,18 @@ pub fn bigquery_datasets_patch_execute(
 
 pub fn bigquery_datasets_patch(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    accessPolicyVersion: Option<i32>,
-    updateMode: Option<&str>,
-    body: &Dataset,
+    args: &BigqueryDatasetsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigquery_datasets_patch_builder(
         client,
-        projectId,
-        datasetId,
-        accessPolicyVersion,
-        updateMode,
-        body,
+        &args.projectId,
+        &args.datasetId,
+        args.accessPolicyVersion,
+        args.updateMode.as_deref(),
+        &args.body,
     )?;
     bigquery_datasets_patch_execute(builder)
 }
@@ -780,6 +848,17 @@ pub fn bigquery_datasets_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_datasets_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryDatasetsUndeleteArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Request body.
+    pub body: UndeleteDatasetRequest,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}:undelete
 /// Undeletes a dataset which is within time travel window based on `datasetId`. If a time is specified, the dataset version deleted at that time is undeleted, else the last live version is undeleted.
 ///
@@ -792,14 +871,13 @@ pub fn bigquery_datasets_undelete_execute(
 
 pub fn bigquery_datasets_undelete(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    body: &UndeleteDatasetRequest,
+    args: &BigqueryDatasetsUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_datasets_undelete_builder(client, projectId, datasetId, body)?;
+    let builder =
+        bigquery_datasets_undelete_builder(client, &args.projectId, &args.datasetId, &args.body)?;
     bigquery_datasets_undelete_execute(builder)
 }
 
@@ -913,6 +991,21 @@ pub fn bigquery_datasets_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_datasets_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryDatasetsUpdateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Query parameter: accessPolicyVersion
+    pub accessPolicyVersion: Option<i32>,
+    /// Query parameter: updateMode
+    pub updateMode: Option<String>,
+    /// Request body.
+    pub body: Dataset,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}
 /// Updates information in an existing dataset. The update method replaces the entire dataset resource, whereas the patch method only replaces fields that are provided in the submitted dataset resource.
 ///
@@ -925,22 +1018,18 @@ pub fn bigquery_datasets_update_execute(
 
 pub fn bigquery_datasets_update(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    accessPolicyVersion: Option<i32>,
-    updateMode: Option<&str>,
-    body: &Dataset,
+    args: &BigqueryDatasetsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigquery_datasets_update_builder(
         client,
-        projectId,
-        datasetId,
-        accessPolicyVersion,
-        updateMode,
-        body,
+        &args.projectId,
+        &args.datasetId,
+        args.accessPolicyVersion,
+        args.updateMode.as_deref(),
+        &args.body,
     )?;
     bigquery_datasets_update_execute(builder)
 }
@@ -1050,6 +1139,17 @@ pub fn bigquery_jobs_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_jobs_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryJobsCancelArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: jobId
+    pub jobId: String,
+    /// Query parameter: location
+    pub location: Option<String>,
+}
+
 /// GET projects/{projectsId}/jobs/{jobsId}/cancel
 /// Requests that a job be cancelled. This call will return immediately, and the client will need to poll for the job status to see if the cancel completed successfully. Cancelled jobs may still incur costs.
 ///
@@ -1062,16 +1162,19 @@ pub fn bigquery_jobs_cancel_execute(
 
 pub fn bigquery_jobs_cancel(
     client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
-    location: Option<&str>,
+    args: &BigqueryJobsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<JobCancelResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = bigquery_jobs_cancel_builder(client, projectId, jobId, location)?;
+    let builder = bigquery_jobs_cancel_builder(
+        client,
+        &args.projectId,
+        &args.jobId,
+        args.location.as_deref(),
+    )?;
     bigquery_jobs_cancel_execute(builder)
 }
 
@@ -1175,6 +1278,17 @@ pub fn bigquery_jobs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryJobsDeleteArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: jobId
+    pub jobId: String,
+    /// Query parameter: location
+    pub location: Option<String>,
+}
+
 /// GET projects/{projectsId}/jobs/{jobsId}/delete
 /// Requests the deletion of the metadata of a job. This call returns when the job's metadata is deleted.
 ///
@@ -1187,14 +1301,17 @@ pub fn bigquery_jobs_delete_execute(
 
 pub fn bigquery_jobs_delete(
     client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
-    location: Option<&str>,
+    args: &BigqueryJobsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_jobs_delete_builder(client, projectId, jobId, location)?;
+    let builder = bigquery_jobs_delete_builder(
+        client,
+        &args.projectId,
+        &args.jobId,
+        args.location.as_deref(),
+    )?;
     bigquery_jobs_delete_execute(builder)
 }
 
@@ -1301,6 +1418,17 @@ pub fn bigquery_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryJobsGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: jobId
+    pub jobId: String,
+    /// Query parameter: location
+    pub location: Option<String>,
+}
+
 /// GET projects/{projectsId}/jobs/{jobsId}
 /// Returns information about a specific job. Job information is available for a six month period after creation. Requires that you're the person who ran the job, or have the Is Owner project role.
 ///
@@ -1313,14 +1441,17 @@ pub fn bigquery_jobs_get_execute(
 
 pub fn bigquery_jobs_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
-    location: Option<&str>,
+    args: &BigqueryJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_jobs_get_builder(client, projectId, jobId, location)?;
+    let builder = bigquery_jobs_get_builder(
+        client,
+        &args.projectId,
+        &args.jobId,
+        args.location.as_deref(),
+    )?;
     bigquery_jobs_get_execute(builder)
 }
 
@@ -1453,6 +1584,29 @@ pub fn bigquery_jobs_get_query_results_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_jobs_get_query_results`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryJobsGetQueryResultsArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: jobId
+    pub jobId: String,
+    /// Query parameter: formatOptions_timestampOutputFormat
+    pub formatOptions_timestampOutputFormat: Option<String>,
+    /// Query parameter: formatOptions_useInt64Timestamp
+    pub formatOptions_useInt64Timestamp: Option<bool>,
+    /// Query parameter: location
+    pub location: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: startIndex
+    pub startIndex: Option<String>,
+    /// Query parameter: timeoutMs
+    pub timeoutMs: Option<i32>,
+}
+
 /// GET projects/{projectsId}/queries/{queriesId}
 /// RPC to get the results of a query job.
 ///
@@ -1465,15 +1619,7 @@ pub fn bigquery_jobs_get_query_results_execute(
 
 pub fn bigquery_jobs_get_query_results(
     client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
-    formatOptions_timestampOutputFormat: Option<&str>,
-    formatOptions_useInt64Timestamp: Option<bool>,
-    location: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    startIndex: Option<&str>,
-    timeoutMs: Option<i32>,
+    args: &BigqueryJobsGetQueryResultsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GetQueryResultsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1482,15 +1628,15 @@ pub fn bigquery_jobs_get_query_results(
 > {
     let builder = bigquery_jobs_get_query_results_builder(
         client,
-        projectId,
-        jobId,
-        formatOptions_timestampOutputFormat,
-        formatOptions_useInt64Timestamp,
-        location,
-        maxResults,
-        pageToken,
-        startIndex,
-        timeoutMs,
+        &args.projectId,
+        &args.jobId,
+        args.formatOptions_timestampOutputFormat.as_deref(),
+        args.formatOptions_useInt64Timestamp,
+        args.location.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.startIndex.as_deref(),
+        args.timeoutMs,
     )?;
     bigquery_jobs_get_query_results_execute(builder)
 }
@@ -1588,6 +1734,15 @@ pub fn bigquery_jobs_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_jobs_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryJobsInsertArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Request body.
+    pub body: Job,
+}
+
 /// GET projects/{projectsId}/jobs
 /// Starts a new asynchronous job. This API has two different kinds of endpoint URIs, as this method supports a variety of use cases. * The *Metadata* URI is used for most interactions, as it accepts the job configuration directly. * The *Upload* URI is ONLY for the case when you're sending both a load job configuration and a data stream together. In this case, the Upload URI accepts the job configuration and the data as two distinct multipart MIME parts.
 ///
@@ -1600,13 +1755,12 @@ pub fn bigquery_jobs_insert_execute(
 
 pub fn bigquery_jobs_insert(
     client: &SimpleHttpClient,
-    projectId: &str,
-    body: &Job,
+    args: &BigqueryJobsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_jobs_insert_builder(client, projectId, body)?;
+    let builder = bigquery_jobs_insert_builder(client, &args.projectId, &args.body)?;
     bigquery_jobs_insert_execute(builder)
 }
 
@@ -1740,6 +1894,29 @@ pub fn bigquery_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryJobsListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Query parameter: allUsers
+    pub allUsers: Option<bool>,
+    /// Query parameter: maxCreationTime
+    pub maxCreationTime: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: minCreationTime
+    pub minCreationTime: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parentJobId
+    pub parentJobId: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: stateFilter
+    pub stateFilter: Option<String>,
+}
+
 /// GET projects/{projectsId}/jobs
 /// Lists all jobs that you started in the specified project. Job information is available for a six month period after creation. The job list is sorted in reverse chronological order, by job creation time. Requires the Can View project role, or the Is Owner project role if you set the `allUsers` property.
 ///
@@ -1752,30 +1929,22 @@ pub fn bigquery_jobs_list_execute(
 
 pub fn bigquery_jobs_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    allUsers: Option<bool>,
-    maxCreationTime: Option<&str>,
-    maxResults: Option<i32>,
-    minCreationTime: Option<&str>,
-    pageToken: Option<&str>,
-    parentJobId: Option<&str>,
-    projection: Option<&str>,
-    stateFilter: Option<&str>,
+    args: &BigqueryJobsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<JobList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigquery_jobs_list_builder(
         client,
-        projectId,
-        allUsers,
-        maxCreationTime,
-        maxResults,
-        minCreationTime,
-        pageToken,
-        parentJobId,
-        projection,
-        stateFilter,
+        &args.projectId,
+        args.allUsers,
+        args.maxCreationTime.as_deref(),
+        args.maxResults,
+        args.minCreationTime.as_deref(),
+        args.pageToken.as_deref(),
+        args.parentJobId.as_deref(),
+        args.projection.as_deref(),
+        args.stateFilter.as_deref(),
     )?;
     bigquery_jobs_list_execute(builder)
 }
@@ -1875,6 +2044,15 @@ pub fn bigquery_jobs_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_jobs_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryJobsQueryArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Request body.
+    pub body: QueryRequest,
+}
+
 /// GET projects/{projectsId}/queries
 /// Runs a BigQuery SQL query synchronously and returns query results if the query completes within a specified timeout.
 ///
@@ -1887,15 +2065,14 @@ pub fn bigquery_jobs_query_execute(
 
 pub fn bigquery_jobs_query(
     client: &SimpleHttpClient,
-    projectId: &str,
-    body: &QueryRequest,
+    args: &BigqueryJobsQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = bigquery_jobs_query_builder(client, projectId, body)?;
+    let builder = bigquery_jobs_query_builder(client, &args.projectId, &args.body)?;
     bigquery_jobs_query_execute(builder)
 }
 
@@ -1988,6 +2165,17 @@ pub fn bigquery_models_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_models_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryModelsDeleteArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: modelId
+    pub modelId: String,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/models/{modelsId}
 /// Deletes the model specified by `modelId` from the dataset.
 ///
@@ -2000,14 +2188,13 @@ pub fn bigquery_models_delete_execute(
 
 pub fn bigquery_models_delete(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    modelId: &str,
+    args: &BigqueryModelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_models_delete_builder(client, projectId, datasetId, modelId)?;
+    let builder =
+        bigquery_models_delete_builder(client, &args.projectId, &args.datasetId, &args.modelId)?;
     bigquery_models_delete_execute(builder)
 }
 
@@ -2103,6 +2290,17 @@ pub fn bigquery_models_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_models_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryModelsGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: modelId
+    pub modelId: String,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/models/{modelsId}
 /// Gets the specified model resource by model ID.
 ///
@@ -2115,14 +2313,13 @@ pub fn bigquery_models_get_execute(
 
 pub fn bigquery_models_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    modelId: &str,
+    args: &BigqueryModelsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Model>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_models_get_builder(client, projectId, datasetId, modelId)?;
+    let builder =
+        bigquery_models_get_builder(client, &args.projectId, &args.datasetId, &args.modelId)?;
     bigquery_models_get_execute(builder)
 }
 
@@ -2235,6 +2432,19 @@ pub fn bigquery_models_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_models_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryModelsListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/models
 /// Lists all models in the specified dataset. Requires the READER dataset role. After retrieving the list of models, you can get information about a particular model by calling the models.get method.
 ///
@@ -2247,18 +2457,20 @@ pub fn bigquery_models_list_execute(
 
 pub fn bigquery_models_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigqueryModelsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListModelsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        bigquery_models_list_builder(client, projectId, datasetId, maxResults, pageToken)?;
+    let builder = bigquery_models_list_builder(
+        client,
+        &args.projectId,
+        &args.datasetId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     bigquery_models_list_execute(builder)
 }
 
@@ -2357,6 +2569,19 @@ pub fn bigquery_models_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_models_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryModelsPatchArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: modelId
+    pub modelId: String,
+    /// Request body.
+    pub body: Model,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/models/{modelsId}
 /// Patch specific fields in the specified model.
 ///
@@ -2369,15 +2594,18 @@ pub fn bigquery_models_patch_execute(
 
 pub fn bigquery_models_patch(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    modelId: &str,
-    body: &Model,
+    args: &BigqueryModelsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Model>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_models_patch_builder(client, projectId, datasetId, modelId, body)?;
+    let builder = bigquery_models_patch_builder(
+        client,
+        &args.projectId,
+        &args.datasetId,
+        &args.modelId,
+        &args.body,
+    )?;
     bigquery_models_patch_execute(builder)
 }
 
@@ -2473,6 +2701,13 @@ pub fn bigquery_projects_get_service_account_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_projects_get_service_account`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryProjectsGetServiceAccountArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+}
+
 /// GET projects/{projectsId}/serviceAccount
 /// RPC to get the service account for a project used for interactions with Google Cloud KMS
 ///
@@ -2485,14 +2720,14 @@ pub fn bigquery_projects_get_service_account_execute(
 
 pub fn bigquery_projects_get_service_account(
     client: &SimpleHttpClient,
-    projectId: &str,
+    args: &BigqueryProjectsGetServiceAccountArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GetServiceAccountResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = bigquery_projects_get_service_account_builder(client, projectId)?;
+    let builder = bigquery_projects_get_service_account_builder(client, &args.projectId)?;
     bigquery_projects_get_service_account_execute(builder)
 }
 
@@ -2598,6 +2833,15 @@ pub fn bigquery_projects_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_projects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryProjectsListArgs {
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET projects
 /// RPC to list projects to which the user has been granted any project role. Users of this method are encouraged to consider the [Resource Manager](<https://cloud.google.`com/resource-manager/docs/`>) API, which provides the underlying data for this method and has more capabilities.
 ///
@@ -2610,13 +2854,13 @@ pub fn bigquery_projects_list_execute(
 
 pub fn bigquery_projects_list(
     client: &SimpleHttpClient,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigqueryProjectsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProjectList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_projects_list_builder(client, maxResults, pageToken)?;
+    let builder =
+        bigquery_projects_list_builder(client, args.maxResults, args.pageToken.as_deref())?;
     bigquery_projects_list_execute(builder)
 }
 
@@ -2709,6 +2953,17 @@ pub fn bigquery_routines_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_routines_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryRoutinesDeleteArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: routineId
+    pub routineId: String,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}
 /// Deletes the routine specified by `routineId` from the dataset.
 ///
@@ -2721,14 +2976,17 @@ pub fn bigquery_routines_delete_execute(
 
 pub fn bigquery_routines_delete(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    routineId: &str,
+    args: &BigqueryRoutinesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_routines_delete_builder(client, projectId, datasetId, routineId)?;
+    let builder = bigquery_routines_delete_builder(
+        client,
+        &args.projectId,
+        &args.datasetId,
+        &args.routineId,
+    )?;
     bigquery_routines_delete_execute(builder)
 }
 
@@ -2836,6 +3094,19 @@ pub fn bigquery_routines_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_routines_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryRoutinesGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: routineId
+    pub routineId: String,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}
 /// Gets the specified routine resource by routine ID.
 ///
@@ -2848,15 +3119,18 @@ pub fn bigquery_routines_get_execute(
 
 pub fn bigquery_routines_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    routineId: &str,
-    readMask: Option<&str>,
+    args: &BigqueryRoutinesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Routine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_routines_get_builder(client, projectId, datasetId, routineId, readMask)?;
+    let builder = bigquery_routines_get_builder(
+        client,
+        &args.projectId,
+        &args.datasetId,
+        &args.routineId,
+        args.readMask.as_deref(),
+    )?;
     bigquery_routines_get_execute(builder)
 }
 
@@ -2953,6 +3227,15 @@ pub fn bigquery_routines_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_routines_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryRoutinesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2965,13 +3248,12 @@ pub fn bigquery_routines_get_iam_policy_execute(
 
 pub fn bigquery_routines_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &BigqueryRoutinesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_routines_get_iam_policy_builder(client, resource, body)?;
+    let builder = bigquery_routines_get_iam_policy_builder(client, &args.resource, &args.body)?;
     bigquery_routines_get_iam_policy_execute(builder)
 }
 
@@ -3069,6 +3351,17 @@ pub fn bigquery_routines_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_routines_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryRoutinesInsertArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Request body.
+    pub body: Routine,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/routines
 /// Creates a new routine in the dataset.
 ///
@@ -3081,14 +3374,13 @@ pub fn bigquery_routines_insert_execute(
 
 pub fn bigquery_routines_insert(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    body: &Routine,
+    args: &BigqueryRoutinesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Routine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_routines_insert_builder(client, projectId, datasetId, body)?;
+    let builder =
+        bigquery_routines_insert_builder(client, &args.projectId, &args.datasetId, &args.body)?;
     bigquery_routines_insert_execute(builder)
 }
 
@@ -3209,6 +3501,23 @@ pub fn bigquery_routines_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_routines_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryRoutinesListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/routines
 /// Lists all routines in the specified dataset. Requires the READER dataset role.
 ///
@@ -3221,12 +3530,7 @@ pub fn bigquery_routines_list_execute(
 
 pub fn bigquery_routines_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    filter: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &BigqueryRoutinesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRoutinesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3234,7 +3538,13 @@ pub fn bigquery_routines_list(
     ApiError,
 > {
     let builder = bigquery_routines_list_builder(
-        client, projectId, datasetId, filter, maxResults, pageToken, readMask,
+        client,
+        &args.projectId,
+        &args.datasetId,
+        args.filter.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
     )?;
     bigquery_routines_list_execute(builder)
 }
@@ -3332,6 +3642,15 @@ pub fn bigquery_routines_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_routines_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryRoutinesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3344,13 +3663,12 @@ pub fn bigquery_routines_set_iam_policy_execute(
 
 pub fn bigquery_routines_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BigqueryRoutinesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_routines_set_iam_policy_builder(client, resource, body)?;
+    let builder = bigquery_routines_set_iam_policy_builder(client, &args.resource, &args.body)?;
     bigquery_routines_set_iam_policy_execute(builder)
 }
 
@@ -3451,6 +3769,15 @@ pub fn bigquery_routines_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_routines_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryRoutinesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3463,8 +3790,7 @@ pub fn bigquery_routines_test_iam_permissions_execute(
 
 pub fn bigquery_routines_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BigqueryRoutinesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3473,7 +3799,8 @@ pub fn bigquery_routines_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = bigquery_routines_test_iam_permissions_builder(client, resource, body)?;
+    let builder =
+        bigquery_routines_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     bigquery_routines_test_iam_permissions_execute(builder)
 }
 
@@ -3572,6 +3899,19 @@ pub fn bigquery_routines_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_routines_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryRoutinesUpdateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: routineId
+    pub routineId: String,
+    /// Request body.
+    pub body: Routine,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}
 /// Updates information in an existing routine. The update method replaces the entire Routine resource.
 ///
@@ -3584,15 +3924,18 @@ pub fn bigquery_routines_update_execute(
 
 pub fn bigquery_routines_update(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    routineId: &str,
-    body: &Routine,
+    args: &BigqueryRoutinesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Routine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_routines_update_builder(client, projectId, datasetId, routineId, body)?;
+    let builder = bigquery_routines_update_builder(
+        client,
+        &args.projectId,
+        &args.datasetId,
+        &args.routineId,
+        &args.body,
+    )?;
     bigquery_routines_update_execute(builder)
 }
 
@@ -3690,6 +4033,19 @@ pub fn bigquery_row_access_policies_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_row_access_policies_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryRowAccessPoliciesBatchDeleteArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: tableId
+    pub tableId: String,
+    /// Request body.
+    pub body: BatchDeleteRowAccessPoliciesRequest,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies:batchDelete
 /// Deletes provided row access policies.
 ///
@@ -3702,16 +4058,17 @@ pub fn bigquery_row_access_policies_batch_delete_execute(
 
 pub fn bigquery_row_access_policies_batch_delete(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    body: &BatchDeleteRowAccessPoliciesRequest,
+    args: &BigqueryRowAccessPoliciesBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigquery_row_access_policies_batch_delete_builder(
-        client, projectId, datasetId, tableId, body,
+        client,
+        &args.projectId,
+        &args.datasetId,
+        &args.tableId,
+        &args.body,
     )?;
     bigquery_row_access_policies_batch_delete_execute(builder)
 }
@@ -3821,6 +4178,21 @@ pub fn bigquery_row_access_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_row_access_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryRowAccessPoliciesDeleteArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: tableId
+    pub tableId: String,
+    /// Path parameter: policyId
+    pub policyId: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}
 /// Deletes a row access policy.
 ///
@@ -3833,17 +4205,18 @@ pub fn bigquery_row_access_policies_delete_execute(
 
 pub fn bigquery_row_access_policies_delete(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    policyId: &str,
-    force: Option<bool>,
+    args: &BigqueryRowAccessPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigquery_row_access_policies_delete_builder(
-        client, projectId, datasetId, tableId, policyId, force,
+        client,
+        &args.projectId,
+        &args.datasetId,
+        &args.tableId,
+        &args.policyId,
+        args.force,
     )?;
     bigquery_row_access_policies_delete_execute(builder)
 }
@@ -3946,6 +4319,19 @@ pub fn bigquery_row_access_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_row_access_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryRowAccessPoliciesGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: tableId
+    pub tableId: String,
+    /// Path parameter: policyId
+    pub policyId: String,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}
 /// Gets the specified row access policy by policy ID.
 ///
@@ -3958,18 +4344,20 @@ pub fn bigquery_row_access_policies_get_execute(
 
 pub fn bigquery_row_access_policies_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    policyId: &str,
+    args: &BigqueryRowAccessPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RowAccessPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        bigquery_row_access_policies_get_builder(client, projectId, datasetId, tableId, policyId)?;
+    let builder = bigquery_row_access_policies_get_builder(
+        client,
+        &args.projectId,
+        &args.datasetId,
+        &args.tableId,
+        &args.policyId,
+    )?;
     bigquery_row_access_policies_get_execute(builder)
 }
 
@@ -4066,6 +4454,15 @@ pub fn bigquery_row_access_policies_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_row_access_policies_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryRowAccessPoliciesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -4078,13 +4475,13 @@ pub fn bigquery_row_access_policies_get_iam_policy_execute(
 
 pub fn bigquery_row_access_policies_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &BigqueryRowAccessPoliciesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_row_access_policies_get_iam_policy_builder(client, resource, body)?;
+    let builder =
+        bigquery_row_access_policies_get_iam_policy_builder(client, &args.resource, &args.body)?;
     bigquery_row_access_policies_get_iam_policy_execute(builder)
 }
 
@@ -4187,6 +4584,19 @@ pub fn bigquery_row_access_policies_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_row_access_policies_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryRowAccessPoliciesInsertArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: tableId
+    pub tableId: String,
+    /// Request body.
+    pub body: RowAccessPolicy,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies
 /// Creates a row access policy.
 ///
@@ -4199,18 +4609,20 @@ pub fn bigquery_row_access_policies_insert_execute(
 
 pub fn bigquery_row_access_policies_insert(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    body: &RowAccessPolicy,
+    args: &BigqueryRowAccessPoliciesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RowAccessPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        bigquery_row_access_policies_insert_builder(client, projectId, datasetId, tableId, body)?;
+    let builder = bigquery_row_access_policies_insert_builder(
+        client,
+        &args.projectId,
+        &args.datasetId,
+        &args.tableId,
+        &args.body,
+    )?;
     bigquery_row_access_policies_insert_execute(builder)
 }
 
@@ -4328,6 +4740,21 @@ pub fn bigquery_row_access_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_row_access_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryRowAccessPoliciesListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: tableId
+    pub tableId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies
 /// Lists all row access policies on the specified table.
 ///
@@ -4340,11 +4767,7 @@ pub fn bigquery_row_access_policies_list_execute(
 
 pub fn bigquery_row_access_policies_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigqueryRowAccessPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListRowAccessPoliciesResponse>, ApiError>,
@@ -4354,7 +4777,12 @@ pub fn bigquery_row_access_policies_list(
     ApiError,
 > {
     let builder = bigquery_row_access_policies_list_builder(
-        client, projectId, datasetId, tableId, pageSize, pageToken,
+        client,
+        &args.projectId,
+        &args.datasetId,
+        &args.tableId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigquery_row_access_policies_list_execute(builder)
 }
@@ -4456,6 +4884,15 @@ pub fn bigquery_row_access_policies_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_row_access_policies_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryRowAccessPoliciesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -4468,8 +4905,7 @@ pub fn bigquery_row_access_policies_test_iam_permissions_execute(
 
 pub fn bigquery_row_access_policies_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BigqueryRowAccessPoliciesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -4478,8 +4914,11 @@ pub fn bigquery_row_access_policies_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        bigquery_row_access_policies_test_iam_permissions_builder(client, resource, body)?;
+    let builder = bigquery_row_access_policies_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     bigquery_row_access_policies_test_iam_permissions_execute(builder)
 }
 
@@ -4584,6 +5023,21 @@ pub fn bigquery_row_access_policies_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_row_access_policies_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryRowAccessPoliciesUpdateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: tableId
+    pub tableId: String,
+    /// Path parameter: policyId
+    pub policyId: String,
+    /// Request body.
+    pub body: RowAccessPolicy,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}
 /// Updates a row access policy.
 ///
@@ -4596,11 +5050,7 @@ pub fn bigquery_row_access_policies_update_execute(
 
 pub fn bigquery_row_access_policies_update(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    policyId: &str,
-    body: &RowAccessPolicy,
+    args: &BigqueryRowAccessPoliciesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RowAccessPolicy>, ApiError>, P = ApiPending>
         + Send
@@ -4608,7 +5058,12 @@ pub fn bigquery_row_access_policies_update(
     ApiError,
 > {
     let builder = bigquery_row_access_policies_update_builder(
-        client, projectId, datasetId, tableId, policyId, body,
+        client,
+        &args.projectId,
+        &args.datasetId,
+        &args.tableId,
+        &args.policyId,
+        &args.body,
     )?;
     bigquery_row_access_policies_update_execute(builder)
 }
@@ -4712,6 +5167,19 @@ pub fn bigquery_tabledata_insert_all_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_tabledata_insert_all`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryTabledataInsertAllArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: tableId
+    pub tableId: String,
+    /// Request body.
+    pub body: TableDataInsertAllRequest,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/insertAll
 /// Streams data into BigQuery one record at a time without needing to run a load job.
 ///
@@ -4724,10 +5192,7 @@ pub fn bigquery_tabledata_insert_all_execute(
 
 pub fn bigquery_tabledata_insert_all(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    body: &TableDataInsertAllRequest,
+    args: &BigqueryTabledataInsertAllArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TableDataInsertAllResponse>, ApiError>,
@@ -4736,8 +5201,13 @@ pub fn bigquery_tabledata_insert_all(
         + 'static,
     ApiError,
 > {
-    let builder =
-        bigquery_tabledata_insert_all_builder(client, projectId, datasetId, tableId, body)?;
+    let builder = bigquery_tabledata_insert_all_builder(
+        client,
+        &args.projectId,
+        &args.datasetId,
+        &args.tableId,
+        &args.body,
+    )?;
     bigquery_tabledata_insert_all_execute(builder)
 }
 
@@ -4867,6 +5337,29 @@ pub fn bigquery_tabledata_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_tabledata_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryTabledataListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: tableId
+    pub tableId: String,
+    /// Query parameter: formatOptions_timestampOutputFormat
+    pub formatOptions_timestampOutputFormat: Option<String>,
+    /// Query parameter: formatOptions_useInt64Timestamp
+    pub formatOptions_useInt64Timestamp: Option<bool>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: selectedFields
+    pub selectedFields: Option<String>,
+    /// Query parameter: startIndex
+    pub startIndex: Option<String>,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/data
 /// List the content of a table in rows.
 ///
@@ -4879,15 +5372,7 @@ pub fn bigquery_tabledata_list_execute(
 
 pub fn bigquery_tabledata_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    formatOptions_timestampOutputFormat: Option<&str>,
-    formatOptions_useInt64Timestamp: Option<bool>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    selectedFields: Option<&str>,
-    startIndex: Option<&str>,
+    args: &BigqueryTabledataListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TableDataList>, ApiError>, P = ApiPending>
         + Send
@@ -4896,15 +5381,15 @@ pub fn bigquery_tabledata_list(
 > {
     let builder = bigquery_tabledata_list_builder(
         client,
-        projectId,
-        datasetId,
-        tableId,
-        formatOptions_timestampOutputFormat,
-        formatOptions_useInt64Timestamp,
-        maxResults,
-        pageToken,
-        selectedFields,
-        startIndex,
+        &args.projectId,
+        &args.datasetId,
+        &args.tableId,
+        args.formatOptions_timestampOutputFormat.as_deref(),
+        args.formatOptions_useInt64Timestamp,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.selectedFields.as_deref(),
+        args.startIndex.as_deref(),
     )?;
     bigquery_tabledata_list_execute(builder)
 }
@@ -4998,6 +5483,17 @@ pub fn bigquery_tables_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_tables_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryTablesDeleteArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: tableId
+    pub tableId: String,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
 /// Deletes the table specified by `tableId` from the dataset. If the table contains data, all the data will be deleted.
 ///
@@ -5010,14 +5506,13 @@ pub fn bigquery_tables_delete_execute(
 
 pub fn bigquery_tables_delete(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
+    args: &BigqueryTablesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_tables_delete_builder(client, projectId, datasetId, tableId)?;
+    let builder =
+        bigquery_tables_delete_builder(client, &args.projectId, &args.datasetId, &args.tableId)?;
     bigquery_tables_delete_execute(builder)
 }
 
@@ -5129,6 +5624,21 @@ pub fn bigquery_tables_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_tables_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryTablesGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: tableId
+    pub tableId: String,
+    /// Query parameter: selectedFields
+    pub selectedFields: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
 /// Gets the specified table resource by table ID. This method does not return the data in the table, it only returns the table resource, which describes the structure of this table.
 ///
@@ -5141,17 +5651,19 @@ pub fn bigquery_tables_get_execute(
 
 pub fn bigquery_tables_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    selectedFields: Option<&str>,
-    view: Option<&str>,
+    args: &BigqueryTablesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigquery_tables_get_builder(client, projectId, datasetId, tableId, selectedFields, view)?;
+    let builder = bigquery_tables_get_builder(
+        client,
+        &args.projectId,
+        &args.datasetId,
+        &args.tableId,
+        args.selectedFields.as_deref(),
+        args.view.as_deref(),
+    )?;
     bigquery_tables_get_execute(builder)
 }
 
@@ -5248,6 +5760,15 @@ pub fn bigquery_tables_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_tables_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryTablesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -5260,13 +5781,12 @@ pub fn bigquery_tables_get_iam_policy_execute(
 
 pub fn bigquery_tables_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &BigqueryTablesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_tables_get_iam_policy_builder(client, resource, body)?;
+    let builder = bigquery_tables_get_iam_policy_builder(client, &args.resource, &args.body)?;
     bigquery_tables_get_iam_policy_execute(builder)
 }
 
@@ -5364,6 +5884,17 @@ pub fn bigquery_tables_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_tables_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryTablesInsertArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Request body.
+    pub body: Table,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables
 /// Creates a new, empty table in the dataset.
 ///
@@ -5376,14 +5907,13 @@ pub fn bigquery_tables_insert_execute(
 
 pub fn bigquery_tables_insert(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    body: &Table,
+    args: &BigqueryTablesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_tables_insert_builder(client, projectId, datasetId, body)?;
+    let builder =
+        bigquery_tables_insert_builder(client, &args.projectId, &args.datasetId, &args.body)?;
     bigquery_tables_insert_execute(builder)
 }
 
@@ -5494,6 +6024,19 @@ pub fn bigquery_tables_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_tables_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryTablesListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables
 /// Lists all tables in the specified dataset. Requires the READER dataset role.
 ///
@@ -5506,16 +6049,18 @@ pub fn bigquery_tables_list_execute(
 
 pub fn bigquery_tables_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigqueryTablesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TableList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigquery_tables_list_builder(client, projectId, datasetId, maxResults, pageToken)?;
+    let builder = bigquery_tables_list_builder(
+        client,
+        &args.projectId,
+        &args.datasetId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     bigquery_tables_list_execute(builder)
 }
 
@@ -5626,6 +6171,21 @@ pub fn bigquery_tables_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_tables_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryTablesPatchArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: tableId
+    pub tableId: String,
+    /// Query parameter: autodetect_schema
+    pub autodetect_schema: Option<bool>,
+    /// Request body.
+    pub body: Table,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
 /// Updates information in an existing table. The update method replaces the entire table resource, whereas the patch method only replaces fields that are provided in the submitted table resource. This method supports RFC5789 patch semantics.
 ///
@@ -5638,22 +6198,18 @@ pub fn bigquery_tables_patch_execute(
 
 pub fn bigquery_tables_patch(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    autodetect_schema: Option<bool>,
-    body: &Table,
+    args: &BigqueryTablesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigquery_tables_patch_builder(
         client,
-        projectId,
-        datasetId,
-        tableId,
-        autodetect_schema,
-        body,
+        &args.projectId,
+        &args.datasetId,
+        &args.tableId,
+        args.autodetect_schema,
+        &args.body,
     )?;
     bigquery_tables_patch_execute(builder)
 }
@@ -5751,6 +6307,15 @@ pub fn bigquery_tables_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_tables_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryTablesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -5763,13 +6328,12 @@ pub fn bigquery_tables_set_iam_policy_execute(
 
 pub fn bigquery_tables_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BigqueryTablesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_tables_set_iam_policy_builder(client, resource, body)?;
+    let builder = bigquery_tables_set_iam_policy_builder(client, &args.resource, &args.body)?;
     bigquery_tables_set_iam_policy_execute(builder)
 }
 
@@ -5870,6 +6434,15 @@ pub fn bigquery_tables_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_tables_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryTablesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -5882,8 +6455,7 @@ pub fn bigquery_tables_test_iam_permissions_execute(
 
 pub fn bigquery_tables_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BigqueryTablesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -5892,7 +6464,7 @@ pub fn bigquery_tables_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = bigquery_tables_test_iam_permissions_builder(client, resource, body)?;
+    let builder = bigquery_tables_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     bigquery_tables_test_iam_permissions_execute(builder)
 }
 
@@ -6003,6 +6575,21 @@ pub fn bigquery_tables_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquery_tables_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryTablesUpdateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: datasetId
+    pub datasetId: String,
+    /// Path parameter: tableId
+    pub tableId: String,
+    /// Query parameter: autodetect_schema
+    pub autodetect_schema: Option<bool>,
+    /// Request body.
+    pub body: Table,
+}
+
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
 /// Updates information in an existing table. The update method replaces the entire Table resource, whereas the patch method only replaces fields that are provided in the submitted Table resource.
 ///
@@ -6015,22 +6602,18 @@ pub fn bigquery_tables_update_execute(
 
 pub fn bigquery_tables_update(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    autodetect_schema: Option<bool>,
-    body: &Table,
+    args: &BigqueryTablesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigquery_tables_update_builder(
         client,
-        projectId,
-        datasetId,
-        tableId,
-        autodetect_schema,
-        body,
+        &args.projectId,
+        &args.datasetId,
+        &args.tableId,
+        args.autodetect_schema,
+        &args.body,
     )?;
     bigquery_tables_update_execute(builder)
 }

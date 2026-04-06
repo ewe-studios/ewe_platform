@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/courses
 /// Creates a course. The user specified in `ownerId` is the owner of the created course and added as a teacher. A non-admin requesting user can only create a course with themselves as the owner. Domain admins can create courses owned by any user within their domain. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to create courses or for access errors. * NOT_FOUND if the primary teacher is not a valid user. * FAILED_PRECONDITION if the course owner's account is disabled or for the following request errors: * UserCannotOwnCourse * UserGroupsMembershipLimitReached * CourseTitleCannotContainUrl * ALREADY_EXISTS if an alias was specified in the id and already exists.
@@ -105,6 +107,13 @@ pub fn classroom_courses_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCreateArgs {
+    /// Request body.
+    pub body: Course,
+}
+
 /// GET v1/courses
 /// Creates a course. The user specified in `ownerId` is the owner of the created course and added as a teacher. A non-admin requesting user can only create a course with themselves as the owner. Domain admins can create courses owned by any user within their domain. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to create courses or for access errors. * NOT_FOUND if the primary teacher is not a valid user. * FAILED_PRECONDITION if the course owner's account is disabled or for the following request errors: * UserCannotOwnCourse * UserGroupsMembershipLimitReached * CourseTitleCannotContainUrl * ALREADY_EXISTS if an alias was specified in the id and already exists.
 ///
@@ -117,12 +126,12 @@ pub fn classroom_courses_create_execute(
 
 pub fn classroom_courses_create(
     client: &SimpleHttpClient,
-    body: &Course,
+    args: &ClassroomCoursesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Course>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_create_builder(client, body)?;
+    let builder = classroom_courses_create_builder(client, &args.body)?;
     classroom_courses_create_execute(builder)
 }
 
@@ -213,6 +222,13 @@ pub fn classroom_courses_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesDeleteArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/courses/{id}
 /// Deletes a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to delete the requested course or for access errors. * NOT_FOUND if no course exists with the requested ID.
 ///
@@ -225,12 +241,12 @@ pub fn classroom_courses_delete_execute(
 
 pub fn classroom_courses_delete(
     client: &SimpleHttpClient,
-    id: &str,
+    args: &ClassroomCoursesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_delete_builder(client, id)?;
+    let builder = classroom_courses_delete_builder(client, &args.id)?;
     classroom_courses_delete_execute(builder)
 }
 
@@ -321,6 +337,13 @@ pub fn classroom_courses_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesGetArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/courses/{id}
 /// Returns a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * NOT_FOUND if no course exists with the requested ID.
 ///
@@ -333,12 +356,12 @@ pub fn classroom_courses_get_execute(
 
 pub fn classroom_courses_get(
     client: &SimpleHttpClient,
-    id: &str,
+    args: &ClassroomCoursesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Course>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_get_builder(client, id)?;
+    let builder = classroom_courses_get_builder(client, &args.id)?;
     classroom_courses_get_execute(builder)
 }
 
@@ -434,6 +457,13 @@ pub fn classroom_courses_get_grading_period_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_get_grading_period_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesGetGradingPeriodSettingsArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+}
+
 /// GET v1/courses/{courseId}/gradingPeriodSettings
 /// Returns the grading period settings in a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user isn't permitted to access the grading period settings in the requested course or for access errors. * NOT_FOUND if the requested course does not exist.
 ///
@@ -446,14 +476,14 @@ pub fn classroom_courses_get_grading_period_settings_execute(
 
 pub fn classroom_courses_get_grading_period_settings(
     client: &SimpleHttpClient,
-    courseId: &str,
+    args: &ClassroomCoursesGetGradingPeriodSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GradingPeriodSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_get_grading_period_settings_builder(client, courseId)?;
+    let builder = classroom_courses_get_grading_period_settings_builder(client, &args.courseId)?;
     classroom_courses_get_grading_period_settings_execute(builder)
 }
 
@@ -573,6 +603,21 @@ pub fn classroom_courses_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesListArgs {
+    /// Query parameter: courseStates
+    pub courseStates: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: studentId
+    pub studentId: Option<String>,
+    /// Query parameter: teacherId
+    pub teacherId: Option<String>,
+}
+
 /// GET v1/courses
 /// Returns a list of courses that the requesting user is permitted to view, restricted to those that match the request. Returned courses are ordered by creation time, with the most recently created coming first. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the query argument is malformed. * NOT_FOUND if any users specified in the query arguments do not exist.
 ///
@@ -585,11 +630,7 @@ pub fn classroom_courses_list_execute(
 
 pub fn classroom_courses_list(
     client: &SimpleHttpClient,
-    courseStates: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    studentId: Option<&str>,
-    teacherId: Option<&str>,
+    args: &ClassroomCoursesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCoursesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -598,11 +639,11 @@ pub fn classroom_courses_list(
 > {
     let builder = classroom_courses_list_builder(
         client,
-        courseStates,
-        pageSize,
-        pageToken,
-        studentId,
-        teacherId,
+        args.courseStates.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.studentId.as_deref(),
+        args.teacherId.as_deref(),
     )?;
     classroom_courses_list_execute(builder)
 }
@@ -709,6 +750,17 @@ pub fn classroom_courses_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesPatchArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Course,
+}
+
 /// GET v1/courses/{id}
 /// Updates one or more fields in a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the requested course or for access errors. * NOT_FOUND if no course exists with the requested ID. * INVALID_ARGUMENT if invalid fields are specified in the update mask or if no update mask is supplied. * FAILED_PRECONDITION for the following request errors: * CourseNotModifiable * InactiveCourseOwner * IneligibleOwner * CourseTitleCannotContainUrl
 ///
@@ -721,14 +773,13 @@ pub fn classroom_courses_patch_execute(
 
 pub fn classroom_courses_patch(
     client: &SimpleHttpClient,
-    id: &str,
-    updateMask: Option<&str>,
-    body: &Course,
+    args: &ClassroomCoursesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Course>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_patch_builder(client, id, updateMask, body)?;
+    let builder =
+        classroom_courses_patch_builder(client, &args.id, args.updateMask.as_deref(), &args.body)?;
     classroom_courses_patch_execute(builder)
 }
 
@@ -822,6 +873,15 @@ pub fn classroom_courses_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesUpdateArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: Course,
+}
+
 /// GET v1/courses/{id}
 /// Updates a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the requested course or for access errors. * NOT_FOUND if no course exists with the requested ID. * FAILED_PRECONDITION for the following request errors: * CourseNotModifiable * CourseTitleCannotContainUrl
 ///
@@ -834,13 +894,12 @@ pub fn classroom_courses_update_execute(
 
 pub fn classroom_courses_update(
     client: &SimpleHttpClient,
-    id: &str,
-    body: &Course,
+    args: &ClassroomCoursesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Course>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_update_builder(client, id, body)?;
+    let builder = classroom_courses_update_builder(client, &args.id, &args.body)?;
     classroom_courses_update_execute(builder)
 }
 
@@ -951,6 +1010,17 @@ pub fn classroom_courses_update_grading_period_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_update_grading_period_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesUpdateGradingPeriodSettingsArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GradingPeriodSettings,
+}
+
 /// GET v1/courses/{courseId}/gradingPeriodSettings
 /// Updates grading period settings of a course. Individual grading periods can be added, removed, or modified using this method. The requesting user and course owner must be eligible to modify Grading Periods. For details, see [licensing requirements](<https://developers.google.`com/workspace/classroom/grading-periods/manage-grading-periods`#licensing_requirements>). This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the grading period settings in a course or for access errors: * UserIneligibleToUpdateGradingPeriodSettings * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
 ///
@@ -963,9 +1033,7 @@ pub fn classroom_courses_update_grading_period_settings_execute(
 
 pub fn classroom_courses_update_grading_period_settings(
     client: &SimpleHttpClient,
-    courseId: &str,
-    updateMask: Option<&str>,
-    body: &GradingPeriodSettings,
+    args: &ClassroomCoursesUpdateGradingPeriodSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GradingPeriodSettings>, ApiError>, P = ApiPending>
         + Send
@@ -973,7 +1041,10 @@ pub fn classroom_courses_update_grading_period_settings(
     ApiError,
 > {
     let builder = classroom_courses_update_grading_period_settings_builder(
-        client, courseId, updateMask, body,
+        client,
+        &args.courseId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     classroom_courses_update_grading_period_settings_execute(builder)
 }
@@ -1071,6 +1142,15 @@ pub fn classroom_courses_aliases_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_aliases_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesAliasesCreateArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Request body.
+    pub body: CourseAlias,
+}
+
 /// GET v1/courses/{courseId}/aliases
 /// Creates an alias for a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to create the alias or for access errors. * NOT_FOUND if the course does not exist. * ALREADY_EXISTS if the alias already exists. * FAILED_PRECONDITION if the alias requested does not make sense for the requesting user or course (for example, if a user not in a domain attempts to access a domain-scoped alias).
 ///
@@ -1083,13 +1163,12 @@ pub fn classroom_courses_aliases_create_execute(
 
 pub fn classroom_courses_aliases_create(
     client: &SimpleHttpClient,
-    courseId: &str,
-    body: &CourseAlias,
+    args: &ClassroomCoursesAliasesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CourseAlias>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_aliases_create_builder(client, courseId, body)?;
+    let builder = classroom_courses_aliases_create_builder(client, &args.courseId, &args.body)?;
     classroom_courses_aliases_create_execute(builder)
 }
 
@@ -1184,6 +1263,15 @@ pub fn classroom_courses_aliases_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_aliases_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesAliasesDeleteArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: alias
+    pub alias: String,
+}
+
 /// GET v1/courses/{courseId}/aliases/{alias}
 /// Deletes an alias of a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to remove the alias or for access errors. * NOT_FOUND if the alias does not exist. * FAILED_PRECONDITION if the alias requested does not make sense for the requesting user or course (for example, if a user not in a domain attempts to delete a domain-scoped alias).
 ///
@@ -1196,13 +1284,12 @@ pub fn classroom_courses_aliases_delete_execute(
 
 pub fn classroom_courses_aliases_delete(
     client: &SimpleHttpClient,
-    courseId: &str,
-    alias: &str,
+    args: &ClassroomCoursesAliasesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_aliases_delete_builder(client, courseId, alias)?;
+    let builder = classroom_courses_aliases_delete_builder(client, &args.courseId, &args.alias)?;
     classroom_courses_aliases_delete_execute(builder)
 }
 
@@ -1314,6 +1401,17 @@ pub fn classroom_courses_aliases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_aliases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesAliasesListArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/aliases
 /// Returns a list of aliases for a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the course or for access errors. * NOT_FOUND if the course does not exist.
 ///
@@ -1326,16 +1424,19 @@ pub fn classroom_courses_aliases_list_execute(
 
 pub fn classroom_courses_aliases_list(
     client: &SimpleHttpClient,
-    courseId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClassroomCoursesAliasesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCourseAliasesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_aliases_list_builder(client, courseId, pageSize, pageToken)?;
+    let builder = classroom_courses_aliases_list_builder(
+        client,
+        &args.courseId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     classroom_courses_aliases_list_execute(builder)
 }
 
@@ -1434,6 +1535,15 @@ pub fn classroom_courses_announcements_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_announcements_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesAnnouncementsCreateArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Request body.
+    pub body: Announcement,
+}
+
 /// GET v1/courses/{courseId}/announcements
 /// Creates an announcement. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course, create announcements in the requested course, share a Drive attachment, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist. * FAILED_PRECONDITION for the following request error: * AttachmentNotVisible
 ///
@@ -1446,15 +1556,15 @@ pub fn classroom_courses_announcements_create_execute(
 
 pub fn classroom_courses_announcements_create(
     client: &SimpleHttpClient,
-    courseId: &str,
-    body: &Announcement,
+    args: &ClassroomCoursesAnnouncementsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Announcement>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_announcements_create_builder(client, courseId, body)?;
+    let builder =
+        classroom_courses_announcements_create_builder(client, &args.courseId, &args.body)?;
     classroom_courses_announcements_create_execute(builder)
 }
 
@@ -1549,6 +1659,15 @@ pub fn classroom_courses_announcements_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_announcements_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesAnnouncementsDeleteArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/courses/{courseId}/announcements/{id}
 /// Deletes an announcement. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding announcement item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding announcement, if the requesting user is not permitted to delete the requested course or for access errors. * FAILED_PRECONDITION if the requested announcement has already been deleted. * NOT_FOUND if no course exists with the requested ID.
 ///
@@ -1561,13 +1680,12 @@ pub fn classroom_courses_announcements_delete_execute(
 
 pub fn classroom_courses_announcements_delete(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
+    args: &ClassroomCoursesAnnouncementsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_announcements_delete_builder(client, courseId, id)?;
+    let builder = classroom_courses_announcements_delete_builder(client, &args.courseId, &args.id)?;
     classroom_courses_announcements_delete_execute(builder)
 }
 
@@ -1664,6 +1782,15 @@ pub fn classroom_courses_announcements_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_announcements_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesAnnouncementsGetArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/courses/{courseId}/announcements/{id}
 /// Returns an announcement. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or announcement, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or announcement does not exist.
 ///
@@ -1676,15 +1803,14 @@ pub fn classroom_courses_announcements_get_execute(
 
 pub fn classroom_courses_announcements_get(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
+    args: &ClassroomCoursesAnnouncementsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Announcement>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_announcements_get_builder(client, courseId, id)?;
+    let builder = classroom_courses_announcements_get_builder(client, &args.courseId, &args.id)?;
     classroom_courses_announcements_get_execute(builder)
 }
 
@@ -1801,6 +1927,21 @@ pub fn classroom_courses_announcements_get_add_on_context_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_announcements_get_add_on_context`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesAnnouncementsGetAddOnContextArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Query parameter: addOnToken
+    pub addOnToken: Option<String>,
+    /// Query parameter: attachmentId
+    pub attachmentId: Option<String>,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/announcements/{itemId}/addOnContext
 /// Gets metadata for Classroom add-ons in the context of a specific post. To maintain the integrity of its own data and permissions model, an add-on should call this to validate query parameters and the requesting user's role whenever the add-on is opened in an [iframe](<https://developers.google.`com/workspace/classroom/add-ons/get-started/iframes/iframes-overview`>). This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -1813,11 +1954,7 @@ pub fn classroom_courses_announcements_get_add_on_context_execute(
 
 pub fn classroom_courses_announcements_get_add_on_context(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    addOnToken: Option<&str>,
-    attachmentId: Option<&str>,
-    postId: Option<&str>,
+    args: &ClassroomCoursesAnnouncementsGetAddOnContextArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddOnContext>, ApiError>, P = ApiPending>
         + Send
@@ -1826,11 +1963,11 @@ pub fn classroom_courses_announcements_get_add_on_context(
 > {
     let builder = classroom_courses_announcements_get_add_on_context_builder(
         client,
-        courseId,
-        itemId,
-        addOnToken,
-        attachmentId,
-        postId,
+        &args.courseId,
+        &args.itemId,
+        args.addOnToken.as_deref(),
+        args.attachmentId.as_deref(),
+        args.postId.as_deref(),
     )?;
     classroom_courses_announcements_get_add_on_context_execute(builder)
 }
@@ -1951,6 +2088,21 @@ pub fn classroom_courses_announcements_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_announcements_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesAnnouncementsListArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Query parameter: announcementStates
+    pub announcementStates: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/announcements
 /// Returns a list of announcements that the requester is permitted to view. Course students may only view PUBLISHED announcements. Course teachers and domain administrators may view all announcements. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
 ///
@@ -1963,11 +2115,7 @@ pub fn classroom_courses_announcements_list_execute(
 
 pub fn classroom_courses_announcements_list(
     client: &SimpleHttpClient,
-    courseId: &str,
-    announcementStates: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClassroomCoursesAnnouncementsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAnnouncementsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1976,11 +2124,11 @@ pub fn classroom_courses_announcements_list(
 > {
     let builder = classroom_courses_announcements_list_builder(
         client,
-        courseId,
-        announcementStates,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.courseId,
+        args.announcementStates.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     classroom_courses_announcements_list_execute(builder)
 }
@@ -2081,6 +2229,17 @@ pub fn classroom_courses_announcements_modify_assignees_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_announcements_modify_assignees`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesAnnouncementsModifyAssigneesArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: ModifyAnnouncementAssigneesRequest,
+}
+
 /// GET v1/courses/{courseId}/announcements/{id}:modifyAssignees
 /// Modifies assignee mode and options of an announcement. Only a teacher of the course that contains the announcement may call this method. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work does not exist. * FAILED_PRECONDITION for the following request error: * EmptyAssignees
 ///
@@ -2093,17 +2252,19 @@ pub fn classroom_courses_announcements_modify_assignees_execute(
 
 pub fn classroom_courses_announcements_modify_assignees(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
-    body: &ModifyAnnouncementAssigneesRequest,
+    args: &ClassroomCoursesAnnouncementsModifyAssigneesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Announcement>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_announcements_modify_assignees_builder(client, courseId, id, body)?;
+    let builder = classroom_courses_announcements_modify_assignees_builder(
+        client,
+        &args.courseId,
+        &args.id,
+        &args.body,
+    )?;
     classroom_courses_announcements_modify_assignees_execute(builder)
 }
 
@@ -2215,6 +2376,19 @@ pub fn classroom_courses_announcements_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_announcements_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesAnnouncementsPatchArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Announcement,
+}
+
 /// GET v1/courses/{courseId}/announcements/{id}
 /// Updates one or more fields of an announcement. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding announcement or for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if the requested announcement has already been deleted. * NOT_FOUND if the requested course or announcement does not exist
 ///
@@ -2227,18 +2401,20 @@ pub fn classroom_courses_announcements_patch_execute(
 
 pub fn classroom_courses_announcements_patch(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
-    updateMask: Option<&str>,
-    body: &Announcement,
+    args: &ClassroomCoursesAnnouncementsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Announcement>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_announcements_patch_builder(client, courseId, id, updateMask, body)?;
+    let builder = classroom_courses_announcements_patch_builder(
+        client,
+        &args.courseId,
+        &args.id,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     classroom_courses_announcements_patch_execute(builder)
 }
 
@@ -2354,6 +2530,21 @@ pub fn classroom_courses_announcements_add_on_attachments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_announcements_add_on_attachments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesAnnouncementsAddOnAttachmentsCreateArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Query parameter: addOnToken
+    pub addOnToken: Option<String>,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+    /// Request body.
+    pub body: AddOnAttachment,
+}
+
 /// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments
 /// Creates an add-on attachment under a post. Requires the add-on to have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -2366,11 +2557,7 @@ pub fn classroom_courses_announcements_add_on_attachments_create_execute(
 
 pub fn classroom_courses_announcements_add_on_attachments_create(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    addOnToken: Option<&str>,
-    postId: Option<&str>,
-    body: &AddOnAttachment,
+    args: &ClassroomCoursesAnnouncementsAddOnAttachmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
         + Send
@@ -2378,7 +2565,12 @@ pub fn classroom_courses_announcements_add_on_attachments_create(
     ApiError,
 > {
     let builder = classroom_courses_announcements_add_on_attachments_create_builder(
-        client, courseId, itemId, addOnToken, postId, body,
+        client,
+        &args.courseId,
+        &args.itemId,
+        args.addOnToken.as_deref(),
+        args.postId.as_deref(),
+        &args.body,
     )?;
     classroom_courses_announcements_add_on_attachments_create_execute(builder)
 }
@@ -2487,6 +2679,19 @@ pub fn classroom_courses_announcements_add_on_attachments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_announcements_add_on_attachments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesAnnouncementsAddOnAttachmentsDeleteArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Path parameter: attachmentId
+    pub attachmentId: String,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments/{attachmentId}
 /// Deletes an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -2499,20 +2704,17 @@ pub fn classroom_courses_announcements_add_on_attachments_delete_execute(
 
 pub fn classroom_courses_announcements_add_on_attachments_delete(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
+    args: &ClassroomCoursesAnnouncementsAddOnAttachmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = classroom_courses_announcements_add_on_attachments_delete_builder(
         client,
-        courseId,
-        itemId,
-        attachmentId,
-        postId,
+        &args.courseId,
+        &args.itemId,
+        &args.attachmentId,
+        args.postId.as_deref(),
     )?;
     classroom_courses_announcements_add_on_attachments_delete_execute(builder)
 }
@@ -2623,6 +2825,19 @@ pub fn classroom_courses_announcements_add_on_attachments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_announcements_add_on_attachments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesAnnouncementsAddOnAttachmentsGetArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Path parameter: attachmentId
+    pub attachmentId: String,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments/{attachmentId}
 /// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -2635,10 +2850,7 @@ pub fn classroom_courses_announcements_add_on_attachments_get_execute(
 
 pub fn classroom_courses_announcements_add_on_attachments_get(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
+    args: &ClassroomCoursesAnnouncementsAddOnAttachmentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
         + Send
@@ -2647,10 +2859,10 @@ pub fn classroom_courses_announcements_add_on_attachments_get(
 > {
     let builder = classroom_courses_announcements_add_on_attachments_get_builder(
         client,
-        courseId,
-        itemId,
-        attachmentId,
-        postId,
+        &args.courseId,
+        &args.itemId,
+        &args.attachmentId,
+        args.postId.as_deref(),
     )?;
     classroom_courses_announcements_add_on_attachments_get_execute(builder)
 }
@@ -2770,6 +2982,21 @@ pub fn classroom_courses_announcements_add_on_attachments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_announcements_add_on_attachments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesAnnouncementsAddOnAttachmentsListArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments
 /// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -2782,11 +3009,7 @@ pub fn classroom_courses_announcements_add_on_attachments_list_execute(
 
 pub fn classroom_courses_announcements_add_on_attachments_list(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    postId: Option<&str>,
+    args: &ClassroomCoursesAnnouncementsAddOnAttachmentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAddOnAttachmentsResponse>, ApiError>,
@@ -2796,7 +3019,12 @@ pub fn classroom_courses_announcements_add_on_attachments_list(
     ApiError,
 > {
     let builder = classroom_courses_announcements_add_on_attachments_list_builder(
-        client, courseId, itemId, pageSize, pageToken, postId,
+        client,
+        &args.courseId,
+        &args.itemId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.postId.as_deref(),
     )?;
     classroom_courses_announcements_add_on_attachments_list_execute(builder)
 }
@@ -2914,6 +3142,23 @@ pub fn classroom_courses_announcements_add_on_attachments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_announcements_add_on_attachments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesAnnouncementsAddOnAttachmentsPatchArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Path parameter: attachmentId
+    pub attachmentId: String,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AddOnAttachment,
+}
+
 /// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments/{attachmentId}
 /// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -2926,12 +3171,7 @@ pub fn classroom_courses_announcements_add_on_attachments_patch_execute(
 
 pub fn classroom_courses_announcements_add_on_attachments_patch(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AddOnAttachment,
+    args: &ClassroomCoursesAnnouncementsAddOnAttachmentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
         + Send
@@ -2940,12 +3180,12 @@ pub fn classroom_courses_announcements_add_on_attachments_patch(
 > {
     let builder = classroom_courses_announcements_add_on_attachments_patch_builder(
         client,
-        courseId,
-        itemId,
-        attachmentId,
-        postId,
-        updateMask,
-        body,
+        &args.courseId,
+        &args.itemId,
+        &args.attachmentId,
+        args.postId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     classroom_courses_announcements_add_on_attachments_patch_execute(builder)
 }
@@ -3043,6 +3283,15 @@ pub fn classroom_courses_course_work_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkCreateArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Request body.
+    pub body: CourseWork,
+}
+
 /// GET v1/courses/{courseId}/courseWork
 /// Creates course work. The resulting course work (and corresponding student submissions) are associated with the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to make the request. Classroom API requests to modify course work and student submissions must be made with an OAuth client ID from the associated Developer Console project. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course, create course work in the requested course, share a Drive attachment, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist. * FAILED_PRECONDITION for the following request error: * AttachmentNotVisible
 ///
@@ -3055,13 +3304,12 @@ pub fn classroom_courses_course_work_create_execute(
 
 pub fn classroom_courses_course_work_create(
     client: &SimpleHttpClient,
-    courseId: &str,
-    body: &CourseWork,
+    args: &ClassroomCoursesCourseWorkCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CourseWork>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_course_work_create_builder(client, courseId, body)?;
+    let builder = classroom_courses_course_work_create_builder(client, &args.courseId, &args.body)?;
     classroom_courses_course_work_create_execute(builder)
 }
 
@@ -3156,6 +3404,15 @@ pub fn classroom_courses_course_work_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkDeleteArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{id}
 /// Deletes a course work. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding course work, if the requesting user is not permitted to delete the requested course or for access errors. * FAILED_PRECONDITION if the requested course work has already been deleted. * NOT_FOUND if no course exists with the requested ID.
 ///
@@ -3168,13 +3425,12 @@ pub fn classroom_courses_course_work_delete_execute(
 
 pub fn classroom_courses_course_work_delete(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
+    args: &ClassroomCoursesCourseWorkDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_course_work_delete_builder(client, courseId, id)?;
+    let builder = classroom_courses_course_work_delete_builder(client, &args.courseId, &args.id)?;
     classroom_courses_course_work_delete_execute(builder)
 }
 
@@ -3269,6 +3525,15 @@ pub fn classroom_courses_course_work_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkGetArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{id}
 /// Returns course work. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work does not exist.
 ///
@@ -3281,13 +3546,12 @@ pub fn classroom_courses_course_work_get_execute(
 
 pub fn classroom_courses_course_work_get(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
+    args: &ClassroomCoursesCourseWorkGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CourseWork>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_course_work_get_builder(client, courseId, id)?;
+    let builder = classroom_courses_course_work_get_builder(client, &args.courseId, &args.id)?;
     classroom_courses_course_work_get_execute(builder)
 }
 
@@ -3404,6 +3668,21 @@ pub fn classroom_courses_course_work_get_add_on_context_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_get_add_on_context`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkGetAddOnContextArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Query parameter: addOnToken
+    pub addOnToken: Option<String>,
+    /// Query parameter: attachmentId
+    pub attachmentId: Option<String>,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{itemId}/addOnContext
 /// Gets metadata for Classroom add-ons in the context of a specific post. To maintain the integrity of its own data and permissions model, an add-on should call this to validate query parameters and the requesting user's role whenever the add-on is opened in an [iframe](<https://developers.google.`com/workspace/classroom/add-ons/get-started/iframes/iframes-overview`>). This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -3416,11 +3695,7 @@ pub fn classroom_courses_course_work_get_add_on_context_execute(
 
 pub fn classroom_courses_course_work_get_add_on_context(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    addOnToken: Option<&str>,
-    attachmentId: Option<&str>,
-    postId: Option<&str>,
+    args: &ClassroomCoursesCourseWorkGetAddOnContextArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddOnContext>, ApiError>, P = ApiPending>
         + Send
@@ -3429,11 +3704,11 @@ pub fn classroom_courses_course_work_get_add_on_context(
 > {
     let builder = classroom_courses_course_work_get_add_on_context_builder(
         client,
-        courseId,
-        itemId,
-        addOnToken,
-        attachmentId,
-        postId,
+        &args.courseId,
+        &args.itemId,
+        args.addOnToken.as_deref(),
+        args.attachmentId.as_deref(),
+        args.postId.as_deref(),
     )?;
     classroom_courses_course_work_get_add_on_context_execute(builder)
 }
@@ -3554,6 +3829,21 @@ pub fn classroom_courses_course_work_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkListArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Query parameter: courseWorkStates
+    pub courseWorkStates: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/courseWork
 /// Returns a list of course work that the requester is permitted to view. Course students may only view PUBLISHED course work. Course teachers and domain administrators may view all course work. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
 ///
@@ -3566,11 +3856,7 @@ pub fn classroom_courses_course_work_list_execute(
 
 pub fn classroom_courses_course_work_list(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkStates: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClassroomCoursesCourseWorkListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCourseWorkResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3579,11 +3865,11 @@ pub fn classroom_courses_course_work_list(
 > {
     let builder = classroom_courses_course_work_list_builder(
         client,
-        courseId,
-        courseWorkStates,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.courseId,
+        args.courseWorkStates.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     classroom_courses_course_work_list_execute(builder)
 }
@@ -3682,6 +3968,17 @@ pub fn classroom_courses_course_work_modify_assignees_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_modify_assignees`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkModifyAssigneesArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: ModifyCourseWorkAssigneesRequest,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{id}:modifyAssignees
 /// Modifies assignee mode and options of a coursework. Only a teacher of the course that contains the coursework may call this method. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work does not exist. * FAILED_PRECONDITION for the following request error: * EmptyAssignees
 ///
@@ -3694,15 +3991,17 @@ pub fn classroom_courses_course_work_modify_assignees_execute(
 
 pub fn classroom_courses_course_work_modify_assignees(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
-    body: &ModifyCourseWorkAssigneesRequest,
+    args: &ClassroomCoursesCourseWorkModifyAssigneesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CourseWork>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_course_work_modify_assignees_builder(client, courseId, id, body)?;
+    let builder = classroom_courses_course_work_modify_assignees_builder(
+        client,
+        &args.courseId,
+        &args.id,
+        &args.body,
+    )?;
     classroom_courses_course_work_modify_assignees_execute(builder)
 }
 
@@ -3812,6 +4111,19 @@ pub fn classroom_courses_course_work_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkPatchArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CourseWork,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{id}
 /// Updates one or more fields of a course work. See google.classroom.v1.CourseWork for details of which fields may be updated and who may change them. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding course work, if the user is not permitted to make the requested modification to the student submission, or for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if the requested course work has already been deleted. * NOT_FOUND if the requested course or course work does not exist.
 ///
@@ -3824,16 +4136,18 @@ pub fn classroom_courses_course_work_patch_execute(
 
 pub fn classroom_courses_course_work_patch(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
-    updateMask: Option<&str>,
-    body: &CourseWork,
+    args: &ClassroomCoursesCourseWorkPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CourseWork>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_course_work_patch_builder(client, courseId, id, updateMask, body)?;
+    let builder = classroom_courses_course_work_patch_builder(
+        client,
+        &args.courseId,
+        &args.id,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     classroom_courses_course_work_patch_execute(builder)
 }
 
@@ -3947,6 +4261,21 @@ pub fn classroom_courses_course_work_update_rubric_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_update_rubric`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkUpdateRubricArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: courseWorkId
+    pub courseWorkId: String,
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Rubric,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubric
 /// Updates a rubric. See google.classroom.v1.Rubric for details of which fields can be updated. Rubric update capabilities are [limited](/`classroom/rubrics/limitations`) once grading has started. The requesting user and course owner must have rubrics creation capabilities. For details, see [licensing requirements](<https://developers.google.`com/workspace/classroom/rubrics/limitations`#license-requirements>). This request must be made by the Google Cloud console of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the parent course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project didn't create the corresponding course work, if the user isn't permitted to make the requested modification to the rubric, or for access errors. This error code is also returned if grading has already started on the rubric. * INVALID_ARGUMENT if the request is malformed and for the following request error: * RubricCriteriaInvalidFormat * NOT_FOUND if the requested course, course work, or rubric doesn't exist or if the user doesn't have access to the corresponding course work. * INTERNAL if grading has already started on the rubric.
 ///
@@ -3959,22 +4288,18 @@ pub fn classroom_courses_course_work_update_rubric_execute(
 
 pub fn classroom_courses_course_work_update_rubric(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Rubric,
+    args: &ClassroomCoursesCourseWorkUpdateRubricArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Rubric>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = classroom_courses_course_work_update_rubric_builder(
         client,
-        courseId,
-        courseWorkId,
-        id,
-        updateMask,
-        body,
+        &args.courseId,
+        &args.courseWorkId,
+        args.id.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     classroom_courses_course_work_update_rubric_execute(builder)
 }
@@ -4091,6 +4416,21 @@ pub fn classroom_courses_course_work_add_on_attachments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_add_on_attachments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkAddOnAttachmentsCreateArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Query parameter: addOnToken
+    pub addOnToken: Option<String>,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+    /// Request body.
+    pub body: AddOnAttachment,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments
 /// Creates an add-on attachment under a post. Requires the add-on to have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -4103,11 +4443,7 @@ pub fn classroom_courses_course_work_add_on_attachments_create_execute(
 
 pub fn classroom_courses_course_work_add_on_attachments_create(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    addOnToken: Option<&str>,
-    postId: Option<&str>,
-    body: &AddOnAttachment,
+    args: &ClassroomCoursesCourseWorkAddOnAttachmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
         + Send
@@ -4115,7 +4451,12 @@ pub fn classroom_courses_course_work_add_on_attachments_create(
     ApiError,
 > {
     let builder = classroom_courses_course_work_add_on_attachments_create_builder(
-        client, courseId, itemId, addOnToken, postId, body,
+        client,
+        &args.courseId,
+        &args.itemId,
+        args.addOnToken.as_deref(),
+        args.postId.as_deref(),
+        &args.body,
     )?;
     classroom_courses_course_work_add_on_attachments_create_execute(builder)
 }
@@ -4224,6 +4565,19 @@ pub fn classroom_courses_course_work_add_on_attachments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_add_on_attachments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkAddOnAttachmentsDeleteArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Path parameter: attachmentId
+    pub attachmentId: String,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}
 /// Deletes an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -4236,20 +4590,17 @@ pub fn classroom_courses_course_work_add_on_attachments_delete_execute(
 
 pub fn classroom_courses_course_work_add_on_attachments_delete(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
+    args: &ClassroomCoursesCourseWorkAddOnAttachmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = classroom_courses_course_work_add_on_attachments_delete_builder(
         client,
-        courseId,
-        itemId,
-        attachmentId,
-        postId,
+        &args.courseId,
+        &args.itemId,
+        &args.attachmentId,
+        args.postId.as_deref(),
     )?;
     classroom_courses_course_work_add_on_attachments_delete_execute(builder)
 }
@@ -4360,6 +4711,19 @@ pub fn classroom_courses_course_work_add_on_attachments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_add_on_attachments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkAddOnAttachmentsGetArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Path parameter: attachmentId
+    pub attachmentId: String,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}
 /// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -4372,10 +4736,7 @@ pub fn classroom_courses_course_work_add_on_attachments_get_execute(
 
 pub fn classroom_courses_course_work_add_on_attachments_get(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
+    args: &ClassroomCoursesCourseWorkAddOnAttachmentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
         + Send
@@ -4384,10 +4745,10 @@ pub fn classroom_courses_course_work_add_on_attachments_get(
 > {
     let builder = classroom_courses_course_work_add_on_attachments_get_builder(
         client,
-        courseId,
-        itemId,
-        attachmentId,
-        postId,
+        &args.courseId,
+        &args.itemId,
+        &args.attachmentId,
+        args.postId.as_deref(),
     )?;
     classroom_courses_course_work_add_on_attachments_get_execute(builder)
 }
@@ -4507,6 +4868,21 @@ pub fn classroom_courses_course_work_add_on_attachments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_add_on_attachments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkAddOnAttachmentsListArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments
 /// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -4519,11 +4895,7 @@ pub fn classroom_courses_course_work_add_on_attachments_list_execute(
 
 pub fn classroom_courses_course_work_add_on_attachments_list(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    postId: Option<&str>,
+    args: &ClassroomCoursesCourseWorkAddOnAttachmentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAddOnAttachmentsResponse>, ApiError>,
@@ -4533,7 +4905,12 @@ pub fn classroom_courses_course_work_add_on_attachments_list(
     ApiError,
 > {
     let builder = classroom_courses_course_work_add_on_attachments_list_builder(
-        client, courseId, itemId, pageSize, pageToken, postId,
+        client,
+        &args.courseId,
+        &args.itemId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.postId.as_deref(),
     )?;
     classroom_courses_course_work_add_on_attachments_list_execute(builder)
 }
@@ -4651,6 +5028,23 @@ pub fn classroom_courses_course_work_add_on_attachments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_add_on_attachments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkAddOnAttachmentsPatchArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Path parameter: attachmentId
+    pub attachmentId: String,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AddOnAttachment,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}
 /// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -4663,12 +5057,7 @@ pub fn classroom_courses_course_work_add_on_attachments_patch_execute(
 
 pub fn classroom_courses_course_work_add_on_attachments_patch(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AddOnAttachment,
+    args: &ClassroomCoursesCourseWorkAddOnAttachmentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
         + Send
@@ -4677,12 +5066,12 @@ pub fn classroom_courses_course_work_add_on_attachments_patch(
 > {
     let builder = classroom_courses_course_work_add_on_attachments_patch_builder(
         client,
-        courseId,
-        itemId,
-        attachmentId,
-        postId,
-        updateMask,
-        body,
+        &args.courseId,
+        &args.itemId,
+        &args.attachmentId,
+        args.postId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     classroom_courses_course_work_add_on_attachments_patch_execute(builder)
 }
@@ -4799,6 +5188,21 @@ pub fn classroom_courses_course_work_add_on_attachments_student_submissions_get_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_add_on_attachments_student_submissions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkAddOnAttachmentsStudentSubmissionsGetArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Path parameter: attachmentId
+    pub attachmentId: String,
+    /// Path parameter: submissionId
+    pub submissionId: String,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
 /// Returns a student submission for an add-on attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -4811,11 +5215,7 @@ pub fn classroom_courses_course_work_add_on_attachments_student_submissions_get_
 
 pub fn classroom_courses_course_work_add_on_attachments_student_submissions_get(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    submissionId: &str,
-    postId: Option<&str>,
+    args: &ClassroomCoursesCourseWorkAddOnAttachmentsStudentSubmissionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AddOnAttachmentStudentSubmission>, ApiError>,
@@ -4826,11 +5226,11 @@ pub fn classroom_courses_course_work_add_on_attachments_student_submissions_get(
 > {
     let builder = classroom_courses_course_work_add_on_attachments_student_submissions_get_builder(
         client,
-        courseId,
-        itemId,
-        attachmentId,
-        submissionId,
-        postId,
+        &args.courseId,
+        &args.itemId,
+        &args.attachmentId,
+        &args.submissionId,
+        args.postId.as_deref(),
     )?;
     classroom_courses_course_work_add_on_attachments_student_submissions_get_execute(builder)
 }
@@ -4954,6 +5354,25 @@ pub fn classroom_courses_course_work_add_on_attachments_student_submissions_patc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_add_on_attachments_student_submissions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkAddOnAttachmentsStudentSubmissionsPatchArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Path parameter: attachmentId
+    pub attachmentId: String,
+    /// Path parameter: submissionId
+    pub submissionId: String,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AddOnAttachmentStudentSubmission,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
 /// Updates data associated with an add-on attachment submission. Requires the add-on to have been the original creator of the attachment and the attachment to have a positive max_points value set. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -4966,13 +5385,7 @@ pub fn classroom_courses_course_work_add_on_attachments_student_submissions_patc
 
 pub fn classroom_courses_course_work_add_on_attachments_student_submissions_patch(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    submissionId: &str,
-    postId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AddOnAttachmentStudentSubmission,
+    args: &ClassroomCoursesCourseWorkAddOnAttachmentsStudentSubmissionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AddOnAttachmentStudentSubmission>, ApiError>,
@@ -4984,13 +5397,13 @@ pub fn classroom_courses_course_work_add_on_attachments_student_submissions_patc
     let builder =
         classroom_courses_course_work_add_on_attachments_student_submissions_patch_builder(
             client,
-            courseId,
-            itemId,
-            attachmentId,
-            submissionId,
-            postId,
-            updateMask,
-            body,
+            &args.courseId,
+            &args.itemId,
+            &args.attachmentId,
+            &args.submissionId,
+            args.postId.as_deref(),
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     classroom_courses_course_work_add_on_attachments_student_submissions_patch_execute(builder)
 }
@@ -5089,6 +5502,17 @@ pub fn classroom_courses_course_work_rubrics_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_rubrics_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkRubricsCreateArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: courseWorkId
+    pub courseWorkId: String,
+    /// Request body.
+    pub body: Rubric,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics
 /// Creates a rubric. The requesting user and course owner must have rubrics creation capabilities. For details, see [licensing requirements](<https://developers.google.`com/workspace/classroom/rubrics/limitations`#license-requirements>). For further details, see [Rubrics structure and known limitations](/`classroom/rubrics/limitations`). This request must be made by the Google Cloud console of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the parent course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting user isn't permitted to create rubrics for course work in the requested course. * INTERNAL if the request has insufficient OAuth scopes. * INVALID_ARGUMENT if the request is malformed and for the following request error: * RubricCriteriaInvalidFormat * NOT_FOUND if the requested course or course work don't exist or the user doesn't have access to the course or course work. * FAILED_PRECONDITION for the following request error: * AttachmentNotVisible
 ///
@@ -5101,15 +5525,17 @@ pub fn classroom_courses_course_work_rubrics_create_execute(
 
 pub fn classroom_courses_course_work_rubrics_create(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    body: &Rubric,
+    args: &ClassroomCoursesCourseWorkRubricsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Rubric>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_course_work_rubrics_create_builder(client, courseId, courseWorkId, body)?;
+    let builder = classroom_courses_course_work_rubrics_create_builder(
+        client,
+        &args.courseId,
+        &args.courseWorkId,
+        &args.body,
+    )?;
     classroom_courses_course_work_rubrics_create_execute(builder)
 }
 
@@ -5205,6 +5631,17 @@ pub fn classroom_courses_course_work_rubrics_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_rubrics_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkRubricsDeleteArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: courseWorkId
+    pub courseWorkId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics/{id}
 /// Deletes a rubric. The requesting user and course owner must have rubrics creation capabilities. For details, see [licensing requirements](<https://developers.google.`com/workspace/classroom/rubrics/limitations`#license-requirements>). This request must be made by the Google Cloud console of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding rubric. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project didn't create the corresponding rubric, or if the requesting user isn't permitted to delete the requested rubric. * NOT_FOUND if no rubric exists with the requested ID or the user does not have access to the course, course work, or rubric. * INVALID_ARGUMENT if grading has already started on the rubric.
 ///
@@ -5217,15 +5654,17 @@ pub fn classroom_courses_course_work_rubrics_delete_execute(
 
 pub fn classroom_courses_course_work_rubrics_delete(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
+    args: &ClassroomCoursesCourseWorkRubricsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_course_work_rubrics_delete_builder(client, courseId, courseWorkId, id)?;
+    let builder = classroom_courses_course_work_rubrics_delete_builder(
+        client,
+        &args.courseId,
+        &args.courseWorkId,
+        &args.id,
+    )?;
     classroom_courses_course_work_rubrics_delete_execute(builder)
 }
 
@@ -5321,6 +5760,17 @@ pub fn classroom_courses_course_work_rubrics_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_rubrics_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkRubricsGetArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: courseWorkId
+    pub courseWorkId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics/{id}
 /// Returns a rubric. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course, course work, or rubric doesn't exist or if the user doesn't have access to the corresponding course work.
 ///
@@ -5333,15 +5783,17 @@ pub fn classroom_courses_course_work_rubrics_get_execute(
 
 pub fn classroom_courses_course_work_rubrics_get(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
+    args: &ClassroomCoursesCourseWorkRubricsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Rubric>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_course_work_rubrics_get_builder(client, courseId, courseWorkId, id)?;
+    let builder = classroom_courses_course_work_rubrics_get_builder(
+        client,
+        &args.courseId,
+        &args.courseWorkId,
+        &args.id,
+    )?;
     classroom_courses_course_work_rubrics_get_execute(builder)
 }
 
@@ -5454,6 +5906,19 @@ pub fn classroom_courses_course_work_rubrics_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_rubrics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkRubricsListArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: courseWorkId
+    pub courseWorkId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics
 /// Returns a list of rubrics that the requester is permitted to view. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work doesn't exist or if the user doesn't have access to the corresponding course work.
 ///
@@ -5466,10 +5931,7 @@ pub fn classroom_courses_course_work_rubrics_list_execute(
 
 pub fn classroom_courses_course_work_rubrics_list(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClassroomCoursesCourseWorkRubricsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRubricsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5478,10 +5940,10 @@ pub fn classroom_courses_course_work_rubrics_list(
 > {
     let builder = classroom_courses_course_work_rubrics_list_builder(
         client,
-        courseId,
-        courseWorkId,
-        pageSize,
-        pageToken,
+        &args.courseId,
+        &args.courseWorkId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     classroom_courses_course_work_rubrics_list_execute(builder)
 }
@@ -5593,6 +6055,21 @@ pub fn classroom_courses_course_work_rubrics_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_rubrics_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkRubricsPatchArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: courseWorkId
+    pub courseWorkId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Rubric,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics/{id}
 /// Updates a rubric. See google.classroom.v1.Rubric for details of which fields can be updated. Rubric update capabilities are [limited](/`classroom/rubrics/limitations`) once grading has started. The requesting user and course owner must have rubrics creation capabilities. For details, see [licensing requirements](<https://developers.google.`com/workspace/classroom/rubrics/limitations`#license-requirements>). This request must be made by the Google Cloud console of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the parent course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project didn't create the corresponding course work, if the user isn't permitted to make the requested modification to the rubric, or for access errors. This error code is also returned if grading has already started on the rubric. * INVALID_ARGUMENT if the request is malformed and for the following request error: * RubricCriteriaInvalidFormat * NOT_FOUND if the requested course, course work, or rubric doesn't exist or if the user doesn't have access to the corresponding course work. * INTERNAL if grading has already started on the rubric.
 ///
@@ -5605,22 +6082,18 @@ pub fn classroom_courses_course_work_rubrics_patch_execute(
 
 pub fn classroom_courses_course_work_rubrics_patch(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
-    updateMask: Option<&str>,
-    body: &Rubric,
+    args: &ClassroomCoursesCourseWorkRubricsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Rubric>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = classroom_courses_course_work_rubrics_patch_builder(
         client,
-        courseId,
-        courseWorkId,
-        id,
-        updateMask,
-        body,
+        &args.courseId,
+        &args.courseWorkId,
+        &args.id,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     classroom_courses_course_work_rubrics_patch_execute(builder)
 }
@@ -5719,6 +6192,17 @@ pub fn classroom_courses_course_work_student_submissions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_student_submissions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkStudentSubmissionsGetArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: courseWorkId
+    pub courseWorkId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/studentSubmissions/{id}
 /// Returns a student submission. * PERMISSION_DENIED if the requesting user is not permitted to access the requested course, course work, or student submission or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course, course work, or student submission does not exist.
 ///
@@ -5731,9 +6215,7 @@ pub fn classroom_courses_course_work_student_submissions_get_execute(
 
 pub fn classroom_courses_course_work_student_submissions_get(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
+    args: &ClassroomCoursesCourseWorkStudentSubmissionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StudentSubmission>, ApiError>, P = ApiPending>
         + Send
@@ -5742,9 +6224,9 @@ pub fn classroom_courses_course_work_student_submissions_get(
 > {
     let builder = classroom_courses_course_work_student_submissions_get_builder(
         client,
-        courseId,
-        courseWorkId,
-        id,
+        &args.courseId,
+        &args.courseWorkId,
+        &args.id,
     )?;
     classroom_courses_course_work_student_submissions_get_execute(builder)
 }
@@ -5872,6 +6354,25 @@ pub fn classroom_courses_course_work_student_submissions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_student_submissions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkStudentSubmissionsListArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: courseWorkId
+    pub courseWorkId: String,
+    /// Query parameter: late
+    pub late: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: states
+    pub states: Option<String>,
+    /// Query parameter: userId
+    pub userId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/studentSubmissions
 /// Returns a list of student submissions that the requester is permitted to view, factoring in the OAuth scopes of the request. A hyphen (-) may be specified as the course_work_id to include student submissions for multiple course work items. Course students may only view their own work. Course teachers and domain administrators may view all student submissions. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
 ///
@@ -5884,13 +6385,7 @@ pub fn classroom_courses_course_work_student_submissions_list_execute(
 
 pub fn classroom_courses_course_work_student_submissions_list(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    late: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    states: Option<&str>,
-    userId: Option<&str>,
+    args: &ClassroomCoursesCourseWorkStudentSubmissionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListStudentSubmissionsResponse>, ApiError>,
@@ -5901,13 +6396,13 @@ pub fn classroom_courses_course_work_student_submissions_list(
 > {
     let builder = classroom_courses_course_work_student_submissions_list_builder(
         client,
-        courseId,
-        courseWorkId,
-        late,
-        pageSize,
-        pageToken,
-        states,
-        userId,
+        &args.courseId,
+        &args.courseWorkId,
+        args.late.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.states.as_deref(),
+        args.userId.as_deref(),
     )?;
     classroom_courses_course_work_student_submissions_list_execute(builder)
 }
@@ -6011,6 +6506,19 @@ pub fn classroom_courses_course_work_student_submissions_modify_attachments_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_student_submissions_modify_attachments`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkStudentSubmissionsModifyAttachmentsArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: courseWorkId
+    pub courseWorkId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: ModifyAttachmentsRequest,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/studentSubmissions/{id}:modifyAttachments
 /// Modifies attachments of student submission. Attachments may only be added to student submissions belonging to course work objects with a `workType` of ASSIGNMENT. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work, if the user is not permitted to modify attachments on the requested student submission, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course, course work, or student submission does not exist.
 ///
@@ -6023,10 +6531,7 @@ pub fn classroom_courses_course_work_student_submissions_modify_attachments_exec
 
 pub fn classroom_courses_course_work_student_submissions_modify_attachments(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
-    body: &ModifyAttachmentsRequest,
+    args: &ClassroomCoursesCourseWorkStudentSubmissionsModifyAttachmentsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StudentSubmission>, ApiError>, P = ApiPending>
         + Send
@@ -6035,10 +6540,10 @@ pub fn classroom_courses_course_work_student_submissions_modify_attachments(
 > {
     let builder = classroom_courses_course_work_student_submissions_modify_attachments_builder(
         client,
-        courseId,
-        courseWorkId,
-        id,
-        body,
+        &args.courseId,
+        &args.courseWorkId,
+        &args.id,
+        &args.body,
     )?;
     classroom_courses_course_work_student_submissions_modify_attachments_execute(builder)
 }
@@ -6152,6 +6657,21 @@ pub fn classroom_courses_course_work_student_submissions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_student_submissions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkStudentSubmissionsPatchArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: courseWorkId
+    pub courseWorkId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: StudentSubmission,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/studentSubmissions/{id}
 /// Updates one or more fields of a student submission. See google.classroom.v1.StudentSubmission for details of which fields may be updated and who may change them. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding course work, if the user is not permitted to make the requested modification to the student submission, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course, course work, or student submission does not exist.
 ///
@@ -6164,11 +6684,7 @@ pub fn classroom_courses_course_work_student_submissions_patch_execute(
 
 pub fn classroom_courses_course_work_student_submissions_patch(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
-    updateMask: Option<&str>,
-    body: &StudentSubmission,
+    args: &ClassroomCoursesCourseWorkStudentSubmissionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StudentSubmission>, ApiError>, P = ApiPending>
         + Send
@@ -6177,11 +6693,11 @@ pub fn classroom_courses_course_work_student_submissions_patch(
 > {
     let builder = classroom_courses_course_work_student_submissions_patch_builder(
         client,
-        courseId,
-        courseWorkId,
-        id,
-        updateMask,
-        body,
+        &args.courseId,
+        &args.courseWorkId,
+        &args.id,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     classroom_courses_course_work_student_submissions_patch_execute(builder)
 }
@@ -6283,6 +6799,19 @@ pub fn classroom_courses_course_work_student_submissions_reclaim_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_student_submissions_reclaim`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkStudentSubmissionsReclaimArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: courseWorkId
+    pub courseWorkId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: ReclaimStudentSubmissionRequest,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/studentSubmissions/{id}:reclaim
 /// Reclaims a student submission on behalf of the student that owns it. Reclaiming a student submission transfers ownership of attached Drive files to the student and updates the submission state. Only the student that owns the requested student submission may call this method, and only for a student submission that has been turned in. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work, unsubmit the requested student submission, or for access errors. * FAILED_PRECONDITION if the student submission has not been turned in. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course, course work, or student submission does not exist.
 ///
@@ -6295,20 +6824,17 @@ pub fn classroom_courses_course_work_student_submissions_reclaim_execute(
 
 pub fn classroom_courses_course_work_student_submissions_reclaim(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
-    body: &ReclaimStudentSubmissionRequest,
+    args: &ClassroomCoursesCourseWorkStudentSubmissionsReclaimArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = classroom_courses_course_work_student_submissions_reclaim_builder(
         client,
-        courseId,
-        courseWorkId,
-        id,
-        body,
+        &args.courseId,
+        &args.courseWorkId,
+        &args.id,
+        &args.body,
     )?;
     classroom_courses_course_work_student_submissions_reclaim_execute(builder)
 }
@@ -6408,6 +6934,19 @@ pub fn classroom_courses_course_work_student_submissions_return_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_student_submissions_return`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkStudentSubmissionsReturnArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: courseWorkId
+    pub courseWorkId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: ReturnStudentSubmissionRequest,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/studentSubmissions/{id}:return
 /// Returns a student submission. Returning a student submission transfers ownership of attached Drive files to the student and may also update the submission state. Unlike the Classroom application, returning a student submission does not set `assignedGrade` to the `draftGrade` value. Only a teacher of the course that contains the requested student submission may call this method. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work, return the requested student submission, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course, course work, or student submission does not exist.
 ///
@@ -6420,20 +6959,17 @@ pub fn classroom_courses_course_work_student_submissions_return_execute(
 
 pub fn classroom_courses_course_work_student_submissions_return(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
-    body: &ReturnStudentSubmissionRequest,
+    args: &ClassroomCoursesCourseWorkStudentSubmissionsReturnArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = classroom_courses_course_work_student_submissions_return_builder(
         client,
-        courseId,
-        courseWorkId,
-        id,
-        body,
+        &args.courseId,
+        &args.courseWorkId,
+        &args.id,
+        &args.body,
     )?;
     classroom_courses_course_work_student_submissions_return_execute(builder)
 }
@@ -6533,6 +7069,19 @@ pub fn classroom_courses_course_work_student_submissions_turn_in_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_student_submissions_turn_in`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkStudentSubmissionsTurnInArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: courseWorkId
+    pub courseWorkId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: TurnInStudentSubmissionRequest,
+}
+
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/studentSubmissions/{id}:turnIn
 /// Turns in a student submission. Turning in a student submission transfers ownership of attached Drive files to the teacher and may also update the submission state. This may only be called by the student that owns the specified student submission. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work, turn in the requested student submission, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course, course work, or student submission does not exist.
 ///
@@ -6545,20 +7094,17 @@ pub fn classroom_courses_course_work_student_submissions_turn_in_execute(
 
 pub fn classroom_courses_course_work_student_submissions_turn_in(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
-    body: &TurnInStudentSubmissionRequest,
+    args: &ClassroomCoursesCourseWorkStudentSubmissionsTurnInArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = classroom_courses_course_work_student_submissions_turn_in_builder(
         client,
-        courseId,
-        courseWorkId,
-        id,
-        body,
+        &args.courseId,
+        &args.courseWorkId,
+        &args.id,
+        &args.body,
     )?;
     classroom_courses_course_work_student_submissions_turn_in_execute(builder)
 }
@@ -6658,6 +7204,15 @@ pub fn classroom_courses_course_work_materials_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_materials_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkMaterialsCreateArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Request body.
+    pub body: CourseWorkMaterial,
+}
+
 /// GET v1/courses/{courseId}/courseWorkMaterials
 /// Creates a course work material. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course, create course work material in the requested course, share a Drive attachment, or for access errors. * INVALID_ARGUMENT if the request is malformed or if more than 20 * materials are provided. * NOT_FOUND if the requested course does not exist. * FAILED_PRECONDITION for the following request error: * AttachmentNotVisible
 ///
@@ -6670,15 +7225,15 @@ pub fn classroom_courses_course_work_materials_create_execute(
 
 pub fn classroom_courses_course_work_materials_create(
     client: &SimpleHttpClient,
-    courseId: &str,
-    body: &CourseWorkMaterial,
+    args: &ClassroomCoursesCourseWorkMaterialsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CourseWorkMaterial>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_course_work_materials_create_builder(client, courseId, body)?;
+    let builder =
+        classroom_courses_course_work_materials_create_builder(client, &args.courseId, &args.body)?;
     classroom_courses_course_work_materials_create_execute(builder)
 }
 
@@ -6773,6 +7328,15 @@ pub fn classroom_courses_course_work_materials_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_materials_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkMaterialsDeleteArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/courses/{courseId}/courseWorkMaterials/{id}
 /// Deletes a course work material. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding course work material item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding course work material, if the requesting user is not permitted to delete the requested course or for access errors. * FAILED_PRECONDITION if the requested course work material has already been deleted. * NOT_FOUND if no course exists with the requested ID.
 ///
@@ -6785,13 +7349,13 @@ pub fn classroom_courses_course_work_materials_delete_execute(
 
 pub fn classroom_courses_course_work_materials_delete(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
+    args: &ClassroomCoursesCourseWorkMaterialsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_course_work_materials_delete_builder(client, courseId, id)?;
+    let builder =
+        classroom_courses_course_work_materials_delete_builder(client, &args.courseId, &args.id)?;
     classroom_courses_course_work_materials_delete_execute(builder)
 }
 
@@ -6888,6 +7452,15 @@ pub fn classroom_courses_course_work_materials_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_materials_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkMaterialsGetArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/courses/{courseId}/courseWorkMaterials/{id}
 /// Returns a course work material. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work material, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work material does not exist.
 ///
@@ -6900,15 +7473,15 @@ pub fn classroom_courses_course_work_materials_get_execute(
 
 pub fn classroom_courses_course_work_materials_get(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
+    args: &ClassroomCoursesCourseWorkMaterialsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CourseWorkMaterial>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_course_work_materials_get_builder(client, courseId, id)?;
+    let builder =
+        classroom_courses_course_work_materials_get_builder(client, &args.courseId, &args.id)?;
     classroom_courses_course_work_materials_get_execute(builder)
 }
 
@@ -7025,6 +7598,21 @@ pub fn classroom_courses_course_work_materials_get_add_on_context_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_materials_get_add_on_context`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkMaterialsGetAddOnContextArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Query parameter: addOnToken
+    pub addOnToken: Option<String>,
+    /// Query parameter: attachmentId
+    pub attachmentId: Option<String>,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnContext
 /// Gets metadata for Classroom add-ons in the context of a specific post. To maintain the integrity of its own data and permissions model, an add-on should call this to validate query parameters and the requesting user's role whenever the add-on is opened in an [iframe](<https://developers.google.`com/workspace/classroom/add-ons/get-started/iframes/iframes-overview`>). This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -7037,11 +7625,7 @@ pub fn classroom_courses_course_work_materials_get_add_on_context_execute(
 
 pub fn classroom_courses_course_work_materials_get_add_on_context(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    addOnToken: Option<&str>,
-    attachmentId: Option<&str>,
-    postId: Option<&str>,
+    args: &ClassroomCoursesCourseWorkMaterialsGetAddOnContextArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddOnContext>, ApiError>, P = ApiPending>
         + Send
@@ -7050,11 +7634,11 @@ pub fn classroom_courses_course_work_materials_get_add_on_context(
 > {
     let builder = classroom_courses_course_work_materials_get_add_on_context_builder(
         client,
-        courseId,
-        itemId,
-        addOnToken,
-        attachmentId,
-        postId,
+        &args.courseId,
+        &args.itemId,
+        args.addOnToken.as_deref(),
+        args.attachmentId.as_deref(),
+        args.postId.as_deref(),
     )?;
     classroom_courses_course_work_materials_get_add_on_context_execute(builder)
 }
@@ -7185,6 +7769,25 @@ pub fn classroom_courses_course_work_materials_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_materials_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkMaterialsListArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Query parameter: courseWorkMaterialStates
+    pub courseWorkMaterialStates: Option<String>,
+    /// Query parameter: materialDriveId
+    pub materialDriveId: Option<String>,
+    /// Query parameter: materialLink
+    pub materialLink: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/courseWorkMaterials
 /// Returns a list of course work material that the requester is permitted to view. Course students may only view PUBLISHED course work material. Course teachers and domain administrators may view all course work material. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
 ///
@@ -7197,13 +7800,7 @@ pub fn classroom_courses_course_work_materials_list_execute(
 
 pub fn classroom_courses_course_work_materials_list(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkMaterialStates: Option<&str>,
-    materialDriveId: Option<&str>,
-    materialLink: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClassroomCoursesCourseWorkMaterialsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCourseWorkMaterialResponse>, ApiError>,
@@ -7214,13 +7811,13 @@ pub fn classroom_courses_course_work_materials_list(
 > {
     let builder = classroom_courses_course_work_materials_list_builder(
         client,
-        courseId,
-        courseWorkMaterialStates,
-        materialDriveId,
-        materialLink,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.courseId,
+        args.courseWorkMaterialStates.as_deref(),
+        args.materialDriveId.as_deref(),
+        args.materialLink.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     classroom_courses_course_work_materials_list_execute(builder)
 }
@@ -7333,6 +7930,19 @@ pub fn classroom_courses_course_work_materials_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_materials_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkMaterialsPatchArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CourseWorkMaterial,
+}
+
 /// GET v1/courses/{courseId}/courseWorkMaterials/{id}
 /// Updates one or more fields of a course work material. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if the requested course work material has already been deleted. * NOT_FOUND if the requested course or course work material does not exist
 ///
@@ -7345,10 +7955,7 @@ pub fn classroom_courses_course_work_materials_patch_execute(
 
 pub fn classroom_courses_course_work_materials_patch(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
-    updateMask: Option<&str>,
-    body: &CourseWorkMaterial,
+    args: &ClassroomCoursesCourseWorkMaterialsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CourseWorkMaterial>, ApiError>, P = ApiPending>
         + Send
@@ -7356,7 +7963,11 @@ pub fn classroom_courses_course_work_materials_patch(
     ApiError,
 > {
     let builder = classroom_courses_course_work_materials_patch_builder(
-        client, courseId, id, updateMask, body,
+        client,
+        &args.courseId,
+        &args.id,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     classroom_courses_course_work_materials_patch_execute(builder)
 }
@@ -7473,6 +8084,21 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_materials_add_on_attachments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsCreateArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Query parameter: addOnToken
+    pub addOnToken: Option<String>,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+    /// Request body.
+    pub body: AddOnAttachment,
+}
+
 /// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments
 /// Creates an add-on attachment under a post. Requires the add-on to have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -7485,11 +8111,7 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_create_execute
 
 pub fn classroom_courses_course_work_materials_add_on_attachments_create(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    addOnToken: Option<&str>,
-    postId: Option<&str>,
-    body: &AddOnAttachment,
+    args: &ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
         + Send
@@ -7497,7 +8119,12 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_create(
     ApiError,
 > {
     let builder = classroom_courses_course_work_materials_add_on_attachments_create_builder(
-        client, courseId, itemId, addOnToken, postId, body,
+        client,
+        &args.courseId,
+        &args.itemId,
+        args.addOnToken.as_deref(),
+        args.postId.as_deref(),
+        &args.body,
     )?;
     classroom_courses_course_work_materials_add_on_attachments_create_execute(builder)
 }
@@ -7606,6 +8233,19 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_materials_add_on_attachments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsDeleteArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Path parameter: attachmentId
+    pub attachmentId: String,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments/{attachmentId}
 /// Deletes an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -7618,20 +8258,17 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_delete_execute
 
 pub fn classroom_courses_course_work_materials_add_on_attachments_delete(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
+    args: &ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = classroom_courses_course_work_materials_add_on_attachments_delete_builder(
         client,
-        courseId,
-        itemId,
-        attachmentId,
-        postId,
+        &args.courseId,
+        &args.itemId,
+        &args.attachmentId,
+        args.postId.as_deref(),
     )?;
     classroom_courses_course_work_materials_add_on_attachments_delete_execute(builder)
 }
@@ -7742,6 +8379,19 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_materials_add_on_attachments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsGetArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Path parameter: attachmentId
+    pub attachmentId: String,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments/{attachmentId}
 /// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -7754,10 +8404,7 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_get_execute(
 
 pub fn classroom_courses_course_work_materials_add_on_attachments_get(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
+    args: &ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
         + Send
@@ -7766,10 +8413,10 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_get(
 > {
     let builder = classroom_courses_course_work_materials_add_on_attachments_get_builder(
         client,
-        courseId,
-        itemId,
-        attachmentId,
-        postId,
+        &args.courseId,
+        &args.itemId,
+        &args.attachmentId,
+        args.postId.as_deref(),
     )?;
     classroom_courses_course_work_materials_add_on_attachments_get_execute(builder)
 }
@@ -7889,6 +8536,21 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_materials_add_on_attachments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsListArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments
 /// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -7901,11 +8563,7 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_list_execute(
 
 pub fn classroom_courses_course_work_materials_add_on_attachments_list(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    postId: Option<&str>,
+    args: &ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAddOnAttachmentsResponse>, ApiError>,
@@ -7915,7 +8573,12 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_list(
     ApiError,
 > {
     let builder = classroom_courses_course_work_materials_add_on_attachments_list_builder(
-        client, courseId, itemId, pageSize, pageToken, postId,
+        client,
+        &args.courseId,
+        &args.itemId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.postId.as_deref(),
     )?;
     classroom_courses_course_work_materials_add_on_attachments_list_execute(builder)
 }
@@ -8033,6 +8696,23 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_course_work_materials_add_on_attachments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsPatchArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: itemId
+    pub itemId: String,
+    /// Path parameter: attachmentId
+    pub attachmentId: String,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AddOnAttachment,
+}
+
 /// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments/{attachmentId}
 /// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -8045,12 +8725,7 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_patch_execute(
 
 pub fn classroom_courses_course_work_materials_add_on_attachments_patch(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AddOnAttachment,
+    args: &ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
         + Send
@@ -8059,12 +8734,12 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_patch(
 > {
     let builder = classroom_courses_course_work_materials_add_on_attachments_patch_builder(
         client,
-        courseId,
-        itemId,
-        attachmentId,
-        postId,
-        updateMask,
-        body,
+        &args.courseId,
+        &args.itemId,
+        &args.attachmentId,
+        args.postId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     classroom_courses_course_work_materials_add_on_attachments_patch_execute(builder)
 }
@@ -8182,6 +8857,21 @@ pub fn classroom_courses_posts_get_add_on_context_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_posts_get_add_on_context`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesPostsGetAddOnContextArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Query parameter: addOnToken
+    pub addOnToken: Option<String>,
+    /// Query parameter: attachmentId
+    pub attachmentId: Option<String>,
+    /// Query parameter: itemId
+    pub itemId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/posts/{postId}/addOnContext
 /// Gets metadata for Classroom add-ons in the context of a specific post. To maintain the integrity of its own data and permissions model, an add-on should call this to validate query parameters and the requesting user's role whenever the add-on is opened in an [iframe](<https://developers.google.`com/workspace/classroom/add-ons/get-started/iframes/iframes-overview`>). This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -8194,11 +8884,7 @@ pub fn classroom_courses_posts_get_add_on_context_execute(
 
 pub fn classroom_courses_posts_get_add_on_context(
     client: &SimpleHttpClient,
-    courseId: &str,
-    postId: &str,
-    addOnToken: Option<&str>,
-    attachmentId: Option<&str>,
-    itemId: Option<&str>,
+    args: &ClassroomCoursesPostsGetAddOnContextArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddOnContext>, ApiError>, P = ApiPending>
         + Send
@@ -8207,11 +8893,11 @@ pub fn classroom_courses_posts_get_add_on_context(
 > {
     let builder = classroom_courses_posts_get_add_on_context_builder(
         client,
-        courseId,
-        postId,
-        addOnToken,
-        attachmentId,
-        itemId,
+        &args.courseId,
+        &args.postId,
+        args.addOnToken.as_deref(),
+        args.attachmentId.as_deref(),
+        args.itemId.as_deref(),
     )?;
     classroom_courses_posts_get_add_on_context_execute(builder)
 }
@@ -8328,6 +9014,21 @@ pub fn classroom_courses_posts_add_on_attachments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_posts_add_on_attachments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesPostsAddOnAttachmentsCreateArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Query parameter: addOnToken
+    pub addOnToken: Option<String>,
+    /// Query parameter: itemId
+    pub itemId: Option<String>,
+    /// Request body.
+    pub body: AddOnAttachment,
+}
+
 /// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments
 /// Creates an add-on attachment under a post. Requires the add-on to have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -8340,11 +9041,7 @@ pub fn classroom_courses_posts_add_on_attachments_create_execute(
 
 pub fn classroom_courses_posts_add_on_attachments_create(
     client: &SimpleHttpClient,
-    courseId: &str,
-    postId: &str,
-    addOnToken: Option<&str>,
-    itemId: Option<&str>,
-    body: &AddOnAttachment,
+    args: &ClassroomCoursesPostsAddOnAttachmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
         + Send
@@ -8352,7 +9049,12 @@ pub fn classroom_courses_posts_add_on_attachments_create(
     ApiError,
 > {
     let builder = classroom_courses_posts_add_on_attachments_create_builder(
-        client, courseId, postId, addOnToken, itemId, body,
+        client,
+        &args.courseId,
+        &args.postId,
+        args.addOnToken.as_deref(),
+        args.itemId.as_deref(),
+        &args.body,
     )?;
     classroom_courses_posts_add_on_attachments_create_execute(builder)
 }
@@ -8461,6 +9163,19 @@ pub fn classroom_courses_posts_add_on_attachments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_posts_add_on_attachments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesPostsAddOnAttachmentsDeleteArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Path parameter: attachmentId
+    pub attachmentId: String,
+    /// Query parameter: itemId
+    pub itemId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}
 /// Deletes an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -8473,20 +9188,17 @@ pub fn classroom_courses_posts_add_on_attachments_delete_execute(
 
 pub fn classroom_courses_posts_add_on_attachments_delete(
     client: &SimpleHttpClient,
-    courseId: &str,
-    postId: &str,
-    attachmentId: &str,
-    itemId: Option<&str>,
+    args: &ClassroomCoursesPostsAddOnAttachmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = classroom_courses_posts_add_on_attachments_delete_builder(
         client,
-        courseId,
-        postId,
-        attachmentId,
-        itemId,
+        &args.courseId,
+        &args.postId,
+        &args.attachmentId,
+        args.itemId.as_deref(),
     )?;
     classroom_courses_posts_add_on_attachments_delete_execute(builder)
 }
@@ -8597,6 +9309,19 @@ pub fn classroom_courses_posts_add_on_attachments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_posts_add_on_attachments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesPostsAddOnAttachmentsGetArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Path parameter: attachmentId
+    pub attachmentId: String,
+    /// Query parameter: itemId
+    pub itemId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}
 /// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -8609,10 +9334,7 @@ pub fn classroom_courses_posts_add_on_attachments_get_execute(
 
 pub fn classroom_courses_posts_add_on_attachments_get(
     client: &SimpleHttpClient,
-    courseId: &str,
-    postId: &str,
-    attachmentId: &str,
-    itemId: Option<&str>,
+    args: &ClassroomCoursesPostsAddOnAttachmentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
         + Send
@@ -8621,10 +9343,10 @@ pub fn classroom_courses_posts_add_on_attachments_get(
 > {
     let builder = classroom_courses_posts_add_on_attachments_get_builder(
         client,
-        courseId,
-        postId,
-        attachmentId,
-        itemId,
+        &args.courseId,
+        &args.postId,
+        &args.attachmentId,
+        args.itemId.as_deref(),
     )?;
     classroom_courses_posts_add_on_attachments_get_execute(builder)
 }
@@ -8744,6 +9466,21 @@ pub fn classroom_courses_posts_add_on_attachments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_posts_add_on_attachments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesPostsAddOnAttachmentsListArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Query parameter: itemId
+    pub itemId: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments
 /// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -8756,11 +9493,7 @@ pub fn classroom_courses_posts_add_on_attachments_list_execute(
 
 pub fn classroom_courses_posts_add_on_attachments_list(
     client: &SimpleHttpClient,
-    courseId: &str,
-    postId: &str,
-    itemId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClassroomCoursesPostsAddOnAttachmentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAddOnAttachmentsResponse>, ApiError>,
@@ -8770,7 +9503,12 @@ pub fn classroom_courses_posts_add_on_attachments_list(
     ApiError,
 > {
     let builder = classroom_courses_posts_add_on_attachments_list_builder(
-        client, courseId, postId, itemId, pageSize, pageToken,
+        client,
+        &args.courseId,
+        &args.postId,
+        args.itemId.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     classroom_courses_posts_add_on_attachments_list_execute(builder)
 }
@@ -8888,6 +9626,23 @@ pub fn classroom_courses_posts_add_on_attachments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_posts_add_on_attachments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesPostsAddOnAttachmentsPatchArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Path parameter: attachmentId
+    pub attachmentId: String,
+    /// Query parameter: itemId
+    pub itemId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AddOnAttachment,
+}
+
 /// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}
 /// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -8900,12 +9655,7 @@ pub fn classroom_courses_posts_add_on_attachments_patch_execute(
 
 pub fn classroom_courses_posts_add_on_attachments_patch(
     client: &SimpleHttpClient,
-    courseId: &str,
-    postId: &str,
-    attachmentId: &str,
-    itemId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AddOnAttachment,
+    args: &ClassroomCoursesPostsAddOnAttachmentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
         + Send
@@ -8914,12 +9664,12 @@ pub fn classroom_courses_posts_add_on_attachments_patch(
 > {
     let builder = classroom_courses_posts_add_on_attachments_patch_builder(
         client,
-        courseId,
-        postId,
-        attachmentId,
-        itemId,
-        updateMask,
-        body,
+        &args.courseId,
+        &args.postId,
+        &args.attachmentId,
+        args.itemId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     classroom_courses_posts_add_on_attachments_patch_execute(builder)
 }
@@ -9036,6 +9786,21 @@ pub fn classroom_courses_posts_add_on_attachments_student_submissions_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_posts_add_on_attachments_student_submissions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesPostsAddOnAttachmentsStudentSubmissionsGetArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Path parameter: attachmentId
+    pub attachmentId: String,
+    /// Path parameter: submissionId
+    pub submissionId: String,
+    /// Query parameter: itemId
+    pub itemId: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
 /// Returns a student submission for an add-on attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -9048,11 +9813,7 @@ pub fn classroom_courses_posts_add_on_attachments_student_submissions_get_execut
 
 pub fn classroom_courses_posts_add_on_attachments_student_submissions_get(
     client: &SimpleHttpClient,
-    courseId: &str,
-    postId: &str,
-    attachmentId: &str,
-    submissionId: &str,
-    itemId: Option<&str>,
+    args: &ClassroomCoursesPostsAddOnAttachmentsStudentSubmissionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AddOnAttachmentStudentSubmission>, ApiError>,
@@ -9063,11 +9824,11 @@ pub fn classroom_courses_posts_add_on_attachments_student_submissions_get(
 > {
     let builder = classroom_courses_posts_add_on_attachments_student_submissions_get_builder(
         client,
-        courseId,
-        postId,
-        attachmentId,
-        submissionId,
-        itemId,
+        &args.courseId,
+        &args.postId,
+        &args.attachmentId,
+        &args.submissionId,
+        args.itemId.as_deref(),
     )?;
     classroom_courses_posts_add_on_attachments_student_submissions_get_execute(builder)
 }
@@ -9191,6 +9952,25 @@ pub fn classroom_courses_posts_add_on_attachments_student_submissions_patch_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_posts_add_on_attachments_student_submissions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesPostsAddOnAttachmentsStudentSubmissionsPatchArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Path parameter: attachmentId
+    pub attachmentId: String,
+    /// Path parameter: submissionId
+    pub submissionId: String,
+    /// Query parameter: itemId
+    pub itemId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AddOnAttachmentStudentSubmission,
+}
+
 /// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
 /// Updates data associated with an add-on attachment submission. Requires the add-on to have been the original creator of the attachment and the attachment to have a positive max_points value set. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
 ///
@@ -9203,13 +9983,7 @@ pub fn classroom_courses_posts_add_on_attachments_student_submissions_patch_exec
 
 pub fn classroom_courses_posts_add_on_attachments_student_submissions_patch(
     client: &SimpleHttpClient,
-    courseId: &str,
-    postId: &str,
-    attachmentId: &str,
-    submissionId: &str,
-    itemId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AddOnAttachmentStudentSubmission,
+    args: &ClassroomCoursesPostsAddOnAttachmentsStudentSubmissionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AddOnAttachmentStudentSubmission>, ApiError>,
@@ -9220,13 +9994,13 @@ pub fn classroom_courses_posts_add_on_attachments_student_submissions_patch(
 > {
     let builder = classroom_courses_posts_add_on_attachments_student_submissions_patch_builder(
         client,
-        courseId,
-        postId,
-        attachmentId,
-        submissionId,
-        itemId,
-        updateMask,
-        body,
+        &args.courseId,
+        &args.postId,
+        &args.attachmentId,
+        &args.submissionId,
+        args.itemId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     classroom_courses_posts_add_on_attachments_student_submissions_patch_execute(builder)
 }
@@ -9326,6 +10100,15 @@ pub fn classroom_courses_student_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_student_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesStudentGroupsCreateArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Request body.
+    pub body: StudentGroup,
+}
+
 /// GET v1/courses/{courseId}/studentGroups
 /// Creates a student group for a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to create the student group or for access errors. * NOT_FOUND if the course does not exist or the requesting user doesn't have access to the course. * FAILED_PRECONDITION if creating the student group would exceed the maximum number of student groups per course.
 ///
@@ -9338,15 +10121,15 @@ pub fn classroom_courses_student_groups_create_execute(
 
 pub fn classroom_courses_student_groups_create(
     client: &SimpleHttpClient,
-    courseId: &str,
-    body: &StudentGroup,
+    args: &ClassroomCoursesStudentGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StudentGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_student_groups_create_builder(client, courseId, body)?;
+    let builder =
+        classroom_courses_student_groups_create_builder(client, &args.courseId, &args.body)?;
     classroom_courses_student_groups_create_execute(builder)
 }
 
@@ -9441,6 +10224,15 @@ pub fn classroom_courses_student_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_student_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesStudentGroupsDeleteArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/courses/{courseId}/studentGroups/{id}
 /// Deletes a student group. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to delete the requested student group or for access errors. * NOT_FOUND if the student group does not exist or the user does not have access to the student group.
 ///
@@ -9453,13 +10245,13 @@ pub fn classroom_courses_student_groups_delete_execute(
 
 pub fn classroom_courses_student_groups_delete(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
+    args: &ClassroomCoursesStudentGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_student_groups_delete_builder(client, courseId, id)?;
+    let builder =
+        classroom_courses_student_groups_delete_builder(client, &args.courseId, &args.id)?;
     classroom_courses_student_groups_delete_execute(builder)
 }
 
@@ -9571,6 +10363,17 @@ pub fn classroom_courses_student_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_student_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesStudentGroupsListArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/studentGroups
 /// Returns a list of groups in a course. This method returns the following error codes: * NOT_FOUND if the course does not exist.
 ///
@@ -9583,17 +10386,19 @@ pub fn classroom_courses_student_groups_list_execute(
 
 pub fn classroom_courses_student_groups_list(
     client: &SimpleHttpClient,
-    courseId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClassroomCoursesStudentGroupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListStudentGroupsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_student_groups_list_builder(client, courseId, pageSize, pageToken)?;
+    let builder = classroom_courses_student_groups_list_builder(
+        client,
+        &args.courseId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     classroom_courses_student_groups_list_execute(builder)
 }
 
@@ -9705,6 +10510,19 @@ pub fn classroom_courses_student_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_student_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesStudentGroupsPatchArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: StudentGroup,
+}
+
 /// GET v1/courses/{courseId}/studentGroups/{id}
 /// Updates one or more fields in a student group. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the requested student group or for access errors. * NOT_FOUND if the student group does not exist or the user does not have access to the student group. * INVALID_ARGUMENT if invalid fields are specified in the update mask or if no update mask is supplied.
 ///
@@ -9717,18 +10535,20 @@ pub fn classroom_courses_student_groups_patch_execute(
 
 pub fn classroom_courses_student_groups_patch(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
-    updateMask: Option<&str>,
-    body: &StudentGroup,
+    args: &ClassroomCoursesStudentGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StudentGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_student_groups_patch_builder(client, courseId, id, updateMask, body)?;
+    let builder = classroom_courses_student_groups_patch_builder(
+        client,
+        &args.courseId,
+        &args.id,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     classroom_courses_student_groups_patch_execute(builder)
 }
 
@@ -9828,6 +10648,17 @@ pub fn classroom_courses_student_groups_student_group_members_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_student_groups_student_group_members_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesStudentGroupsStudentGroupMembersCreateArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: studentGroupId
+    pub studentGroupId: String,
+    /// Request body.
+    pub body: StudentGroupMember,
+}
+
 /// GET v1/courses/{courseId}/studentGroups/{studentGroupId}/studentGroupMembers
 /// Creates a student group member for a student group. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to create the student group or member for access errors. * NOT_FOUND if the student group does not exist or the user does not have access to the student group. * ALREADY_EXISTS if the student group member already exists. * FAILED_PRECONDITION if attempting to add a member to a student group that has reached its member limit.
 ///
@@ -9840,9 +10671,7 @@ pub fn classroom_courses_student_groups_student_group_members_create_execute(
 
 pub fn classroom_courses_student_groups_student_group_members_create(
     client: &SimpleHttpClient,
-    courseId: &str,
-    studentGroupId: &str,
-    body: &StudentGroupMember,
+    args: &ClassroomCoursesStudentGroupsStudentGroupMembersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StudentGroupMember>, ApiError>, P = ApiPending>
         + Send
@@ -9851,9 +10680,9 @@ pub fn classroom_courses_student_groups_student_group_members_create(
 > {
     let builder = classroom_courses_student_groups_student_group_members_create_builder(
         client,
-        courseId,
-        studentGroupId,
-        body,
+        &args.courseId,
+        &args.studentGroupId,
+        &args.body,
     )?;
     classroom_courses_student_groups_student_group_members_create_execute(builder)
 }
@@ -9950,6 +10779,17 @@ pub fn classroom_courses_student_groups_student_group_members_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_student_groups_student_group_members_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesStudentGroupsStudentGroupMembersDeleteArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: studentGroupId
+    pub studentGroupId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET v1/courses/{courseId}/studentGroups/{studentGroupId}/studentGroupMembers/{userId}
 /// Deletes a student group member. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to delete the requested student group member or for access errors. * NOT_FOUND if the student group member does not exist or the user does not have access to the student group.
 ///
@@ -9962,18 +10802,16 @@ pub fn classroom_courses_student_groups_student_group_members_delete_execute(
 
 pub fn classroom_courses_student_groups_student_group_members_delete(
     client: &SimpleHttpClient,
-    courseId: &str,
-    studentGroupId: &str,
-    userId: &str,
+    args: &ClassroomCoursesStudentGroupsStudentGroupMembersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = classroom_courses_student_groups_student_group_members_delete_builder(
         client,
-        courseId,
-        studentGroupId,
-        userId,
+        &args.courseId,
+        &args.studentGroupId,
+        &args.userId,
     )?;
     classroom_courses_student_groups_student_group_members_delete_execute(builder)
 }
@@ -10089,6 +10927,19 @@ pub fn classroom_courses_student_groups_student_group_members_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_student_groups_student_group_members_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesStudentGroupsStudentGroupMembersListArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: studentGroupId
+    pub studentGroupId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/studentGroups/{studentGroupId}/studentGroupMembers
 /// Returns a list of students in a group. This method returns the following error codes: * NOT_FOUND if the course or student group does not exist.
 ///
@@ -10101,10 +10952,7 @@ pub fn classroom_courses_student_groups_student_group_members_list_execute(
 
 pub fn classroom_courses_student_groups_student_group_members_list(
     client: &SimpleHttpClient,
-    courseId: &str,
-    studentGroupId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClassroomCoursesStudentGroupsStudentGroupMembersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListStudentGroupMembersResponse>, ApiError>,
@@ -10115,10 +10963,10 @@ pub fn classroom_courses_student_groups_student_group_members_list(
 > {
     let builder = classroom_courses_student_groups_student_group_members_list_builder(
         client,
-        courseId,
-        studentGroupId,
-        pageSize,
-        pageToken,
+        &args.courseId,
+        &args.studentGroupId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     classroom_courses_student_groups_student_group_members_list_execute(builder)
 }
@@ -10228,6 +11076,17 @@ pub fn classroom_courses_students_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_students_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesStudentsCreateArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Query parameter: enrollmentCode
+    pub enrollmentCode: Option<String>,
+    /// Request body.
+    pub body: Student,
+}
+
 /// GET v1/courses/{courseId}/students
 /// Adds a user as a student of a course. Domain administrators are permitted to [directly add](<https://developers.google.`com/workspace/classroom/guides/manage-users`>) users within their domain as students to courses within their domain. Students are permitted to add themselves to a course using an enrollment code. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to create students in this course or for access errors. * NOT_FOUND if the requested course ID does not exist. * FAILED_PRECONDITION if the requested user's account is disabled, for the following request errors: * CourseMemberLimitReached * CourseNotModifiable * UserGroupsMembershipLimitReached * InactiveCourseOwner * ALREADY_EXISTS if the user is already a student or teacher in the course.
 ///
@@ -10240,15 +11099,17 @@ pub fn classroom_courses_students_create_execute(
 
 pub fn classroom_courses_students_create(
     client: &SimpleHttpClient,
-    courseId: &str,
-    enrollmentCode: Option<&str>,
-    body: &Student,
+    args: &ClassroomCoursesStudentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Student>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_students_create_builder(client, courseId, enrollmentCode, body)?;
+    let builder = classroom_courses_students_create_builder(
+        client,
+        &args.courseId,
+        args.enrollmentCode.as_deref(),
+        &args.body,
+    )?;
     classroom_courses_students_create_execute(builder)
 }
 
@@ -10343,6 +11204,15 @@ pub fn classroom_courses_students_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_students_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesStudentsDeleteArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET v1/courses/{courseId}/students/{userId}
 /// Deletes a student of a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to delete students of this course or for access errors. * NOT_FOUND if no student of this course has the requested ID or if the course does not exist.
 ///
@@ -10355,13 +11225,12 @@ pub fn classroom_courses_students_delete_execute(
 
 pub fn classroom_courses_students_delete(
     client: &SimpleHttpClient,
-    courseId: &str,
-    userId: &str,
+    args: &ClassroomCoursesStudentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_students_delete_builder(client, courseId, userId)?;
+    let builder = classroom_courses_students_delete_builder(client, &args.courseId, &args.userId)?;
     classroom_courses_students_delete_execute(builder)
 }
 
@@ -10456,6 +11325,15 @@ pub fn classroom_courses_students_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_students_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesStudentsGetArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET v1/courses/{courseId}/students/{userId}
 /// Returns a student of a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to view students of this course or for access errors. * NOT_FOUND if no student of this course has the requested ID or if the course does not exist.
 ///
@@ -10468,13 +11346,12 @@ pub fn classroom_courses_students_get_execute(
 
 pub fn classroom_courses_students_get(
     client: &SimpleHttpClient,
-    courseId: &str,
-    userId: &str,
+    args: &ClassroomCoursesStudentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Student>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_students_get_builder(client, courseId, userId)?;
+    let builder = classroom_courses_students_get_builder(client, &args.courseId, &args.userId)?;
     classroom_courses_students_get_execute(builder)
 }
 
@@ -10586,6 +11463,17 @@ pub fn classroom_courses_students_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_students_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesStudentsListArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/students
 /// Returns a list of students of this course that the requester is permitted to view. This method returns the following error codes: * NOT_FOUND if the course does not exist. * PERMISSION_DENIED for access errors.
 ///
@@ -10598,16 +11486,19 @@ pub fn classroom_courses_students_list_execute(
 
 pub fn classroom_courses_students_list(
     client: &SimpleHttpClient,
-    courseId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClassroomCoursesStudentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListStudentsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_students_list_builder(client, courseId, pageSize, pageToken)?;
+    let builder = classroom_courses_students_list_builder(
+        client,
+        &args.courseId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     classroom_courses_students_list_execute(builder)
 }
 
@@ -10704,6 +11595,15 @@ pub fn classroom_courses_teachers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_teachers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesTeachersCreateArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Request body.
+    pub body: Teacher,
+}
+
 /// GET v1/courses/{courseId}/teachers
 /// Creates a teacher of a course. Domain administrators are permitted to [directly add](<https://developers.google.`com/workspace/classroom/guides/manage-users`>) users within their domain as teachers to courses within their domain. Non-admin users should send an Invitation instead. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to create teachers in this course or for access errors. * NOT_FOUND if the requested course ID does not exist. * FAILED_PRECONDITION if the requested user's account is disabled, for the following request errors: * CourseMemberLimitReached * CourseNotModifiable * CourseTeacherLimitReached * UserGroupsMembershipLimitReached * InactiveCourseOwner * ALREADY_EXISTS if the user is already a teacher or student in the course.
 ///
@@ -10716,13 +11616,12 @@ pub fn classroom_courses_teachers_create_execute(
 
 pub fn classroom_courses_teachers_create(
     client: &SimpleHttpClient,
-    courseId: &str,
-    body: &Teacher,
+    args: &ClassroomCoursesTeachersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Teacher>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_teachers_create_builder(client, courseId, body)?;
+    let builder = classroom_courses_teachers_create_builder(client, &args.courseId, &args.body)?;
     classroom_courses_teachers_create_execute(builder)
 }
 
@@ -10817,6 +11716,15 @@ pub fn classroom_courses_teachers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_teachers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesTeachersDeleteArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET v1/courses/{courseId}/teachers/{userId}
 /// Removes the specified teacher from the specified course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to delete teachers of this course or for access errors. * NOT_FOUND if no teacher of this course has the requested ID or if the course does not exist. * FAILED_PRECONDITION if the requested ID belongs to the primary teacher of this course. * FAILED_PRECONDITION if the requested ID belongs to the owner of the course Drive folder. * FAILED_PRECONDITION if the course no longer has an active owner.
 ///
@@ -10829,13 +11737,12 @@ pub fn classroom_courses_teachers_delete_execute(
 
 pub fn classroom_courses_teachers_delete(
     client: &SimpleHttpClient,
-    courseId: &str,
-    userId: &str,
+    args: &ClassroomCoursesTeachersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_teachers_delete_builder(client, courseId, userId)?;
+    let builder = classroom_courses_teachers_delete_builder(client, &args.courseId, &args.userId)?;
     classroom_courses_teachers_delete_execute(builder)
 }
 
@@ -10930,6 +11837,15 @@ pub fn classroom_courses_teachers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_teachers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesTeachersGetArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET v1/courses/{courseId}/teachers/{userId}
 /// Returns a teacher of a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to view teachers of this course or for access errors. * NOT_FOUND if no teacher of this course has the requested ID or if the course does not exist.
 ///
@@ -10942,13 +11858,12 @@ pub fn classroom_courses_teachers_get_execute(
 
 pub fn classroom_courses_teachers_get(
     client: &SimpleHttpClient,
-    courseId: &str,
-    userId: &str,
+    args: &ClassroomCoursesTeachersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Teacher>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_teachers_get_builder(client, courseId, userId)?;
+    let builder = classroom_courses_teachers_get_builder(client, &args.courseId, &args.userId)?;
     classroom_courses_teachers_get_execute(builder)
 }
 
@@ -11060,6 +11975,17 @@ pub fn classroom_courses_teachers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_teachers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesTeachersListArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/teachers
 /// Returns a list of teachers of this course that the requester is permitted to view. This method returns the following error codes: * NOT_FOUND if the course does not exist. * PERMISSION_DENIED for access errors.
 ///
@@ -11072,16 +11998,19 @@ pub fn classroom_courses_teachers_list_execute(
 
 pub fn classroom_courses_teachers_list(
     client: &SimpleHttpClient,
-    courseId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClassroomCoursesTeachersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTeachersResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_teachers_list_builder(client, courseId, pageSize, pageToken)?;
+    let builder = classroom_courses_teachers_list_builder(
+        client,
+        &args.courseId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     classroom_courses_teachers_list_execute(builder)
 }
 
@@ -11178,6 +12107,15 @@ pub fn classroom_courses_topics_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_topics_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesTopicsCreateArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Request body.
+    pub body: Topic,
+}
+
 /// GET v1/courses/{courseId}/topics
 /// Creates a topic. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course, create a topic in the requested course, or for access errors. * INVALID_ARGUMENT if the request is malformed. * ALREADY_EXISTS if there exists a topic in the course with the same name. * FAILED_PRECONDITION for the following request error: * CourseTopicLimitReached * NOT_FOUND if the requested course does not exist.
 ///
@@ -11190,13 +12128,12 @@ pub fn classroom_courses_topics_create_execute(
 
 pub fn classroom_courses_topics_create(
     client: &SimpleHttpClient,
-    courseId: &str,
-    body: &Topic,
+    args: &ClassroomCoursesTopicsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_topics_create_builder(client, courseId, body)?;
+    let builder = classroom_courses_topics_create_builder(client, &args.courseId, &args.body)?;
     classroom_courses_topics_create_execute(builder)
 }
 
@@ -11291,6 +12228,15 @@ pub fn classroom_courses_topics_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_topics_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesTopicsDeleteArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/courses/{courseId}/topics/{id}
 /// Deletes a topic. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not allowed to delete the requested topic or for access errors. * FAILED_PRECONDITION if the requested topic has already been deleted. * NOT_FOUND if no course or topic exists with the requested ID.
 ///
@@ -11303,13 +12249,12 @@ pub fn classroom_courses_topics_delete_execute(
 
 pub fn classroom_courses_topics_delete(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
+    args: &ClassroomCoursesTopicsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_topics_delete_builder(client, courseId, id)?;
+    let builder = classroom_courses_topics_delete_builder(client, &args.courseId, &args.id)?;
     classroom_courses_topics_delete_execute(builder)
 }
 
@@ -11404,6 +12349,15 @@ pub fn classroom_courses_topics_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_topics_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesTopicsGetArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/courses/{courseId}/topics/{id}
 /// Returns a topic. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or topic, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or topic does not exist.
 ///
@@ -11416,13 +12370,12 @@ pub fn classroom_courses_topics_get_execute(
 
 pub fn classroom_courses_topics_get(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
+    args: &ClassroomCoursesTopicsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_topics_get_builder(client, courseId, id)?;
+    let builder = classroom_courses_topics_get_builder(client, &args.courseId, &args.id)?;
     classroom_courses_topics_get_execute(builder)
 }
 
@@ -11534,6 +12487,17 @@ pub fn classroom_courses_topics_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_topics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesTopicsListArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/courses/{courseId}/topics
 /// Returns the list of topics that the requester is permitted to view. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
 ///
@@ -11546,16 +12510,19 @@ pub fn classroom_courses_topics_list_execute(
 
 pub fn classroom_courses_topics_list(
     client: &SimpleHttpClient,
-    courseId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClassroomCoursesTopicsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTopicResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_topics_list_builder(client, courseId, pageSize, pageToken)?;
+    let builder = classroom_courses_topics_list_builder(
+        client,
+        &args.courseId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     classroom_courses_topics_list_execute(builder)
 }
 
@@ -11665,6 +12632,19 @@ pub fn classroom_courses_topics_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_courses_topics_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomCoursesTopicsPatchArgs {
+    /// Path parameter: courseId
+    pub courseId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Topic,
+}
+
 /// GET v1/courses/{courseId}/topics/{id}
 /// Updates one or more fields of a topic. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding topic or for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if there exists a topic in the course with the same name. * NOT_FOUND if the requested course or topic does not exist
 ///
@@ -11677,15 +12657,18 @@ pub fn classroom_courses_topics_patch_execute(
 
 pub fn classroom_courses_topics_patch(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
-    updateMask: Option<&str>,
-    body: &Topic,
+    args: &ClassroomCoursesTopicsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_topics_patch_builder(client, courseId, id, updateMask, body)?;
+    let builder = classroom_courses_topics_patch_builder(
+        client,
+        &args.courseId,
+        &args.id,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     classroom_courses_topics_patch_execute(builder)
 }
 
@@ -11779,6 +12762,13 @@ pub fn classroom_invitations_accept_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_invitations_accept`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomInvitationsAcceptArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/invitations/{id}:accept
 /// Accepts an invitation, removing it and adding the invited user to the teachers or students (as appropriate) of the specified course. Only the invited user may accept an invitation. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to accept the requested invitation or for access errors. * FAILED_PRECONDITION for the following request errors: * CourseMemberLimitReached * CourseNotModifiable * CourseTeacherLimitReached * UserGroupsMembershipLimitReached * NOT_FOUND if no invitation exists with the requested ID.
 ///
@@ -11791,12 +12781,12 @@ pub fn classroom_invitations_accept_execute(
 
 pub fn classroom_invitations_accept(
     client: &SimpleHttpClient,
-    id: &str,
+    args: &ClassroomInvitationsAcceptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_invitations_accept_builder(client, id)?;
+    let builder = classroom_invitations_accept_builder(client, &args.id)?;
     classroom_invitations_accept_execute(builder)
 }
 
@@ -11889,6 +12879,13 @@ pub fn classroom_invitations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_invitations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomInvitationsCreateArgs {
+    /// Request body.
+    pub body: Invitation,
+}
+
 /// GET v1/invitations
 /// Creates an invitation. Only one invitation for a user and course may exist at a time. Delete and re-create an invitation to make changes. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to create invitations for this course or for access errors. * NOT_FOUND if the course or the user does not exist. * FAILED_PRECONDITION: * if the requested user's account is disabled. * if the user already has this role or a role with greater permissions. * for the following request errors: * IneligibleOwner * ALREADY_EXISTS if an invitation for the specified user and course already exists.
 ///
@@ -11901,12 +12898,12 @@ pub fn classroom_invitations_create_execute(
 
 pub fn classroom_invitations_create(
     client: &SimpleHttpClient,
-    body: &Invitation,
+    args: &ClassroomInvitationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Invitation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_invitations_create_builder(client, body)?;
+    let builder = classroom_invitations_create_builder(client, &args.body)?;
     classroom_invitations_create_execute(builder)
 }
 
@@ -11997,6 +12994,13 @@ pub fn classroom_invitations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_invitations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomInvitationsDeleteArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/invitations/{id}
 /// Deletes an invitation. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to delete the requested invitation or for access errors. * NOT_FOUND if no invitation exists with the requested ID.
 ///
@@ -12009,12 +13013,12 @@ pub fn classroom_invitations_delete_execute(
 
 pub fn classroom_invitations_delete(
     client: &SimpleHttpClient,
-    id: &str,
+    args: &ClassroomInvitationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_invitations_delete_builder(client, id)?;
+    let builder = classroom_invitations_delete_builder(client, &args.id)?;
     classroom_invitations_delete_execute(builder)
 }
 
@@ -12105,6 +13109,13 @@ pub fn classroom_invitations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_invitations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomInvitationsGetArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET v1/invitations/{id}
 /// Returns an invitation. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to view the requested invitation or for access errors. * NOT_FOUND if no invitation exists with the requested ID.
 ///
@@ -12117,12 +13128,12 @@ pub fn classroom_invitations_get_execute(
 
 pub fn classroom_invitations_get(
     client: &SimpleHttpClient,
-    id: &str,
+    args: &ClassroomInvitationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Invitation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_invitations_get_builder(client, id)?;
+    let builder = classroom_invitations_get_builder(client, &args.id)?;
     classroom_invitations_get_execute(builder)
 }
 
@@ -12238,6 +13249,19 @@ pub fn classroom_invitations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_invitations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomInvitationsListArgs {
+    /// Query parameter: courseId
+    pub courseId: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: userId
+    pub userId: Option<String>,
+}
+
 /// GET v1/invitations
 /// Returns a list of invitations that the requesting user is permitted to view, restricted to those that match the list request. *Note:* At least one of user_id or course_id must be supplied. Both fields can be supplied. This method returns the following error codes: * PERMISSION_DENIED for access errors.
 ///
@@ -12250,18 +13274,20 @@ pub fn classroom_invitations_list_execute(
 
 pub fn classroom_invitations_list(
     client: &SimpleHttpClient,
-    courseId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    userId: Option<&str>,
+    args: &ClassroomInvitationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListInvitationsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_invitations_list_builder(client, courseId, pageSize, pageToken, userId)?;
+    let builder = classroom_invitations_list_builder(
+        client,
+        args.courseId.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.userId.as_deref(),
+    )?;
     classroom_invitations_list_execute(builder)
 }
 
@@ -12356,6 +13382,13 @@ pub fn classroom_registrations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_registrations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomRegistrationsCreateArgs {
+    /// Request body.
+    pub body: Registration,
+}
+
 /// GET v1/registrations
 /// Creates a Registration, causing Classroom to start sending notifications from the provided feed to the destination provided in `cloudPubSubTopic`. Returns the created Registration. Currently, this will be the same as the argument, but with server-assigned fields such as expiry_time and id filled in. Note that any value specified for the expiry_time or id fields will be ignored. While Classroom may validate the `cloudPubSubTopic` and return errors on a best effort basis, it is the caller's responsibility to ensure that it exists and that Classroom has permission to publish to it. This method may return the following error codes: * PERMISSION_DENIED if: * the authenticated user does not have permission to receive notifications from the requested field; or * the current user has not granted access to the current Cloud project with the appropriate scope for the requested feed. Note that domain-wide delegation of authority is not currently supported for this purpose. If the request has the appropriate scope, but no grant exists, a Request Errors is returned. * another access error is encountered. * INVALID_ARGUMENT if: * no `cloudPubsubTopic` is specified, or the specified `cloudPubsubTopic` is not valid; or * no feed is specified, or the specified feed is not valid. * NOT_FOUND if: * the specified feed cannot be located, or the requesting user does not have permission to determine whether or not it exists; or * the specified `cloudPubsubTopic` cannot be located, or Classroom has not been granted permission to publish to it.
 ///
@@ -12368,14 +13401,14 @@ pub fn classroom_registrations_create_execute(
 
 pub fn classroom_registrations_create(
     client: &SimpleHttpClient,
-    body: &Registration,
+    args: &ClassroomRegistrationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Registration>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = classroom_registrations_create_builder(client, body)?;
+    let builder = classroom_registrations_create_builder(client, &args.body)?;
     classroom_registrations_create_execute(builder)
 }
 
@@ -12469,6 +13502,13 @@ pub fn classroom_registrations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_registrations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomRegistrationsDeleteArgs {
+    /// Path parameter: registrationId
+    pub registrationId: String,
+}
+
 /// GET v1/registrations/{registrationId}
 /// Deletes a Registration, causing Classroom to stop sending notifications for that Registration.
 ///
@@ -12481,12 +13521,12 @@ pub fn classroom_registrations_delete_execute(
 
 pub fn classroom_registrations_delete(
     client: &SimpleHttpClient,
-    registrationId: &str,
+    args: &ClassroomRegistrationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_registrations_delete_builder(client, registrationId)?;
+    let builder = classroom_registrations_delete_builder(client, &args.registrationId)?;
     classroom_registrations_delete_execute(builder)
 }
 
@@ -12580,6 +13620,13 @@ pub fn classroom_user_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_user_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomUserProfilesGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET v1/userProfiles/{userId}
 /// Returns a user profile. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access this user profile, if no profile exists with the requested ID, or for access errors.
 ///
@@ -12592,12 +13639,12 @@ pub fn classroom_user_profiles_get_execute(
 
 pub fn classroom_user_profiles_get(
     client: &SimpleHttpClient,
-    userId: &str,
+    args: &ClassroomUserProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserProfile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_user_profiles_get_builder(client, userId)?;
+    let builder = classroom_user_profiles_get_builder(client, &args.userId)?;
     classroom_user_profiles_get_execute(builder)
 }
 
@@ -12696,6 +13743,15 @@ pub fn classroom_user_profiles_guardian_invitations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_user_profiles_guardian_invitations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomUserProfilesGuardianInvitationsCreateArgs {
+    /// Path parameter: studentId
+    pub studentId: String,
+    /// Request body.
+    pub body: GuardianInvitation,
+}
+
 /// GET v1/userProfiles/{studentId}/guardianInvitations
 /// Creates a guardian invitation, and sends an email to the guardian asking them to confirm that they are the student's guardian. Once the guardian accepts the invitation, their state will change to COMPLETED and they will start receiving guardian notifications. A Guardian resource will also be created to represent the active guardian. The request object must have the student_id and invited_email_address fields set. Failing to set these fields, or setting any other fields in the request, will result in an error. This method returns the following error codes: * PERMISSION_DENIED if the current user does not have permission to manage guardians, if the guardian in question has already rejected too many requests for that student, if guardians are not enabled for the domain in question, or for other access errors. * RESOURCE_EXHAUSTED if the student or guardian has exceeded the guardian link limit. * INVALID_ARGUMENT if the guardian email address is not valid (for example, if it is too long), or if the format of the student ID provided cannot be recognized (it is not an email address, nor a user_id from this API). This error will also be returned if read-only fields are set, or if the state field is set to to a value other than `PENDING`. * NOT_FOUND if the student ID provided is a valid student ID, but Classroom has no record of that student. * ALREADY_EXISTS if there is already a pending guardian invitation for the student and invited_email_address provided, or if the provided invited_email_address matches the Google account of an existing Guardian for this user.
 ///
@@ -12708,16 +13764,18 @@ pub fn classroom_user_profiles_guardian_invitations_create_execute(
 
 pub fn classroom_user_profiles_guardian_invitations_create(
     client: &SimpleHttpClient,
-    studentId: &str,
-    body: &GuardianInvitation,
+    args: &ClassroomUserProfilesGuardianInvitationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GuardianInvitation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_user_profiles_guardian_invitations_create_builder(client, studentId, body)?;
+    let builder = classroom_user_profiles_guardian_invitations_create_builder(
+        client,
+        &args.studentId,
+        &args.body,
+    )?;
     classroom_user_profiles_guardian_invitations_create_execute(builder)
 }
 
@@ -12814,6 +13872,15 @@ pub fn classroom_user_profiles_guardian_invitations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_user_profiles_guardian_invitations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomUserProfilesGuardianInvitationsGetArgs {
+    /// Path parameter: studentId
+    pub studentId: String,
+    /// Path parameter: invitationId
+    pub invitationId: String,
+}
+
 /// GET v1/userProfiles/{studentId}/guardianInvitations/{invitationId}
 /// Returns a specific guardian invitation. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to view guardian invitations for the student identified by the student_id, if guardians are not enabled for the domain in question, or for other access errors. * INVALID_ARGUMENT if a student_id is specified, but its format cannot be recognized (it is not an email address, nor a student_id from the API, nor the literal string me). * NOT_FOUND if Classroom cannot find any record of the given student or invitation_id. May also be returned if the student exists, but the requesting user does not have access to see that student.
 ///
@@ -12826,16 +13893,18 @@ pub fn classroom_user_profiles_guardian_invitations_get_execute(
 
 pub fn classroom_user_profiles_guardian_invitations_get(
     client: &SimpleHttpClient,
-    studentId: &str,
-    invitationId: &str,
+    args: &ClassroomUserProfilesGuardianInvitationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GuardianInvitation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_user_profiles_guardian_invitations_get_builder(client, studentId, invitationId)?;
+    let builder = classroom_user_profiles_guardian_invitations_get_builder(
+        client,
+        &args.studentId,
+        &args.invitationId,
+    )?;
     classroom_user_profiles_guardian_invitations_get_execute(builder)
 }
 
@@ -12957,6 +14026,21 @@ pub fn classroom_user_profiles_guardian_invitations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_user_profiles_guardian_invitations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomUserProfilesGuardianInvitationsListArgs {
+    /// Path parameter: studentId
+    pub studentId: String,
+    /// Query parameter: invitedEmailAddress
+    pub invitedEmailAddress: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: states
+    pub states: Option<String>,
+}
+
 /// GET v1/userProfiles/{studentId}/guardianInvitations
 /// Returns a list of guardian invitations that the requesting user is permitted to view, filtered by the parameters provided. This method returns the following error codes: * PERMISSION_DENIED if a student_id is specified, and the requesting user is not permitted to view guardian invitations for that student, if "-" is specified as the student_id and the user is not a domain administrator, if guardians are not enabled for the domain in question, or for other access errors. * INVALID_ARGUMENT if a student_id is specified, but its format cannot be recognized (it is not an email address, nor a student_id from the API, nor the literal string me). May also be returned if an invalid page_token or state is provided. * NOT_FOUND if a student_id is specified, and its format can be recognized, but Classroom has no record of that student.
 ///
@@ -12969,11 +14053,7 @@ pub fn classroom_user_profiles_guardian_invitations_list_execute(
 
 pub fn classroom_user_profiles_guardian_invitations_list(
     client: &SimpleHttpClient,
-    studentId: &str,
-    invitedEmailAddress: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    states: Option<&str>,
+    args: &ClassroomUserProfilesGuardianInvitationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListGuardianInvitationsResponse>, ApiError>,
@@ -12984,11 +14064,11 @@ pub fn classroom_user_profiles_guardian_invitations_list(
 > {
     let builder = classroom_user_profiles_guardian_invitations_list_builder(
         client,
-        studentId,
-        invitedEmailAddress,
-        pageSize,
-        pageToken,
-        states,
+        &args.studentId,
+        args.invitedEmailAddress.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.states.as_deref(),
     )?;
     classroom_user_profiles_guardian_invitations_list_execute(builder)
 }
@@ -13101,6 +14181,19 @@ pub fn classroom_user_profiles_guardian_invitations_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_user_profiles_guardian_invitations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomUserProfilesGuardianInvitationsPatchArgs {
+    /// Path parameter: studentId
+    pub studentId: String,
+    /// Path parameter: invitationId
+    pub invitationId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GuardianInvitation,
+}
+
 /// GET v1/userProfiles/{studentId}/guardianInvitations/{invitationId}
 /// Modifies a guardian invitation. Currently, the only valid modification is to change the state from `PENDING` to COMPLETE. This has the effect of withdrawing the invitation. This method returns the following error codes: * PERMISSION_DENIED if the current user does not have permission to manage guardians, if guardians are not enabled for the domain in question or for other access errors. * FAILED_PRECONDITION if the guardian link is not in the `PENDING` state. * INVALID_ARGUMENT if the format of the student ID provided cannot be recognized (it is not an email address, nor a user_id from this API), or if the passed GuardianInvitation has a state other than COMPLETE, or if it modifies fields other than state. * NOT_FOUND if the student ID provided is a valid student ID, but Classroom has no record of that student, or if the id field does not refer to a guardian invitation known to Classroom.
 ///
@@ -13113,10 +14206,7 @@ pub fn classroom_user_profiles_guardian_invitations_patch_execute(
 
 pub fn classroom_user_profiles_guardian_invitations_patch(
     client: &SimpleHttpClient,
-    studentId: &str,
-    invitationId: &str,
-    updateMask: Option<&str>,
-    body: &GuardianInvitation,
+    args: &ClassroomUserProfilesGuardianInvitationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GuardianInvitation>, ApiError>, P = ApiPending>
         + Send
@@ -13125,10 +14215,10 @@ pub fn classroom_user_profiles_guardian_invitations_patch(
 > {
     let builder = classroom_user_profiles_guardian_invitations_patch_builder(
         client,
-        studentId,
-        invitationId,
-        updateMask,
-        body,
+        &args.studentId,
+        &args.invitationId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     classroom_user_profiles_guardian_invitations_patch_execute(builder)
 }
@@ -13224,6 +14314,15 @@ pub fn classroom_user_profiles_guardians_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_user_profiles_guardians_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomUserProfilesGuardiansDeleteArgs {
+    /// Path parameter: studentId
+    pub studentId: String,
+    /// Path parameter: guardianId
+    pub guardianId: String,
+}
+
 /// GET v1/userProfiles/{studentId}/guardians/{guardianId}
 /// Deletes a guardian. The guardian will no longer receive guardian notifications and the guardian will no longer be accessible via the API. This method returns the following error codes: * PERMISSION_DENIED if no user that matches the provided student_id is visible to the requesting user, if the requesting user is not permitted to manage guardians for the student identified by the student_id, if guardians are not enabled for the domain in question, or for other access errors. * INVALID_ARGUMENT if a student_id is specified, but its format cannot be recognized (it is not an email address, nor a student_id from the API). * NOT_FOUND if the requesting user is permitted to modify guardians for the requested student_id, but no Guardian record exists for that student with the provided guardian_id.
 ///
@@ -13236,13 +14335,16 @@ pub fn classroom_user_profiles_guardians_delete_execute(
 
 pub fn classroom_user_profiles_guardians_delete(
     client: &SimpleHttpClient,
-    studentId: &str,
-    guardianId: &str,
+    args: &ClassroomUserProfilesGuardiansDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_user_profiles_guardians_delete_builder(client, studentId, guardianId)?;
+    let builder = classroom_user_profiles_guardians_delete_builder(
+        client,
+        &args.studentId,
+        &args.guardianId,
+    )?;
     classroom_user_profiles_guardians_delete_execute(builder)
 }
 
@@ -13337,6 +14439,15 @@ pub fn classroom_user_profiles_guardians_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_user_profiles_guardians_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomUserProfilesGuardiansGetArgs {
+    /// Path parameter: studentId
+    pub studentId: String,
+    /// Path parameter: guardianId
+    pub guardianId: String,
+}
+
 /// GET v1/userProfiles/{studentId}/guardians/{guardianId}
 /// Returns a specific guardian. This method returns the following error codes: * PERMISSION_DENIED if no user that matches the provided student_id is visible to the requesting user, if the requesting user is not permitted to view guardian information for the student identified by the student_id, if guardians are not enabled for the domain in question, or for other access errors. * INVALID_ARGUMENT if a student_id is specified, but its format cannot be recognized (it is not an email address, nor a student_id from the API, nor the literal string me). * NOT_FOUND if the requesting user is permitted to view guardians for the requested student_id, but no Guardian record exists for that student that matches the provided guardian_id.
 ///
@@ -13349,13 +14460,13 @@ pub fn classroom_user_profiles_guardians_get_execute(
 
 pub fn classroom_user_profiles_guardians_get(
     client: &SimpleHttpClient,
-    studentId: &str,
-    guardianId: &str,
+    args: &ClassroomUserProfilesGuardiansGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Guardian>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_user_profiles_guardians_get_builder(client, studentId, guardianId)?;
+    let builder =
+        classroom_user_profiles_guardians_get_builder(client, &args.studentId, &args.guardianId)?;
     classroom_user_profiles_guardians_get_execute(builder)
 }
 
@@ -13471,6 +14582,19 @@ pub fn classroom_user_profiles_guardians_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`classroom_user_profiles_guardians_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClassroomUserProfilesGuardiansListArgs {
+    /// Path parameter: studentId
+    pub studentId: String,
+    /// Query parameter: invitedEmailAddress
+    pub invitedEmailAddress: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/userProfiles/{studentId}/guardians
 /// Returns a list of guardians that the requesting user is permitted to view, restricted to those that match the request. To list guardians for any student that the requesting user may view guardians for, use the literal character - for the student ID. This method returns the following error codes: * PERMISSION_DENIED if a student_id is specified, and the requesting user is not permitted to view guardian information for that student, if "-" is specified as the student_id and the user is not a domain administrator, if guardians are not enabled for the domain in question, if the invited_email_address filter is set by a user who is not a domain administrator, or for other access errors. * INVALID_ARGUMENT if a student_id is specified, but its format cannot be recognized (it is not an email address, nor a student_id from the API, nor the literal string me). May also be returned if an invalid page_token is provided. * NOT_FOUND if a student_id is specified, and its format can be recognized, but Classroom has no record of that student.
 ///
@@ -13483,10 +14607,7 @@ pub fn classroom_user_profiles_guardians_list_execute(
 
 pub fn classroom_user_profiles_guardians_list(
     client: &SimpleHttpClient,
-    studentId: &str,
-    invitedEmailAddress: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClassroomUserProfilesGuardiansListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGuardiansResponse>, ApiError>, P = ApiPending>
         + Send
@@ -13495,10 +14616,10 @@ pub fn classroom_user_profiles_guardians_list(
 > {
     let builder = classroom_user_profiles_guardians_list_builder(
         client,
-        studentId,
-        invitedEmailAddress,
-        pageSize,
-        pageToken,
+        &args.studentId,
+        args.invitedEmailAddress.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     classroom_user_profiles_guardians_list_execute(builder)
 }

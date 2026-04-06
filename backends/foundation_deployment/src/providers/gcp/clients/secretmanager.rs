@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn secretmanager_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn secretmanager_projects_locations_get_execute(
 
 pub fn secretmanager_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecretmanagerProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_locations_get_builder(client, name)?;
+    let builder = secretmanager_projects_locations_get_builder(client, &args.name)?;
     secretmanager_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn secretmanager_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
 ///
@@ -255,11 +279,7 @@ pub fn secretmanager_projects_locations_list_execute(
 
 pub fn secretmanager_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecretmanagerProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn secretmanager_projects_locations_list(
 > {
     let builder = secretmanager_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     secretmanager_projects_locations_list_execute(builder)
 }
@@ -372,6 +392,15 @@ pub fn secretmanager_projects_locations_secrets_add_version_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_secrets_add_version`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsAddVersionArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AddSecretVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:addVersion
 /// Creates a new SecretVersion containing secret data and attaches it to an existing Secret.
 ///
@@ -384,16 +413,18 @@ pub fn secretmanager_projects_locations_secrets_add_version_execute(
 
 pub fn secretmanager_projects_locations_secrets_add_version(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AddSecretVersionRequest,
+    args: &SecretmanagerProjectsLocationsSecretsAddVersionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        secretmanager_projects_locations_secrets_add_version_builder(client, parent, body)?;
+    let builder = secretmanager_projects_locations_secrets_add_version_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     secretmanager_projects_locations_secrets_add_version_execute(builder)
 }
 
@@ -502,6 +533,17 @@ pub fn secretmanager_projects_locations_secrets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_secrets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: secretId
+    pub secretId: Option<String>,
+    /// Request body.
+    pub body: Secret,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/secrets
 /// Creates a new Secret containing no SecretVersions.
 ///
@@ -514,15 +556,17 @@ pub fn secretmanager_projects_locations_secrets_create_execute(
 
 pub fn secretmanager_projects_locations_secrets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    secretId: Option<&str>,
-    body: &Secret,
+    args: &SecretmanagerProjectsLocationsSecretsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        secretmanager_projects_locations_secrets_create_builder(client, parent, secretId, body)?;
+    let builder = secretmanager_projects_locations_secrets_create_builder(
+        client,
+        &args.parent,
+        args.secretId.as_deref(),
+        &args.body,
+    )?;
     secretmanager_projects_locations_secrets_create_execute(builder)
 }
 
@@ -628,6 +672,15 @@ pub fn secretmanager_projects_locations_secrets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_secrets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}
 /// Deletes a Secret.
 ///
@@ -640,13 +693,16 @@ pub fn secretmanager_projects_locations_secrets_delete_execute(
 
 pub fn secretmanager_projects_locations_secrets_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &SecretmanagerProjectsLocationsSecretsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_locations_secrets_delete_builder(client, name, etag)?;
+    let builder = secretmanager_projects_locations_secrets_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     secretmanager_projects_locations_secrets_delete_execute(builder)
 }
 
@@ -740,6 +796,13 @@ pub fn secretmanager_projects_locations_secrets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_secrets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}
 /// Gets metadata for a given Secret.
 ///
@@ -752,12 +815,12 @@ pub fn secretmanager_projects_locations_secrets_get_execute(
 
 pub fn secretmanager_projects_locations_secrets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecretmanagerProjectsLocationsSecretsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_locations_secrets_get_builder(client, name)?;
+    let builder = secretmanager_projects_locations_secrets_get_builder(client, &args.name)?;
     secretmanager_projects_locations_secrets_get_execute(builder)
 }
 
@@ -863,6 +926,15 @@ pub fn secretmanager_projects_locations_secrets_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_secrets_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:getIamPolicy
 /// Gets the access control policy for a secret. Returns empty policy if the secret exists and does not have a policy set.
 ///
@@ -875,16 +947,15 @@ pub fn secretmanager_projects_locations_secrets_get_iam_policy_execute(
 
 pub fn secretmanager_projects_locations_secrets_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &SecretmanagerProjectsLocationsSecretsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = secretmanager_projects_locations_secrets_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     secretmanager_projects_locations_secrets_get_iam_policy_execute(builder)
 }
@@ -1001,6 +1072,19 @@ pub fn secretmanager_projects_locations_secrets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_secrets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/secrets
 /// Lists Secrets.
 ///
@@ -1013,10 +1097,7 @@ pub fn secretmanager_projects_locations_secrets_list_execute(
 
 pub fn secretmanager_projects_locations_secrets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecretmanagerProjectsLocationsSecretsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSecretsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1024,7 +1105,11 @@ pub fn secretmanager_projects_locations_secrets_list(
     ApiError,
 > {
     let builder = secretmanager_projects_locations_secrets_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     secretmanager_projects_locations_secrets_list_execute(builder)
 }
@@ -1134,6 +1219,17 @@ pub fn secretmanager_projects_locations_secrets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_secrets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Secret,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}
 /// Updates metadata of an existing Secret.
 ///
@@ -1146,15 +1242,17 @@ pub fn secretmanager_projects_locations_secrets_patch_execute(
 
 pub fn secretmanager_projects_locations_secrets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Secret,
+    args: &SecretmanagerProjectsLocationsSecretsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        secretmanager_projects_locations_secrets_patch_builder(client, name, updateMask, body)?;
+    let builder = secretmanager_projects_locations_secrets_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     secretmanager_projects_locations_secrets_patch_execute(builder)
 }
 
@@ -1251,6 +1349,15 @@ pub fn secretmanager_projects_locations_secrets_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_secrets_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:setIamPolicy
 /// Sets the access control policy on the specified secret. Replaces any existing policy. Permissions on SecretVersions are enforced according to the policy set on the associated Secret.
 ///
@@ -1263,14 +1370,16 @@ pub fn secretmanager_projects_locations_secrets_set_iam_policy_execute(
 
 pub fn secretmanager_projects_locations_secrets_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &SecretmanagerProjectsLocationsSecretsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        secretmanager_projects_locations_secrets_set_iam_policy_builder(client, resource, body)?;
+    let builder = secretmanager_projects_locations_secrets_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     secretmanager_projects_locations_secrets_set_iam_policy_execute(builder)
 }
 
@@ -1371,6 +1480,15 @@ pub fn secretmanager_projects_locations_secrets_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_secrets_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}:testIamPermissions
 /// Returns permissions that a caller has for the specified secret. If the secret does not exist, this call returns an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1383,8 +1501,7 @@ pub fn secretmanager_projects_locations_secrets_test_iam_permissions_execute(
 
 pub fn secretmanager_projects_locations_secrets_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &SecretmanagerProjectsLocationsSecretsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1394,7 +1511,9 @@ pub fn secretmanager_projects_locations_secrets_test_iam_permissions(
     ApiError,
 > {
     let builder = secretmanager_projects_locations_secrets_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     secretmanager_projects_locations_secrets_test_iam_permissions_execute(builder)
 }
@@ -1493,6 +1612,13 @@ pub fn secretmanager_projects_locations_secrets_versions_access_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_secrets_versions_access`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsVersionsAccessArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:access
 /// Accesses a SecretVersion. This call returns the secret data. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
 ///
@@ -1505,7 +1631,7 @@ pub fn secretmanager_projects_locations_secrets_versions_access_execute(
 
 pub fn secretmanager_projects_locations_secrets_versions_access(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecretmanagerProjectsLocationsSecretsVersionsAccessArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessSecretVersionResponse>, ApiError>,
@@ -1514,7 +1640,8 @@ pub fn secretmanager_projects_locations_secrets_versions_access(
         + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_locations_secrets_versions_access_builder(client, name)?;
+    let builder =
+        secretmanager_projects_locations_secrets_versions_access_builder(client, &args.name)?;
     secretmanager_projects_locations_secrets_versions_access_execute(builder)
 }
 
@@ -1613,6 +1740,15 @@ pub fn secretmanager_projects_locations_secrets_versions_destroy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_secrets_versions_destroy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsVersionsDestroyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DestroySecretVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:destroy
 /// Destroys a SecretVersion. Sets the state of the SecretVersion to DESTROYED and irrevocably destroys the secret data.
 ///
@@ -1625,16 +1761,16 @@ pub fn secretmanager_projects_locations_secrets_versions_destroy_execute(
 
 pub fn secretmanager_projects_locations_secrets_versions_destroy(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DestroySecretVersionRequest,
+    args: &SecretmanagerProjectsLocationsSecretsVersionsDestroyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        secretmanager_projects_locations_secrets_versions_destroy_builder(client, name, body)?;
+    let builder = secretmanager_projects_locations_secrets_versions_destroy_builder(
+        client, &args.name, &args.body,
+    )?;
     secretmanager_projects_locations_secrets_versions_destroy_execute(builder)
 }
 
@@ -1733,6 +1869,15 @@ pub fn secretmanager_projects_locations_secrets_versions_disable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_secrets_versions_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsVersionsDisableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DisableSecretVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:disable
 /// Disables a SecretVersion. Sets the state of the SecretVersion to DISABLED.
 ///
@@ -1745,16 +1890,16 @@ pub fn secretmanager_projects_locations_secrets_versions_disable_execute(
 
 pub fn secretmanager_projects_locations_secrets_versions_disable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DisableSecretVersionRequest,
+    args: &SecretmanagerProjectsLocationsSecretsVersionsDisableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        secretmanager_projects_locations_secrets_versions_disable_builder(client, name, body)?;
+    let builder = secretmanager_projects_locations_secrets_versions_disable_builder(
+        client, &args.name, &args.body,
+    )?;
     secretmanager_projects_locations_secrets_versions_disable_execute(builder)
 }
 
@@ -1853,6 +1998,15 @@ pub fn secretmanager_projects_locations_secrets_versions_enable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_secrets_versions_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsVersionsEnableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EnableSecretVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}:enable
 /// Enables a SecretVersion. Sets the state of the SecretVersion to ENABLED.
 ///
@@ -1865,16 +2019,16 @@ pub fn secretmanager_projects_locations_secrets_versions_enable_execute(
 
 pub fn secretmanager_projects_locations_secrets_versions_enable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EnableSecretVersionRequest,
+    args: &SecretmanagerProjectsLocationsSecretsVersionsEnableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        secretmanager_projects_locations_secrets_versions_enable_builder(client, name, body)?;
+    let builder = secretmanager_projects_locations_secrets_versions_enable_builder(
+        client, &args.name, &args.body,
+    )?;
     secretmanager_projects_locations_secrets_versions_enable_execute(builder)
 }
 
@@ -1970,6 +2124,13 @@ pub fn secretmanager_projects_locations_secrets_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_secrets_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions/{versionsId}
 /// Gets metadata for a SecretVersion. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
 ///
@@ -1982,14 +2143,15 @@ pub fn secretmanager_projects_locations_secrets_versions_get_execute(
 
 pub fn secretmanager_projects_locations_secrets_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecretmanagerProjectsLocationsSecretsVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_locations_secrets_versions_get_builder(client, name)?;
+    let builder =
+        secretmanager_projects_locations_secrets_versions_get_builder(client, &args.name)?;
     secretmanager_projects_locations_secrets_versions_get_execute(builder)
 }
 
@@ -2107,6 +2269,19 @@ pub fn secretmanager_projects_locations_secrets_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_locations_secrets_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsLocationsSecretsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/secrets/{secretsId}/versions
 /// Lists SecretVersions. This call does not return secret data.
 ///
@@ -2119,10 +2294,7 @@ pub fn secretmanager_projects_locations_secrets_versions_list_execute(
 
 pub fn secretmanager_projects_locations_secrets_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecretmanagerProjectsLocationsSecretsVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSecretVersionsResponse>, ApiError>,
@@ -2132,7 +2304,11 @@ pub fn secretmanager_projects_locations_secrets_versions_list(
     ApiError,
 > {
     let builder = secretmanager_projects_locations_secrets_versions_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     secretmanager_projects_locations_secrets_versions_list_execute(builder)
 }
@@ -2232,6 +2408,15 @@ pub fn secretmanager_projects_secrets_add_version_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_secrets_add_version`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsAddVersionArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AddSecretVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/secrets/{secretsId}:addVersion
 /// Creates a new SecretVersion containing secret data and attaches it to an existing Secret.
 ///
@@ -2244,15 +2429,15 @@ pub fn secretmanager_projects_secrets_add_version_execute(
 
 pub fn secretmanager_projects_secrets_add_version(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AddSecretVersionRequest,
+    args: &SecretmanagerProjectsSecretsAddVersionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_secrets_add_version_builder(client, parent, body)?;
+    let builder =
+        secretmanager_projects_secrets_add_version_builder(client, &args.parent, &args.body)?;
     secretmanager_projects_secrets_add_version_execute(builder)
 }
 
@@ -2361,6 +2546,17 @@ pub fn secretmanager_projects_secrets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_secrets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: secretId
+    pub secretId: Option<String>,
+    /// Request body.
+    pub body: Secret,
+}
+
 /// GET v1/projects/{projectsId}/secrets
 /// Creates a new Secret containing no SecretVersions.
 ///
@@ -2373,14 +2569,17 @@ pub fn secretmanager_projects_secrets_create_execute(
 
 pub fn secretmanager_projects_secrets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    secretId: Option<&str>,
-    body: &Secret,
+    args: &SecretmanagerProjectsSecretsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_secrets_create_builder(client, parent, secretId, body)?;
+    let builder = secretmanager_projects_secrets_create_builder(
+        client,
+        &args.parent,
+        args.secretId.as_deref(),
+        &args.body,
+    )?;
     secretmanager_projects_secrets_create_execute(builder)
 }
 
@@ -2486,6 +2685,15 @@ pub fn secretmanager_projects_secrets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_secrets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/secrets/{secretsId}
 /// Deletes a Secret.
 ///
@@ -2498,13 +2706,13 @@ pub fn secretmanager_projects_secrets_delete_execute(
 
 pub fn secretmanager_projects_secrets_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &SecretmanagerProjectsSecretsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_secrets_delete_builder(client, name, etag)?;
+    let builder =
+        secretmanager_projects_secrets_delete_builder(client, &args.name, args.etag.as_deref())?;
     secretmanager_projects_secrets_delete_execute(builder)
 }
 
@@ -2598,6 +2806,13 @@ pub fn secretmanager_projects_secrets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_secrets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/secrets/{secretsId}
 /// Gets metadata for a given Secret.
 ///
@@ -2610,12 +2825,12 @@ pub fn secretmanager_projects_secrets_get_execute(
 
 pub fn secretmanager_projects_secrets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecretmanagerProjectsSecretsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_secrets_get_builder(client, name)?;
+    let builder = secretmanager_projects_secrets_get_builder(client, &args.name)?;
     secretmanager_projects_secrets_get_execute(builder)
 }
 
@@ -2721,6 +2936,15 @@ pub fn secretmanager_projects_secrets_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_secrets_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/secrets/{secretsId}:getIamPolicy
 /// Gets the access control policy for a secret. Returns empty policy if the secret exists and does not have a policy set.
 ///
@@ -2733,16 +2957,15 @@ pub fn secretmanager_projects_secrets_get_iam_policy_execute(
 
 pub fn secretmanager_projects_secrets_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &SecretmanagerProjectsSecretsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = secretmanager_projects_secrets_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     secretmanager_projects_secrets_get_iam_policy_execute(builder)
 }
@@ -2859,6 +3082,19 @@ pub fn secretmanager_projects_secrets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_secrets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/secrets
 /// Lists Secrets.
 ///
@@ -2871,18 +3107,20 @@ pub fn secretmanager_projects_secrets_list_execute(
 
 pub fn secretmanager_projects_secrets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecretmanagerProjectsSecretsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSecretsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        secretmanager_projects_secrets_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = secretmanager_projects_secrets_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     secretmanager_projects_secrets_list_execute(builder)
 }
 
@@ -2991,6 +3229,17 @@ pub fn secretmanager_projects_secrets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_secrets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Secret,
+}
+
 /// GET v1/projects/{projectsId}/secrets/{secretsId}
 /// Updates metadata of an existing Secret.
 ///
@@ -3003,14 +3252,17 @@ pub fn secretmanager_projects_secrets_patch_execute(
 
 pub fn secretmanager_projects_secrets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Secret,
+    args: &SecretmanagerProjectsSecretsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Secret>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_secrets_patch_builder(client, name, updateMask, body)?;
+    let builder = secretmanager_projects_secrets_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     secretmanager_projects_secrets_patch_execute(builder)
 }
 
@@ -3107,6 +3359,15 @@ pub fn secretmanager_projects_secrets_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_secrets_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/secrets/{secretsId}:setIamPolicy
 /// Sets the access control policy on the specified secret. Replaces any existing policy. Permissions on SecretVersions are enforced according to the policy set on the associated Secret.
 ///
@@ -3119,13 +3380,13 @@ pub fn secretmanager_projects_secrets_set_iam_policy_execute(
 
 pub fn secretmanager_projects_secrets_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &SecretmanagerProjectsSecretsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_secrets_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        secretmanager_projects_secrets_set_iam_policy_builder(client, &args.resource, &args.body)?;
     secretmanager_projects_secrets_set_iam_policy_execute(builder)
 }
 
@@ -3226,6 +3487,15 @@ pub fn secretmanager_projects_secrets_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_secrets_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/secrets/{secretsId}:testIamPermissions
 /// Returns permissions that a caller has for the specified secret. If the secret does not exist, this call returns an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3238,8 +3508,7 @@ pub fn secretmanager_projects_secrets_test_iam_permissions_execute(
 
 pub fn secretmanager_projects_secrets_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &SecretmanagerProjectsSecretsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3248,8 +3517,11 @@ pub fn secretmanager_projects_secrets_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        secretmanager_projects_secrets_test_iam_permissions_builder(client, resource, body)?;
+    let builder = secretmanager_projects_secrets_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     secretmanager_projects_secrets_test_iam_permissions_execute(builder)
 }
 
@@ -3347,6 +3619,13 @@ pub fn secretmanager_projects_secrets_versions_access_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_secrets_versions_access`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsVersionsAccessArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:access
 /// Accesses a SecretVersion. This call returns the secret data. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
 ///
@@ -3359,7 +3638,7 @@ pub fn secretmanager_projects_secrets_versions_access_execute(
 
 pub fn secretmanager_projects_secrets_versions_access(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecretmanagerProjectsSecretsVersionsAccessArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessSecretVersionResponse>, ApiError>,
@@ -3368,7 +3647,7 @@ pub fn secretmanager_projects_secrets_versions_access(
         + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_secrets_versions_access_builder(client, name)?;
+    let builder = secretmanager_projects_secrets_versions_access_builder(client, &args.name)?;
     secretmanager_projects_secrets_versions_access_execute(builder)
 }
 
@@ -3467,6 +3746,15 @@ pub fn secretmanager_projects_secrets_versions_destroy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_secrets_versions_destroy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsVersionsDestroyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DestroySecretVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:destroy
 /// Destroys a SecretVersion. Sets the state of the SecretVersion to DESTROYED and irrevocably destroys the secret data.
 ///
@@ -3479,15 +3767,15 @@ pub fn secretmanager_projects_secrets_versions_destroy_execute(
 
 pub fn secretmanager_projects_secrets_versions_destroy(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DestroySecretVersionRequest,
+    args: &SecretmanagerProjectsSecretsVersionsDestroyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_secrets_versions_destroy_builder(client, name, body)?;
+    let builder =
+        secretmanager_projects_secrets_versions_destroy_builder(client, &args.name, &args.body)?;
     secretmanager_projects_secrets_versions_destroy_execute(builder)
 }
 
@@ -3586,6 +3874,15 @@ pub fn secretmanager_projects_secrets_versions_disable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_secrets_versions_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsVersionsDisableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DisableSecretVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:disable
 /// Disables a SecretVersion. Sets the state of the SecretVersion to DISABLED.
 ///
@@ -3598,15 +3895,15 @@ pub fn secretmanager_projects_secrets_versions_disable_execute(
 
 pub fn secretmanager_projects_secrets_versions_disable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DisableSecretVersionRequest,
+    args: &SecretmanagerProjectsSecretsVersionsDisableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_secrets_versions_disable_builder(client, name, body)?;
+    let builder =
+        secretmanager_projects_secrets_versions_disable_builder(client, &args.name, &args.body)?;
     secretmanager_projects_secrets_versions_disable_execute(builder)
 }
 
@@ -3705,6 +4002,15 @@ pub fn secretmanager_projects_secrets_versions_enable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_secrets_versions_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsVersionsEnableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EnableSecretVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}:enable
 /// Enables a SecretVersion. Sets the state of the SecretVersion to ENABLED.
 ///
@@ -3717,15 +4023,15 @@ pub fn secretmanager_projects_secrets_versions_enable_execute(
 
 pub fn secretmanager_projects_secrets_versions_enable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EnableSecretVersionRequest,
+    args: &SecretmanagerProjectsSecretsVersionsEnableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_secrets_versions_enable_builder(client, name, body)?;
+    let builder =
+        secretmanager_projects_secrets_versions_enable_builder(client, &args.name, &args.body)?;
     secretmanager_projects_secrets_versions_enable_execute(builder)
 }
 
@@ -3821,6 +4127,13 @@ pub fn secretmanager_projects_secrets_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_secrets_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/secrets/{secretsId}/versions/{versionsId}
 /// Gets metadata for a SecretVersion. projects/*/secrets/*/`versions/latest` is an alias to the most recently created SecretVersion.
 ///
@@ -3833,14 +4146,14 @@ pub fn secretmanager_projects_secrets_versions_get_execute(
 
 pub fn secretmanager_projects_secrets_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecretmanagerProjectsSecretsVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecretVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = secretmanager_projects_secrets_versions_get_builder(client, name)?;
+    let builder = secretmanager_projects_secrets_versions_get_builder(client, &args.name)?;
     secretmanager_projects_secrets_versions_get_execute(builder)
 }
 
@@ -3958,6 +4271,19 @@ pub fn secretmanager_projects_secrets_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`secretmanager_projects_secrets_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecretmanagerProjectsSecretsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/secrets/{secretsId}/versions
 /// Lists SecretVersions. This call does not return secret data.
 ///
@@ -3970,10 +4296,7 @@ pub fn secretmanager_projects_secrets_versions_list_execute(
 
 pub fn secretmanager_projects_secrets_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecretmanagerProjectsSecretsVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSecretVersionsResponse>, ApiError>,
@@ -3983,7 +4306,11 @@ pub fn secretmanager_projects_secrets_versions_list(
     ApiError,
 > {
     let builder = secretmanager_projects_secrets_versions_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     secretmanager_projects_secrets_versions_list_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/accounts/{accountsId}/notificationSetting
 /// Returns the pubsub notification settings for the account.
@@ -108,6 +110,13 @@ pub fn mybusinessnotifications_accounts_get_notification_setting_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessnotifications_accounts_get_notification_setting`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessnotificationsAccountsGetNotificationSettingArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}/notificationSetting
 /// Returns the pubsub notification settings for the account.
 ///
@@ -120,14 +129,15 @@ pub fn mybusinessnotifications_accounts_get_notification_setting_execute(
 
 pub fn mybusinessnotifications_accounts_get_notification_setting(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MybusinessnotificationsAccountsGetNotificationSettingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NotificationSetting>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = mybusinessnotifications_accounts_get_notification_setting_builder(client, name)?;
+    let builder =
+        mybusinessnotifications_accounts_get_notification_setting_builder(client, &args.name)?;
     mybusinessnotifications_accounts_get_notification_setting_execute(builder)
 }
 
@@ -238,6 +248,17 @@ pub fn mybusinessnotifications_accounts_update_notification_setting_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessnotifications_accounts_update_notification_setting`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessnotificationsAccountsUpdateNotificationSettingArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: NotificationSetting,
+}
+
 /// GET v1/accounts/{accountsId}/notificationSetting
 /// Sets the pubsub notification setting for the account informing Google which topic to send pubsub notifications for. Use the notification_types field within notification_setting to manipulate the events an account wants to subscribe to. An account will only have one notification setting resource, and only one pubsub topic can be set. To delete the setting, update with an empty notification_types
 ///
@@ -250,9 +271,7 @@ pub fn mybusinessnotifications_accounts_update_notification_setting_execute(
 
 pub fn mybusinessnotifications_accounts_update_notification_setting(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &NotificationSetting,
+    args: &MybusinessnotificationsAccountsUpdateNotificationSettingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NotificationSetting>, ApiError>, P = ApiPending>
         + Send
@@ -260,7 +279,10 @@ pub fn mybusinessnotifications_accounts_update_notification_setting(
     ApiError,
 > {
     let builder = mybusinessnotifications_accounts_update_notification_setting_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     mybusinessnotifications_accounts_update_notification_setting_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
@@ -105,6 +107,13 @@ pub fn documentai_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -117,14 +126,14 @@ pub fn documentai_operations_delete_execute(
 
 pub fn documentai_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DocumentaiOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = documentai_operations_delete_builder(client, name)?;
+    let builder = documentai_operations_delete_builder(client, &args.name)?;
     documentai_operations_delete_execute(builder)
 }
 
@@ -223,6 +232,13 @@ pub fn documentai_projects_locations_fetch_processor_types_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_fetch_processor_types`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsFetchProcessorTypesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:fetchProcessorTypes
 /// Fetches processor types. Note that we don't use ListProcessorTypes here, because it isn't paginated.
 ///
@@ -235,7 +251,7 @@ pub fn documentai_projects_locations_fetch_processor_types_execute(
 
 pub fn documentai_projects_locations_fetch_processor_types(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &DocumentaiProjectsLocationsFetchProcessorTypesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1FetchProcessorTypesResponse>, ApiError>,
@@ -244,7 +260,8 @@ pub fn documentai_projects_locations_fetch_processor_types(
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_locations_fetch_processor_types_builder(client, parent)?;
+    let builder =
+        documentai_projects_locations_fetch_processor_types_builder(client, &args.parent)?;
     documentai_projects_locations_fetch_processor_types_execute(builder)
 }
 
@@ -342,6 +359,13 @@ pub fn documentai_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -354,7 +378,7 @@ pub fn documentai_projects_locations_get_execute(
 
 pub fn documentai_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DocumentaiProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudLocationLocation>, ApiError>,
@@ -363,7 +387,7 @@ pub fn documentai_projects_locations_get(
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_locations_get_builder(client, name)?;
+    let builder = documentai_projects_locations_get_builder(client, &args.name)?;
     documentai_projects_locations_get_execute(builder)
 }
 
@@ -485,6 +509,21 @@ pub fn documentai_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -497,11 +536,7 @@ pub fn documentai_projects_locations_list_execute(
 
 pub fn documentai_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DocumentaiProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudLocationListLocationsResponse>, ApiError>,
@@ -512,11 +547,11 @@ pub fn documentai_projects_locations_list(
 > {
     let builder = documentai_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     documentai_projects_locations_list_execute(builder)
 }
@@ -613,6 +648,13 @@ pub fn documentai_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -625,14 +667,14 @@ pub fn documentai_projects_locations_operations_cancel_execute(
 
 pub fn documentai_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DocumentaiProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_locations_operations_cancel_builder(client, name)?;
+    let builder = documentai_projects_locations_operations_cancel_builder(client, &args.name)?;
     documentai_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -730,6 +772,13 @@ pub fn documentai_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -742,7 +791,7 @@ pub fn documentai_projects_locations_operations_get_execute(
 
 pub fn documentai_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DocumentaiProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -751,7 +800,7 @@ pub fn documentai_projects_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_locations_operations_get_builder(client, name)?;
+    let builder = documentai_projects_locations_operations_get_builder(client, &args.name)?;
     documentai_projects_locations_operations_get_execute(builder)
 }
 
@@ -874,6 +923,21 @@ pub fn documentai_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -886,11 +950,7 @@ pub fn documentai_projects_locations_operations_list_execute(
 
 pub fn documentai_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DocumentaiProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -901,11 +961,11 @@ pub fn documentai_projects_locations_operations_list(
 > {
     let builder = documentai_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     documentai_projects_locations_operations_list_execute(builder)
 }
@@ -1004,6 +1064,13 @@ pub fn documentai_projects_locations_processor_types_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processor_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorTypesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processorTypes/{processorTypesId}
 /// Gets a processor type detail.
 ///
@@ -1016,7 +1083,7 @@ pub fn documentai_projects_locations_processor_types_get_execute(
 
 pub fn documentai_projects_locations_processor_types_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DocumentaiProjectsLocationsProcessorTypesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1ProcessorType>, ApiError>,
@@ -1025,7 +1092,7 @@ pub fn documentai_projects_locations_processor_types_get(
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_locations_processor_types_get_builder(client, name)?;
+    let builder = documentai_projects_locations_processor_types_get_builder(client, &args.name)?;
     documentai_projects_locations_processor_types_get_execute(builder)
 }
 
@@ -1140,6 +1207,17 @@ pub fn documentai_projects_locations_processor_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processor_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processorTypes
 /// Lists the processor types that exist.
 ///
@@ -1152,9 +1230,7 @@ pub fn documentai_projects_locations_processor_types_list_execute(
 
 pub fn documentai_projects_locations_processor_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DocumentaiProjectsLocationsProcessorTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1ListProcessorTypesResponse>, ApiError>,
@@ -1164,7 +1240,10 @@ pub fn documentai_projects_locations_processor_types_list(
     ApiError,
 > {
     let builder = documentai_projects_locations_processor_types_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     documentai_projects_locations_processor_types_list_execute(builder)
 }
@@ -1266,6 +1345,15 @@ pub fn documentai_projects_locations_processors_batch_process_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_batch_process`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsBatchProcessArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1BatchProcessRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}:batchProcess
 /// LRO endpoint to batch process many documents. The output is written to Cloud Storage as JSON in the [Document] format.
 ///
@@ -1278,8 +1366,7 @@ pub fn documentai_projects_locations_processors_batch_process_execute(
 
 pub fn documentai_projects_locations_processors_batch_process(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDocumentaiV1BatchProcessRequest,
+    args: &DocumentaiProjectsLocationsProcessorsBatchProcessArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1288,8 +1375,9 @@ pub fn documentai_projects_locations_processors_batch_process(
         + 'static,
     ApiError,
 > {
-    let builder =
-        documentai_projects_locations_processors_batch_process_builder(client, name, body)?;
+    let builder = documentai_projects_locations_processors_batch_process_builder(
+        client, &args.name, &args.body,
+    )?;
     documentai_projects_locations_processors_batch_process_execute(builder)
 }
 
@@ -1390,6 +1478,15 @@ pub fn documentai_projects_locations_processors_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1Processor,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors
 /// Creates a processor from the ProcessorType provided. The processor will be at ENABLED state by default after its creation. Note that this method requires the documentai.processors.create permission on the project, which is highly privileged. A user or service account with this permission can create new processors that can interact with any gcs bucket in your project.
 ///
@@ -1402,8 +1499,7 @@ pub fn documentai_projects_locations_processors_create_execute(
 
 pub fn documentai_projects_locations_processors_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDocumentaiV1Processor,
+    args: &DocumentaiProjectsLocationsProcessorsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1Processor>, ApiError>,
@@ -1412,7 +1508,8 @@ pub fn documentai_projects_locations_processors_create(
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_locations_processors_create_builder(client, parent, body)?;
+    let builder =
+        documentai_projects_locations_processors_create_builder(client, &args.parent, &args.body)?;
     documentai_projects_locations_processors_create_execute(builder)
 }
 
@@ -1510,6 +1607,13 @@ pub fn documentai_projects_locations_processors_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}
 /// Deletes the processor, unloads all deployed model artifacts if it was enabled and then deletes all artifacts associated with this processor.
 ///
@@ -1522,7 +1626,7 @@ pub fn documentai_projects_locations_processors_delete_execute(
 
 pub fn documentai_projects_locations_processors_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DocumentaiProjectsLocationsProcessorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1531,7 +1635,7 @@ pub fn documentai_projects_locations_processors_delete(
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_locations_processors_delete_builder(client, name)?;
+    let builder = documentai_projects_locations_processors_delete_builder(client, &args.name)?;
     documentai_projects_locations_processors_delete_execute(builder)
 }
 
@@ -1632,6 +1736,15 @@ pub fn documentai_projects_locations_processors_disable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsDisableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1DisableProcessorRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}:disable
 /// Disables a processor
 ///
@@ -1644,8 +1757,7 @@ pub fn documentai_projects_locations_processors_disable_execute(
 
 pub fn documentai_projects_locations_processors_disable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDocumentaiV1DisableProcessorRequest,
+    args: &DocumentaiProjectsLocationsProcessorsDisableArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1654,7 +1766,8 @@ pub fn documentai_projects_locations_processors_disable(
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_locations_processors_disable_builder(client, name, body)?;
+    let builder =
+        documentai_projects_locations_processors_disable_builder(client, &args.name, &args.body)?;
     documentai_projects_locations_processors_disable_execute(builder)
 }
 
@@ -1755,6 +1868,15 @@ pub fn documentai_projects_locations_processors_enable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsEnableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1EnableProcessorRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}:enable
 /// Enables a processor
 ///
@@ -1767,8 +1889,7 @@ pub fn documentai_projects_locations_processors_enable_execute(
 
 pub fn documentai_projects_locations_processors_enable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDocumentaiV1EnableProcessorRequest,
+    args: &DocumentaiProjectsLocationsProcessorsEnableArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1777,7 +1898,8 @@ pub fn documentai_projects_locations_processors_enable(
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_locations_processors_enable_builder(client, name, body)?;
+    let builder =
+        documentai_projects_locations_processors_enable_builder(client, &args.name, &args.body)?;
     documentai_projects_locations_processors_enable_execute(builder)
 }
 
@@ -1875,6 +1997,13 @@ pub fn documentai_projects_locations_processors_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}
 /// Gets a processor detail.
 ///
@@ -1887,7 +2016,7 @@ pub fn documentai_projects_locations_processors_get_execute(
 
 pub fn documentai_projects_locations_processors_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DocumentaiProjectsLocationsProcessorsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1Processor>, ApiError>,
@@ -1896,7 +2025,7 @@ pub fn documentai_projects_locations_processors_get(
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_locations_processors_get_builder(client, name)?;
+    let builder = documentai_projects_locations_processors_get_builder(client, &args.name)?;
     documentai_projects_locations_processors_get_execute(builder)
 }
 
@@ -2011,6 +2140,17 @@ pub fn documentai_projects_locations_processors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors
 /// Lists all processors which belong to this project.
 ///
@@ -2023,9 +2163,7 @@ pub fn documentai_projects_locations_processors_list_execute(
 
 pub fn documentai_projects_locations_processors_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DocumentaiProjectsLocationsProcessorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1ListProcessorsResponse>, ApiError>,
@@ -2034,8 +2172,12 @@ pub fn documentai_projects_locations_processors_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        documentai_projects_locations_processors_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = documentai_projects_locations_processors_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     documentai_projects_locations_processors_list_execute(builder)
 }
 
@@ -2136,6 +2278,15 @@ pub fn documentai_projects_locations_processors_process_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_process`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsProcessArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1ProcessRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}:process
 /// Processes a single document.
 ///
@@ -2148,8 +2299,7 @@ pub fn documentai_projects_locations_processors_process_execute(
 
 pub fn documentai_projects_locations_processors_process(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDocumentaiV1ProcessRequest,
+    args: &DocumentaiProjectsLocationsProcessorsProcessArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1ProcessResponse>, ApiError>,
@@ -2158,7 +2308,8 @@ pub fn documentai_projects_locations_processors_process(
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_locations_processors_process_builder(client, name, body)?;
+    let builder =
+        documentai_projects_locations_processors_process_builder(client, &args.name, &args.body)?;
     documentai_projects_locations_processors_process_execute(builder)
 }
 
@@ -2259,6 +2410,15 @@ pub fn documentai_projects_locations_processors_set_default_processor_version_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_set_default_processor_version`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsSetDefaultProcessorVersionArgs {
+    /// Path parameter: processor
+    pub processor: String,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1SetDefaultProcessorVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}:setDefaultProcessorVersion
 /// Set the default (active) version of a Processor that will be used in ProcessDocument and BatchProcessDocuments.
 ///
@@ -2271,8 +2431,7 @@ pub fn documentai_projects_locations_processors_set_default_processor_version_ex
 
 pub fn documentai_projects_locations_processors_set_default_processor_version(
     client: &SimpleHttpClient,
-    processor: &str,
-    body: &GoogleCloudDocumentaiV1SetDefaultProcessorVersionRequest,
+    args: &DocumentaiProjectsLocationsProcessorsSetDefaultProcessorVersionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2282,7 +2441,9 @@ pub fn documentai_projects_locations_processors_set_default_processor_version(
     ApiError,
 > {
     let builder = documentai_projects_locations_processors_set_default_processor_version_builder(
-        client, processor, body,
+        client,
+        &args.processor,
+        &args.body,
     )?;
     documentai_projects_locations_processors_set_default_processor_version_execute(builder)
 }
@@ -2384,6 +2545,15 @@ pub fn documentai_projects_locations_processors_human_review_config_review_docum
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_human_review_config_review_document`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsHumanReviewConfigReviewDocumentArgs {
+    /// Path parameter: humanReviewConfig
+    pub humanReviewConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1ReviewDocumentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}/humanReviewConfig:reviewDocument
 /// Send a document for Human Review. The input document should be processed by the specified processor.
 ///
@@ -2396,8 +2566,7 @@ pub fn documentai_projects_locations_processors_human_review_config_review_docum
 
 pub fn documentai_projects_locations_processors_human_review_config_review_document(
     client: &SimpleHttpClient,
-    humanReviewConfig: &str,
-    body: &GoogleCloudDocumentaiV1ReviewDocumentRequest,
+    args: &DocumentaiProjectsLocationsProcessorsHumanReviewConfigReviewDocumentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2409,8 +2578,8 @@ pub fn documentai_projects_locations_processors_human_review_config_review_docum
     let builder =
         documentai_projects_locations_processors_human_review_config_review_document_builder(
             client,
-            humanReviewConfig,
-            body,
+            &args.humanReviewConfig,
+            &args.body,
         )?;
     documentai_projects_locations_processors_human_review_config_review_document_execute(builder)
 }
@@ -2512,6 +2681,15 @@ pub fn documentai_projects_locations_processors_processor_versions_batch_process
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_processor_versions_batch_process`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsProcessorVersionsBatchProcessArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1BatchProcessRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}:batchProcess
 /// LRO endpoint to batch process many documents. The output is written to Cloud Storage as JSON in the [Document] format.
 ///
@@ -2524,8 +2702,7 @@ pub fn documentai_projects_locations_processors_processor_versions_batch_process
 
 pub fn documentai_projects_locations_processors_processor_versions_batch_process(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDocumentaiV1BatchProcessRequest,
+    args: &DocumentaiProjectsLocationsProcessorsProcessorVersionsBatchProcessArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2536,7 +2713,7 @@ pub fn documentai_projects_locations_processors_processor_versions_batch_process
 > {
     let builder =
         documentai_projects_locations_processors_processor_versions_batch_process_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     documentai_projects_locations_processors_processor_versions_batch_process_execute(builder)
 }
@@ -2635,6 +2812,13 @@ pub fn documentai_projects_locations_processors_processor_versions_delete_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_processor_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsProcessorVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}
 /// Deletes the processor version, all artifacts under the processor version will be deleted.
 ///
@@ -2647,7 +2831,7 @@ pub fn documentai_projects_locations_processors_processor_versions_delete_execut
 
 pub fn documentai_projects_locations_processors_processor_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DocumentaiProjectsLocationsProcessorsProcessorVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2656,8 +2840,9 @@ pub fn documentai_projects_locations_processors_processor_versions_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        documentai_projects_locations_processors_processor_versions_delete_builder(client, name)?;
+    let builder = documentai_projects_locations_processors_processor_versions_delete_builder(
+        client, &args.name,
+    )?;
     documentai_projects_locations_processors_processor_versions_delete_execute(builder)
 }
 
@@ -2758,6 +2943,15 @@ pub fn documentai_projects_locations_processors_processor_versions_deploy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_processor_versions_deploy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsProcessorVersionsDeployArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1DeployProcessorVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}:deploy
 /// Deploys the processor version.
 ///
@@ -2770,8 +2964,7 @@ pub fn documentai_projects_locations_processors_processor_versions_deploy_execut
 
 pub fn documentai_projects_locations_processors_processor_versions_deploy(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDocumentaiV1DeployProcessorVersionRequest,
+    args: &DocumentaiProjectsLocationsProcessorsProcessorVersionsDeployArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2781,7 +2974,7 @@ pub fn documentai_projects_locations_processors_processor_versions_deploy(
     ApiError,
 > {
     let builder = documentai_projects_locations_processors_processor_versions_deploy_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     documentai_projects_locations_processors_processor_versions_deploy_execute(builder)
 }
@@ -2883,6 +3076,15 @@ pub fn documentai_projects_locations_processors_processor_versions_evaluate_proc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_processor_versions_evaluate_processor_version`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsProcessorVersionsEvaluateProcessorVersionArgs {
+    /// Path parameter: processorVersion
+    pub processorVersion: String,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1EvaluateProcessorVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}:evaluateProcessorVersion
 /// Evaluates a ProcessorVersion against annotated documents, producing an Evaluation.
 ///
@@ -2895,8 +3097,7 @@ pub fn documentai_projects_locations_processors_processor_versions_evaluate_proc
 
 pub fn documentai_projects_locations_processors_processor_versions_evaluate_processor_version(
     client: &SimpleHttpClient,
-    processorVersion: &str,
-    body: &GoogleCloudDocumentaiV1EvaluateProcessorVersionRequest,
+    args: &DocumentaiProjectsLocationsProcessorsProcessorVersionsEvaluateProcessorVersionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2905,7 +3106,7 @@ pub fn documentai_projects_locations_processors_processor_versions_evaluate_proc
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_locations_processors_processor_versions_evaluate_processor_version_builder(client, processorVersion, body)?;
+    let builder = documentai_projects_locations_processors_processor_versions_evaluate_processor_version_builder(client, &args.processorVersion, &args.body)?;
     documentai_projects_locations_processors_processor_versions_evaluate_processor_version_execute(
         builder,
     )
@@ -3006,6 +3207,13 @@ pub fn documentai_projects_locations_processors_processor_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_processor_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsProcessorVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}
 /// Gets a processor version detail.
 ///
@@ -3018,7 +3226,7 @@ pub fn documentai_projects_locations_processors_processor_versions_get_execute(
 
 pub fn documentai_projects_locations_processors_processor_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DocumentaiProjectsLocationsProcessorsProcessorVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1ProcessorVersion>, ApiError>,
@@ -3027,8 +3235,9 @@ pub fn documentai_projects_locations_processors_processor_versions_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        documentai_projects_locations_processors_processor_versions_get_builder(client, name)?;
+    let builder = documentai_projects_locations_processors_processor_versions_get_builder(
+        client, &args.name,
+    )?;
     documentai_projects_locations_processors_processor_versions_get_execute(builder)
 }
 
@@ -3143,6 +3352,17 @@ pub fn documentai_projects_locations_processors_processor_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_processor_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsProcessorVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}/processorVersions
 /// Lists all versions of a processor.
 ///
@@ -3155,9 +3375,7 @@ pub fn documentai_projects_locations_processors_processor_versions_list_execute(
 
 pub fn documentai_projects_locations_processors_processor_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DocumentaiProjectsLocationsProcessorsProcessorVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1ListProcessorVersionsResponse>, ApiError>,
@@ -3167,7 +3385,10 @@ pub fn documentai_projects_locations_processors_processor_versions_list(
     ApiError,
 > {
     let builder = documentai_projects_locations_processors_processor_versions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     documentai_projects_locations_processors_processor_versions_list_execute(builder)
 }
@@ -3269,6 +3490,15 @@ pub fn documentai_projects_locations_processors_processor_versions_process_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_processor_versions_process`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsProcessorVersionsProcessArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1ProcessRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}:process
 /// Processes a single document.
 ///
@@ -3281,8 +3511,7 @@ pub fn documentai_projects_locations_processors_processor_versions_process_execu
 
 pub fn documentai_projects_locations_processors_processor_versions_process(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDocumentaiV1ProcessRequest,
+    args: &DocumentaiProjectsLocationsProcessorsProcessorVersionsProcessArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1ProcessResponse>, ApiError>,
@@ -3292,7 +3521,7 @@ pub fn documentai_projects_locations_processors_processor_versions_process(
     ApiError,
 > {
     let builder = documentai_projects_locations_processors_processor_versions_process_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     documentai_projects_locations_processors_processor_versions_process_execute(builder)
 }
@@ -3394,6 +3623,15 @@ pub fn documentai_projects_locations_processors_processor_versions_train_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_processor_versions_train`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsProcessorVersionsTrainArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1TrainProcessorVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}/processorVersions:train
 /// Trains a new processor version. Operation metadata is returned as TrainProcessorVersionMetadata.
 ///
@@ -3406,8 +3644,7 @@ pub fn documentai_projects_locations_processors_processor_versions_train_execute
 
 pub fn documentai_projects_locations_processors_processor_versions_train(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDocumentaiV1TrainProcessorVersionRequest,
+    args: &DocumentaiProjectsLocationsProcessorsProcessorVersionsTrainArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3417,7 +3654,9 @@ pub fn documentai_projects_locations_processors_processor_versions_train(
     ApiError,
 > {
     let builder = documentai_projects_locations_processors_processor_versions_train_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     documentai_projects_locations_processors_processor_versions_train_execute(builder)
 }
@@ -3519,6 +3758,15 @@ pub fn documentai_projects_locations_processors_processor_versions_undeploy_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_processor_versions_undeploy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsProcessorVersionsUndeployArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1UndeployProcessorVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}:undeploy
 /// Undeploys the processor version.
 ///
@@ -3531,8 +3779,7 @@ pub fn documentai_projects_locations_processors_processor_versions_undeploy_exec
 
 pub fn documentai_projects_locations_processors_processor_versions_undeploy(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDocumentaiV1UndeployProcessorVersionRequest,
+    args: &DocumentaiProjectsLocationsProcessorsProcessorVersionsUndeployArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3542,7 +3789,7 @@ pub fn documentai_projects_locations_processors_processor_versions_undeploy(
     ApiError,
 > {
     let builder = documentai_projects_locations_processors_processor_versions_undeploy_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     documentai_projects_locations_processors_processor_versions_undeploy_execute(builder)
 }
@@ -3641,6 +3888,13 @@ pub fn documentai_projects_locations_processors_processor_versions_evaluations_g
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_processor_versions_evaluations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsProcessorVersionsEvaluationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}/evaluations/{evaluationsId}
 /// Retrieves a specific evaluation.
 ///
@@ -3653,7 +3907,7 @@ pub fn documentai_projects_locations_processors_processor_versions_evaluations_g
 
 pub fn documentai_projects_locations_processors_processor_versions_evaluations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DocumentaiProjectsLocationsProcessorsProcessorVersionsEvaluationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1Evaluation>, ApiError>,
@@ -3664,7 +3918,7 @@ pub fn documentai_projects_locations_processors_processor_versions_evaluations_g
 > {
     let builder =
         documentai_projects_locations_processors_processor_versions_evaluations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     documentai_projects_locations_processors_processor_versions_evaluations_get_execute(builder)
 }
@@ -3780,6 +4034,17 @@ pub fn documentai_projects_locations_processors_processor_versions_evaluations_l
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_processors_processor_versions_evaluations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsProcessorsProcessorVersionsEvaluationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processors/{processorsId}/processorVersions/{processorVersionsId}/evaluations
 /// Retrieves a set of evaluations for a given processor version.
 ///
@@ -3792,9 +4057,7 @@ pub fn documentai_projects_locations_processors_processor_versions_evaluations_l
 
 pub fn documentai_projects_locations_processors_processor_versions_evaluations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DocumentaiProjectsLocationsProcessorsProcessorVersionsEvaluationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1ListEvaluationsResponse>, ApiError>,
@@ -3805,7 +4068,10 @@ pub fn documentai_projects_locations_processors_processor_versions_evaluations_l
 > {
     let builder =
         documentai_projects_locations_processors_processor_versions_evaluations_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     documentai_projects_locations_processors_processor_versions_evaluations_list_execute(builder)
 }
@@ -3907,6 +4173,15 @@ pub fn documentai_projects_locations_schemas_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_schemas_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsSchemasCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1NextSchema,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemas
 /// Creates a schema.
 ///
@@ -3919,8 +4194,7 @@ pub fn documentai_projects_locations_schemas_create_execute(
 
 pub fn documentai_projects_locations_schemas_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDocumentaiV1NextSchema,
+    args: &DocumentaiProjectsLocationsSchemasCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1NextSchema>, ApiError>,
@@ -3929,7 +4203,8 @@ pub fn documentai_projects_locations_schemas_create(
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_locations_schemas_create_builder(client, parent, body)?;
+    let builder =
+        documentai_projects_locations_schemas_create_builder(client, &args.parent, &args.body)?;
     documentai_projects_locations_schemas_create_execute(builder)
 }
 
@@ -4039,6 +4314,15 @@ pub fn documentai_projects_locations_schemas_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_schemas_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsSchemasDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemas/{schemasId}
 /// Deletes a schema.
 ///
@@ -4051,8 +4335,7 @@ pub fn documentai_projects_locations_schemas_delete_execute(
 
 pub fn documentai_projects_locations_schemas_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &DocumentaiProjectsLocationsSchemasDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4061,7 +4344,8 @@ pub fn documentai_projects_locations_schemas_delete(
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_locations_schemas_delete_builder(client, name, force)?;
+    let builder =
+        documentai_projects_locations_schemas_delete_builder(client, &args.name, args.force)?;
     documentai_projects_locations_schemas_delete_execute(builder)
 }
 
@@ -4159,6 +4443,13 @@ pub fn documentai_projects_locations_schemas_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_schemas_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsSchemasGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemas/{schemasId}
 /// Gets a schema.
 ///
@@ -4171,7 +4462,7 @@ pub fn documentai_projects_locations_schemas_get_execute(
 
 pub fn documentai_projects_locations_schemas_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DocumentaiProjectsLocationsSchemasGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1NextSchema>, ApiError>,
@@ -4180,7 +4471,7 @@ pub fn documentai_projects_locations_schemas_get(
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_locations_schemas_get_builder(client, name)?;
+    let builder = documentai_projects_locations_schemas_get_builder(client, &args.name)?;
     documentai_projects_locations_schemas_get_execute(builder)
 }
 
@@ -4295,6 +4586,17 @@ pub fn documentai_projects_locations_schemas_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_schemas_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsSchemasListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemas
 /// Lists Schemas.
 ///
@@ -4307,9 +4609,7 @@ pub fn documentai_projects_locations_schemas_list_execute(
 
 pub fn documentai_projects_locations_schemas_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DocumentaiProjectsLocationsSchemasListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1ListSchemasResponse>, ApiError>,
@@ -4318,8 +4618,12 @@ pub fn documentai_projects_locations_schemas_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        documentai_projects_locations_schemas_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = documentai_projects_locations_schemas_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     documentai_projects_locations_schemas_list_execute(builder)
 }
 
@@ -4432,6 +4736,17 @@ pub fn documentai_projects_locations_schemas_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_schemas_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsSchemasPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1NextSchema,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemas/{schemasId}
 /// Updates a schema. Editable fields are: - display_name - labels
 ///
@@ -4444,9 +4759,7 @@ pub fn documentai_projects_locations_schemas_patch_execute(
 
 pub fn documentai_projects_locations_schemas_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDocumentaiV1NextSchema,
+    args: &DocumentaiProjectsLocationsSchemasPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1NextSchema>, ApiError>,
@@ -4455,8 +4768,12 @@ pub fn documentai_projects_locations_schemas_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        documentai_projects_locations_schemas_patch_builder(client, name, updateMask, body)?;
+    let builder = documentai_projects_locations_schemas_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     documentai_projects_locations_schemas_patch_execute(builder)
 }
 
@@ -4557,6 +4874,15 @@ pub fn documentai_projects_locations_schemas_schema_versions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_schemas_schema_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsSchemasSchemaVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1SchemaVersion,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemas/{schemasId}/schemaVersions
 /// Creates a schema version.
 ///
@@ -4569,8 +4895,7 @@ pub fn documentai_projects_locations_schemas_schema_versions_create_execute(
 
 pub fn documentai_projects_locations_schemas_schema_versions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDocumentaiV1SchemaVersion,
+    args: &DocumentaiProjectsLocationsSchemasSchemaVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1SchemaVersion>, ApiError>,
@@ -4579,8 +4904,11 @@ pub fn documentai_projects_locations_schemas_schema_versions_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        documentai_projects_locations_schemas_schema_versions_create_builder(client, parent, body)?;
+    let builder = documentai_projects_locations_schemas_schema_versions_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     documentai_projects_locations_schemas_schema_versions_create_execute(builder)
 }
 
@@ -4678,6 +5006,13 @@ pub fn documentai_projects_locations_schemas_schema_versions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_schemas_schema_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsSchemasSchemaVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemas/{schemasId}/schemaVersions/{schemaVersionsId}
 /// Deletes a schema version.
 ///
@@ -4690,7 +5025,7 @@ pub fn documentai_projects_locations_schemas_schema_versions_delete_execute(
 
 pub fn documentai_projects_locations_schemas_schema_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DocumentaiProjectsLocationsSchemasSchemaVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4700,7 +5035,7 @@ pub fn documentai_projects_locations_schemas_schema_versions_delete(
     ApiError,
 > {
     let builder =
-        documentai_projects_locations_schemas_schema_versions_delete_builder(client, name)?;
+        documentai_projects_locations_schemas_schema_versions_delete_builder(client, &args.name)?;
     documentai_projects_locations_schemas_schema_versions_delete_execute(builder)
 }
 
@@ -4802,6 +5137,15 @@ pub fn documentai_projects_locations_schemas_schema_versions_generate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_schemas_schema_versions_generate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsSchemasSchemaVersionsGenerateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1GenerateSchemaVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemas/{schemasId}/schemaVersions:generate
 /// Generates a schema version.
 ///
@@ -4814,8 +5158,7 @@ pub fn documentai_projects_locations_schemas_schema_versions_generate_execute(
 
 pub fn documentai_projects_locations_schemas_schema_versions_generate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDocumentaiV1GenerateSchemaVersionRequest,
+    args: &DocumentaiProjectsLocationsSchemasSchemaVersionsGenerateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1GenerateSchemaVersionResponse>, ApiError>,
@@ -4825,7 +5168,9 @@ pub fn documentai_projects_locations_schemas_schema_versions_generate(
     ApiError,
 > {
     let builder = documentai_projects_locations_schemas_schema_versions_generate_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     documentai_projects_locations_schemas_schema_versions_generate_execute(builder)
 }
@@ -4924,6 +5269,13 @@ pub fn documentai_projects_locations_schemas_schema_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_schemas_schema_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsSchemasSchemaVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemas/{schemasId}/schemaVersions/{schemaVersionsId}
 /// Gets a schema version.
 ///
@@ -4936,7 +5288,7 @@ pub fn documentai_projects_locations_schemas_schema_versions_get_execute(
 
 pub fn documentai_projects_locations_schemas_schema_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DocumentaiProjectsLocationsSchemasSchemaVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1SchemaVersion>, ApiError>,
@@ -4945,7 +5297,8 @@ pub fn documentai_projects_locations_schemas_schema_versions_get(
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_locations_schemas_schema_versions_get_builder(client, name)?;
+    let builder =
+        documentai_projects_locations_schemas_schema_versions_get_builder(client, &args.name)?;
     documentai_projects_locations_schemas_schema_versions_get_execute(builder)
 }
 
@@ -5060,6 +5413,17 @@ pub fn documentai_projects_locations_schemas_schema_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_schemas_schema_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsSchemasSchemaVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemas/{schemasId}/schemaVersions
 /// Lists SchemaVersions.
 ///
@@ -5072,9 +5436,7 @@ pub fn documentai_projects_locations_schemas_schema_versions_list_execute(
 
 pub fn documentai_projects_locations_schemas_schema_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DocumentaiProjectsLocationsSchemasSchemaVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1ListSchemaVersionsResponse>, ApiError>,
@@ -5084,7 +5446,10 @@ pub fn documentai_projects_locations_schemas_schema_versions_list(
     ApiError,
 > {
     let builder = documentai_projects_locations_schemas_schema_versions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     documentai_projects_locations_schemas_schema_versions_list_execute(builder)
 }
@@ -5198,6 +5563,17 @@ pub fn documentai_projects_locations_schemas_schema_versions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_locations_schemas_schema_versions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsLocationsSchemasSchemaVersionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDocumentaiV1SchemaVersion,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemas/{schemasId}/schemaVersions/{schemaVersionsId}
 /// Updates a schema version. Editable fields are: - display_name - labels
 ///
@@ -5210,9 +5586,7 @@ pub fn documentai_projects_locations_schemas_schema_versions_patch_execute(
 
 pub fn documentai_projects_locations_schemas_schema_versions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDocumentaiV1SchemaVersion,
+    args: &DocumentaiProjectsLocationsSchemasSchemaVersionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDocumentaiV1SchemaVersion>, ApiError>,
@@ -5222,7 +5596,10 @@ pub fn documentai_projects_locations_schemas_schema_versions_patch(
     ApiError,
 > {
     let builder = documentai_projects_locations_schemas_schema_versions_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     documentai_projects_locations_schemas_schema_versions_patch_execute(builder)
 }
@@ -5321,6 +5698,13 @@ pub fn documentai_projects_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`documentai_projects_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DocumentaiProjectsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -5333,7 +5717,7 @@ pub fn documentai_projects_operations_get_execute(
 
 pub fn documentai_projects_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DocumentaiProjectsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5342,6 +5726,6 @@ pub fn documentai_projects_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = documentai_projects_operations_get_builder(client, name)?;
+    let builder = documentai_projects_operations_get_builder(client, &args.name)?;
     documentai_projects_operations_get_execute(builder)
 }

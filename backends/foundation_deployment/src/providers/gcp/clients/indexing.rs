@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v3/urlNotifications/metadata
 /// Gets metadata about a Web Document. This method can _only_ be used to query URLs that were previously seen in successful Indexing API notifications. Includes the latest UrlNotification received via this API.
@@ -116,6 +118,13 @@ pub fn indexing_url_notifications_get_metadata_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`indexing_url_notifications_get_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IndexingUrlNotificationsGetMetadataArgs {
+    /// Query parameter: url
+    pub url: Option<String>,
+}
+
 /// GET v3/urlNotifications/metadata
 /// Gets metadata about a Web Document. This method can _only_ be used to query URLs that were previously seen in successful Indexing API notifications. Includes the latest UrlNotification received via this API.
 ///
@@ -128,14 +137,14 @@ pub fn indexing_url_notifications_get_metadata_execute(
 
 pub fn indexing_url_notifications_get_metadata(
     client: &SimpleHttpClient,
-    url: Option<&str>,
+    args: &IndexingUrlNotificationsGetMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UrlNotificationMetadata>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = indexing_url_notifications_get_metadata_builder(client, url)?;
+    let builder = indexing_url_notifications_get_metadata_builder(client, args.url.as_deref())?;
     indexing_url_notifications_get_metadata_execute(builder)
 }
 
@@ -232,6 +241,13 @@ pub fn indexing_url_notifications_publish_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`indexing_url_notifications_publish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IndexingUrlNotificationsPublishArgs {
+    /// Request body.
+    pub body: UrlNotification,
+}
+
 /// GET v3/urlNotifications:publish
 /// Notifies that a URL has been updated or deleted.
 ///
@@ -244,7 +260,7 @@ pub fn indexing_url_notifications_publish_execute(
 
 pub fn indexing_url_notifications_publish(
     client: &SimpleHttpClient,
-    body: &UrlNotification,
+    args: &IndexingUrlNotificationsPublishArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<PublishUrlNotificationResponse>, ApiError>,
@@ -253,6 +269,6 @@ pub fn indexing_url_notifications_publish(
         + 'static,
     ApiError,
 > {
-    let builder = indexing_url_notifications_publish_builder(client, body)?;
+    let builder = indexing_url_notifications_publish_builder(client, &args.body)?;
     indexing_url_notifications_publish_execute(builder)
 }

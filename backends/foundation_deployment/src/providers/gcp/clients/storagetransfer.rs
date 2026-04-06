@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/googleServiceAccounts/{projectId}
 /// Returns the Google service account that is used by Storage Transfer Service to access buckets in the project where transfers run or in other projects. Each Google service account is associated with one Google Cloud project. Users should add this service account to the Google Cloud Storage bucket ACLs to grant access to Storage Transfer Service. This service account is created and owned by Storage Transfer Service and can only be used by Storage Transfer Service.
@@ -108,6 +110,13 @@ pub fn storagetransfer_google_service_accounts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_google_service_accounts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferGoogleServiceAccountsGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+}
+
 /// GET v1/googleServiceAccounts/{projectId}
 /// Returns the Google service account that is used by Storage Transfer Service to access buckets in the project where transfers run or in other projects. Each Google service account is associated with one Google Cloud project. Users should add this service account to the Google Cloud Storage bucket ACLs to grant access to Storage Transfer Service. This service account is created and owned by Storage Transfer Service and can only be used by Storage Transfer Service.
 ///
@@ -120,14 +129,14 @@ pub fn storagetransfer_google_service_accounts_get_execute(
 
 pub fn storagetransfer_google_service_accounts_get(
     client: &SimpleHttpClient,
-    projectId: &str,
+    args: &StoragetransferGoogleServiceAccountsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleServiceAccount>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_google_service_accounts_get_builder(client, projectId)?;
+    let builder = storagetransfer_google_service_accounts_get_builder(client, &args.projectId)?;
     storagetransfer_google_service_accounts_get_execute(builder)
 }
 
@@ -236,6 +245,17 @@ pub fn storagetransfer_projects_agent_pools_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_projects_agent_pools_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferProjectsAgentPoolsCreateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Query parameter: agentPoolId
+    pub agentPoolId: Option<String>,
+    /// Request body.
+    pub body: AgentPool,
+}
+
 /// GET v1/projects/{projectsId}/agentPools
 /// Creates an agent pool resource.
 ///
@@ -248,15 +268,17 @@ pub fn storagetransfer_projects_agent_pools_create_execute(
 
 pub fn storagetransfer_projects_agent_pools_create(
     client: &SimpleHttpClient,
-    projectId: &str,
-    agentPoolId: Option<&str>,
-    body: &AgentPool,
+    args: &StoragetransferProjectsAgentPoolsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AgentPool>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        storagetransfer_projects_agent_pools_create_builder(client, projectId, agentPoolId, body)?;
+    let builder = storagetransfer_projects_agent_pools_create_builder(
+        client,
+        &args.projectId,
+        args.agentPoolId.as_deref(),
+        &args.body,
+    )?;
     storagetransfer_projects_agent_pools_create_execute(builder)
 }
 
@@ -350,6 +372,13 @@ pub fn storagetransfer_projects_agent_pools_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_projects_agent_pools_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferProjectsAgentPoolsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
 /// Deletes an agent pool.
 ///
@@ -362,12 +391,12 @@ pub fn storagetransfer_projects_agent_pools_delete_execute(
 
 pub fn storagetransfer_projects_agent_pools_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &StoragetransferProjectsAgentPoolsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_projects_agent_pools_delete_builder(client, name)?;
+    let builder = storagetransfer_projects_agent_pools_delete_builder(client, &args.name)?;
     storagetransfer_projects_agent_pools_delete_execute(builder)
 }
 
@@ -461,6 +490,13 @@ pub fn storagetransfer_projects_agent_pools_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_projects_agent_pools_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferProjectsAgentPoolsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
 /// Gets an agent pool.
 ///
@@ -473,12 +509,12 @@ pub fn storagetransfer_projects_agent_pools_get_execute(
 
 pub fn storagetransfer_projects_agent_pools_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &StoragetransferProjectsAgentPoolsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AgentPool>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_projects_agent_pools_get_builder(client, name)?;
+    let builder = storagetransfer_projects_agent_pools_get_builder(client, &args.name)?;
     storagetransfer_projects_agent_pools_get_execute(builder)
 }
 
@@ -594,6 +630,19 @@ pub fn storagetransfer_projects_agent_pools_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_projects_agent_pools_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferProjectsAgentPoolsListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/agentPools
 /// Lists agent pools.
 ///
@@ -606,10 +655,7 @@ pub fn storagetransfer_projects_agent_pools_list_execute(
 
 pub fn storagetransfer_projects_agent_pools_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &StoragetransferProjectsAgentPoolsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAgentPoolsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -617,7 +663,11 @@ pub fn storagetransfer_projects_agent_pools_list(
     ApiError,
 > {
     let builder = storagetransfer_projects_agent_pools_list_builder(
-        client, projectId, filter, pageSize, pageToken,
+        client,
+        &args.projectId,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     storagetransfer_projects_agent_pools_list_execute(builder)
 }
@@ -727,6 +777,17 @@ pub fn storagetransfer_projects_agent_pools_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_projects_agent_pools_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferProjectsAgentPoolsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AgentPool,
+}
+
 /// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
 /// Updates an existing agent pool resource.
 ///
@@ -739,15 +800,17 @@ pub fn storagetransfer_projects_agent_pools_patch_execute(
 
 pub fn storagetransfer_projects_agent_pools_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AgentPool,
+    args: &StoragetransferProjectsAgentPoolsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AgentPool>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        storagetransfer_projects_agent_pools_patch_builder(client, name, updateMask, body)?;
+    let builder = storagetransfer_projects_agent_pools_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     storagetransfer_projects_agent_pools_patch_execute(builder)
 }
 
@@ -840,6 +903,13 @@ pub fn storagetransfer_transfer_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_transfer_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferTransferJobsCreateArgs {
+    /// Request body.
+    pub body: TransferJob,
+}
+
 /// GET v1/transferJobs
 /// Creates a transfer job that runs periodically.
 ///
@@ -852,12 +922,12 @@ pub fn storagetransfer_transfer_jobs_create_execute(
 
 pub fn storagetransfer_transfer_jobs_create(
     client: &SimpleHttpClient,
-    body: &TransferJob,
+    args: &StoragetransferTransferJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransferJob>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_jobs_create_builder(client, body)?;
+    let builder = storagetransfer_transfer_jobs_create_builder(client, &args.body)?;
     storagetransfer_transfer_jobs_create_execute(builder)
 }
 
@@ -952,6 +1022,15 @@ pub fn storagetransfer_transfer_jobs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_transfer_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferTransferJobsDeleteArgs {
+    /// Path parameter: jobName
+    pub jobName: String,
+    /// Path parameter: projectId
+    pub projectId: String,
+}
+
 /// GET v1/transferJobs/{transferJobsId}
 /// Deletes a transfer job. Deleting a transfer job sets its status to DELETED.
 ///
@@ -964,13 +1043,13 @@ pub fn storagetransfer_transfer_jobs_delete_execute(
 
 pub fn storagetransfer_transfer_jobs_delete(
     client: &SimpleHttpClient,
-    jobName: &str,
-    projectId: &str,
+    args: &StoragetransferTransferJobsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_jobs_delete_builder(client, jobName, projectId)?;
+    let builder =
+        storagetransfer_transfer_jobs_delete_builder(client, &args.jobName, &args.projectId)?;
     storagetransfer_transfer_jobs_delete_execute(builder)
 }
 
@@ -1065,6 +1144,15 @@ pub fn storagetransfer_transfer_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_transfer_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferTransferJobsGetArgs {
+    /// Path parameter: jobName
+    pub jobName: String,
+    /// Path parameter: projectId
+    pub projectId: String,
+}
+
 /// GET v1/transferJobs/{transferJobsId}
 /// Gets a transfer job.
 ///
@@ -1077,13 +1165,13 @@ pub fn storagetransfer_transfer_jobs_get_execute(
 
 pub fn storagetransfer_transfer_jobs_get(
     client: &SimpleHttpClient,
-    jobName: &str,
-    projectId: &str,
+    args: &StoragetransferTransferJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransferJob>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_jobs_get_builder(client, jobName, projectId)?;
+    let builder =
+        storagetransfer_transfer_jobs_get_builder(client, &args.jobName, &args.projectId)?;
     storagetransfer_transfer_jobs_get_execute(builder)
 }
 
@@ -1195,6 +1283,17 @@ pub fn storagetransfer_transfer_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_transfer_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferTransferJobsListArgs {
+    /// Path parameter: filter
+    pub filter: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/transferJobs
 /// Lists transfer jobs.
 ///
@@ -1207,16 +1306,19 @@ pub fn storagetransfer_transfer_jobs_list_execute(
 
 pub fn storagetransfer_transfer_jobs_list(
     client: &SimpleHttpClient,
-    filter: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &StoragetransferTransferJobsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTransferJobsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_jobs_list_builder(client, filter, pageSize, pageToken)?;
+    let builder = storagetransfer_transfer_jobs_list_builder(
+        client,
+        &args.filter,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     storagetransfer_transfer_jobs_list_execute(builder)
 }
 
@@ -1313,6 +1415,15 @@ pub fn storagetransfer_transfer_jobs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_transfer_jobs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferTransferJobsPatchArgs {
+    /// Path parameter: jobName
+    pub jobName: String,
+    /// Request body.
+    pub body: UpdateTransferJobRequest,
+}
+
 /// GET v1/transferJobs/{transferJobsId}
 /// Updates a transfer job. Updating a job's transfer spec does not affect transfer operations that are running already. **Note:** The job's status field can be modified using this RPC (for example, to set a job's status to DELETED, DISABLED, or ENABLED).
 ///
@@ -1325,13 +1436,12 @@ pub fn storagetransfer_transfer_jobs_patch_execute(
 
 pub fn storagetransfer_transfer_jobs_patch(
     client: &SimpleHttpClient,
-    jobName: &str,
-    body: &UpdateTransferJobRequest,
+    args: &StoragetransferTransferJobsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransferJob>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_jobs_patch_builder(client, jobName, body)?;
+    let builder = storagetransfer_transfer_jobs_patch_builder(client, &args.jobName, &args.body)?;
     storagetransfer_transfer_jobs_patch_execute(builder)
 }
 
@@ -1428,6 +1538,15 @@ pub fn storagetransfer_transfer_jobs_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_transfer_jobs_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferTransferJobsRunArgs {
+    /// Path parameter: jobName
+    pub jobName: String,
+    /// Request body.
+    pub body: RunTransferJobRequest,
+}
+
 /// GET v1/transferJobs/{transferJobsId}:run
 /// Starts a new operation for the specified transfer job. A TransferJob has a maximum of one active TransferOperation. If this method is called while a TransferOperation is active, an error is returned.
 ///
@@ -1440,13 +1559,12 @@ pub fn storagetransfer_transfer_jobs_run_execute(
 
 pub fn storagetransfer_transfer_jobs_run(
     client: &SimpleHttpClient,
-    jobName: &str,
-    body: &RunTransferJobRequest,
+    args: &StoragetransferTransferJobsRunArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_jobs_run_builder(client, jobName, body)?;
+    let builder = storagetransfer_transfer_jobs_run_builder(client, &args.jobName, &args.body)?;
     storagetransfer_transfer_jobs_run_execute(builder)
 }
 
@@ -1543,6 +1661,15 @@ pub fn storagetransfer_transfer_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_transfer_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferTransferOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/transferOperations/{transferOperationsId}:cancel
 /// Cancels a transfer. Use the `transferOperations`.get method to check if the cancellation succeeded or if the operation completed despite the cancel request. When you cancel an operation, the currently running transfer is interrupted. For recurring transfer jobs, the next instance of the transfer job will still run. For example, if your job is configured to run every day at 1pm and you cancel Monday's operation at 1:05pm, Monday's transfer will stop. However, a transfer job will still be attempted on Tuesday. This applies only to currently running operations. If an operation is not currently running, cancel does nothing. *Caution:* Canceling a transfer job can leave your data in an unknown state. We recommend that you restore the state at both the destination and the source after the cancel request completes so that your data is in a consistent state. When you cancel a job, the next job computes a delta of files and may repair any inconsistent state. For instance, if you run a job every day, and today's job found 10 new files and transferred five files before you canceled the job, tomorrow's transfer operation will compute a new delta with the five files that were not copied today plus any new files discovered tomorrow.
 ///
@@ -1555,13 +1682,13 @@ pub fn storagetransfer_transfer_operations_cancel_execute(
 
 pub fn storagetransfer_transfer_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &StoragetransferTransferOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_operations_cancel_builder(client, name, body)?;
+    let builder =
+        storagetransfer_transfer_operations_cancel_builder(client, &args.name, &args.body)?;
     storagetransfer_transfer_operations_cancel_execute(builder)
 }
 
@@ -1655,6 +1782,13 @@ pub fn storagetransfer_transfer_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_transfer_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferTransferOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/transferOperations/{transferOperationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1667,12 +1801,12 @@ pub fn storagetransfer_transfer_operations_get_execute(
 
 pub fn storagetransfer_transfer_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &StoragetransferTransferOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_operations_get_builder(client, name)?;
+    let builder = storagetransfer_transfer_operations_get_builder(client, &args.name)?;
     storagetransfer_transfer_operations_get_execute(builder)
 }
 
@@ -1789,6 +1923,21 @@ pub fn storagetransfer_transfer_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_transfer_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferTransferOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Path parameter: filter
+    pub filter: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/transferOperations
 /// Lists transfer operations. Operations are ordered by their creation time in reverse chronological order.
 ///
@@ -1801,11 +1950,7 @@ pub fn storagetransfer_transfer_operations_list_execute(
 
 pub fn storagetransfer_transfer_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &StoragetransferTransferOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1814,11 +1959,11 @@ pub fn storagetransfer_transfer_operations_list(
 > {
     let builder = storagetransfer_transfer_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        &args.filter,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     storagetransfer_transfer_operations_list_execute(builder)
 }
@@ -1916,6 +2061,15 @@ pub fn storagetransfer_transfer_operations_pause_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_transfer_operations_pause`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferTransferOperationsPauseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: PauseTransferOperationRequest,
+}
+
 /// GET v1/transferOperations/{transferOperationsId}:pause
 /// Pauses a transfer operation.
 ///
@@ -1928,13 +2082,13 @@ pub fn storagetransfer_transfer_operations_pause_execute(
 
 pub fn storagetransfer_transfer_operations_pause(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &PauseTransferOperationRequest,
+    args: &StoragetransferTransferOperationsPauseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_operations_pause_builder(client, name, body)?;
+    let builder =
+        storagetransfer_transfer_operations_pause_builder(client, &args.name, &args.body)?;
     storagetransfer_transfer_operations_pause_execute(builder)
 }
 
@@ -2031,6 +2185,15 @@ pub fn storagetransfer_transfer_operations_resume_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`storagetransfer_transfer_operations_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferTransferOperationsResumeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResumeTransferOperationRequest,
+}
+
 /// GET v1/transferOperations/{transferOperationsId}:resume
 /// Resumes a transfer operation that is paused.
 ///
@@ -2043,12 +2206,12 @@ pub fn storagetransfer_transfer_operations_resume_execute(
 
 pub fn storagetransfer_transfer_operations_resume(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResumeTransferOperationRequest,
+    args: &StoragetransferTransferOperationsResumeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_operations_resume_builder(client, name, body)?;
+    let builder =
+        storagetransfer_transfer_operations_resume_builder(client, &args.name, &args.body)?;
     storagetransfer_transfer_operations_resume_execute(builder)
 }

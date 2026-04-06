@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn cloudtasks_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn cloudtasks_projects_locations_get_execute(
 
 pub fn cloudtasks_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudtasksProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudtasks_projects_locations_get_builder(client, name)?;
+    let builder = cloudtasks_projects_locations_get_builder(client, &args.name)?;
     cloudtasks_projects_locations_get_execute(builder)
 }
 
@@ -217,6 +226,13 @@ pub fn cloudtasks_projects_locations_get_cmek_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_get_cmek_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsGetCmekConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/cmekConfig
 /// Gets the CMEK config. Gets the Customer Managed Encryption Key configured with the Cloud Tasks lcoation. By default there is no kms_key configured.
 ///
@@ -229,12 +245,12 @@ pub fn cloudtasks_projects_locations_get_cmek_config_execute(
 
 pub fn cloudtasks_projects_locations_get_cmek_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudtasksProjectsLocationsGetCmekConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CmekConfig>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudtasks_projects_locations_get_cmek_config_builder(client, name)?;
+    let builder = cloudtasks_projects_locations_get_cmek_config_builder(client, &args.name)?;
     cloudtasks_projects_locations_get_cmek_config_execute(builder)
 }
 
@@ -354,6 +370,21 @@ pub fn cloudtasks_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -366,11 +397,7 @@ pub fn cloudtasks_projects_locations_list_execute(
 
 pub fn cloudtasks_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudtasksProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -379,11 +406,11 @@ pub fn cloudtasks_projects_locations_list(
 > {
     let builder = cloudtasks_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudtasks_projects_locations_list_execute(builder)
 }
@@ -493,6 +520,17 @@ pub fn cloudtasks_projects_locations_update_cmek_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_update_cmek_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsUpdateCmekConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CmekConfig,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/cmekConfig
 /// Creates or Updates a CMEK config. Updates the Customer Managed Encryption Key associated with the Cloud Tasks location (Creates if the key does not already exist). All new tasks created in the location will be encrypted at-rest with the KMS-key provided in the config.
 ///
@@ -505,15 +543,17 @@ pub fn cloudtasks_projects_locations_update_cmek_config_execute(
 
 pub fn cloudtasks_projects_locations_update_cmek_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &CmekConfig,
+    args: &CloudtasksProjectsLocationsUpdateCmekConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CmekConfig>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudtasks_projects_locations_update_cmek_config_builder(client, name, updateMask, body)?;
+    let builder = cloudtasks_projects_locations_update_cmek_config_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudtasks_projects_locations_update_cmek_config_execute(builder)
 }
 
@@ -610,6 +650,15 @@ pub fn cloudtasks_projects_locations_queues_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Queue,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues
 /// Creates a queue. Queues created with this method allow tasks to live for a maximum of 31 days. After a task is 31 days old, the task will be deleted regardless of whether it was dispatched or not. WARNING: Using this method may have unintended side effects if you are using an App Engine queue.yaml or queue.xml file to manage your queues. Read [Overview of Queue Management and queue.yaml](<https://cloud.google.`com/tasks/docs/queue-yaml`>) before using this method.
 ///
@@ -622,13 +671,13 @@ pub fn cloudtasks_projects_locations_queues_create_execute(
 
 pub fn cloudtasks_projects_locations_queues_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Queue,
+    args: &CloudtasksProjectsLocationsQueuesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudtasks_projects_locations_queues_create_builder(client, parent, body)?;
+    let builder =
+        cloudtasks_projects_locations_queues_create_builder(client, &args.parent, &args.body)?;
     cloudtasks_projects_locations_queues_create_execute(builder)
 }
 
@@ -722,6 +771,13 @@ pub fn cloudtasks_projects_locations_queues_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}
 /// Deletes a queue. This command will delete the queue even if it has tasks in it. Note: If you delete a queue, you may be prevented from creating a new queue with the same name as the deleted queue for a tombstone window of up to 3 days. During this window, the CreateQueue operation may appear to recreate the queue, but this can be misleading. If you attempt to create a queue with the same name as one that is in the tombstone window, run GetQueue to confirm that the queue creation was successful. If GetQueue returns 200 response code, your queue was successfully created with the name of the previously deleted queue. Otherwise, your queue did not successfully recreate. WARNING: Using this method may have unintended side effects if you are using an App Engine queue.yaml or queue.xml file to manage your queues. Read [Overview of Queue Management and queue.yaml](<https://cloud.google.`com/tasks/docs/queue-yaml`>) before using this method.
 ///
@@ -734,12 +790,12 @@ pub fn cloudtasks_projects_locations_queues_delete_execute(
 
 pub fn cloudtasks_projects_locations_queues_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudtasksProjectsLocationsQueuesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudtasks_projects_locations_queues_delete_builder(client, name)?;
+    let builder = cloudtasks_projects_locations_queues_delete_builder(client, &args.name)?;
     cloudtasks_projects_locations_queues_delete_execute(builder)
 }
 
@@ -833,6 +889,13 @@ pub fn cloudtasks_projects_locations_queues_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}
 /// Gets a queue.
 ///
@@ -845,12 +908,12 @@ pub fn cloudtasks_projects_locations_queues_get_execute(
 
 pub fn cloudtasks_projects_locations_queues_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudtasksProjectsLocationsQueuesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudtasks_projects_locations_queues_get_builder(client, name)?;
+    let builder = cloudtasks_projects_locations_queues_get_builder(client, &args.name)?;
     cloudtasks_projects_locations_queues_get_execute(builder)
 }
 
@@ -947,6 +1010,15 @@ pub fn cloudtasks_projects_locations_queues_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:getIamPolicy
 /// Gets the access control policy for a Queue. Returns an empty policy if the resource exists and does not have a policy set. Authorization requires the following [Google IAM](<https://cloud.google.`com/iam`>) permission on the specified resource parent: * cloudtasks.queues.`getIamPolicy`
 ///
@@ -959,14 +1031,16 @@ pub fn cloudtasks_projects_locations_queues_get_iam_policy_execute(
 
 pub fn cloudtasks_projects_locations_queues_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &CloudtasksProjectsLocationsQueuesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudtasks_projects_locations_queues_get_iam_policy_builder(client, resource, body)?;
+    let builder = cloudtasks_projects_locations_queues_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudtasks_projects_locations_queues_get_iam_policy_execute(builder)
 }
 
@@ -1082,6 +1156,19 @@ pub fn cloudtasks_projects_locations_queues_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues
 /// Lists queues. Queues are returned in lexicographical order.
 ///
@@ -1094,10 +1181,7 @@ pub fn cloudtasks_projects_locations_queues_list_execute(
 
 pub fn cloudtasks_projects_locations_queues_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudtasksProjectsLocationsQueuesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListQueuesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1105,7 +1189,11 @@ pub fn cloudtasks_projects_locations_queues_list(
     ApiError,
 > {
     let builder = cloudtasks_projects_locations_queues_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudtasks_projects_locations_queues_list_execute(builder)
 }
@@ -1215,6 +1303,17 @@ pub fn cloudtasks_projects_locations_queues_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Queue,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}
 /// Updates a queue. This method creates the queue if it does not exist and updates the queue if it does exist. Queues created with this method allow tasks to live for a maximum of 31 days. After a task is 31 days old, the task will be deleted regardless of whether it was dispatched or not. WARNING: Using this method may have unintended side effects if you are using an App Engine queue.yaml or queue.xml file to manage your queues. Read [Overview of Queue Management and queue.yaml](<https://cloud.google.`com/tasks/docs/queue-yaml`>) before using this method.
 ///
@@ -1227,15 +1326,17 @@ pub fn cloudtasks_projects_locations_queues_patch_execute(
 
 pub fn cloudtasks_projects_locations_queues_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Queue,
+    args: &CloudtasksProjectsLocationsQueuesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudtasks_projects_locations_queues_patch_builder(client, name, updateMask, body)?;
+    let builder = cloudtasks_projects_locations_queues_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudtasks_projects_locations_queues_patch_execute(builder)
 }
 
@@ -1332,6 +1433,15 @@ pub fn cloudtasks_projects_locations_queues_pause_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_pause`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesPauseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: PauseQueueRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:pause
 /// Pauses the queue. If a queue is paused then the system will stop dispatching tasks until the queue is resumed via ResumeQueue. Tasks can still be added when the queue is paused. A queue is paused if its state is PAUSED.
 ///
@@ -1344,13 +1454,13 @@ pub fn cloudtasks_projects_locations_queues_pause_execute(
 
 pub fn cloudtasks_projects_locations_queues_pause(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &PauseQueueRequest,
+    args: &CloudtasksProjectsLocationsQueuesPauseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudtasks_projects_locations_queues_pause_builder(client, name, body)?;
+    let builder =
+        cloudtasks_projects_locations_queues_pause_builder(client, &args.name, &args.body)?;
     cloudtasks_projects_locations_queues_pause_execute(builder)
 }
 
@@ -1447,6 +1557,15 @@ pub fn cloudtasks_projects_locations_queues_purge_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_purge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesPurgeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: PurgeQueueRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:purge
 /// Purges a queue by deleting all of its tasks. All tasks created before this method is called are permanently deleted. Purge operations can take up to one minute to take effect. Tasks might be dispatched before the purge takes effect. A purge is irreversible.
 ///
@@ -1459,13 +1578,13 @@ pub fn cloudtasks_projects_locations_queues_purge_execute(
 
 pub fn cloudtasks_projects_locations_queues_purge(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &PurgeQueueRequest,
+    args: &CloudtasksProjectsLocationsQueuesPurgeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudtasks_projects_locations_queues_purge_builder(client, name, body)?;
+    let builder =
+        cloudtasks_projects_locations_queues_purge_builder(client, &args.name, &args.body)?;
     cloudtasks_projects_locations_queues_purge_execute(builder)
 }
 
@@ -1562,6 +1681,15 @@ pub fn cloudtasks_projects_locations_queues_resume_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesResumeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResumeQueueRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:resume
 /// Resume a queue. This method resumes a queue after it has been PAUSED or DISABLED. The state of a queue is stored in the queue's state; after calling this method it will be set to RUNNING. WARNING: Resuming many high-QPS queues at the same time can lead to target overloading. If you are resuming high-QPS queues, follow the 500/50/5 pattern described in [Managing Cloud Tasks Scaling Risks](<https://cloud.google.`com/tasks/docs/manage-cloud-task-scaling`>).
 ///
@@ -1574,13 +1702,13 @@ pub fn cloudtasks_projects_locations_queues_resume_execute(
 
 pub fn cloudtasks_projects_locations_queues_resume(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResumeQueueRequest,
+    args: &CloudtasksProjectsLocationsQueuesResumeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Queue>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudtasks_projects_locations_queues_resume_builder(client, name, body)?;
+    let builder =
+        cloudtasks_projects_locations_queues_resume_builder(client, &args.name, &args.body)?;
     cloudtasks_projects_locations_queues_resume_execute(builder)
 }
 
@@ -1677,6 +1805,15 @@ pub fn cloudtasks_projects_locations_queues_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:setIamPolicy
 /// Sets the access control policy for a Queue. Replaces any existing policy. Note: The Cloud Console does not check queue-level IAM permissions yet. Project-level permissions are required to use the Cloud Console. Authorization requires the following [Google IAM](<https://cloud.google.`com/iam`>) permission on the specified resource parent: * cloudtasks.queues.`setIamPolicy`
 ///
@@ -1689,14 +1826,16 @@ pub fn cloudtasks_projects_locations_queues_set_iam_policy_execute(
 
 pub fn cloudtasks_projects_locations_queues_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &CloudtasksProjectsLocationsQueuesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudtasks_projects_locations_queues_set_iam_policy_builder(client, resource, body)?;
+    let builder = cloudtasks_projects_locations_queues_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudtasks_projects_locations_queues_set_iam_policy_execute(builder)
 }
 
@@ -1797,6 +1936,15 @@ pub fn cloudtasks_projects_locations_queues_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}:testIamPermissions
 /// Returns permissions that a caller has on a Queue. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1809,8 +1957,7 @@ pub fn cloudtasks_projects_locations_queues_test_iam_permissions_execute(
 
 pub fn cloudtasks_projects_locations_queues_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &CloudtasksProjectsLocationsQueuesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1819,8 +1966,11 @@ pub fn cloudtasks_projects_locations_queues_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudtasks_projects_locations_queues_test_iam_permissions_builder(client, resource, body)?;
+    let builder = cloudtasks_projects_locations_queues_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudtasks_projects_locations_queues_test_iam_permissions_execute(builder)
 }
 
@@ -1920,6 +2070,17 @@ pub fn cloudtasks_projects_locations_queues_tasks_buffer_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_tasks_buffer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesTasksBufferArgs {
+    /// Path parameter: queue
+    pub queue: String,
+    /// Path parameter: taskId
+    pub taskId: String,
+    /// Request body.
+    pub body: BufferTaskRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{taskId}:buffer
 /// Creates and buffers a new task without the need to explicitly define a Task message. The queue must have HTTP target. To create the task with a custom ID, use the following format and set TASK_ID to your desired ID: `projects/PROJECT_ID/locations/LOCATION_ID/queues/QUEUE_ID/tasks/TASK_ID`:buffer To create the task with an automatically generated ID, use the following format: `projects/PROJECT_ID/locations/LOCATION_ID/queues/QUEUE_ID/tasks`:buffer.
 ///
@@ -1932,17 +2093,19 @@ pub fn cloudtasks_projects_locations_queues_tasks_buffer_execute(
 
 pub fn cloudtasks_projects_locations_queues_tasks_buffer(
     client: &SimpleHttpClient,
-    queue: &str,
-    taskId: &str,
-    body: &BufferTaskRequest,
+    args: &CloudtasksProjectsLocationsQueuesTasksBufferArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BufferTaskResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudtasks_projects_locations_queues_tasks_buffer_builder(client, queue, taskId, body)?;
+    let builder = cloudtasks_projects_locations_queues_tasks_buffer_builder(
+        client,
+        &args.queue,
+        &args.taskId,
+        &args.body,
+    )?;
     cloudtasks_projects_locations_queues_tasks_buffer_execute(builder)
 }
 
@@ -2039,6 +2202,15 @@ pub fn cloudtasks_projects_locations_queues_tasks_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_tasks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesTasksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateTaskRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks
 /// Creates a task and adds it to a queue. Tasks cannot be updated after creation; there is no UpdateTask command. * The maximum task size is 100KB.
 ///
@@ -2051,13 +2223,16 @@ pub fn cloudtasks_projects_locations_queues_tasks_create_execute(
 
 pub fn cloudtasks_projects_locations_queues_tasks_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateTaskRequest,
+    args: &CloudtasksProjectsLocationsQueuesTasksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudtasks_projects_locations_queues_tasks_create_builder(client, parent, body)?;
+    let builder = cloudtasks_projects_locations_queues_tasks_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     cloudtasks_projects_locations_queues_tasks_create_execute(builder)
 }
 
@@ -2151,6 +2326,13 @@ pub fn cloudtasks_projects_locations_queues_tasks_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_tasks_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesTasksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}
 /// Deletes a task. A task can be deleted if it is scheduled or dispatched. A task cannot be deleted if it has executed successfully or permanently failed.
 ///
@@ -2163,12 +2345,12 @@ pub fn cloudtasks_projects_locations_queues_tasks_delete_execute(
 
 pub fn cloudtasks_projects_locations_queues_tasks_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudtasksProjectsLocationsQueuesTasksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudtasks_projects_locations_queues_tasks_delete_builder(client, name)?;
+    let builder = cloudtasks_projects_locations_queues_tasks_delete_builder(client, &args.name)?;
     cloudtasks_projects_locations_queues_tasks_delete_execute(builder)
 }
 
@@ -2274,6 +2456,15 @@ pub fn cloudtasks_projects_locations_queues_tasks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_tasks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesTasksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: responseView
+    pub responseView: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}
 /// Gets a task. After a task is successfully executed or has exhausted its retry attempts, the task is deleted. A GetTask request for a deleted task returns a NOT_FOUND error.
 ///
@@ -2286,14 +2477,16 @@ pub fn cloudtasks_projects_locations_queues_tasks_get_execute(
 
 pub fn cloudtasks_projects_locations_queues_tasks_get(
     client: &SimpleHttpClient,
-    name: &str,
-    responseView: Option<&str>,
+    args: &CloudtasksProjectsLocationsQueuesTasksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudtasks_projects_locations_queues_tasks_get_builder(client, name, responseView)?;
+    let builder = cloudtasks_projects_locations_queues_tasks_get_builder(
+        client,
+        &args.name,
+        args.responseView.as_deref(),
+    )?;
     cloudtasks_projects_locations_queues_tasks_get_execute(builder)
 }
 
@@ -2409,6 +2602,19 @@ pub fn cloudtasks_projects_locations_queues_tasks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_tasks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesTasksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: responseView
+    pub responseView: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks
 /// Lists the tasks in a queue. By default, only the BASIC view is retrieved due to performance considerations; response_view controls the subset of information which is returned. The tasks may be returned in any order. The ordering may change at any time.
 ///
@@ -2421,10 +2627,7 @@ pub fn cloudtasks_projects_locations_queues_tasks_list_execute(
 
 pub fn cloudtasks_projects_locations_queues_tasks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    responseView: Option<&str>,
+    args: &CloudtasksProjectsLocationsQueuesTasksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTasksResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2433,10 +2636,10 @@ pub fn cloudtasks_projects_locations_queues_tasks_list(
 > {
     let builder = cloudtasks_projects_locations_queues_tasks_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        responseView,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.responseView.as_deref(),
     )?;
     cloudtasks_projects_locations_queues_tasks_list_execute(builder)
 }
@@ -2534,6 +2737,15 @@ pub fn cloudtasks_projects_locations_queues_tasks_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudtasks_projects_locations_queues_tasks_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudtasksProjectsLocationsQueuesTasksRunArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RunTaskRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}:run
 /// Forces a task to run now. When this method is called, Cloud Tasks will dispatch the task, even if the task is already running, the queue has reached its RateLimits or is PAUSED. This command is meant to be used for manual debugging. For example, RunTask can be used to retry a failed task after a fix has been made or to manually force a task to be dispatched now. If Cloud Tasks receives a successful response from the task's target, then the task will be deleted; otherwise the task's schedule_time will be reset to the time that RunTask was called plus the retry delay specified in the queue's RetryConfig. RunTask returns NOT_FOUND when it is called on a task that has already succeeded or permanently failed.
 ///
@@ -2546,12 +2758,12 @@ pub fn cloudtasks_projects_locations_queues_tasks_run_execute(
 
 pub fn cloudtasks_projects_locations_queues_tasks_run(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RunTaskRequest,
+    args: &CloudtasksProjectsLocationsQueuesTasksRunArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudtasks_projects_locations_queues_tasks_run_builder(client, name, body)?;
+    let builder =
+        cloudtasks_projects_locations_queues_tasks_run_builder(client, &args.name, &args.body)?;
     cloudtasks_projects_locations_queues_tasks_run_execute(builder)
 }

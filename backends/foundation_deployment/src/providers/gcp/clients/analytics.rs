@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET data/ga
 /// Returns Analytics data for a view (profile).
@@ -153,6 +155,37 @@ pub fn analytics_data_ga_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_data_ga_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsDataGaGetArgs {
+    /// Path parameter: ids
+    pub ids: String,
+    /// Path parameter: start_date
+    pub start_date: String,
+    /// Path parameter: end_date
+    pub end_date: String,
+    /// Path parameter: metrics
+    pub metrics: String,
+    /// Query parameter: dimensions
+    pub dimensions: Option<String>,
+    /// Query parameter: filters
+    pub filters: Option<String>,
+    /// Query parameter: include_empty_rows
+    pub include_empty_rows: Option<bool>,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: output
+    pub output: Option<String>,
+    /// Query parameter: samplingLevel
+    pub samplingLevel: Option<String>,
+    /// Query parameter: segment
+    pub segment: Option<String>,
+    /// Query parameter: sort
+    pub sort: Option<String>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET data/ga
 /// Returns Analytics data for a view (profile).
 ///
@@ -165,38 +198,26 @@ pub fn analytics_data_ga_get_execute(
 
 pub fn analytics_data_ga_get(
     client: &SimpleHttpClient,
-    ids: &str,
-    start_date: &str,
-    end_date: &str,
-    metrics: &str,
-    dimensions: Option<&str>,
-    filters: Option<&str>,
-    include_empty_rows: Option<bool>,
-    max_results: Option<i32>,
-    output: Option<&str>,
-    samplingLevel: Option<&str>,
-    segment: Option<&str>,
-    sort: Option<&str>,
-    start_index: Option<i32>,
+    args: &AnalyticsDataGaGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GaData>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_data_ga_get_builder(
         client,
-        ids,
-        start_date,
-        end_date,
-        metrics,
-        dimensions,
-        filters,
-        include_empty_rows,
-        max_results,
-        output,
-        samplingLevel,
-        segment,
-        sort,
-        start_index,
+        &args.ids,
+        &args.start_date,
+        &args.end_date,
+        &args.metrics,
+        args.dimensions.as_deref(),
+        args.filters.as_deref(),
+        args.include_empty_rows,
+        args.max_results,
+        args.output.as_deref(),
+        args.samplingLevel.as_deref(),
+        args.segment.as_deref(),
+        args.sort.as_deref(),
+        args.start_index,
     )?;
     analytics_data_ga_get_execute(builder)
 }
@@ -326,6 +347,31 @@ pub fn analytics_data_mcf_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_data_mcf_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsDataMcfGetArgs {
+    /// Path parameter: ids
+    pub ids: String,
+    /// Path parameter: start_date
+    pub start_date: String,
+    /// Path parameter: end_date
+    pub end_date: String,
+    /// Path parameter: metrics
+    pub metrics: String,
+    /// Query parameter: dimensions
+    pub dimensions: Option<String>,
+    /// Query parameter: filters
+    pub filters: Option<String>,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: samplingLevel
+    pub samplingLevel: Option<String>,
+    /// Query parameter: sort
+    pub sort: Option<String>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET data/mcf
 /// Returns Analytics Multi-Channel Funnels data for a view (profile).
 ///
@@ -338,32 +384,23 @@ pub fn analytics_data_mcf_get_execute(
 
 pub fn analytics_data_mcf_get(
     client: &SimpleHttpClient,
-    ids: &str,
-    start_date: &str,
-    end_date: &str,
-    metrics: &str,
-    dimensions: Option<&str>,
-    filters: Option<&str>,
-    max_results: Option<i32>,
-    samplingLevel: Option<&str>,
-    sort: Option<&str>,
-    start_index: Option<i32>,
+    args: &AnalyticsDataMcfGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<McfData>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_data_mcf_get_builder(
         client,
-        ids,
-        start_date,
-        end_date,
-        metrics,
-        dimensions,
-        filters,
-        max_results,
-        samplingLevel,
-        sort,
-        start_index,
+        &args.ids,
+        &args.start_date,
+        &args.end_date,
+        &args.metrics,
+        args.dimensions.as_deref(),
+        args.filters.as_deref(),
+        args.max_results,
+        args.samplingLevel.as_deref(),
+        args.sort.as_deref(),
+        args.start_index,
     )?;
     analytics_data_mcf_get_execute(builder)
 }
@@ -485,6 +522,23 @@ pub fn analytics_data_realtime_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_data_realtime_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsDataRealtimeGetArgs {
+    /// Path parameter: ids
+    pub ids: String,
+    /// Path parameter: metrics
+    pub metrics: String,
+    /// Query parameter: dimensions
+    pub dimensions: Option<String>,
+    /// Query parameter: filters
+    pub filters: Option<String>,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: sort
+    pub sort: Option<String>,
+}
+
 /// GET data/realtime
 /// Returns real time data for a view (profile).
 ///
@@ -497,12 +551,7 @@ pub fn analytics_data_realtime_get_execute(
 
 pub fn analytics_data_realtime_get(
     client: &SimpleHttpClient,
-    ids: &str,
-    metrics: &str,
-    dimensions: Option<&str>,
-    filters: Option<&str>,
-    max_results: Option<i32>,
-    sort: Option<&str>,
+    args: &AnalyticsDataRealtimeGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RealtimeData>, ApiError>, P = ApiPending>
         + Send
@@ -511,12 +560,12 @@ pub fn analytics_data_realtime_get(
 > {
     let builder = analytics_data_realtime_get_builder(
         client,
-        ids,
-        metrics,
-        dimensions,
-        filters,
-        max_results,
-        sort,
+        &args.ids,
+        &args.metrics,
+        args.dimensions.as_deref(),
+        args.filters.as_deref(),
+        args.max_results,
+        args.sort.as_deref(),
     )?;
     analytics_data_realtime_get_execute(builder)
 }
@@ -625,6 +674,15 @@ pub fn analytics_management_account_summaries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_account_summaries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementAccountSummariesListArgs {
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accountSummaries
 /// Lists account summaries (lightweight tree comprised of `accounts/properties/profiles`) to which the user has access.
 ///
@@ -637,16 +695,18 @@ pub fn analytics_management_account_summaries_list_execute(
 
 pub fn analytics_management_account_summaries_list(
     client: &SimpleHttpClient,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementAccountSummariesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountSummaries>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        analytics_management_account_summaries_list_builder(client, max_results, start_index)?;
+    let builder = analytics_management_account_summaries_list_builder(
+        client,
+        args.max_results,
+        args.start_index,
+    )?;
     analytics_management_account_summaries_list_execute(builder)
 }
 
@@ -738,6 +798,15 @@ pub fn analytics_management_account_user_links_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_account_user_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementAccountUserLinksDeleteArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: linkId
+    pub linkId: String,
+}
+
 /// GET management/accounts/{accountId}/entityUserLinks/{linkId}
 /// Removes a user from the given account.
 ///
@@ -750,14 +819,16 @@ pub fn analytics_management_account_user_links_delete_execute(
 
 pub fn analytics_management_account_user_links_delete(
     client: &SimpleHttpClient,
-    accountId: &str,
-    linkId: &str,
+    args: &AnalyticsManagementAccountUserLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        analytics_management_account_user_links_delete_builder(client, accountId, linkId)?;
+    let builder = analytics_management_account_user_links_delete_builder(
+        client,
+        &args.accountId,
+        &args.linkId,
+    )?;
     analytics_management_account_user_links_delete_execute(builder)
 }
 
@@ -856,6 +927,15 @@ pub fn analytics_management_account_user_links_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_account_user_links_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementAccountUserLinksInsertArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Request body.
+    pub body: EntityUserLink,
+}
+
 /// GET management/accounts/{accountId}/entityUserLinks
 /// Adds a new user to the given account.
 ///
@@ -868,15 +948,18 @@ pub fn analytics_management_account_user_links_insert_execute(
 
 pub fn analytics_management_account_user_links_insert(
     client: &SimpleHttpClient,
-    accountId: &str,
-    body: &EntityUserLink,
+    args: &AnalyticsManagementAccountUserLinksInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = analytics_management_account_user_links_insert_builder(client, accountId, body)?;
+    let builder = analytics_management_account_user_links_insert_builder(
+        client,
+        &args.accountId,
+        &args.body,
+    )?;
     analytics_management_account_user_links_insert_execute(builder)
 }
 
@@ -988,6 +1071,17 @@ pub fn analytics_management_account_user_links_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_account_user_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementAccountUserLinksListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accounts/{accountId}/entityUserLinks
 /// Lists account-user links for a given account.
 ///
@@ -1000,9 +1094,7 @@ pub fn analytics_management_account_user_links_list_execute(
 
 pub fn analytics_management_account_user_links_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementAccountUserLinksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EntityUserLinks>, ApiError>, P = ApiPending>
         + Send
@@ -1011,9 +1103,9 @@ pub fn analytics_management_account_user_links_list(
 > {
     let builder = analytics_management_account_user_links_list_builder(
         client,
-        accountId,
-        max_results,
-        start_index,
+        &args.accountId,
+        args.max_results,
+        args.start_index,
     )?;
     analytics_management_account_user_links_list_execute(builder)
 }
@@ -1114,6 +1206,17 @@ pub fn analytics_management_account_user_links_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_account_user_links_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementAccountUserLinksUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: linkId
+    pub linkId: String,
+    /// Request body.
+    pub body: EntityUserLink,
+}
+
 /// GET management/accounts/{accountId}/entityUserLinks/{linkId}
 /// Updates permissions for an existing user on the given account.
 ///
@@ -1126,17 +1229,19 @@ pub fn analytics_management_account_user_links_update_execute(
 
 pub fn analytics_management_account_user_links_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    linkId: &str,
-    body: &EntityUserLink,
+    args: &AnalyticsManagementAccountUserLinksUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        analytics_management_account_user_links_update_builder(client, accountId, linkId, body)?;
+    let builder = analytics_management_account_user_links_update_builder(
+        client,
+        &args.accountId,
+        &args.linkId,
+        &args.body,
+    )?;
     analytics_management_account_user_links_update_execute(builder)
 }
 
@@ -1242,6 +1347,15 @@ pub fn analytics_management_accounts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementAccountsListArgs {
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accounts
 /// Lists all accounts to which the user has access.
 ///
@@ -1254,13 +1368,13 @@ pub fn analytics_management_accounts_list_execute(
 
 pub fn analytics_management_accounts_list(
     client: &SimpleHttpClient,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementAccountsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Accounts>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_management_accounts_list_builder(client, max_results, start_index)?;
+    let builder =
+        analytics_management_accounts_list_builder(client, args.max_results, args.start_index)?;
     analytics_management_accounts_list_execute(builder)
 }
 
@@ -1355,6 +1469,13 @@ pub fn analytics_management_client_id_hash_client_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_client_id_hash_client_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementClientIdHashClientIdArgs {
+    /// Request body.
+    pub body: HashClientIdRequest,
+}
+
 /// GET management/clientId:hashClientId
 /// Hashes the given Client ID.
 ///
@@ -1367,14 +1488,14 @@ pub fn analytics_management_client_id_hash_client_id_execute(
 
 pub fn analytics_management_client_id_hash_client_id(
     client: &SimpleHttpClient,
-    body: &HashClientIdRequest,
+    args: &AnalyticsManagementClientIdHashClientIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HashClientIdResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = analytics_management_client_id_hash_client_id_builder(client, body)?;
+    let builder = analytics_management_client_id_hash_client_id_builder(client, &args.body)?;
     analytics_management_client_id_hash_client_id_execute(builder)
 }
 
@@ -1488,6 +1609,19 @@ pub fn analytics_management_custom_data_sources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_custom_data_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementCustomDataSourcesListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources
 /// List custom data sources to which the user has access.
 ///
@@ -1500,10 +1634,7 @@ pub fn analytics_management_custom_data_sources_list_execute(
 
 pub fn analytics_management_custom_data_sources_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementCustomDataSourcesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomDataSources>, ApiError>, P = ApiPending>
         + Send
@@ -1512,10 +1643,10 @@ pub fn analytics_management_custom_data_sources_list(
 > {
     let builder = analytics_management_custom_data_sources_list_builder(
         client,
-        accountId,
-        webPropertyId,
-        max_results,
-        start_index,
+        &args.accountId,
+        &args.webPropertyId,
+        args.max_results,
+        args.start_index,
     )?;
     analytics_management_custom_data_sources_list_execute(builder)
 }
@@ -1616,6 +1747,17 @@ pub fn analytics_management_custom_dimensions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_custom_dimensions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementCustomDimensionsGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: customDimensionId
+    pub customDimensionId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions/{customDimensionId}
 /// Get a custom dimension to which the user has access.
 ///
@@ -1628,9 +1770,7 @@ pub fn analytics_management_custom_dimensions_get_execute(
 
 pub fn analytics_management_custom_dimensions_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customDimensionId: &str,
+    args: &AnalyticsManagementCustomDimensionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomDimension>, ApiError>, P = ApiPending>
         + Send
@@ -1639,9 +1779,9 @@ pub fn analytics_management_custom_dimensions_get(
 > {
     let builder = analytics_management_custom_dimensions_get_builder(
         client,
-        accountId,
-        webPropertyId,
-        customDimensionId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.customDimensionId,
     )?;
     analytics_management_custom_dimensions_get_execute(builder)
 }
@@ -1743,6 +1883,17 @@ pub fn analytics_management_custom_dimensions_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_custom_dimensions_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementCustomDimensionsInsertArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Request body.
+    pub body: CustomDimension,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions
 /// Create a new custom dimension.
 ///
@@ -1755,9 +1906,7 @@ pub fn analytics_management_custom_dimensions_insert_execute(
 
 pub fn analytics_management_custom_dimensions_insert(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    body: &CustomDimension,
+    args: &AnalyticsManagementCustomDimensionsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomDimension>, ApiError>, P = ApiPending>
         + Send
@@ -1766,9 +1915,9 @@ pub fn analytics_management_custom_dimensions_insert(
 > {
     let builder = analytics_management_custom_dimensions_insert_builder(
         client,
-        accountId,
-        webPropertyId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.body,
     )?;
     analytics_management_custom_dimensions_insert_execute(builder)
 }
@@ -1883,6 +2032,19 @@ pub fn analytics_management_custom_dimensions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_custom_dimensions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementCustomDimensionsListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions
 /// Lists custom dimensions to which the user has access.
 ///
@@ -1895,10 +2057,7 @@ pub fn analytics_management_custom_dimensions_list_execute(
 
 pub fn analytics_management_custom_dimensions_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementCustomDimensionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomDimensions>, ApiError>, P = ApiPending>
         + Send
@@ -1907,10 +2066,10 @@ pub fn analytics_management_custom_dimensions_list(
 > {
     let builder = analytics_management_custom_dimensions_list_builder(
         client,
-        accountId,
-        webPropertyId,
-        max_results,
-        start_index,
+        &args.accountId,
+        &args.webPropertyId,
+        args.max_results,
+        args.start_index,
     )?;
     analytics_management_custom_dimensions_list_execute(builder)
 }
@@ -2026,6 +2185,21 @@ pub fn analytics_management_custom_dimensions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_custom_dimensions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementCustomDimensionsPatchArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: customDimensionId
+    pub customDimensionId: String,
+    /// Query parameter: ignoreCustomDataSourceLinks
+    pub ignoreCustomDataSourceLinks: Option<bool>,
+    /// Request body.
+    pub body: CustomDimension,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions/{customDimensionId}
 /// Updates an existing custom dimension. This method supports patch semantics.
 ///
@@ -2038,11 +2212,7 @@ pub fn analytics_management_custom_dimensions_patch_execute(
 
 pub fn analytics_management_custom_dimensions_patch(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customDimensionId: &str,
-    ignoreCustomDataSourceLinks: Option<bool>,
-    body: &CustomDimension,
+    args: &AnalyticsManagementCustomDimensionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomDimension>, ApiError>, P = ApiPending>
         + Send
@@ -2051,11 +2221,11 @@ pub fn analytics_management_custom_dimensions_patch(
 > {
     let builder = analytics_management_custom_dimensions_patch_builder(
         client,
-        accountId,
-        webPropertyId,
-        customDimensionId,
-        ignoreCustomDataSourceLinks,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.customDimensionId,
+        args.ignoreCustomDataSourceLinks,
+        &args.body,
     )?;
     analytics_management_custom_dimensions_patch_execute(builder)
 }
@@ -2171,6 +2341,21 @@ pub fn analytics_management_custom_dimensions_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_custom_dimensions_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementCustomDimensionsUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: customDimensionId
+    pub customDimensionId: String,
+    /// Query parameter: ignoreCustomDataSourceLinks
+    pub ignoreCustomDataSourceLinks: Option<bool>,
+    /// Request body.
+    pub body: CustomDimension,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions/{customDimensionId}
 /// Updates an existing custom dimension.
 ///
@@ -2183,11 +2368,7 @@ pub fn analytics_management_custom_dimensions_update_execute(
 
 pub fn analytics_management_custom_dimensions_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customDimensionId: &str,
-    ignoreCustomDataSourceLinks: Option<bool>,
-    body: &CustomDimension,
+    args: &AnalyticsManagementCustomDimensionsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomDimension>, ApiError>, P = ApiPending>
         + Send
@@ -2196,11 +2377,11 @@ pub fn analytics_management_custom_dimensions_update(
 > {
     let builder = analytics_management_custom_dimensions_update_builder(
         client,
-        accountId,
-        webPropertyId,
-        customDimensionId,
-        ignoreCustomDataSourceLinks,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.customDimensionId,
+        args.ignoreCustomDataSourceLinks,
+        &args.body,
     )?;
     analytics_management_custom_dimensions_update_execute(builder)
 }
@@ -2301,6 +2482,17 @@ pub fn analytics_management_custom_metrics_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_custom_metrics_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementCustomMetricsGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: customMetricId
+    pub customMetricId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}
 /// Get a custom metric to which the user has access.
 ///
@@ -2313,9 +2505,7 @@ pub fn analytics_management_custom_metrics_get_execute(
 
 pub fn analytics_management_custom_metrics_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customMetricId: &str,
+    args: &AnalyticsManagementCustomMetricsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomMetric>, ApiError>, P = ApiPending>
         + Send
@@ -2324,9 +2514,9 @@ pub fn analytics_management_custom_metrics_get(
 > {
     let builder = analytics_management_custom_metrics_get_builder(
         client,
-        accountId,
-        webPropertyId,
-        customMetricId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.customMetricId,
     )?;
     analytics_management_custom_metrics_get_execute(builder)
 }
@@ -2428,6 +2618,17 @@ pub fn analytics_management_custom_metrics_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_custom_metrics_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementCustomMetricsInsertArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Request body.
+    pub body: CustomMetric,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics
 /// Create a new custom metric.
 ///
@@ -2440,17 +2641,19 @@ pub fn analytics_management_custom_metrics_insert_execute(
 
 pub fn analytics_management_custom_metrics_insert(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    body: &CustomMetric,
+    args: &AnalyticsManagementCustomMetricsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomMetric>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        analytics_management_custom_metrics_insert_builder(client, accountId, webPropertyId, body)?;
+    let builder = analytics_management_custom_metrics_insert_builder(
+        client,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.body,
+    )?;
     analytics_management_custom_metrics_insert_execute(builder)
 }
 
@@ -2564,6 +2767,19 @@ pub fn analytics_management_custom_metrics_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_custom_metrics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementCustomMetricsListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics
 /// Lists custom metrics to which the user has access.
 ///
@@ -2576,10 +2792,7 @@ pub fn analytics_management_custom_metrics_list_execute(
 
 pub fn analytics_management_custom_metrics_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementCustomMetricsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomMetrics>, ApiError>, P = ApiPending>
         + Send
@@ -2588,10 +2801,10 @@ pub fn analytics_management_custom_metrics_list(
 > {
     let builder = analytics_management_custom_metrics_list_builder(
         client,
-        accountId,
-        webPropertyId,
-        max_results,
-        start_index,
+        &args.accountId,
+        &args.webPropertyId,
+        args.max_results,
+        args.start_index,
     )?;
     analytics_management_custom_metrics_list_execute(builder)
 }
@@ -2707,6 +2920,21 @@ pub fn analytics_management_custom_metrics_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_custom_metrics_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementCustomMetricsPatchArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: customMetricId
+    pub customMetricId: String,
+    /// Query parameter: ignoreCustomDataSourceLinks
+    pub ignoreCustomDataSourceLinks: Option<bool>,
+    /// Request body.
+    pub body: CustomMetric,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}
 /// Updates an existing custom metric. This method supports patch semantics.
 ///
@@ -2719,11 +2947,7 @@ pub fn analytics_management_custom_metrics_patch_execute(
 
 pub fn analytics_management_custom_metrics_patch(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customMetricId: &str,
-    ignoreCustomDataSourceLinks: Option<bool>,
-    body: &CustomMetric,
+    args: &AnalyticsManagementCustomMetricsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomMetric>, ApiError>, P = ApiPending>
         + Send
@@ -2732,11 +2956,11 @@ pub fn analytics_management_custom_metrics_patch(
 > {
     let builder = analytics_management_custom_metrics_patch_builder(
         client,
-        accountId,
-        webPropertyId,
-        customMetricId,
-        ignoreCustomDataSourceLinks,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.customMetricId,
+        args.ignoreCustomDataSourceLinks,
+        &args.body,
     )?;
     analytics_management_custom_metrics_patch_execute(builder)
 }
@@ -2852,6 +3076,21 @@ pub fn analytics_management_custom_metrics_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_custom_metrics_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementCustomMetricsUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: customMetricId
+    pub customMetricId: String,
+    /// Query parameter: ignoreCustomDataSourceLinks
+    pub ignoreCustomDataSourceLinks: Option<bool>,
+    /// Request body.
+    pub body: CustomMetric,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}
 /// Updates an existing custom metric.
 ///
@@ -2864,11 +3103,7 @@ pub fn analytics_management_custom_metrics_update_execute(
 
 pub fn analytics_management_custom_metrics_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customMetricId: &str,
-    ignoreCustomDataSourceLinks: Option<bool>,
-    body: &CustomMetric,
+    args: &AnalyticsManagementCustomMetricsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomMetric>, ApiError>, P = ApiPending>
         + Send
@@ -2877,11 +3112,11 @@ pub fn analytics_management_custom_metrics_update(
 > {
     let builder = analytics_management_custom_metrics_update_builder(
         client,
-        accountId,
-        webPropertyId,
-        customMetricId,
-        ignoreCustomDataSourceLinks,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.customMetricId,
+        args.ignoreCustomDataSourceLinks,
+        &args.body,
     )?;
     analytics_management_custom_metrics_update_execute(builder)
 }
@@ -2979,6 +3214,19 @@ pub fn analytics_management_experiments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_experiments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementExperimentsDeleteArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: experimentId
+    pub experimentId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
 /// Delete an experiment.
 ///
@@ -2991,20 +3239,17 @@ pub fn analytics_management_experiments_delete_execute(
 
 pub fn analytics_management_experiments_delete(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    experimentId: &str,
+    args: &AnalyticsManagementExperimentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_experiments_delete_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        experimentId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.experimentId,
     )?;
     analytics_management_experiments_delete_execute(builder)
 }
@@ -3105,6 +3350,19 @@ pub fn analytics_management_experiments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_experiments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementExperimentsGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: experimentId
+    pub experimentId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
 /// Returns an experiment to which the user has access.
 ///
@@ -3117,20 +3375,17 @@ pub fn analytics_management_experiments_get_execute(
 
 pub fn analytics_management_experiments_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    experimentId: &str,
+    args: &AnalyticsManagementExperimentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Experiment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_experiments_get_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        experimentId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.experimentId,
     )?;
     analytics_management_experiments_get_execute(builder)
 }
@@ -3232,6 +3487,19 @@ pub fn analytics_management_experiments_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_experiments_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementExperimentsInsertArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Experiment,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments
 /// Create a new experiment.
 ///
@@ -3244,20 +3512,17 @@ pub fn analytics_management_experiments_insert_execute(
 
 pub fn analytics_management_experiments_insert(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    body: &Experiment,
+    args: &AnalyticsManagementExperimentsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Experiment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_experiments_insert_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.body,
     )?;
     analytics_management_experiments_insert_execute(builder)
 }
@@ -3372,6 +3637,21 @@ pub fn analytics_management_experiments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_experiments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementExperimentsListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments
 /// Lists experiments to which the user has access.
 ///
@@ -3384,22 +3664,18 @@ pub fn analytics_management_experiments_list_execute(
 
 pub fn analytics_management_experiments_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementExperimentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Experiments>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_experiments_list_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        max_results,
-        start_index,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        args.max_results,
+        args.start_index,
     )?;
     analytics_management_experiments_list_execute(builder)
 }
@@ -3503,6 +3779,21 @@ pub fn analytics_management_experiments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_experiments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementExperimentsPatchArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: experimentId
+    pub experimentId: String,
+    /// Request body.
+    pub body: Experiment,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
 /// Update an existing experiment. This method supports patch semantics.
 ///
@@ -3515,22 +3806,18 @@ pub fn analytics_management_experiments_patch_execute(
 
 pub fn analytics_management_experiments_patch(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    experimentId: &str,
-    body: &Experiment,
+    args: &AnalyticsManagementExperimentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Experiment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_experiments_patch_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        experimentId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.experimentId,
+        &args.body,
     )?;
     analytics_management_experiments_patch_execute(builder)
 }
@@ -3634,6 +3921,21 @@ pub fn analytics_management_experiments_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_experiments_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementExperimentsUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: experimentId
+    pub experimentId: String,
+    /// Request body.
+    pub body: Experiment,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
 /// Update an existing experiment.
 ///
@@ -3646,22 +3948,18 @@ pub fn analytics_management_experiments_update_execute(
 
 pub fn analytics_management_experiments_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    experimentId: &str,
-    body: &Experiment,
+    args: &AnalyticsManagementExperimentsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Experiment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_experiments_update_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        experimentId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.experimentId,
+        &args.body,
     )?;
     analytics_management_experiments_update_execute(builder)
 }
@@ -3757,6 +4055,15 @@ pub fn analytics_management_filters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_filters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementFiltersDeleteArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: filterId
+    pub filterId: String,
+}
+
 /// GET management/accounts/{accountId}/filters/{filterId}
 /// Delete a filter.
 ///
@@ -3769,13 +4076,13 @@ pub fn analytics_management_filters_delete_execute(
 
 pub fn analytics_management_filters_delete(
     client: &SimpleHttpClient,
-    accountId: &str,
-    filterId: &str,
+    args: &AnalyticsManagementFiltersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_management_filters_delete_builder(client, accountId, filterId)?;
+    let builder =
+        analytics_management_filters_delete_builder(client, &args.accountId, &args.filterId)?;
     analytics_management_filters_delete_execute(builder)
 }
 
@@ -3870,6 +4177,15 @@ pub fn analytics_management_filters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_filters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementFiltersGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: filterId
+    pub filterId: String,
+}
+
 /// GET management/accounts/{accountId}/filters/{filterId}
 /// Returns filters to which the user has access.
 ///
@@ -3882,13 +4198,13 @@ pub fn analytics_management_filters_get_execute(
 
 pub fn analytics_management_filters_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    filterId: &str,
+    args: &AnalyticsManagementFiltersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_management_filters_get_builder(client, accountId, filterId)?;
+    let builder =
+        analytics_management_filters_get_builder(client, &args.accountId, &args.filterId)?;
     analytics_management_filters_get_execute(builder)
 }
 
@@ -3985,6 +4301,15 @@ pub fn analytics_management_filters_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_filters_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementFiltersInsertArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Request body.
+    pub body: Filter,
+}
+
 /// GET management/accounts/{accountId}/filters
 /// Create a new filter.
 ///
@@ -3997,13 +4322,12 @@ pub fn analytics_management_filters_insert_execute(
 
 pub fn analytics_management_filters_insert(
     client: &SimpleHttpClient,
-    accountId: &str,
-    body: &Filter,
+    args: &AnalyticsManagementFiltersInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_management_filters_insert_builder(client, accountId, body)?;
+    let builder = analytics_management_filters_insert_builder(client, &args.accountId, &args.body)?;
     analytics_management_filters_insert_execute(builder)
 }
 
@@ -4113,6 +4437,17 @@ pub fn analytics_management_filters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_filters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementFiltersListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accounts/{accountId}/filters
 /// Lists all filters for an account
 ///
@@ -4125,15 +4460,17 @@ pub fn analytics_management_filters_list_execute(
 
 pub fn analytics_management_filters_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementFiltersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Filters>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        analytics_management_filters_list_builder(client, accountId, max_results, start_index)?;
+    let builder = analytics_management_filters_list_builder(
+        client,
+        &args.accountId,
+        args.max_results,
+        args.start_index,
+    )?;
     analytics_management_filters_list_execute(builder)
 }
 
@@ -4231,6 +4568,17 @@ pub fn analytics_management_filters_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_filters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementFiltersPatchArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: filterId
+    pub filterId: String,
+    /// Request body.
+    pub body: Filter,
+}
+
 /// GET management/accounts/{accountId}/filters/{filterId}
 /// Updates an existing filter. This method supports patch semantics.
 ///
@@ -4243,14 +4591,17 @@ pub fn analytics_management_filters_patch_execute(
 
 pub fn analytics_management_filters_patch(
     client: &SimpleHttpClient,
-    accountId: &str,
-    filterId: &str,
-    body: &Filter,
+    args: &AnalyticsManagementFiltersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_management_filters_patch_builder(client, accountId, filterId, body)?;
+    let builder = analytics_management_filters_patch_builder(
+        client,
+        &args.accountId,
+        &args.filterId,
+        &args.body,
+    )?;
     analytics_management_filters_patch_execute(builder)
 }
 
@@ -4348,6 +4699,17 @@ pub fn analytics_management_filters_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_filters_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementFiltersUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: filterId
+    pub filterId: String,
+    /// Request body.
+    pub body: Filter,
+}
+
 /// GET management/accounts/{accountId}/filters/{filterId}
 /// Updates an existing filter.
 ///
@@ -4360,14 +4722,17 @@ pub fn analytics_management_filters_update_execute(
 
 pub fn analytics_management_filters_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    filterId: &str,
-    body: &Filter,
+    args: &AnalyticsManagementFiltersUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_management_filters_update_builder(client, accountId, filterId, body)?;
+    let builder = analytics_management_filters_update_builder(
+        client,
+        &args.accountId,
+        &args.filterId,
+        &args.body,
+    )?;
     analytics_management_filters_update_execute(builder)
 }
 
@@ -4467,6 +4832,19 @@ pub fn analytics_management_goals_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_goals_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementGoalsGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: goalId
+    pub goalId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals/{goalId}
 /// Gets a goal to which the user has access.
 ///
@@ -4479,20 +4857,17 @@ pub fn analytics_management_goals_get_execute(
 
 pub fn analytics_management_goals_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    goalId: &str,
+    args: &AnalyticsManagementGoalsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Goal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_goals_get_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        goalId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.goalId,
     )?;
     analytics_management_goals_get_execute(builder)
 }
@@ -4594,6 +4969,19 @@ pub fn analytics_management_goals_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_goals_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementGoalsInsertArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Goal,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals
 /// Create a new goal.
 ///
@@ -4606,20 +4994,17 @@ pub fn analytics_management_goals_insert_execute(
 
 pub fn analytics_management_goals_insert(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    body: &Goal,
+    args: &AnalyticsManagementGoalsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Goal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_goals_insert_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.body,
     )?;
     analytics_management_goals_insert_execute(builder)
 }
@@ -4734,6 +5119,21 @@ pub fn analytics_management_goals_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_goals_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementGoalsListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals
 /// Lists goals to which the user has access.
 ///
@@ -4746,22 +5146,18 @@ pub fn analytics_management_goals_list_execute(
 
 pub fn analytics_management_goals_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementGoalsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Goals>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_goals_list_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        max_results,
-        start_index,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        args.max_results,
+        args.start_index,
     )?;
     analytics_management_goals_list_execute(builder)
 }
@@ -4865,6 +5261,21 @@ pub fn analytics_management_goals_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_goals_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementGoalsPatchArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: goalId
+    pub goalId: String,
+    /// Request body.
+    pub body: Goal,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals/{goalId}
 /// Updates an existing goal. This method supports patch semantics.
 ///
@@ -4877,22 +5288,18 @@ pub fn analytics_management_goals_patch_execute(
 
 pub fn analytics_management_goals_patch(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    goalId: &str,
-    body: &Goal,
+    args: &AnalyticsManagementGoalsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Goal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_goals_patch_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        goalId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.goalId,
+        &args.body,
     )?;
     analytics_management_goals_patch_execute(builder)
 }
@@ -4996,6 +5403,21 @@ pub fn analytics_management_goals_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_goals_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementGoalsUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: goalId
+    pub goalId: String,
+    /// Request body.
+    pub body: Goal,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals/{goalId}
 /// Updates an existing goal.
 ///
@@ -5008,22 +5430,18 @@ pub fn analytics_management_goals_update_execute(
 
 pub fn analytics_management_goals_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    goalId: &str,
-    body: &Goal,
+    args: &AnalyticsManagementGoalsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Goal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_goals_update_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        goalId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.goalId,
+        &args.body,
     )?;
     analytics_management_goals_update_execute(builder)
 }
@@ -5121,6 +5539,19 @@ pub fn analytics_management_profile_filter_links_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_profile_filter_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementProfileFilterLinksDeleteArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: linkId
+    pub linkId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
 /// Delete a profile filter link.
 ///
@@ -5133,20 +5564,17 @@ pub fn analytics_management_profile_filter_links_delete_execute(
 
 pub fn analytics_management_profile_filter_links_delete(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    linkId: &str,
+    args: &AnalyticsManagementProfileFilterLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_profile_filter_links_delete_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        linkId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.linkId,
     )?;
     analytics_management_profile_filter_links_delete_execute(builder)
 }
@@ -5249,6 +5677,19 @@ pub fn analytics_management_profile_filter_links_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_profile_filter_links_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementProfileFilterLinksGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: linkId
+    pub linkId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
 /// Returns a single profile filter link.
 ///
@@ -5261,10 +5702,7 @@ pub fn analytics_management_profile_filter_links_get_execute(
 
 pub fn analytics_management_profile_filter_links_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    linkId: &str,
+    args: &AnalyticsManagementProfileFilterLinksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProfileFilterLink>, ApiError>, P = ApiPending>
         + Send
@@ -5273,10 +5711,10 @@ pub fn analytics_management_profile_filter_links_get(
 > {
     let builder = analytics_management_profile_filter_links_get_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        linkId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.linkId,
     )?;
     analytics_management_profile_filter_links_get_execute(builder)
 }
@@ -5380,6 +5818,19 @@ pub fn analytics_management_profile_filter_links_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_profile_filter_links_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementProfileFilterLinksInsertArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: ProfileFilterLink,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks
 /// Create a new profile filter link.
 ///
@@ -5392,10 +5843,7 @@ pub fn analytics_management_profile_filter_links_insert_execute(
 
 pub fn analytics_management_profile_filter_links_insert(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    body: &ProfileFilterLink,
+    args: &AnalyticsManagementProfileFilterLinksInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProfileFilterLink>, ApiError>, P = ApiPending>
         + Send
@@ -5404,10 +5852,10 @@ pub fn analytics_management_profile_filter_links_insert(
 > {
     let builder = analytics_management_profile_filter_links_insert_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.body,
     )?;
     analytics_management_profile_filter_links_insert_execute(builder)
 }
@@ -5524,6 +5972,21 @@ pub fn analytics_management_profile_filter_links_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_profile_filter_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementProfileFilterLinksListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks
 /// Lists all profile filter links for a profile.
 ///
@@ -5536,11 +5999,7 @@ pub fn analytics_management_profile_filter_links_list_execute(
 
 pub fn analytics_management_profile_filter_links_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementProfileFilterLinksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProfileFilterLinks>, ApiError>, P = ApiPending>
         + Send
@@ -5549,11 +6008,11 @@ pub fn analytics_management_profile_filter_links_list(
 > {
     let builder = analytics_management_profile_filter_links_list_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        max_results,
-        start_index,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        args.max_results,
+        args.start_index,
     )?;
     analytics_management_profile_filter_links_list_execute(builder)
 }
@@ -5659,6 +6118,21 @@ pub fn analytics_management_profile_filter_links_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_profile_filter_links_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementProfileFilterLinksPatchArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: linkId
+    pub linkId: String,
+    /// Request body.
+    pub body: ProfileFilterLink,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
 /// Update an existing profile filter link. This method supports patch semantics.
 ///
@@ -5671,11 +6145,7 @@ pub fn analytics_management_profile_filter_links_patch_execute(
 
 pub fn analytics_management_profile_filter_links_patch(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    linkId: &str,
-    body: &ProfileFilterLink,
+    args: &AnalyticsManagementProfileFilterLinksPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProfileFilterLink>, ApiError>, P = ApiPending>
         + Send
@@ -5684,11 +6154,11 @@ pub fn analytics_management_profile_filter_links_patch(
 > {
     let builder = analytics_management_profile_filter_links_patch_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        linkId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.linkId,
+        &args.body,
     )?;
     analytics_management_profile_filter_links_patch_execute(builder)
 }
@@ -5794,6 +6264,21 @@ pub fn analytics_management_profile_filter_links_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_profile_filter_links_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementProfileFilterLinksUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: linkId
+    pub linkId: String,
+    /// Request body.
+    pub body: ProfileFilterLink,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
 /// Update an existing profile filter link.
 ///
@@ -5806,11 +6291,7 @@ pub fn analytics_management_profile_filter_links_update_execute(
 
 pub fn analytics_management_profile_filter_links_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    linkId: &str,
-    body: &ProfileFilterLink,
+    args: &AnalyticsManagementProfileFilterLinksUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProfileFilterLink>, ApiError>, P = ApiPending>
         + Send
@@ -5819,11 +6300,11 @@ pub fn analytics_management_profile_filter_links_update(
 > {
     let builder = analytics_management_profile_filter_links_update_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        linkId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.linkId,
+        &args.body,
     )?;
     analytics_management_profile_filter_links_update_execute(builder)
 }
@@ -5921,6 +6402,19 @@ pub fn analytics_management_profile_user_links_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_profile_user_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementProfileUserLinksDeleteArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: linkId
+    pub linkId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks/{linkId}
 /// Removes a user from the given view (profile).
 ///
@@ -5933,20 +6427,17 @@ pub fn analytics_management_profile_user_links_delete_execute(
 
 pub fn analytics_management_profile_user_links_delete(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    linkId: &str,
+    args: &AnalyticsManagementProfileUserLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_profile_user_links_delete_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        linkId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.linkId,
     )?;
     analytics_management_profile_user_links_delete_execute(builder)
 }
@@ -6050,6 +6541,19 @@ pub fn analytics_management_profile_user_links_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_profile_user_links_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementProfileUserLinksInsertArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: EntityUserLink,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks
 /// Adds a new user to the given view (profile).
 ///
@@ -6062,10 +6566,7 @@ pub fn analytics_management_profile_user_links_insert_execute(
 
 pub fn analytics_management_profile_user_links_insert(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    body: &EntityUserLink,
+    args: &AnalyticsManagementProfileUserLinksInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
         + Send
@@ -6074,10 +6575,10 @@ pub fn analytics_management_profile_user_links_insert(
 > {
     let builder = analytics_management_profile_user_links_insert_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.body,
     )?;
     analytics_management_profile_user_links_insert_execute(builder)
 }
@@ -6194,6 +6695,21 @@ pub fn analytics_management_profile_user_links_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_profile_user_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementProfileUserLinksListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks
 /// Lists profile-user links for a given view (profile).
 ///
@@ -6206,11 +6722,7 @@ pub fn analytics_management_profile_user_links_list_execute(
 
 pub fn analytics_management_profile_user_links_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementProfileUserLinksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EntityUserLinks>, ApiError>, P = ApiPending>
         + Send
@@ -6219,11 +6731,11 @@ pub fn analytics_management_profile_user_links_list(
 > {
     let builder = analytics_management_profile_user_links_list_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        max_results,
-        start_index,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        args.max_results,
+        args.start_index,
     )?;
     analytics_management_profile_user_links_list_execute(builder)
 }
@@ -6329,6 +6841,21 @@ pub fn analytics_management_profile_user_links_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_profile_user_links_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementProfileUserLinksUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: linkId
+    pub linkId: String,
+    /// Request body.
+    pub body: EntityUserLink,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks/{linkId}
 /// Updates permissions for an existing user on the given view (profile).
 ///
@@ -6341,11 +6868,7 @@ pub fn analytics_management_profile_user_links_update_execute(
 
 pub fn analytics_management_profile_user_links_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    linkId: &str,
-    body: &EntityUserLink,
+    args: &AnalyticsManagementProfileUserLinksUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
         + Send
@@ -6354,11 +6877,11 @@ pub fn analytics_management_profile_user_links_update(
 > {
     let builder = analytics_management_profile_user_links_update_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        linkId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.linkId,
+        &args.body,
     )?;
     analytics_management_profile_user_links_update_execute(builder)
 }
@@ -6454,6 +6977,17 @@ pub fn analytics_management_profiles_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_profiles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementProfilesDeleteArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
 /// Deletes a view (profile).
 ///
@@ -6466,15 +7000,17 @@ pub fn analytics_management_profiles_delete_execute(
 
 pub fn analytics_management_profiles_delete(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
+    args: &AnalyticsManagementProfilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        analytics_management_profiles_delete_builder(client, accountId, webPropertyId, profileId)?;
+    let builder = analytics_management_profiles_delete_builder(
+        client,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+    )?;
     analytics_management_profiles_delete_execute(builder)
 }
 
@@ -6572,6 +7108,17 @@ pub fn analytics_management_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementProfilesGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
 /// Gets a view (profile) to which the user has access.
 ///
@@ -6584,15 +7131,17 @@ pub fn analytics_management_profiles_get_execute(
 
 pub fn analytics_management_profiles_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
+    args: &AnalyticsManagementProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        analytics_management_profiles_get_builder(client, accountId, webPropertyId, profileId)?;
+    let builder = analytics_management_profiles_get_builder(
+        client,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+    )?;
     analytics_management_profiles_get_execute(builder)
 }
 
@@ -6690,6 +7239,17 @@ pub fn analytics_management_profiles_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_profiles_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementProfilesInsertArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Request body.
+    pub body: Profile,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles
 /// Create a new view (profile).
 ///
@@ -6702,15 +7262,17 @@ pub fn analytics_management_profiles_insert_execute(
 
 pub fn analytics_management_profiles_insert(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    body: &Profile,
+    args: &AnalyticsManagementProfilesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        analytics_management_profiles_insert_builder(client, accountId, webPropertyId, body)?;
+    let builder = analytics_management_profiles_insert_builder(
+        client,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.body,
+    )?;
     analytics_management_profiles_insert_execute(builder)
 }
 
@@ -6821,6 +7383,19 @@ pub fn analytics_management_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementProfilesListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles
 /// Lists views (profiles) to which the user has access.
 ///
@@ -6833,20 +7408,17 @@ pub fn analytics_management_profiles_list_execute(
 
 pub fn analytics_management_profiles_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementProfilesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Profiles>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_profiles_list_builder(
         client,
-        accountId,
-        webPropertyId,
-        max_results,
-        start_index,
+        &args.accountId,
+        &args.webPropertyId,
+        args.max_results,
+        args.start_index,
     )?;
     analytics_management_profiles_list_execute(builder)
 }
@@ -6948,6 +7520,19 @@ pub fn analytics_management_profiles_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_profiles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementProfilesPatchArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Profile,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
 /// Updates an existing view (profile). This method supports patch semantics.
 ///
@@ -6960,20 +7545,17 @@ pub fn analytics_management_profiles_patch_execute(
 
 pub fn analytics_management_profiles_patch(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    body: &Profile,
+    args: &AnalyticsManagementProfilesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_profiles_patch_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.body,
     )?;
     analytics_management_profiles_patch_execute(builder)
 }
@@ -7075,6 +7657,19 @@ pub fn analytics_management_profiles_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_profiles_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementProfilesUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Profile,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
 /// Updates an existing view (profile).
 ///
@@ -7087,20 +7682,17 @@ pub fn analytics_management_profiles_update_execute(
 
 pub fn analytics_management_profiles_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    body: &Profile,
+    args: &AnalyticsManagementProfilesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_profiles_update_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.body,
     )?;
     analytics_management_profiles_update_execute(builder)
 }
@@ -7196,6 +7788,17 @@ pub fn analytics_management_remarketing_audience_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_remarketing_audience_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementRemarketingAudienceDeleteArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: remarketingAudienceId
+    pub remarketingAudienceId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
 /// Delete a remarketing audience.
 ///
@@ -7208,18 +7811,16 @@ pub fn analytics_management_remarketing_audience_delete_execute(
 
 pub fn analytics_management_remarketing_audience_delete(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    remarketingAudienceId: &str,
+    args: &AnalyticsManagementRemarketingAudienceDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_remarketing_audience_delete_builder(
         client,
-        accountId,
-        webPropertyId,
-        remarketingAudienceId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.remarketingAudienceId,
     )?;
     analytics_management_remarketing_audience_delete_execute(builder)
 }
@@ -7320,6 +7921,17 @@ pub fn analytics_management_remarketing_audience_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_remarketing_audience_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementRemarketingAudienceGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: remarketingAudienceId
+    pub remarketingAudienceId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
 /// Gets a remarketing audience to which the user has access.
 ///
@@ -7332,9 +7944,7 @@ pub fn analytics_management_remarketing_audience_get_execute(
 
 pub fn analytics_management_remarketing_audience_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    remarketingAudienceId: &str,
+    args: &AnalyticsManagementRemarketingAudienceGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemarketingAudience>, ApiError>, P = ApiPending>
         + Send
@@ -7343,9 +7953,9 @@ pub fn analytics_management_remarketing_audience_get(
 > {
     let builder = analytics_management_remarketing_audience_get_builder(
         client,
-        accountId,
-        webPropertyId,
-        remarketingAudienceId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.remarketingAudienceId,
     )?;
     analytics_management_remarketing_audience_get_execute(builder)
 }
@@ -7447,6 +8057,17 @@ pub fn analytics_management_remarketing_audience_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_remarketing_audience_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementRemarketingAudienceInsertArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Request body.
+    pub body: RemarketingAudience,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences
 /// Creates a new remarketing audience.
 ///
@@ -7459,9 +8080,7 @@ pub fn analytics_management_remarketing_audience_insert_execute(
 
 pub fn analytics_management_remarketing_audience_insert(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    body: &RemarketingAudience,
+    args: &AnalyticsManagementRemarketingAudienceInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemarketingAudience>, ApiError>, P = ApiPending>
         + Send
@@ -7470,9 +8089,9 @@ pub fn analytics_management_remarketing_audience_insert(
 > {
     let builder = analytics_management_remarketing_audience_insert_builder(
         client,
-        accountId,
-        webPropertyId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.body,
     )?;
     analytics_management_remarketing_audience_insert_execute(builder)
 }
@@ -7591,6 +8210,21 @@ pub fn analytics_management_remarketing_audience_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_remarketing_audience_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementRemarketingAudienceListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences
 /// Lists remarketing audiences to which the user has access.
 ///
@@ -7603,11 +8237,7 @@ pub fn analytics_management_remarketing_audience_list_execute(
 
 pub fn analytics_management_remarketing_audience_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
-    type_rs: Option<&str>,
+    args: &AnalyticsManagementRemarketingAudienceListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemarketingAudiences>, ApiError>, P = ApiPending>
         + Send
@@ -7616,11 +8246,11 @@ pub fn analytics_management_remarketing_audience_list(
 > {
     let builder = analytics_management_remarketing_audience_list_builder(
         client,
-        accountId,
-        webPropertyId,
-        max_results,
-        start_index,
-        type_rs,
+        &args.accountId,
+        &args.webPropertyId,
+        args.max_results,
+        args.start_index,
+        args.type_rs.as_deref(),
     )?;
     analytics_management_remarketing_audience_list_execute(builder)
 }
@@ -7724,6 +8354,19 @@ pub fn analytics_management_remarketing_audience_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_remarketing_audience_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementRemarketingAudiencePatchArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: remarketingAudienceId
+    pub remarketingAudienceId: String,
+    /// Request body.
+    pub body: RemarketingAudience,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
 /// Updates an existing remarketing audience. This method supports patch semantics.
 ///
@@ -7736,10 +8379,7 @@ pub fn analytics_management_remarketing_audience_patch_execute(
 
 pub fn analytics_management_remarketing_audience_patch(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    remarketingAudienceId: &str,
-    body: &RemarketingAudience,
+    args: &AnalyticsManagementRemarketingAudiencePatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemarketingAudience>, ApiError>, P = ApiPending>
         + Send
@@ -7748,10 +8388,10 @@ pub fn analytics_management_remarketing_audience_patch(
 > {
     let builder = analytics_management_remarketing_audience_patch_builder(
         client,
-        accountId,
-        webPropertyId,
-        remarketingAudienceId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.remarketingAudienceId,
+        &args.body,
     )?;
     analytics_management_remarketing_audience_patch_execute(builder)
 }
@@ -7855,6 +8495,19 @@ pub fn analytics_management_remarketing_audience_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_remarketing_audience_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementRemarketingAudienceUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: remarketingAudienceId
+    pub remarketingAudienceId: String,
+    /// Request body.
+    pub body: RemarketingAudience,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
 /// Updates an existing remarketing audience.
 ///
@@ -7867,10 +8520,7 @@ pub fn analytics_management_remarketing_audience_update_execute(
 
 pub fn analytics_management_remarketing_audience_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    remarketingAudienceId: &str,
-    body: &RemarketingAudience,
+    args: &AnalyticsManagementRemarketingAudienceUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemarketingAudience>, ApiError>, P = ApiPending>
         + Send
@@ -7879,10 +8529,10 @@ pub fn analytics_management_remarketing_audience_update(
 > {
     let builder = analytics_management_remarketing_audience_update_builder(
         client,
-        accountId,
-        webPropertyId,
-        remarketingAudienceId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.remarketingAudienceId,
+        &args.body,
     )?;
     analytics_management_remarketing_audience_update_execute(builder)
 }
@@ -7989,6 +8639,15 @@ pub fn analytics_management_segments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_segments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementSegmentsListArgs {
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/segments
 /// Lists segments to which the user has access.
 ///
@@ -8001,13 +8660,13 @@ pub fn analytics_management_segments_list_execute(
 
 pub fn analytics_management_segments_list(
     client: &SimpleHttpClient,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementSegmentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Segments>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_management_segments_list_builder(client, max_results, start_index)?;
+    let builder =
+        analytics_management_segments_list_builder(client, args.max_results, args.start_index)?;
     analytics_management_segments_list_execute(builder)
 }
 
@@ -8104,6 +8763,19 @@ pub fn analytics_management_unsampled_reports_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_unsampled_reports_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementUnsampledReportsDeleteArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: unsampledReportId
+    pub unsampledReportId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports/{unsampledReportId}
 /// Deletes an unsampled report.
 ///
@@ -8116,20 +8788,17 @@ pub fn analytics_management_unsampled_reports_delete_execute(
 
 pub fn analytics_management_unsampled_reports_delete(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    unsampledReportId: &str,
+    args: &AnalyticsManagementUnsampledReportsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_unsampled_reports_delete_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        unsampledReportId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.unsampledReportId,
     )?;
     analytics_management_unsampled_reports_delete_execute(builder)
 }
@@ -8232,6 +8901,19 @@ pub fn analytics_management_unsampled_reports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_unsampled_reports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementUnsampledReportsGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: unsampledReportId
+    pub unsampledReportId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports/{unsampledReportId}
 /// Returns a single unsampled report.
 ///
@@ -8244,10 +8926,7 @@ pub fn analytics_management_unsampled_reports_get_execute(
 
 pub fn analytics_management_unsampled_reports_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    unsampledReportId: &str,
+    args: &AnalyticsManagementUnsampledReportsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UnsampledReport>, ApiError>, P = ApiPending>
         + Send
@@ -8256,10 +8935,10 @@ pub fn analytics_management_unsampled_reports_get(
 > {
     let builder = analytics_management_unsampled_reports_get_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        unsampledReportId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.unsampledReportId,
     )?;
     analytics_management_unsampled_reports_get_execute(builder)
 }
@@ -8363,6 +9042,19 @@ pub fn analytics_management_unsampled_reports_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_unsampled_reports_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementUnsampledReportsInsertArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: UnsampledReport,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports
 /// Create a new unsampled report.
 ///
@@ -8375,10 +9067,7 @@ pub fn analytics_management_unsampled_reports_insert_execute(
 
 pub fn analytics_management_unsampled_reports_insert(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    body: &UnsampledReport,
+    args: &AnalyticsManagementUnsampledReportsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UnsampledReport>, ApiError>, P = ApiPending>
         + Send
@@ -8387,10 +9076,10 @@ pub fn analytics_management_unsampled_reports_insert(
 > {
     let builder = analytics_management_unsampled_reports_insert_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.body,
     )?;
     analytics_management_unsampled_reports_insert_execute(builder)
 }
@@ -8507,6 +9196,21 @@ pub fn analytics_management_unsampled_reports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_unsampled_reports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementUnsampledReportsListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports
 /// Lists unsampled reports to which the user has access.
 ///
@@ -8519,11 +9223,7 @@ pub fn analytics_management_unsampled_reports_list_execute(
 
 pub fn analytics_management_unsampled_reports_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementUnsampledReportsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UnsampledReports>, ApiError>, P = ApiPending>
         + Send
@@ -8532,11 +9232,11 @@ pub fn analytics_management_unsampled_reports_list(
 > {
     let builder = analytics_management_unsampled_reports_list_builder(
         client,
-        accountId,
-        webPropertyId,
-        profileId,
-        max_results,
-        start_index,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        args.max_results,
+        args.start_index,
     )?;
     analytics_management_unsampled_reports_list_execute(builder)
 }
@@ -8635,6 +9335,19 @@ pub fn analytics_management_uploads_delete_upload_data_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_uploads_delete_upload_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementUploadsDeleteUploadDataArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: customDataSourceId
+    pub customDataSourceId: String,
+    /// Request body.
+    pub body: AnalyticsDataimportDeleteUploadDataRequest,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources/{customDataSourceId}/deleteUploadData
 /// Delete data associated with a previous upload.
 ///
@@ -8647,20 +9360,17 @@ pub fn analytics_management_uploads_delete_upload_data_execute(
 
 pub fn analytics_management_uploads_delete_upload_data(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customDataSourceId: &str,
-    body: &AnalyticsDataimportDeleteUploadDataRequest,
+    args: &AnalyticsManagementUploadsDeleteUploadDataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_uploads_delete_upload_data_builder(
         client,
-        accountId,
-        webPropertyId,
-        customDataSourceId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.customDataSourceId,
+        &args.body,
     )?;
     analytics_management_uploads_delete_upload_data_execute(builder)
 }
@@ -8761,6 +9471,19 @@ pub fn analytics_management_uploads_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_uploads_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementUploadsGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: customDataSourceId
+    pub customDataSourceId: String,
+    /// Path parameter: uploadId
+    pub uploadId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources/{customDataSourceId}/uploads/{uploadId}
 /// List uploads to which the user has access.
 ///
@@ -8773,20 +9496,17 @@ pub fn analytics_management_uploads_get_execute(
 
 pub fn analytics_management_uploads_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customDataSourceId: &str,
-    uploadId: &str,
+    args: &AnalyticsManagementUploadsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Upload>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_uploads_get_builder(
         client,
-        accountId,
-        webPropertyId,
-        customDataSourceId,
-        uploadId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.customDataSourceId,
+        &args.uploadId,
     )?;
     analytics_management_uploads_get_execute(builder)
 }
@@ -8901,6 +9621,21 @@ pub fn analytics_management_uploads_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_uploads_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementUploadsListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: customDataSourceId
+    pub customDataSourceId: String,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources/{customDataSourceId}/uploads
 /// List uploads to which the user has access.
 ///
@@ -8913,22 +9648,18 @@ pub fn analytics_management_uploads_list_execute(
 
 pub fn analytics_management_uploads_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customDataSourceId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementUploadsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Uploads>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_uploads_list_builder(
         client,
-        accountId,
-        webPropertyId,
-        customDataSourceId,
-        max_results,
-        start_index,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.customDataSourceId,
+        args.max_results,
+        args.start_index,
     )?;
     analytics_management_uploads_list_execute(builder)
 }
@@ -9027,6 +9758,17 @@ pub fn analytics_management_uploads_upload_data_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_uploads_upload_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementUploadsUploadDataArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: customDataSourceId
+    pub customDataSourceId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources/{customDataSourceId}/uploads
 /// Upload data for a custom data source.
 ///
@@ -9039,18 +9781,16 @@ pub fn analytics_management_uploads_upload_data_execute(
 
 pub fn analytics_management_uploads_upload_data(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customDataSourceId: &str,
+    args: &AnalyticsManagementUploadsUploadDataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Upload>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_uploads_upload_data_builder(
         client,
-        accountId,
-        webPropertyId,
-        customDataSourceId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.customDataSourceId,
     )?;
     analytics_management_uploads_upload_data_execute(builder)
 }
@@ -9146,6 +9886,17 @@ pub fn analytics_management_web_property_ad_words_links_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_web_property_ad_words_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementWebPropertyAdWordsLinksDeleteArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: webPropertyAdWordsLinkId
+    pub webPropertyAdWordsLinkId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
 /// Deletes a web property-Google Ads link.
 ///
@@ -9158,18 +9909,16 @@ pub fn analytics_management_web_property_ad_words_links_delete_execute(
 
 pub fn analytics_management_web_property_ad_words_links_delete(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    webPropertyAdWordsLinkId: &str,
+    args: &AnalyticsManagementWebPropertyAdWordsLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_web_property_ad_words_links_delete_builder(
         client,
-        accountId,
-        webPropertyId,
-        webPropertyAdWordsLinkId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.webPropertyAdWordsLinkId,
     )?;
     analytics_management_web_property_ad_words_links_delete_execute(builder)
 }
@@ -9270,6 +10019,17 @@ pub fn analytics_management_web_property_ad_words_links_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_web_property_ad_words_links_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementWebPropertyAdWordsLinksGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: webPropertyAdWordsLinkId
+    pub webPropertyAdWordsLinkId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
 /// Returns a web property-Google Ads link to which the user has access.
 ///
@@ -9282,9 +10042,7 @@ pub fn analytics_management_web_property_ad_words_links_get_execute(
 
 pub fn analytics_management_web_property_ad_words_links_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    webPropertyAdWordsLinkId: &str,
+    args: &AnalyticsManagementWebPropertyAdWordsLinksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EntityAdWordsLink>, ApiError>, P = ApiPending>
         + Send
@@ -9293,9 +10051,9 @@ pub fn analytics_management_web_property_ad_words_links_get(
 > {
     let builder = analytics_management_web_property_ad_words_links_get_builder(
         client,
-        accountId,
-        webPropertyId,
-        webPropertyAdWordsLinkId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.webPropertyAdWordsLinkId,
     )?;
     analytics_management_web_property_ad_words_links_get_execute(builder)
 }
@@ -9397,6 +10155,17 @@ pub fn analytics_management_web_property_ad_words_links_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_web_property_ad_words_links_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementWebPropertyAdWordsLinksInsertArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Request body.
+    pub body: EntityAdWordsLink,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks
 /// Creates a `webProperty`-Google Ads link.
 ///
@@ -9409,9 +10178,7 @@ pub fn analytics_management_web_property_ad_words_links_insert_execute(
 
 pub fn analytics_management_web_property_ad_words_links_insert(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    body: &EntityAdWordsLink,
+    args: &AnalyticsManagementWebPropertyAdWordsLinksInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EntityAdWordsLink>, ApiError>, P = ApiPending>
         + Send
@@ -9420,9 +10187,9 @@ pub fn analytics_management_web_property_ad_words_links_insert(
 > {
     let builder = analytics_management_web_property_ad_words_links_insert_builder(
         client,
-        accountId,
-        webPropertyId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.body,
     )?;
     analytics_management_web_property_ad_words_links_insert_execute(builder)
 }
@@ -9537,6 +10304,19 @@ pub fn analytics_management_web_property_ad_words_links_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_web_property_ad_words_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementWebPropertyAdWordsLinksListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks
 /// Lists `webProperty`-Google Ads links for a given web property.
 ///
@@ -9549,10 +10329,7 @@ pub fn analytics_management_web_property_ad_words_links_list_execute(
 
 pub fn analytics_management_web_property_ad_words_links_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementWebPropertyAdWordsLinksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EntityAdWordsLinks>, ApiError>, P = ApiPending>
         + Send
@@ -9561,10 +10338,10 @@ pub fn analytics_management_web_property_ad_words_links_list(
 > {
     let builder = analytics_management_web_property_ad_words_links_list_builder(
         client,
-        accountId,
-        webPropertyId,
-        max_results,
-        start_index,
+        &args.accountId,
+        &args.webPropertyId,
+        args.max_results,
+        args.start_index,
     )?;
     analytics_management_web_property_ad_words_links_list_execute(builder)
 }
@@ -9668,6 +10445,19 @@ pub fn analytics_management_web_property_ad_words_links_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_web_property_ad_words_links_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementWebPropertyAdWordsLinksPatchArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: webPropertyAdWordsLinkId
+    pub webPropertyAdWordsLinkId: String,
+    /// Request body.
+    pub body: EntityAdWordsLink,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
 /// Updates an existing `webProperty`-Google Ads link. This method supports patch semantics.
 ///
@@ -9680,10 +10470,7 @@ pub fn analytics_management_web_property_ad_words_links_patch_execute(
 
 pub fn analytics_management_web_property_ad_words_links_patch(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    webPropertyAdWordsLinkId: &str,
-    body: &EntityAdWordsLink,
+    args: &AnalyticsManagementWebPropertyAdWordsLinksPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EntityAdWordsLink>, ApiError>, P = ApiPending>
         + Send
@@ -9692,10 +10479,10 @@ pub fn analytics_management_web_property_ad_words_links_patch(
 > {
     let builder = analytics_management_web_property_ad_words_links_patch_builder(
         client,
-        accountId,
-        webPropertyId,
-        webPropertyAdWordsLinkId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.webPropertyAdWordsLinkId,
+        &args.body,
     )?;
     analytics_management_web_property_ad_words_links_patch_execute(builder)
 }
@@ -9799,6 +10586,19 @@ pub fn analytics_management_web_property_ad_words_links_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_web_property_ad_words_links_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementWebPropertyAdWordsLinksUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: webPropertyAdWordsLinkId
+    pub webPropertyAdWordsLinkId: String,
+    /// Request body.
+    pub body: EntityAdWordsLink,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
 /// Updates an existing `webProperty`-Google Ads link.
 ///
@@ -9811,10 +10611,7 @@ pub fn analytics_management_web_property_ad_words_links_update_execute(
 
 pub fn analytics_management_web_property_ad_words_links_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    webPropertyAdWordsLinkId: &str,
-    body: &EntityAdWordsLink,
+    args: &AnalyticsManagementWebPropertyAdWordsLinksUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EntityAdWordsLink>, ApiError>, P = ApiPending>
         + Send
@@ -9823,10 +10620,10 @@ pub fn analytics_management_web_property_ad_words_links_update(
 > {
     let builder = analytics_management_web_property_ad_words_links_update_builder(
         client,
-        accountId,
-        webPropertyId,
-        webPropertyAdWordsLinkId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.webPropertyAdWordsLinkId,
+        &args.body,
     )?;
     analytics_management_web_property_ad_words_links_update_execute(builder)
 }
@@ -9922,6 +10719,15 @@ pub fn analytics_management_webproperties_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_webproperties_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementWebpropertiesGetArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}
 /// Gets a web property to which the user has access.
 ///
@@ -9934,13 +10740,16 @@ pub fn analytics_management_webproperties_get_execute(
 
 pub fn analytics_management_webproperties_get(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
+    args: &AnalyticsManagementWebpropertiesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Webproperty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_management_webproperties_get_builder(client, accountId, webPropertyId)?;
+    let builder = analytics_management_webproperties_get_builder(
+        client,
+        &args.accountId,
+        &args.webPropertyId,
+    )?;
     analytics_management_webproperties_get_execute(builder)
 }
 
@@ -10037,6 +10846,15 @@ pub fn analytics_management_webproperties_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_webproperties_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementWebpropertiesInsertArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Request body.
+    pub body: Webproperty,
+}
+
 /// GET management/accounts/{accountId}/webproperties
 /// Create a new property if the account has fewer than 20 properties. Web properties are visible in the Google Analytics interface only if they have at least one profile.
 ///
@@ -10049,13 +10867,13 @@ pub fn analytics_management_webproperties_insert_execute(
 
 pub fn analytics_management_webproperties_insert(
     client: &SimpleHttpClient,
-    accountId: &str,
-    body: &Webproperty,
+    args: &AnalyticsManagementWebpropertiesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Webproperty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_management_webproperties_insert_builder(client, accountId, body)?;
+    let builder =
+        analytics_management_webproperties_insert_builder(client, &args.accountId, &args.body)?;
     analytics_management_webproperties_insert_execute(builder)
 }
 
@@ -10167,6 +10985,17 @@ pub fn analytics_management_webproperties_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_webproperties_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementWebpropertiesListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accounts/{accountId}/webproperties
 /// Lists web properties to which the user has access.
 ///
@@ -10179,9 +11008,7 @@ pub fn analytics_management_webproperties_list_execute(
 
 pub fn analytics_management_webproperties_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementWebpropertiesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Webproperties>, ApiError>, P = ApiPending>
         + Send
@@ -10190,9 +11017,9 @@ pub fn analytics_management_webproperties_list(
 > {
     let builder = analytics_management_webproperties_list_builder(
         client,
-        accountId,
-        max_results,
-        start_index,
+        &args.accountId,
+        args.max_results,
+        args.start_index,
     )?;
     analytics_management_webproperties_list_execute(builder)
 }
@@ -10291,6 +11118,17 @@ pub fn analytics_management_webproperties_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_webproperties_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementWebpropertiesPatchArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Request body.
+    pub body: Webproperty,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}
 /// Updates an existing web property. This method supports patch semantics.
 ///
@@ -10303,15 +11141,17 @@ pub fn analytics_management_webproperties_patch_execute(
 
 pub fn analytics_management_webproperties_patch(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    body: &Webproperty,
+    args: &AnalyticsManagementWebpropertiesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Webproperty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        analytics_management_webproperties_patch_builder(client, accountId, webPropertyId, body)?;
+    let builder = analytics_management_webproperties_patch_builder(
+        client,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.body,
+    )?;
     analytics_management_webproperties_patch_execute(builder)
 }
 
@@ -10409,6 +11249,17 @@ pub fn analytics_management_webproperties_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_webproperties_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementWebpropertiesUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Request body.
+    pub body: Webproperty,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}
 /// Updates an existing web property.
 ///
@@ -10421,15 +11272,17 @@ pub fn analytics_management_webproperties_update_execute(
 
 pub fn analytics_management_webproperties_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    body: &Webproperty,
+    args: &AnalyticsManagementWebpropertiesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Webproperty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        analytics_management_webproperties_update_builder(client, accountId, webPropertyId, body)?;
+    let builder = analytics_management_webproperties_update_builder(
+        client,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.body,
+    )?;
     analytics_management_webproperties_update_execute(builder)
 }
 
@@ -10524,6 +11377,17 @@ pub fn analytics_management_webproperty_user_links_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_webproperty_user_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementWebpropertyUserLinksDeleteArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: linkId
+    pub linkId: String,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks/{linkId}
 /// Removes a user from the given web property.
 ///
@@ -10536,18 +11400,16 @@ pub fn analytics_management_webproperty_user_links_delete_execute(
 
 pub fn analytics_management_webproperty_user_links_delete(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    linkId: &str,
+    args: &AnalyticsManagementWebpropertyUserLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = analytics_management_webproperty_user_links_delete_builder(
         client,
-        accountId,
-        webPropertyId,
-        linkId,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.linkId,
     )?;
     analytics_management_webproperty_user_links_delete_execute(builder)
 }
@@ -10649,6 +11511,17 @@ pub fn analytics_management_webproperty_user_links_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_webproperty_user_links_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementWebpropertyUserLinksInsertArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Request body.
+    pub body: EntityUserLink,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks
 /// Adds a new user to the given web property.
 ///
@@ -10661,9 +11534,7 @@ pub fn analytics_management_webproperty_user_links_insert_execute(
 
 pub fn analytics_management_webproperty_user_links_insert(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    body: &EntityUserLink,
+    args: &AnalyticsManagementWebpropertyUserLinksInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
         + Send
@@ -10672,9 +11543,9 @@ pub fn analytics_management_webproperty_user_links_insert(
 > {
     let builder = analytics_management_webproperty_user_links_insert_builder(
         client,
-        accountId,
-        webPropertyId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.body,
     )?;
     analytics_management_webproperty_user_links_insert_execute(builder)
 }
@@ -10789,6 +11660,19 @@ pub fn analytics_management_webproperty_user_links_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_webproperty_user_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementWebpropertyUserLinksListArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Query parameter: max_results
+    pub max_results: Option<i32>,
+    /// Query parameter: start_index
+    pub start_index: Option<i32>,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks
 /// Lists `webProperty`-user links for a given web property.
 ///
@@ -10801,10 +11685,7 @@ pub fn analytics_management_webproperty_user_links_list_execute(
 
 pub fn analytics_management_webproperty_user_links_list(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    args: &AnalyticsManagementWebpropertyUserLinksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EntityUserLinks>, ApiError>, P = ApiPending>
         + Send
@@ -10813,10 +11694,10 @@ pub fn analytics_management_webproperty_user_links_list(
 > {
     let builder = analytics_management_webproperty_user_links_list_builder(
         client,
-        accountId,
-        webPropertyId,
-        max_results,
-        start_index,
+        &args.accountId,
+        &args.webPropertyId,
+        args.max_results,
+        args.start_index,
     )?;
     analytics_management_webproperty_user_links_list_execute(builder)
 }
@@ -10920,6 +11801,19 @@ pub fn analytics_management_webproperty_user_links_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_management_webproperty_user_links_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsManagementWebpropertyUserLinksUpdateArgs {
+    /// Path parameter: accountId
+    pub accountId: String,
+    /// Path parameter: webPropertyId
+    pub webPropertyId: String,
+    /// Path parameter: linkId
+    pub linkId: String,
+    /// Request body.
+    pub body: EntityUserLink,
+}
+
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks/{linkId}
 /// Updates permissions for an existing user on the given web property.
 ///
@@ -10932,10 +11826,7 @@ pub fn analytics_management_webproperty_user_links_update_execute(
 
 pub fn analytics_management_webproperty_user_links_update(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    linkId: &str,
-    body: &EntityUserLink,
+    args: &AnalyticsManagementWebpropertyUserLinksUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
         + Send
@@ -10944,10 +11835,10 @@ pub fn analytics_management_webproperty_user_links_update(
 > {
     let builder = analytics_management_webproperty_user_links_update_builder(
         client,
-        accountId,
-        webPropertyId,
-        linkId,
-        body,
+        &args.accountId,
+        &args.webPropertyId,
+        &args.linkId,
+        &args.body,
     )?;
     analytics_management_webproperty_user_links_update_execute(builder)
 }
@@ -11042,6 +11933,13 @@ pub fn analytics_metadata_columns_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_metadata_columns_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsMetadataColumnsListArgs {
+    /// Path parameter: reportType
+    pub reportType: String,
+}
+
 /// GET metadata/{reportType}/columns
 /// Lists all columns for a report type
 ///
@@ -11054,12 +11952,12 @@ pub fn analytics_metadata_columns_list_execute(
 
 pub fn analytics_metadata_columns_list(
     client: &SimpleHttpClient,
-    reportType: &str,
+    args: &AnalyticsMetadataColumnsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Columns>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_metadata_columns_list_builder(client, reportType)?;
+    let builder = analytics_metadata_columns_list_builder(client, &args.reportType)?;
     analytics_metadata_columns_list_execute(builder)
 }
 
@@ -11154,6 +12052,13 @@ pub fn analytics_provisioning_create_account_ticket_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_provisioning_create_account_ticket`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsProvisioningCreateAccountTicketArgs {
+    /// Request body.
+    pub body: AccountTicket,
+}
+
 /// GET provisioning/createAccountTicket
 /// Creates an account ticket.
 ///
@@ -11166,14 +12071,14 @@ pub fn analytics_provisioning_create_account_ticket_execute(
 
 pub fn analytics_provisioning_create_account_ticket(
     client: &SimpleHttpClient,
-    body: &AccountTicket,
+    args: &AnalyticsProvisioningCreateAccountTicketArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountTicket>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = analytics_provisioning_create_account_ticket_builder(client, body)?;
+    let builder = analytics_provisioning_create_account_ticket_builder(client, &args.body)?;
     analytics_provisioning_create_account_ticket_execute(builder)
 }
 
@@ -11268,6 +12173,13 @@ pub fn analytics_provisioning_create_account_tree_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_provisioning_create_account_tree`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsProvisioningCreateAccountTreeArgs {
+    /// Request body.
+    pub body: AccountTreeRequest,
+}
+
 /// GET provisioning/createAccountTree
 /// Provision account.
 ///
@@ -11280,14 +12192,14 @@ pub fn analytics_provisioning_create_account_tree_execute(
 
 pub fn analytics_provisioning_create_account_tree(
     client: &SimpleHttpClient,
-    body: &AccountTreeRequest,
+    args: &AnalyticsProvisioningCreateAccountTreeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountTreeResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = analytics_provisioning_create_account_tree_builder(client, body)?;
+    let builder = analytics_provisioning_create_account_tree_builder(client, &args.body)?;
     analytics_provisioning_create_account_tree_execute(builder)
 }
 
@@ -11384,6 +12296,13 @@ pub fn analytics_user_deletion_user_deletion_request_upsert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`analytics_user_deletion_user_deletion_request_upsert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsUserDeletionUserDeletionRequestUpsertArgs {
+    /// Request body.
+    pub body: UserDeletionRequest,
+}
+
 /// GET userDeletion/userDeletionRequests:upsert
 /// Insert or update a user deletion requests.
 ///
@@ -11396,13 +12315,13 @@ pub fn analytics_user_deletion_user_deletion_request_upsert_execute(
 
 pub fn analytics_user_deletion_user_deletion_request_upsert(
     client: &SimpleHttpClient,
-    body: &UserDeletionRequest,
+    args: &AnalyticsUserDeletionUserDeletionRequestUpsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserDeletionRequest>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = analytics_user_deletion_user_deletion_request_upsert_builder(client, body)?;
+    let builder = analytics_user_deletion_user_deletion_request_upsert_builder(client, &args.body)?;
     analytics_user_deletion_user_deletion_request_upsert_execute(builder)
 }

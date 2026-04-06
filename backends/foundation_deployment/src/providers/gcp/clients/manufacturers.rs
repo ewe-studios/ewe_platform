@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
 /// Deletes a product certification by its name. This method can only be called by certification bodies.
@@ -106,6 +108,13 @@ pub fn manufacturers_accounts_languages_product_certifications_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`manufacturers_accounts_languages_product_certifications_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManufacturersAccountsLanguagesProductCertificationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
 /// Deletes a product certification by its name. This method can only be called by certification bodies.
 ///
@@ -118,13 +127,13 @@ pub fn manufacturers_accounts_languages_product_certifications_delete_execute(
 
 pub fn manufacturers_accounts_languages_product_certifications_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManufacturersAccountsLanguagesProductCertificationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        manufacturers_accounts_languages_product_certifications_delete_builder(client, name)?;
+        manufacturers_accounts_languages_product_certifications_delete_builder(client, &args.name)?;
     manufacturers_accounts_languages_product_certifications_delete_execute(builder)
 }
 
@@ -220,6 +229,13 @@ pub fn manufacturers_accounts_languages_product_certifications_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`manufacturers_accounts_languages_product_certifications_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManufacturersAccountsLanguagesProductCertificationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
 /// Gets a product certification by its name. This method can only be called by certification bodies.
 ///
@@ -232,7 +248,7 @@ pub fn manufacturers_accounts_languages_product_certifications_get_execute(
 
 pub fn manufacturers_accounts_languages_product_certifications_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManufacturersAccountsLanguagesProductCertificationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductCertification>, ApiError>, P = ApiPending>
         + Send
@@ -240,7 +256,7 @@ pub fn manufacturers_accounts_languages_product_certifications_get(
     ApiError,
 > {
     let builder =
-        manufacturers_accounts_languages_product_certifications_get_builder(client, name)?;
+        manufacturers_accounts_languages_product_certifications_get_builder(client, &args.name)?;
     manufacturers_accounts_languages_product_certifications_get_execute(builder)
 }
 
@@ -354,6 +370,17 @@ pub fn manufacturers_accounts_languages_product_certifications_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`manufacturers_accounts_languages_product_certifications_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManufacturersAccountsLanguagesProductCertificationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/languages/{languagesId}/productCertifications
 /// Lists product certifications from a specified certification body. This method can only be called by certification bodies.
 ///
@@ -366,9 +393,7 @@ pub fn manufacturers_accounts_languages_product_certifications_list_execute(
 
 pub fn manufacturers_accounts_languages_product_certifications_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ManufacturersAccountsLanguagesProductCertificationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListProductCertificationsResponse>, ApiError>,
@@ -378,7 +403,10 @@ pub fn manufacturers_accounts_languages_product_certifications_list(
     ApiError,
 > {
     let builder = manufacturers_accounts_languages_product_certifications_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     manufacturers_accounts_languages_product_certifications_list_execute(builder)
 }
@@ -490,6 +518,17 @@ pub fn manufacturers_accounts_languages_product_certifications_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`manufacturers_accounts_languages_product_certifications_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManufacturersAccountsLanguagesProductCertificationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ProductCertification,
+}
+
 /// GET v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
 /// Updates (or creates if allow_missing = `true`) a product certification which links certifications with products. This method can only be called by certification bodies.
 ///
@@ -502,9 +541,7 @@ pub fn manufacturers_accounts_languages_product_certifications_patch_execute(
 
 pub fn manufacturers_accounts_languages_product_certifications_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ProductCertification,
+    args: &ManufacturersAccountsLanguagesProductCertificationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductCertification>, ApiError>, P = ApiPending>
         + Send
@@ -512,7 +549,10 @@ pub fn manufacturers_accounts_languages_product_certifications_patch(
     ApiError,
 > {
     let builder = manufacturers_accounts_languages_product_certifications_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     manufacturers_accounts_languages_product_certifications_patch_execute(builder)
 }
@@ -608,6 +648,15 @@ pub fn manufacturers_accounts_products_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`manufacturers_accounts_products_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManufacturersAccountsProductsDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}/products/{productsId}
 /// Deletes the product from a Manufacturer Center account.
 ///
@@ -620,13 +669,12 @@ pub fn manufacturers_accounts_products_delete_execute(
 
 pub fn manufacturers_accounts_products_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    name: &str,
+    args: &ManufacturersAccountsProductsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = manufacturers_accounts_products_delete_builder(client, parent, name)?;
+    let builder = manufacturers_accounts_products_delete_builder(client, &args.parent, &args.name)?;
     manufacturers_accounts_products_delete_execute(builder)
 }
 
@@ -733,6 +781,17 @@ pub fn manufacturers_accounts_products_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`manufacturers_accounts_products_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManufacturersAccountsProductsGetArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: include
+    pub include: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/products/{productsId}
 /// Gets the product from a Manufacturer Center account, including product issues. A recently updated product takes around 15 minutes to process. Changes are only visible after it has been processed. While some issues may be available once the product has been processed, other issues may take days to appear.
 ///
@@ -745,14 +804,17 @@ pub fn manufacturers_accounts_products_get_execute(
 
 pub fn manufacturers_accounts_products_get(
     client: &SimpleHttpClient,
-    parent: &str,
-    name: &str,
-    include: Option<&str>,
+    args: &ManufacturersAccountsProductsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = manufacturers_accounts_products_get_builder(client, parent, name, include)?;
+    let builder = manufacturers_accounts_products_get_builder(
+        client,
+        &args.parent,
+        &args.name,
+        args.include.as_deref(),
+    )?;
     manufacturers_accounts_products_get_execute(builder)
 }
 
@@ -868,6 +930,19 @@ pub fn manufacturers_accounts_products_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`manufacturers_accounts_products_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManufacturersAccountsProductsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: include
+    pub include: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/products
 /// Lists all the products in a Manufacturer Center account.
 ///
@@ -880,18 +955,20 @@ pub fn manufacturers_accounts_products_list_execute(
 
 pub fn manufacturers_accounts_products_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    include: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ManufacturersAccountsProductsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListProductsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        manufacturers_accounts_products_list_builder(client, parent, include, pageSize, pageToken)?;
+    let builder = manufacturers_accounts_products_list_builder(
+        client,
+        &args.parent,
+        args.include.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     manufacturers_accounts_products_list_execute(builder)
 }
 
@@ -989,6 +1066,17 @@ pub fn manufacturers_accounts_products_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`manufacturers_accounts_products_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManufacturersAccountsProductsUpdateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: Attributes,
+}
+
 /// GET v1/accounts/{accountsId}/products/{productsId}
 /// Inserts or updates the attributes of the product in a Manufacturer Center account. Creates a product with the provided attributes. If the product already exists, then all attributes are replaced with the new ones. The checks at upload time are minimal. All required attributes need to be present for a product to be valid. Issues may show up later after the API has accepted a new upload for a product and it is possible to overwrite an existing valid product with an invalid product. To detect this, you should retrieve the product and check it for issues once the new version is available. Uploaded attributes first need to be processed before they can be retrieved. Until then, new products will be unavailable, and retrieval of previously uploaded products will return the original state of the product.
 ///
@@ -1001,13 +1089,16 @@ pub fn manufacturers_accounts_products_update_execute(
 
 pub fn manufacturers_accounts_products_update(
     client: &SimpleHttpClient,
-    parent: &str,
-    name: &str,
-    body: &Attributes,
+    args: &ManufacturersAccountsProductsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = manufacturers_accounts_products_update_builder(client, parent, name, body)?;
+    let builder = manufacturers_accounts_products_update_builder(
+        client,
+        &args.parent,
+        &args.name,
+        &args.body,
+    )?;
     manufacturers_accounts_products_update_execute(builder)
 }

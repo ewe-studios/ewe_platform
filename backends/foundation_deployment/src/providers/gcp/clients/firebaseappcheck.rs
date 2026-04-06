@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/jwks
 /// Returns a public JWK set as specified by [RFC 7517](<https://tools.ietf.`org/html/rfc7517`>) that can be used to verify App Check tokens. Exactly one of the public keys in the returned set will successfully validate any App Check token that is currently valid.
@@ -107,6 +109,13 @@ pub fn firebaseappcheck_jwks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_jwks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckJwksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/jwks
 /// Returns a public JWK set as specified by [RFC 7517](<https://tools.ietf.`org/html/rfc7517`>) that can be used to verify App Check tokens. Exactly one of the public keys in the returned set will successfully validate any App Check token that is currently valid.
 ///
@@ -119,7 +128,7 @@ pub fn firebaseappcheck_jwks_get_execute(
 
 pub fn firebaseappcheck_jwks_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappcheckJwksGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1PublicJwkSet>, ApiError>,
@@ -128,7 +137,7 @@ pub fn firebaseappcheck_jwks_get(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_jwks_get_builder(client, name)?;
+    let builder = firebaseappcheck_jwks_get_builder(client, &args.name)?;
     firebaseappcheck_jwks_get_execute(builder)
 }
 
@@ -229,6 +238,15 @@ pub fn firebaseappcheck_oauth_clients_exchange_app_attest_assertion_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_oauth_clients_exchange_app_attest_assertion`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckOauthClientsExchangeAppAttestAssertionArgs {
+    /// Path parameter: app
+    pub app: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1ExchangeAppAttestAssertionRequest,
+}
+
 /// GET v1/oauthClients/{oauthClientsId}:exchangeAppAttestAssertion
 /// Accepts an App Attest assertion and an artifact previously obtained from ExchangeAppAttestAttestation and verifies those with Apple. If valid, returns an AppCheckToken.
 ///
@@ -241,8 +259,7 @@ pub fn firebaseappcheck_oauth_clients_exchange_app_attest_assertion_execute(
 
 pub fn firebaseappcheck_oauth_clients_exchange_app_attest_assertion(
     client: &SimpleHttpClient,
-    app: &str,
-    body: &GoogleFirebaseAppcheckV1ExchangeAppAttestAssertionRequest,
+    args: &FirebaseappcheckOauthClientsExchangeAppAttestAssertionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1AppCheckToken>, ApiError>,
@@ -251,8 +268,9 @@ pub fn firebaseappcheck_oauth_clients_exchange_app_attest_assertion(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappcheck_oauth_clients_exchange_app_attest_assertion_builder(client, app, body)?;
+    let builder = firebaseappcheck_oauth_clients_exchange_app_attest_assertion_builder(
+        client, &args.app, &args.body,
+    )?;
     firebaseappcheck_oauth_clients_exchange_app_attest_assertion_execute(builder)
 }
 
@@ -357,6 +375,15 @@ pub fn firebaseappcheck_oauth_clients_exchange_app_attest_attestation_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_oauth_clients_exchange_app_attest_attestation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckOauthClientsExchangeAppAttestAttestationArgs {
+    /// Path parameter: app
+    pub app: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationRequest,
+}
+
 /// GET v1/oauthClients/{oauthClientsId}:exchangeAppAttestAttestation
 /// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method's response object will also contain an AppCheckToken (if the verification is successful).
 ///
@@ -369,8 +396,7 @@ pub fn firebaseappcheck_oauth_clients_exchange_app_attest_attestation_execute(
 
 pub fn firebaseappcheck_oauth_clients_exchange_app_attest_attestation(
     client: &SimpleHttpClient,
-    app: &str,
-    body: &GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationRequest,
+    args: &FirebaseappcheckOauthClientsExchangeAppAttestAttestationArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -382,8 +408,9 @@ pub fn firebaseappcheck_oauth_clients_exchange_app_attest_attestation(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappcheck_oauth_clients_exchange_app_attest_attestation_builder(client, app, body)?;
+    let builder = firebaseappcheck_oauth_clients_exchange_app_attest_attestation_builder(
+        client, &args.app, &args.body,
+    )?;
     firebaseappcheck_oauth_clients_exchange_app_attest_attestation_execute(builder)
 }
 
@@ -484,6 +511,15 @@ pub fn firebaseappcheck_oauth_clients_exchange_debug_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_oauth_clients_exchange_debug_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckOauthClientsExchangeDebugTokenArgs {
+    /// Path parameter: app
+    pub app: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1ExchangeDebugTokenRequest,
+}
+
 /// GET v1/oauthClients/{oauthClientsId}:exchangeDebugToken
 /// Validates a debug token secret that you have previously created using CreateDebugToken. If valid, returns an AppCheckToken. Note that a restrictive quota is enforced on this method to prevent accidental exposure of the app to abuse.
 ///
@@ -496,8 +532,7 @@ pub fn firebaseappcheck_oauth_clients_exchange_debug_token_execute(
 
 pub fn firebaseappcheck_oauth_clients_exchange_debug_token(
     client: &SimpleHttpClient,
-    app: &str,
-    body: &GoogleFirebaseAppcheckV1ExchangeDebugTokenRequest,
+    args: &FirebaseappcheckOauthClientsExchangeDebugTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1AppCheckToken>, ApiError>,
@@ -506,7 +541,8 @@ pub fn firebaseappcheck_oauth_clients_exchange_debug_token(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_oauth_clients_exchange_debug_token_builder(client, app, body)?;
+    let builder =
+        firebaseappcheck_oauth_clients_exchange_debug_token_builder(client, &args.app, &args.body)?;
     firebaseappcheck_oauth_clients_exchange_debug_token_execute(builder)
 }
 
@@ -611,6 +647,15 @@ pub fn firebaseappcheck_oauth_clients_generate_app_attest_challenge_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_oauth_clients_generate_app_attest_challenge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckOauthClientsGenerateAppAttestChallengeArgs {
+    /// Path parameter: app
+    pub app: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1GenerateAppAttestChallengeRequest,
+}
+
 /// GET v1/oauthClients/{oauthClientsId}:generateAppAttestChallenge
 /// Generates a challenge that protects the integrity of an immediately following call to ExchangeAppAttestAttestation or ExchangeAppAttestAssertion. A challenge should not be reused for multiple calls.
 ///
@@ -623,8 +668,7 @@ pub fn firebaseappcheck_oauth_clients_generate_app_attest_challenge_execute(
 
 pub fn firebaseappcheck_oauth_clients_generate_app_attest_challenge(
     client: &SimpleHttpClient,
-    app: &str,
-    body: &GoogleFirebaseAppcheckV1GenerateAppAttestChallengeRequest,
+    args: &FirebaseappcheckOauthClientsGenerateAppAttestChallengeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -636,8 +680,9 @@ pub fn firebaseappcheck_oauth_clients_generate_app_attest_challenge(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappcheck_oauth_clients_generate_app_attest_challenge_builder(client, app, body)?;
+    let builder = firebaseappcheck_oauth_clients_generate_app_attest_challenge_builder(
+        client, &args.app, &args.body,
+    )?;
     firebaseappcheck_oauth_clients_generate_app_attest_challenge_execute(builder)
 }
 
@@ -738,6 +783,15 @@ pub fn firebaseappcheck_projects_apps_exchange_app_attest_assertion_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_exchange_app_attest_assertion`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsExchangeAppAttestAssertionArgs {
+    /// Path parameter: app
+    pub app: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1ExchangeAppAttestAssertionRequest,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}:exchangeAppAttestAssertion
 /// Accepts an App Attest assertion and an artifact previously obtained from ExchangeAppAttestAttestation and verifies those with Apple. If valid, returns an AppCheckToken.
 ///
@@ -750,8 +804,7 @@ pub fn firebaseappcheck_projects_apps_exchange_app_attest_assertion_execute(
 
 pub fn firebaseappcheck_projects_apps_exchange_app_attest_assertion(
     client: &SimpleHttpClient,
-    app: &str,
-    body: &GoogleFirebaseAppcheckV1ExchangeAppAttestAssertionRequest,
+    args: &FirebaseappcheckProjectsAppsExchangeAppAttestAssertionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1AppCheckToken>, ApiError>,
@@ -760,8 +813,9 @@ pub fn firebaseappcheck_projects_apps_exchange_app_attest_assertion(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappcheck_projects_apps_exchange_app_attest_assertion_builder(client, app, body)?;
+    let builder = firebaseappcheck_projects_apps_exchange_app_attest_assertion_builder(
+        client, &args.app, &args.body,
+    )?;
     firebaseappcheck_projects_apps_exchange_app_attest_assertion_execute(builder)
 }
 
@@ -866,6 +920,15 @@ pub fn firebaseappcheck_projects_apps_exchange_app_attest_attestation_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_exchange_app_attest_attestation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsExchangeAppAttestAttestationArgs {
+    /// Path parameter: app
+    pub app: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationRequest,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}:exchangeAppAttestAttestation
 /// Accepts an App Attest CBOR attestation and verifies it with Apple using your preconfigured team and bundle IDs. If valid, returns an attestation artifact that can later be exchanged for an AppCheckToken using ExchangeAppAttestAssertion. For convenience and performance, this method's response object will also contain an AppCheckToken (if the verification is successful).
 ///
@@ -878,8 +941,7 @@ pub fn firebaseappcheck_projects_apps_exchange_app_attest_attestation_execute(
 
 pub fn firebaseappcheck_projects_apps_exchange_app_attest_attestation(
     client: &SimpleHttpClient,
-    app: &str,
-    body: &GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationRequest,
+    args: &FirebaseappcheckProjectsAppsExchangeAppAttestAttestationArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -891,8 +953,9 @@ pub fn firebaseappcheck_projects_apps_exchange_app_attest_attestation(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappcheck_projects_apps_exchange_app_attest_attestation_builder(client, app, body)?;
+    let builder = firebaseappcheck_projects_apps_exchange_app_attest_attestation_builder(
+        client, &args.app, &args.body,
+    )?;
     firebaseappcheck_projects_apps_exchange_app_attest_attestation_execute(builder)
 }
 
@@ -993,6 +1056,15 @@ pub fn firebaseappcheck_projects_apps_exchange_custom_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_exchange_custom_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsExchangeCustomTokenArgs {
+    /// Path parameter: app
+    pub app: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1ExchangeCustomTokenRequest,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}:exchangeCustomToken
 /// Validates a custom token signed using your project's Admin SDK service account credentials. If valid, returns an AppCheckToken.
 ///
@@ -1005,8 +1077,7 @@ pub fn firebaseappcheck_projects_apps_exchange_custom_token_execute(
 
 pub fn firebaseappcheck_projects_apps_exchange_custom_token(
     client: &SimpleHttpClient,
-    app: &str,
-    body: &GoogleFirebaseAppcheckV1ExchangeCustomTokenRequest,
+    args: &FirebaseappcheckProjectsAppsExchangeCustomTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1AppCheckToken>, ApiError>,
@@ -1015,7 +1086,9 @@ pub fn firebaseappcheck_projects_apps_exchange_custom_token(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_projects_apps_exchange_custom_token_builder(client, app, body)?;
+    let builder = firebaseappcheck_projects_apps_exchange_custom_token_builder(
+        client, &args.app, &args.body,
+    )?;
     firebaseappcheck_projects_apps_exchange_custom_token_execute(builder)
 }
 
@@ -1116,6 +1189,15 @@ pub fn firebaseappcheck_projects_apps_exchange_debug_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_exchange_debug_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsExchangeDebugTokenArgs {
+    /// Path parameter: app
+    pub app: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1ExchangeDebugTokenRequest,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}:exchangeDebugToken
 /// Validates a debug token secret that you have previously created using CreateDebugToken. If valid, returns an AppCheckToken. Note that a restrictive quota is enforced on this method to prevent accidental exposure of the app to abuse.
 ///
@@ -1128,8 +1210,7 @@ pub fn firebaseappcheck_projects_apps_exchange_debug_token_execute(
 
 pub fn firebaseappcheck_projects_apps_exchange_debug_token(
     client: &SimpleHttpClient,
-    app: &str,
-    body: &GoogleFirebaseAppcheckV1ExchangeDebugTokenRequest,
+    args: &FirebaseappcheckProjectsAppsExchangeDebugTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1AppCheckToken>, ApiError>,
@@ -1138,7 +1219,8 @@ pub fn firebaseappcheck_projects_apps_exchange_debug_token(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_projects_apps_exchange_debug_token_builder(client, app, body)?;
+    let builder =
+        firebaseappcheck_projects_apps_exchange_debug_token_builder(client, &args.app, &args.body)?;
     firebaseappcheck_projects_apps_exchange_debug_token_execute(builder)
 }
 
@@ -1239,6 +1321,15 @@ pub fn firebaseappcheck_projects_apps_exchange_device_check_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_exchange_device_check_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsExchangeDeviceCheckTokenArgs {
+    /// Path parameter: app
+    pub app: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1ExchangeDeviceCheckTokenRequest,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}:exchangeDeviceCheckToken
 /// Accepts a [device_token](<https://developer.apple.`com/documentation/devicecheck/dcdevice`>) issued by DeviceCheck, and attempts to validate it with Apple. If valid, returns an AppCheckToken.
 ///
@@ -1251,8 +1342,7 @@ pub fn firebaseappcheck_projects_apps_exchange_device_check_token_execute(
 
 pub fn firebaseappcheck_projects_apps_exchange_device_check_token(
     client: &SimpleHttpClient,
-    app: &str,
-    body: &GoogleFirebaseAppcheckV1ExchangeDeviceCheckTokenRequest,
+    args: &FirebaseappcheckProjectsAppsExchangeDeviceCheckTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1AppCheckToken>, ApiError>,
@@ -1261,8 +1351,9 @@ pub fn firebaseappcheck_projects_apps_exchange_device_check_token(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappcheck_projects_apps_exchange_device_check_token_builder(client, app, body)?;
+    let builder = firebaseappcheck_projects_apps_exchange_device_check_token_builder(
+        client, &args.app, &args.body,
+    )?;
     firebaseappcheck_projects_apps_exchange_device_check_token_execute(builder)
 }
 
@@ -1363,6 +1454,15 @@ pub fn firebaseappcheck_projects_apps_exchange_play_integrity_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_exchange_play_integrity_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsExchangePlayIntegrityTokenArgs {
+    /// Path parameter: app
+    pub app: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1ExchangePlayIntegrityTokenRequest,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}:exchangePlayIntegrityToken
 /// Validates an [integrity verdict response token from Play Integrity](<https://developer.android.`com/google/play/integrity/verdict`#decrypt-verify>). If valid, returns an AppCheckToken.
 ///
@@ -1375,8 +1475,7 @@ pub fn firebaseappcheck_projects_apps_exchange_play_integrity_token_execute(
 
 pub fn firebaseappcheck_projects_apps_exchange_play_integrity_token(
     client: &SimpleHttpClient,
-    app: &str,
-    body: &GoogleFirebaseAppcheckV1ExchangePlayIntegrityTokenRequest,
+    args: &FirebaseappcheckProjectsAppsExchangePlayIntegrityTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1AppCheckToken>, ApiError>,
@@ -1385,8 +1484,9 @@ pub fn firebaseappcheck_projects_apps_exchange_play_integrity_token(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappcheck_projects_apps_exchange_play_integrity_token_builder(client, app, body)?;
+    let builder = firebaseappcheck_projects_apps_exchange_play_integrity_token_builder(
+        client, &args.app, &args.body,
+    )?;
     firebaseappcheck_projects_apps_exchange_play_integrity_token_execute(builder)
 }
 
@@ -1487,6 +1587,15 @@ pub fn firebaseappcheck_projects_apps_exchange_recaptcha_enterprise_token_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_exchange_recaptcha_enterprise_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsExchangeRecaptchaEnterpriseTokenArgs {
+    /// Path parameter: app
+    pub app: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1ExchangeRecaptchaEnterpriseTokenRequest,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}:exchangeRecaptchaEnterpriseToken
 /// Validates a [`reCAPTCHA` Enterprise response token](<https://cloud.google.`com/recaptcha-enterprise/docs/create-assessment`#retrieve_token>). If valid, returns an AppCheckToken.
 ///
@@ -1499,8 +1608,7 @@ pub fn firebaseappcheck_projects_apps_exchange_recaptcha_enterprise_token_execut
 
 pub fn firebaseappcheck_projects_apps_exchange_recaptcha_enterprise_token(
     client: &SimpleHttpClient,
-    app: &str,
-    body: &GoogleFirebaseAppcheckV1ExchangeRecaptchaEnterpriseTokenRequest,
+    args: &FirebaseappcheckProjectsAppsExchangeRecaptchaEnterpriseTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1AppCheckToken>, ApiError>,
@@ -1510,7 +1618,7 @@ pub fn firebaseappcheck_projects_apps_exchange_recaptcha_enterprise_token(
     ApiError,
 > {
     let builder = firebaseappcheck_projects_apps_exchange_recaptcha_enterprise_token_builder(
-        client, app, body,
+        client, &args.app, &args.body,
     )?;
     firebaseappcheck_projects_apps_exchange_recaptcha_enterprise_token_execute(builder)
 }
@@ -1612,6 +1720,15 @@ pub fn firebaseappcheck_projects_apps_exchange_recaptcha_v3_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_exchange_recaptcha_v3_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsExchangeRecaptchaV3TokenArgs {
+    /// Path parameter: app
+    pub app: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1ExchangeRecaptchaV3TokenRequest,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}:exchangeRecaptchaV3Token
 /// Validates a [`reCAPTCHA` v3 response token](<https://developers.google.`com/recaptcha/docs/v3`>). If valid, returns an AppCheckToken.
 ///
@@ -1624,8 +1741,7 @@ pub fn firebaseappcheck_projects_apps_exchange_recaptcha_v3_token_execute(
 
 pub fn firebaseappcheck_projects_apps_exchange_recaptcha_v3_token(
     client: &SimpleHttpClient,
-    app: &str,
-    body: &GoogleFirebaseAppcheckV1ExchangeRecaptchaV3TokenRequest,
+    args: &FirebaseappcheckProjectsAppsExchangeRecaptchaV3TokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1AppCheckToken>, ApiError>,
@@ -1634,8 +1750,9 @@ pub fn firebaseappcheck_projects_apps_exchange_recaptcha_v3_token(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappcheck_projects_apps_exchange_recaptcha_v3_token_builder(client, app, body)?;
+    let builder = firebaseappcheck_projects_apps_exchange_recaptcha_v3_token_builder(
+        client, &args.app, &args.body,
+    )?;
     firebaseappcheck_projects_apps_exchange_recaptcha_v3_token_execute(builder)
 }
 
@@ -1736,6 +1853,15 @@ pub fn firebaseappcheck_projects_apps_exchange_safety_net_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_exchange_safety_net_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsExchangeSafetyNetTokenArgs {
+    /// Path parameter: app
+    pub app: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1ExchangeSafetyNetTokenRequest,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}:exchangeSafetyNetToken
 /// Validates a [SafetyNet token](<https://developer.android.`com/training/safetynet/attestation`#request-attestation-step>). If valid, returns an AppCheckToken.
 ///
@@ -1748,8 +1874,7 @@ pub fn firebaseappcheck_projects_apps_exchange_safety_net_token_execute(
 
 pub fn firebaseappcheck_projects_apps_exchange_safety_net_token(
     client: &SimpleHttpClient,
-    app: &str,
-    body: &GoogleFirebaseAppcheckV1ExchangeSafetyNetTokenRequest,
+    args: &FirebaseappcheckProjectsAppsExchangeSafetyNetTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1AppCheckToken>, ApiError>,
@@ -1758,8 +1883,9 @@ pub fn firebaseappcheck_projects_apps_exchange_safety_net_token(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappcheck_projects_apps_exchange_safety_net_token_builder(client, app, body)?;
+    let builder = firebaseappcheck_projects_apps_exchange_safety_net_token_builder(
+        client, &args.app, &args.body,
+    )?;
     firebaseappcheck_projects_apps_exchange_safety_net_token_execute(builder)
 }
 
@@ -1864,6 +1990,15 @@ pub fn firebaseappcheck_projects_apps_generate_app_attest_challenge_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_generate_app_attest_challenge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsGenerateAppAttestChallengeArgs {
+    /// Path parameter: app
+    pub app: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1GenerateAppAttestChallengeRequest,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}:generateAppAttestChallenge
 /// Generates a challenge that protects the integrity of an immediately following call to ExchangeAppAttestAttestation or ExchangeAppAttestAssertion. A challenge should not be reused for multiple calls.
 ///
@@ -1876,8 +2011,7 @@ pub fn firebaseappcheck_projects_apps_generate_app_attest_challenge_execute(
 
 pub fn firebaseappcheck_projects_apps_generate_app_attest_challenge(
     client: &SimpleHttpClient,
-    app: &str,
-    body: &GoogleFirebaseAppcheckV1GenerateAppAttestChallengeRequest,
+    args: &FirebaseappcheckProjectsAppsGenerateAppAttestChallengeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1889,8 +2023,9 @@ pub fn firebaseappcheck_projects_apps_generate_app_attest_challenge(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappcheck_projects_apps_generate_app_attest_challenge_builder(client, app, body)?;
+    let builder = firebaseappcheck_projects_apps_generate_app_attest_challenge_builder(
+        client, &args.app, &args.body,
+    )?;
     firebaseappcheck_projects_apps_generate_app_attest_challenge_execute(builder)
 }
 
@@ -1995,6 +2130,15 @@ pub fn firebaseappcheck_projects_apps_generate_play_integrity_challenge_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_generate_play_integrity_challenge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsGeneratePlayIntegrityChallengeArgs {
+    /// Path parameter: app
+    pub app: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1GeneratePlayIntegrityChallengeRequest,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}:generatePlayIntegrityChallenge
 /// Generates a challenge that protects the integrity of an immediately following integrity verdict request to the Play Integrity API. The next call to ExchangePlayIntegrityToken using the resulting integrity token will verify the presence and validity of the challenge. A challenge should not be reused for multiple calls.
 ///
@@ -2007,8 +2151,7 @@ pub fn firebaseappcheck_projects_apps_generate_play_integrity_challenge_execute(
 
 pub fn firebaseappcheck_projects_apps_generate_play_integrity_challenge(
     client: &SimpleHttpClient,
-    app: &str,
-    body: &GoogleFirebaseAppcheckV1GeneratePlayIntegrityChallengeRequest,
+    args: &FirebaseappcheckProjectsAppsGeneratePlayIntegrityChallengeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2021,7 +2164,7 @@ pub fn firebaseappcheck_projects_apps_generate_play_integrity_challenge(
     ApiError,
 > {
     let builder = firebaseappcheck_projects_apps_generate_play_integrity_challenge_builder(
-        client, app, body,
+        client, &args.app, &args.body,
     )?;
     firebaseappcheck_projects_apps_generate_play_integrity_challenge_execute(builder)
 }
@@ -2136,6 +2279,15 @@ pub fn firebaseappcheck_projects_apps_app_attest_config_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_app_attest_config_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsAppAttestConfigBatchGetArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: names
+    pub names: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/apps/-/appAttestConfig:batchGet
 /// Atomically gets the AppAttestConfigs for the specified list of apps.
 ///
@@ -2148,8 +2300,7 @@ pub fn firebaseappcheck_projects_apps_app_attest_config_batch_get_execute(
 
 pub fn firebaseappcheck_projects_apps_app_attest_config_batch_get(
     client: &SimpleHttpClient,
-    parent: &str,
-    names: Option<&str>,
+    args: &FirebaseappcheckProjectsAppsAppAttestConfigBatchGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2161,8 +2312,11 @@ pub fn firebaseappcheck_projects_apps_app_attest_config_batch_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappcheck_projects_apps_app_attest_config_batch_get_builder(client, parent, names)?;
+    let builder = firebaseappcheck_projects_apps_app_attest_config_batch_get_builder(
+        client,
+        &args.parent,
+        args.names.as_deref(),
+    )?;
     firebaseappcheck_projects_apps_app_attest_config_batch_get_execute(builder)
 }
 
@@ -2261,6 +2415,13 @@ pub fn firebaseappcheck_projects_apps_app_attest_config_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_app_attest_config_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsAppAttestConfigGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/appAttestConfig
 /// Gets the AppAttestConfig for the specified app.
 ///
@@ -2273,7 +2434,7 @@ pub fn firebaseappcheck_projects_apps_app_attest_config_get_execute(
 
 pub fn firebaseappcheck_projects_apps_app_attest_config_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappcheckProjectsAppsAppAttestConfigGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1AppAttestConfig>, ApiError>,
@@ -2282,7 +2443,7 @@ pub fn firebaseappcheck_projects_apps_app_attest_config_get(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_projects_apps_app_attest_config_get_builder(client, name)?;
+    let builder = firebaseappcheck_projects_apps_app_attest_config_get_builder(client, &args.name)?;
     firebaseappcheck_projects_apps_app_attest_config_get_execute(builder)
 }
 
@@ -2396,6 +2557,17 @@ pub fn firebaseappcheck_projects_apps_app_attest_config_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_app_attest_config_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsAppAttestConfigPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1AppAttestConfig,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/appAttestConfig
 /// Updates the AppAttestConfig for the specified app. While this configuration is incomplete or invalid, the app will be unable to exchange AppAttest tokens for App Check tokens.
 ///
@@ -2408,9 +2580,7 @@ pub fn firebaseappcheck_projects_apps_app_attest_config_patch_execute(
 
 pub fn firebaseappcheck_projects_apps_app_attest_config_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleFirebaseAppcheckV1AppAttestConfig,
+    args: &FirebaseappcheckProjectsAppsAppAttestConfigPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1AppAttestConfig>, ApiError>,
@@ -2420,7 +2590,10 @@ pub fn firebaseappcheck_projects_apps_app_attest_config_patch(
     ApiError,
 > {
     let builder = firebaseappcheck_projects_apps_app_attest_config_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     firebaseappcheck_projects_apps_app_attest_config_patch_execute(builder)
 }
@@ -2522,6 +2695,15 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_debug_tokens_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsDebugTokensCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1DebugToken,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/debugTokens
 /// Creates a new DebugToken for the specified app. For security reasons, after the creation operation completes, the token field cannot be updated or retrieved, but you can revoke the debug token using DeleteDebugToken. Each app can have a maximum of 20 debug tokens.
 ///
@@ -2534,8 +2716,7 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_create_execute(
 
 pub fn firebaseappcheck_projects_apps_debug_tokens_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleFirebaseAppcheckV1DebugToken,
+    args: &FirebaseappcheckProjectsAppsDebugTokensCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1DebugToken>, ApiError>,
@@ -2544,7 +2725,11 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_create(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_projects_apps_debug_tokens_create_builder(client, parent, body)?;
+    let builder = firebaseappcheck_projects_apps_debug_tokens_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     firebaseappcheck_projects_apps_debug_tokens_create_execute(builder)
 }
 
@@ -2640,6 +2825,13 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_debug_tokens_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsDebugTokensDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/debugTokens/{debugTokensId}
 /// Deletes the specified DebugToken. A deleted debug token cannot be used to exchange for an App Check token. Use this method when you suspect the secret token has been compromised or when you no longer need the debug token.
 ///
@@ -2652,14 +2844,14 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_delete_execute(
 
 pub fn firebaseappcheck_projects_apps_debug_tokens_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappcheckProjectsAppsDebugTokensDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_projects_apps_debug_tokens_delete_builder(client, name)?;
+    let builder = firebaseappcheck_projects_apps_debug_tokens_delete_builder(client, &args.name)?;
     firebaseappcheck_projects_apps_debug_tokens_delete_execute(builder)
 }
 
@@ -2757,6 +2949,13 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_debug_tokens_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsDebugTokensGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/debugTokens/{debugTokensId}
 /// Gets the specified DebugToken. For security reasons, the token field is never populated in the response.
 ///
@@ -2769,7 +2968,7 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_get_execute(
 
 pub fn firebaseappcheck_projects_apps_debug_tokens_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappcheckProjectsAppsDebugTokensGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1DebugToken>, ApiError>,
@@ -2778,7 +2977,7 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_get(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_projects_apps_debug_tokens_get_builder(client, name)?;
+    let builder = firebaseappcheck_projects_apps_debug_tokens_get_builder(client, &args.name)?;
     firebaseappcheck_projects_apps_debug_tokens_get_execute(builder)
 }
 
@@ -2893,6 +3092,17 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_debug_tokens_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsDebugTokensListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/debugTokens
 /// Lists all DebugTokens for the specified app. For security reasons, the token field is never populated in the response.
 ///
@@ -2905,9 +3115,7 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_list_execute(
 
 pub fn firebaseappcheck_projects_apps_debug_tokens_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirebaseappcheckProjectsAppsDebugTokensListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1ListDebugTokensResponse>, ApiError>,
@@ -2917,7 +3125,10 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_list(
     ApiError,
 > {
     let builder = firebaseappcheck_projects_apps_debug_tokens_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     firebaseappcheck_projects_apps_debug_tokens_list_execute(builder)
 }
@@ -3031,6 +3242,17 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_debug_tokens_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsDebugTokensPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1DebugToken,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/debugTokens/{debugTokensId}
 /// Updates the specified DebugToken. For security reasons, the token field cannot be updated, nor will it be populated in the response, but you can revoke the debug token using DeleteDebugToken.
 ///
@@ -3043,9 +3265,7 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_patch_execute(
 
 pub fn firebaseappcheck_projects_apps_debug_tokens_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleFirebaseAppcheckV1DebugToken,
+    args: &FirebaseappcheckProjectsAppsDebugTokensPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1DebugToken>, ApiError>,
@@ -3054,8 +3274,12 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappcheck_projects_apps_debug_tokens_patch_builder(client, name, updateMask, body)?;
+    let builder = firebaseappcheck_projects_apps_debug_tokens_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     firebaseappcheck_projects_apps_debug_tokens_patch_execute(builder)
 }
 
@@ -3169,6 +3393,15 @@ pub fn firebaseappcheck_projects_apps_device_check_config_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_device_check_config_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsDeviceCheckConfigBatchGetArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: names
+    pub names: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/apps/-/deviceCheckConfig:batchGet
 /// Atomically gets the DeviceCheckConfigs for the specified list of apps. For security reasons, the private_key field is never populated in the response.
 ///
@@ -3181,8 +3414,7 @@ pub fn firebaseappcheck_projects_apps_device_check_config_batch_get_execute(
 
 pub fn firebaseappcheck_projects_apps_device_check_config_batch_get(
     client: &SimpleHttpClient,
-    parent: &str,
-    names: Option<&str>,
+    args: &FirebaseappcheckProjectsAppsDeviceCheckConfigBatchGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3195,7 +3427,9 @@ pub fn firebaseappcheck_projects_apps_device_check_config_batch_get(
     ApiError,
 > {
     let builder = firebaseappcheck_projects_apps_device_check_config_batch_get_builder(
-        client, parent, names,
+        client,
+        &args.parent,
+        args.names.as_deref(),
     )?;
     firebaseappcheck_projects_apps_device_check_config_batch_get_execute(builder)
 }
@@ -3294,6 +3528,13 @@ pub fn firebaseappcheck_projects_apps_device_check_config_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_device_check_config_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsDeviceCheckConfigGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/deviceCheckConfig
 /// Gets the DeviceCheckConfig for the specified app. For security reasons, the private_key field is never populated in the response.
 ///
@@ -3306,7 +3547,7 @@ pub fn firebaseappcheck_projects_apps_device_check_config_get_execute(
 
 pub fn firebaseappcheck_projects_apps_device_check_config_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappcheckProjectsAppsDeviceCheckConfigGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1DeviceCheckConfig>, ApiError>,
@@ -3315,7 +3556,8 @@ pub fn firebaseappcheck_projects_apps_device_check_config_get(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_projects_apps_device_check_config_get_builder(client, name)?;
+    let builder =
+        firebaseappcheck_projects_apps_device_check_config_get_builder(client, &args.name)?;
     firebaseappcheck_projects_apps_device_check_config_get_execute(builder)
 }
 
@@ -3428,6 +3670,17 @@ pub fn firebaseappcheck_projects_apps_device_check_config_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_device_check_config_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsDeviceCheckConfigPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1DeviceCheckConfig,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/deviceCheckConfig
 /// Updates the DeviceCheckConfig for the specified app. While this configuration is incomplete or invalid, the app will be unable to exchange DeviceCheck tokens for App Check tokens. For security reasons, the private_key field is never populated in the response.
 ///
@@ -3440,9 +3693,7 @@ pub fn firebaseappcheck_projects_apps_device_check_config_patch_execute(
 
 pub fn firebaseappcheck_projects_apps_device_check_config_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleFirebaseAppcheckV1DeviceCheckConfig,
+    args: &FirebaseappcheckProjectsAppsDeviceCheckConfigPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1DeviceCheckConfig>, ApiError>,
@@ -3452,7 +3703,10 @@ pub fn firebaseappcheck_projects_apps_device_check_config_patch(
     ApiError,
 > {
     let builder = firebaseappcheck_projects_apps_device_check_config_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     firebaseappcheck_projects_apps_device_check_config_patch_execute(builder)
 }
@@ -3567,6 +3821,15 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_play_integrity_config_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsPlayIntegrityConfigBatchGetArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: names
+    pub names: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/apps/-/playIntegrityConfig:batchGet
 /// Atomically gets the PlayIntegrityConfigs for the specified list of apps.
 ///
@@ -3579,8 +3842,7 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_batch_get_execute(
 
 pub fn firebaseappcheck_projects_apps_play_integrity_config_batch_get(
     client: &SimpleHttpClient,
-    parent: &str,
-    names: Option<&str>,
+    args: &FirebaseappcheckProjectsAppsPlayIntegrityConfigBatchGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3593,7 +3855,9 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_batch_get(
     ApiError,
 > {
     let builder = firebaseappcheck_projects_apps_play_integrity_config_batch_get_builder(
-        client, parent, names,
+        client,
+        &args.parent,
+        args.names.as_deref(),
     )?;
     firebaseappcheck_projects_apps_play_integrity_config_batch_get_execute(builder)
 }
@@ -3693,6 +3957,13 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_play_integrity_config_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsPlayIntegrityConfigGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/playIntegrityConfig
 /// Gets the PlayIntegrityConfig for the specified app.
 ///
@@ -3705,7 +3976,7 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_get_execute(
 
 pub fn firebaseappcheck_projects_apps_play_integrity_config_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappcheckProjectsAppsPlayIntegrityConfigGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1PlayIntegrityConfig>, ApiError>,
@@ -3714,7 +3985,8 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_get(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_projects_apps_play_integrity_config_get_builder(client, name)?;
+    let builder =
+        firebaseappcheck_projects_apps_play_integrity_config_get_builder(client, &args.name)?;
     firebaseappcheck_projects_apps_play_integrity_config_get_execute(builder)
 }
 
@@ -3828,6 +4100,17 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_play_integrity_config_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsPlayIntegrityConfigPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1PlayIntegrityConfig,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/playIntegrityConfig
 /// Updates the PlayIntegrityConfig for the specified app. While this configuration is incomplete or invalid, the app will be unable to exchange Play Integrity tokens for App Check tokens.
 ///
@@ -3840,9 +4123,7 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_patch_execute(
 
 pub fn firebaseappcheck_projects_apps_play_integrity_config_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleFirebaseAppcheckV1PlayIntegrityConfig,
+    args: &FirebaseappcheckProjectsAppsPlayIntegrityConfigPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1PlayIntegrityConfig>, ApiError>,
@@ -3852,7 +4133,10 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_patch(
     ApiError,
 > {
     let builder = firebaseappcheck_projects_apps_play_integrity_config_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     firebaseappcheck_projects_apps_play_integrity_config_patch_execute(builder)
 }
@@ -3967,6 +4251,15 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigBatchGetArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: names
+    pub names: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/apps/-/recaptchaEnterpriseConfig:batchGet
 /// Atomically gets the RecaptchaEnterpriseConfigs for the specified list of apps.
 ///
@@ -3979,8 +4272,7 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get_exec
 
 pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get(
     client: &SimpleHttpClient,
-    parent: &str,
-    names: Option<&str>,
+    args: &FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigBatchGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3993,7 +4285,9 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get(
     ApiError,
 > {
     let builder = firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get_builder(
-        client, parent, names,
+        client,
+        &args.parent,
+        args.names.as_deref(),
     )?;
     firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get_execute(builder)
 }
@@ -4093,6 +4387,13 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_recaptcha_enterprise_config_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/recaptchaEnterpriseConfig
 /// Gets the RecaptchaEnterpriseConfig for the specified app.
 ///
@@ -4105,7 +4406,7 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_get_execute(
 
 pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig>, ApiError>,
@@ -4115,7 +4416,7 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_get(
     ApiError,
 > {
     let builder =
-        firebaseappcheck_projects_apps_recaptcha_enterprise_config_get_builder(client, name)?;
+        firebaseappcheck_projects_apps_recaptcha_enterprise_config_get_builder(client, &args.name)?;
     firebaseappcheck_projects_apps_recaptcha_enterprise_config_get_execute(builder)
 }
 
@@ -4229,6 +4530,17 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_recaptcha_enterprise_config_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/recaptchaEnterpriseConfig
 /// Updates the RecaptchaEnterpriseConfig for the specified app. While this configuration is incomplete or invalid, the app will be unable to exchange `reCAPTCHA` Enterprise tokens for App Check tokens.
 ///
@@ -4241,9 +4553,7 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_patch_execute(
 
 pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig,
+    args: &FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig>, ApiError>,
@@ -4253,7 +4563,10 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_patch(
     ApiError,
 > {
     let builder = firebaseappcheck_projects_apps_recaptcha_enterprise_config_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     firebaseappcheck_projects_apps_recaptcha_enterprise_config_patch_execute(builder)
 }
@@ -4368,6 +4681,15 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsRecaptchaV3ConfigBatchGetArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: names
+    pub names: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/apps/-/recaptchaV3Config:batchGet
 /// Atomically gets the RecaptchaV3Configs for the specified list of apps. For security reasons, the site_secret field is never populated in the response.
 ///
@@ -4380,8 +4702,7 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get_execute(
 
 pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get(
     client: &SimpleHttpClient,
-    parent: &str,
-    names: Option<&str>,
+    args: &FirebaseappcheckProjectsAppsRecaptchaV3ConfigBatchGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4394,7 +4715,9 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get(
     ApiError,
 > {
     let builder = firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get_builder(
-        client, parent, names,
+        client,
+        &args.parent,
+        args.names.as_deref(),
     )?;
     firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get_execute(builder)
 }
@@ -4493,6 +4816,13 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_recaptcha_v3_config_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsRecaptchaV3ConfigGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/recaptchaV3Config
 /// Gets the RecaptchaV3Config for the specified app. For security reasons, the site_secret field is never populated in the response.
 ///
@@ -4505,7 +4835,7 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_get_execute(
 
 pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappcheckProjectsAppsRecaptchaV3ConfigGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1RecaptchaV3Config>, ApiError>,
@@ -4514,7 +4844,8 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_get(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_projects_apps_recaptcha_v3_config_get_builder(client, name)?;
+    let builder =
+        firebaseappcheck_projects_apps_recaptcha_v3_config_get_builder(client, &args.name)?;
     firebaseappcheck_projects_apps_recaptcha_v3_config_get_execute(builder)
 }
 
@@ -4627,6 +4958,17 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_recaptcha_v3_config_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsRecaptchaV3ConfigPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1RecaptchaV3Config,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/recaptchaV3Config
 /// Updates the RecaptchaV3Config for the specified app. While this configuration is incomplete or invalid, the app will be unable to exchange `reCAPTCHA` V3 tokens for App Check tokens. For security reasons, the site_secret field is never populated in the response.
 ///
@@ -4639,9 +4981,7 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_patch_execute(
 
 pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleFirebaseAppcheckV1RecaptchaV3Config,
+    args: &FirebaseappcheckProjectsAppsRecaptchaV3ConfigPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1RecaptchaV3Config>, ApiError>,
@@ -4651,7 +4991,10 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_patch(
     ApiError,
 > {
     let builder = firebaseappcheck_projects_apps_recaptcha_v3_config_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     firebaseappcheck_projects_apps_recaptcha_v3_config_patch_execute(builder)
 }
@@ -4766,6 +5109,15 @@ pub fn firebaseappcheck_projects_apps_safety_net_config_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_safety_net_config_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsSafetyNetConfigBatchGetArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: names
+    pub names: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/apps/-/safetyNetConfig:batchGet
 /// Atomically gets the SafetyNetConfigs for the specified list of apps.
 ///
@@ -4778,8 +5130,7 @@ pub fn firebaseappcheck_projects_apps_safety_net_config_batch_get_execute(
 
 pub fn firebaseappcheck_projects_apps_safety_net_config_batch_get(
     client: &SimpleHttpClient,
-    parent: &str,
-    names: Option<&str>,
+    args: &FirebaseappcheckProjectsAppsSafetyNetConfigBatchGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4791,8 +5142,11 @@ pub fn firebaseappcheck_projects_apps_safety_net_config_batch_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappcheck_projects_apps_safety_net_config_batch_get_builder(client, parent, names)?;
+    let builder = firebaseappcheck_projects_apps_safety_net_config_batch_get_builder(
+        client,
+        &args.parent,
+        args.names.as_deref(),
+    )?;
     firebaseappcheck_projects_apps_safety_net_config_batch_get_execute(builder)
 }
 
@@ -4891,6 +5245,13 @@ pub fn firebaseappcheck_projects_apps_safety_net_config_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_safety_net_config_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsSafetyNetConfigGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/safetyNetConfig
 /// Gets the SafetyNetConfig for the specified app.
 ///
@@ -4903,7 +5264,7 @@ pub fn firebaseappcheck_projects_apps_safety_net_config_get_execute(
 
 pub fn firebaseappcheck_projects_apps_safety_net_config_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappcheckProjectsAppsSafetyNetConfigGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1SafetyNetConfig>, ApiError>,
@@ -4912,7 +5273,7 @@ pub fn firebaseappcheck_projects_apps_safety_net_config_get(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_projects_apps_safety_net_config_get_builder(client, name)?;
+    let builder = firebaseappcheck_projects_apps_safety_net_config_get_builder(client, &args.name)?;
     firebaseappcheck_projects_apps_safety_net_config_get_execute(builder)
 }
 
@@ -5026,6 +5387,17 @@ pub fn firebaseappcheck_projects_apps_safety_net_config_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_apps_safety_net_config_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsAppsSafetyNetConfigPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1SafetyNetConfig,
+}
+
 /// GET v1/projects/{projectsId}/apps/{appsId}/safetyNetConfig
 /// Updates the SafetyNetConfig for the specified app. While this configuration is incomplete or invalid, the app will be unable to exchange SafetyNet tokens for App Check tokens.
 ///
@@ -5038,9 +5410,7 @@ pub fn firebaseappcheck_projects_apps_safety_net_config_patch_execute(
 
 pub fn firebaseappcheck_projects_apps_safety_net_config_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleFirebaseAppcheckV1SafetyNetConfig,
+    args: &FirebaseappcheckProjectsAppsSafetyNetConfigPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1SafetyNetConfig>, ApiError>,
@@ -5050,7 +5420,10 @@ pub fn firebaseappcheck_projects_apps_safety_net_config_patch(
     ApiError,
 > {
     let builder = firebaseappcheck_projects_apps_safety_net_config_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     firebaseappcheck_projects_apps_safety_net_config_patch_execute(builder)
 }
@@ -5153,6 +5526,15 @@ pub fn firebaseappcheck_projects_services_batch_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_services_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsServicesBatchUpdateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1BatchUpdateServicesRequest,
+}
+
 /// GET v1/projects/{projectsId}/services:batchUpdate
 /// Atomically updates the specified Service configurations.
 ///
@@ -5165,8 +5547,7 @@ pub fn firebaseappcheck_projects_services_batch_update_execute(
 
 pub fn firebaseappcheck_projects_services_batch_update(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleFirebaseAppcheckV1BatchUpdateServicesRequest,
+    args: &FirebaseappcheckProjectsServicesBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1BatchUpdateServicesResponse>, ApiError>,
@@ -5175,7 +5556,8 @@ pub fn firebaseappcheck_projects_services_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_projects_services_batch_update_builder(client, parent, body)?;
+    let builder =
+        firebaseappcheck_projects_services_batch_update_builder(client, &args.parent, &args.body)?;
     firebaseappcheck_projects_services_batch_update_execute(builder)
 }
 
@@ -5273,6 +5655,13 @@ pub fn firebaseappcheck_projects_services_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_services_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsServicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/services/{servicesId}
 /// Gets the Service configuration for the specified service name.
 ///
@@ -5285,7 +5674,7 @@ pub fn firebaseappcheck_projects_services_get_execute(
 
 pub fn firebaseappcheck_projects_services_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappcheckProjectsServicesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1Service>, ApiError>,
@@ -5294,7 +5683,7 @@ pub fn firebaseappcheck_projects_services_get(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_projects_services_get_builder(client, name)?;
+    let builder = firebaseappcheck_projects_services_get_builder(client, &args.name)?;
     firebaseappcheck_projects_services_get_execute(builder)
 }
 
@@ -5409,6 +5798,17 @@ pub fn firebaseappcheck_projects_services_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsServicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/services
 /// Lists all Service configurations for the specified project. Only Services which were explicitly configured using UpdateService or BatchUpdateServices will be returned.
 ///
@@ -5421,9 +5821,7 @@ pub fn firebaseappcheck_projects_services_list_execute(
 
 pub fn firebaseappcheck_projects_services_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirebaseappcheckProjectsServicesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1ListServicesResponse>, ApiError>,
@@ -5432,8 +5830,12 @@ pub fn firebaseappcheck_projects_services_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappcheck_projects_services_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = firebaseappcheck_projects_services_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     firebaseappcheck_projects_services_list_execute(builder)
 }
 
@@ -5546,6 +5948,17 @@ pub fn firebaseappcheck_projects_services_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_services_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsServicesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1Service,
+}
+
 /// GET v1/projects/{projectsId}/services/{servicesId}
 /// Updates the specified Service configuration.
 ///
@@ -5558,9 +5971,7 @@ pub fn firebaseappcheck_projects_services_patch_execute(
 
 pub fn firebaseappcheck_projects_services_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleFirebaseAppcheckV1Service,
+    args: &FirebaseappcheckProjectsServicesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1Service>, ApiError>,
@@ -5569,7 +5980,12 @@ pub fn firebaseappcheck_projects_services_patch(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_projects_services_patch_builder(client, name, updateMask, body)?;
+    let builder = firebaseappcheck_projects_services_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     firebaseappcheck_projects_services_patch_execute(builder)
 }
 
@@ -5674,6 +6090,15 @@ pub fn firebaseappcheck_projects_services_resource_policies_batch_update_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_services_resource_policies_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsServicesResourcePoliciesBatchUpdateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1BatchUpdateResourcePoliciesRequest,
+}
+
 /// GET v1/projects/{projectsId}/services/{servicesId}/resourcePolicies:batchUpdate
 /// Atomically updates the specified ResourcePolicy configurations.
 ///
@@ -5686,8 +6111,7 @@ pub fn firebaseappcheck_projects_services_resource_policies_batch_update_execute
 
 pub fn firebaseappcheck_projects_services_resource_policies_batch_update(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleFirebaseAppcheckV1BatchUpdateResourcePoliciesRequest,
+    args: &FirebaseappcheckProjectsServicesResourcePoliciesBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5700,7 +6124,9 @@ pub fn firebaseappcheck_projects_services_resource_policies_batch_update(
     ApiError,
 > {
     let builder = firebaseappcheck_projects_services_resource_policies_batch_update_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     firebaseappcheck_projects_services_resource_policies_batch_update_execute(builder)
 }
@@ -5802,6 +6228,15 @@ pub fn firebaseappcheck_projects_services_resource_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_services_resource_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsServicesResourcePoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1ResourcePolicy,
+}
+
 /// GET v1/projects/{projectsId}/services/{servicesId}/resourcePolicies
 /// Creates the specified ResourcePolicy configuration.
 ///
@@ -5814,8 +6249,7 @@ pub fn firebaseappcheck_projects_services_resource_policies_create_execute(
 
 pub fn firebaseappcheck_projects_services_resource_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleFirebaseAppcheckV1ResourcePolicy,
+    args: &FirebaseappcheckProjectsServicesResourcePoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1ResourcePolicy>, ApiError>,
@@ -5824,8 +6258,11 @@ pub fn firebaseappcheck_projects_services_resource_policies_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappcheck_projects_services_resource_policies_create_builder(client, parent, body)?;
+    let builder = firebaseappcheck_projects_services_resource_policies_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     firebaseappcheck_projects_services_resource_policies_create_execute(builder)
 }
 
@@ -5933,6 +6370,15 @@ pub fn firebaseappcheck_projects_services_resource_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_services_resource_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsServicesResourcePoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/services/{servicesId}/resourcePolicies/{resourcePoliciesId}
 /// Deletes the specified ResourcePolicy configuration.
 ///
@@ -5945,16 +6391,18 @@ pub fn firebaseappcheck_projects_services_resource_policies_delete_execute(
 
 pub fn firebaseappcheck_projects_services_resource_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &FirebaseappcheckProjectsServicesResourcePoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseappcheck_projects_services_resource_policies_delete_builder(client, name, etag)?;
+    let builder = firebaseappcheck_projects_services_resource_policies_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     firebaseappcheck_projects_services_resource_policies_delete_execute(builder)
 }
 
@@ -6052,6 +6500,13 @@ pub fn firebaseappcheck_projects_services_resource_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_services_resource_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsServicesResourcePoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/services/{servicesId}/resourcePolicies/{resourcePoliciesId}
 /// Gets the requested ResourcePolicy configuration.
 ///
@@ -6064,7 +6519,7 @@ pub fn firebaseappcheck_projects_services_resource_policies_get_execute(
 
 pub fn firebaseappcheck_projects_services_resource_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseappcheckProjectsServicesResourcePoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1ResourcePolicy>, ApiError>,
@@ -6073,7 +6528,8 @@ pub fn firebaseappcheck_projects_services_resource_policies_get(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_projects_services_resource_policies_get_builder(client, name)?;
+    let builder =
+        firebaseappcheck_projects_services_resource_policies_get_builder(client, &args.name)?;
     firebaseappcheck_projects_services_resource_policies_get_execute(builder)
 }
 
@@ -6192,6 +6648,19 @@ pub fn firebaseappcheck_projects_services_resource_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_services_resource_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsServicesResourcePoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/services/{servicesId}/resourcePolicies
 /// Lists all ResourcePolicy configurations for the specified project and service.
 ///
@@ -6204,10 +6673,7 @@ pub fn firebaseappcheck_projects_services_resource_policies_list_execute(
 
 pub fn firebaseappcheck_projects_services_resource_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirebaseappcheckProjectsServicesResourcePoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1ListResourcePoliciesResponse>, ApiError>,
@@ -6217,7 +6683,11 @@ pub fn firebaseappcheck_projects_services_resource_policies_list(
     ApiError,
 > {
     let builder = firebaseappcheck_projects_services_resource_policies_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     firebaseappcheck_projects_services_resource_policies_list_execute(builder)
 }
@@ -6331,6 +6801,17 @@ pub fn firebaseappcheck_projects_services_resource_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseappcheck_projects_services_resource_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappcheckProjectsServicesResourcePoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleFirebaseAppcheckV1ResourcePolicy,
+}
+
 /// GET v1/projects/{projectsId}/services/{servicesId}/resourcePolicies/{resourcePoliciesId}
 /// Updates the specified ResourcePolicy configuration.
 ///
@@ -6343,9 +6824,7 @@ pub fn firebaseappcheck_projects_services_resource_policies_patch_execute(
 
 pub fn firebaseappcheck_projects_services_resource_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleFirebaseAppcheckV1ResourcePolicy,
+    args: &FirebaseappcheckProjectsServicesResourcePoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirebaseAppcheckV1ResourcePolicy>, ApiError>,
@@ -6355,7 +6834,10 @@ pub fn firebaseappcheck_projects_services_resource_policies_patch(
     ApiError,
 > {
     let builder = firebaseappcheck_projects_services_resource_policies_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     firebaseappcheck_projects_services_resource_policies_patch_execute(builder)
 }

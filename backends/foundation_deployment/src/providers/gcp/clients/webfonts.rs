@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/webfonts
 /// Retrieves the list of fonts currently served by the Google Fonts Developer API.
@@ -130,6 +132,21 @@ pub fn webfonts_webfonts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webfonts_webfonts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebfontsWebfontsListArgs {
+    /// Query parameter: capability
+    pub capability: Option<String>,
+    /// Query parameter: category
+    pub category: Option<String>,
+    /// Query parameter: family
+    pub family: Option<String>,
+    /// Query parameter: sort
+    pub sort: Option<String>,
+    /// Query parameter: subset
+    pub subset: Option<String>,
+}
+
 /// GET v1/webfonts
 /// Retrieves the list of fonts currently served by the Google Fonts Developer API.
 ///
@@ -142,16 +159,18 @@ pub fn webfonts_webfonts_list_execute(
 
 pub fn webfonts_webfonts_list(
     client: &SimpleHttpClient,
-    capability: Option<&str>,
-    category: Option<&str>,
-    family: Option<&str>,
-    sort: Option<&str>,
-    subset: Option<&str>,
+    args: &WebfontsWebfontsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WebfontList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        webfonts_webfonts_list_builder(client, capability, category, family, sort, subset)?;
+    let builder = webfonts_webfonts_list_builder(
+        client,
+        args.capability.as_deref(),
+        args.category.as_deref(),
+        args.family.as_deref(),
+        args.sort.as_deref(),
+        args.subset.as_deref(),
+    )?;
     webfonts_webfonts_list_execute(builder)
 }

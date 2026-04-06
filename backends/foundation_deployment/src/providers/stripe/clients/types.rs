@@ -9,6 +9,35 @@
 
 use foundation_core::wire::simple_http::SimpleHeaders;
 
+use serde::{Deserialize, Serialize};
+
+/// Structured error response from cloud provider APIs.
+/// Matches Google Cloud Error format: https://cloud.google.com/apis/design/errors
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct ApiErrorDetails {
+    /// HTTP status code
+    pub code: i32,
+    /// Human-readable error message
+    pub message: String,
+    /// Error status string (e.g., "INVALID_ARGUMENT", "NOT_FOUND")
+    pub status: String,
+    /// Additional error details (provider-specific)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub details: Option<serde_json::Value>,
+}
+
+impl std::fmt::Display for ApiErrorDetails {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}: {}", self.status, self.message)
+    }
+}
+
+/// Wrapper for API error responses matching Google Cloud format.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct ApiErrorBody {
+    pub error: ApiErrorDetails,
+}
+
 /// Generic API response with status, headers, and parsed body.
 #[derive(Debug, Clone)]
 pub struct ApiResponse<T> {
@@ -22,7 +51,12 @@ pub struct ApiResponse<T> {
 pub enum ApiError {
     RequestBuildFailed(String),
     RequestSendFailed(String),
-    HttpStatus { code: u16, headers: SimpleHeaders },
+    HttpStatus {
+        code: u16,
+        headers: SimpleHeaders,
+        body: Option<String>,
+    },
+    ApiError(ApiErrorDetails),
     ParseFailed(String),
 }
 
@@ -31,7 +65,14 @@ impl std::fmt::Display for ApiError {
         match self {
             ApiError::RequestBuildFailed(e) => write!(f, "request build failed: {}", e),
             ApiError::RequestSendFailed(e) => write!(f, "request send failed: {}", e),
-            ApiError::HttpStatus { code, .. } => write!(f, "HTTP status {}", code),
+            ApiError::HttpStatus { code, body, .. } => {
+                write!(f, "HTTP status {}", code)?;
+                if let Some(b) = body {
+                    write!(f, ": {}", b)?;
+                }
+                Ok(())
+            }
+            ApiError::ApiError(e) => write!(f, "API error: {}", e),
             ApiError::ParseFailed(e) => write!(f, "parse failed: {}", e),
         }
     }

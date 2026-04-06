@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/customers/{customersId}/policies:resolve
 /// Gets the resolved policy values for a list of policies that match a search query.
@@ -114,6 +116,15 @@ pub fn chromepolicy_customers_policies_resolve_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromepolicy_customers_policies_resolve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromepolicyCustomersPoliciesResolveArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Request body.
+    pub body: GoogleChromePolicyVersionsV1ResolveRequest,
+}
+
 /// GET v1/customers/{customersId}/policies:resolve
 /// Gets the resolved policy values for a list of policies that match a search query.
 ///
@@ -126,8 +137,7 @@ pub fn chromepolicy_customers_policies_resolve_execute(
 
 pub fn chromepolicy_customers_policies_resolve(
     client: &SimpleHttpClient,
-    customer: &str,
-    body: &GoogleChromePolicyVersionsV1ResolveRequest,
+    args: &ChromepolicyCustomersPoliciesResolveArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromePolicyVersionsV1ResolveResponse>, ApiError>,
@@ -136,7 +146,8 @@ pub fn chromepolicy_customers_policies_resolve(
         + 'static,
     ApiError,
 > {
-    let builder = chromepolicy_customers_policies_resolve_builder(client, customer, body)?;
+    let builder =
+        chromepolicy_customers_policies_resolve_builder(client, &args.customer, &args.body)?;
     chromepolicy_customers_policies_resolve_execute(builder)
 }
 
@@ -235,6 +246,15 @@ pub fn chromepolicy_customers_policies_groups_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromepolicy_customers_policies_groups_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromepolicyCustomersPoliciesGroupsBatchDeleteArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Request body.
+    pub body: GoogleChromePolicyVersionsV1BatchDeleteGroupPoliciesRequest,
+}
+
 /// GET v1/customers/{customersId}/policies/groups:batchDelete
 /// Delete multiple policy values that are applied to a specific group. All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
@@ -247,16 +267,18 @@ pub fn chromepolicy_customers_policies_groups_batch_delete_execute(
 
 pub fn chromepolicy_customers_policies_groups_batch_delete(
     client: &SimpleHttpClient,
-    customer: &str,
-    body: &GoogleChromePolicyVersionsV1BatchDeleteGroupPoliciesRequest,
+    args: &ChromepolicyCustomersPoliciesGroupsBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        chromepolicy_customers_policies_groups_batch_delete_builder(client, customer, body)?;
+    let builder = chromepolicy_customers_policies_groups_batch_delete_builder(
+        client,
+        &args.customer,
+        &args.body,
+    )?;
     chromepolicy_customers_policies_groups_batch_delete_execute(builder)
 }
 
@@ -355,6 +377,15 @@ pub fn chromepolicy_customers_policies_groups_batch_modify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromepolicy_customers_policies_groups_batch_modify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromepolicyCustomersPoliciesGroupsBatchModifyArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Request body.
+    pub body: GoogleChromePolicyVersionsV1BatchModifyGroupPoliciesRequest,
+}
+
 /// GET v1/customers/{customersId}/policies/groups:batchModify
 /// Modify multiple policy values that are applied to a specific group. All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
@@ -367,16 +398,18 @@ pub fn chromepolicy_customers_policies_groups_batch_modify_execute(
 
 pub fn chromepolicy_customers_policies_groups_batch_modify(
     client: &SimpleHttpClient,
-    customer: &str,
-    body: &GoogleChromePolicyVersionsV1BatchModifyGroupPoliciesRequest,
+    args: &ChromepolicyCustomersPoliciesGroupsBatchModifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        chromepolicy_customers_policies_groups_batch_modify_builder(client, customer, body)?;
+    let builder = chromepolicy_customers_policies_groups_batch_modify_builder(
+        client,
+        &args.customer,
+        &args.body,
+    )?;
     chromepolicy_customers_policies_groups_batch_modify_execute(builder)
 }
 
@@ -481,6 +514,15 @@ pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromepolicy_customers_policies_groups_list_group_priority_ordering`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromepolicyCustomersPoliciesGroupsListGroupPriorityOrderingArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Request body.
+    pub body: GoogleChromePolicyVersionsV1ListGroupPriorityOrderingRequest,
+}
+
 /// GET v1/customers/{customersId}/policies/groups:listGroupPriorityOrdering
 /// Retrieve a group priority ordering for an app. The target app must be supplied in `additionalTargetKeyNames` in the PolicyTargetKey. On failure the request will return the error details as part of the google.rpc.Status.
 ///
@@ -493,8 +535,7 @@ pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering_execu
 
 pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering(
     client: &SimpleHttpClient,
-    customer: &str,
-    body: &GoogleChromePolicyVersionsV1ListGroupPriorityOrderingRequest,
+    args: &ChromepolicyCustomersPoliciesGroupsListGroupPriorityOrderingArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -507,7 +548,9 @@ pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering(
     ApiError,
 > {
     let builder = chromepolicy_customers_policies_groups_list_group_priority_ordering_builder(
-        client, customer, body,
+        client,
+        &args.customer,
+        &args.body,
     )?;
     chromepolicy_customers_policies_groups_list_group_priority_ordering_execute(builder)
 }
@@ -607,6 +650,15 @@ pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromepolicy_customers_policies_groups_update_group_priority_ordering`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromepolicyCustomersPoliciesGroupsUpdateGroupPriorityOrderingArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Request body.
+    pub body: GoogleChromePolicyVersionsV1UpdateGroupPriorityOrderingRequest,
+}
+
 /// GET v1/customers/{customersId}/policies/groups:updateGroupPriorityOrdering
 /// Update a group priority ordering for an app. The target app must be supplied in `additionalTargetKeyNames` in the PolicyTargetKey. On failure the request will return the error details as part of the google.rpc.Status.
 ///
@@ -619,8 +671,7 @@ pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering_exe
 
 pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering(
     client: &SimpleHttpClient,
-    customer: &str,
-    body: &GoogleChromePolicyVersionsV1UpdateGroupPriorityOrderingRequest,
+    args: &ChromepolicyCustomersPoliciesGroupsUpdateGroupPriorityOrderingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -628,7 +679,9 @@ pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering(
     ApiError,
 > {
     let builder = chromepolicy_customers_policies_groups_update_group_priority_ordering_builder(
-        client, customer, body,
+        client,
+        &args.customer,
+        &args.body,
     )?;
     chromepolicy_customers_policies_groups_update_group_priority_ordering_execute(builder)
 }
@@ -734,6 +787,15 @@ pub fn chromepolicy_customers_policies_networks_define_certificate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromepolicy_customers_policies_networks_define_certificate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromepolicyCustomersPoliciesNetworksDefineCertificateArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Request body.
+    pub body: GoogleChromePolicyVersionsV1DefineCertificateRequest,
+}
+
 /// GET v1/customers/{customersId}/policies/networks:defineCertificate
 /// Creates a certificate at a specified OU for a customer.
 ///
@@ -746,8 +808,7 @@ pub fn chromepolicy_customers_policies_networks_define_certificate_execute(
 
 pub fn chromepolicy_customers_policies_networks_define_certificate(
     client: &SimpleHttpClient,
-    customer: &str,
-    body: &GoogleChromePolicyVersionsV1DefineCertificateRequest,
+    args: &ChromepolicyCustomersPoliciesNetworksDefineCertificateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -760,7 +821,9 @@ pub fn chromepolicy_customers_policies_networks_define_certificate(
     ApiError,
 > {
     let builder = chromepolicy_customers_policies_networks_define_certificate_builder(
-        client, customer, body,
+        client,
+        &args.customer,
+        &args.body,
     )?;
     chromepolicy_customers_policies_networks_define_certificate_execute(builder)
 }
@@ -863,6 +926,15 @@ pub fn chromepolicy_customers_policies_networks_define_network_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromepolicy_customers_policies_networks_define_network`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromepolicyCustomersPoliciesNetworksDefineNetworkArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Request body.
+    pub body: GoogleChromePolicyVersionsV1DefineNetworkRequest,
+}
+
 /// GET v1/customers/{customersId}/policies/networks:defineNetwork
 /// Define a new network.
 ///
@@ -875,8 +947,7 @@ pub fn chromepolicy_customers_policies_networks_define_network_execute(
 
 pub fn chromepolicy_customers_policies_networks_define_network(
     client: &SimpleHttpClient,
-    customer: &str,
-    body: &GoogleChromePolicyVersionsV1DefineNetworkRequest,
+    args: &ChromepolicyCustomersPoliciesNetworksDefineNetworkArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromePolicyVersionsV1DefineNetworkResponse>, ApiError>,
@@ -885,8 +956,11 @@ pub fn chromepolicy_customers_policies_networks_define_network(
         + 'static,
     ApiError,
 > {
-    let builder =
-        chromepolicy_customers_policies_networks_define_network_builder(client, customer, body)?;
+    let builder = chromepolicy_customers_policies_networks_define_network_builder(
+        client,
+        &args.customer,
+        &args.body,
+    )?;
     chromepolicy_customers_policies_networks_define_network_execute(builder)
 }
 
@@ -991,6 +1065,15 @@ pub fn chromepolicy_customers_policies_networks_remove_certificate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromepolicy_customers_policies_networks_remove_certificate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromepolicyCustomersPoliciesNetworksRemoveCertificateArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Request body.
+    pub body: GoogleChromePolicyVersionsV1RemoveCertificateRequest,
+}
+
 /// GET v1/customers/{customersId}/policies/networks:removeCertificate
 /// Remove an existing certificate by guid.
 ///
@@ -1003,8 +1086,7 @@ pub fn chromepolicy_customers_policies_networks_remove_certificate_execute(
 
 pub fn chromepolicy_customers_policies_networks_remove_certificate(
     client: &SimpleHttpClient,
-    customer: &str,
-    body: &GoogleChromePolicyVersionsV1RemoveCertificateRequest,
+    args: &ChromepolicyCustomersPoliciesNetworksRemoveCertificateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1017,7 +1099,9 @@ pub fn chromepolicy_customers_policies_networks_remove_certificate(
     ApiError,
 > {
     let builder = chromepolicy_customers_policies_networks_remove_certificate_builder(
-        client, customer, body,
+        client,
+        &args.customer,
+        &args.body,
     )?;
     chromepolicy_customers_policies_networks_remove_certificate_execute(builder)
 }
@@ -1120,6 +1204,15 @@ pub fn chromepolicy_customers_policies_networks_remove_network_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromepolicy_customers_policies_networks_remove_network`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromepolicyCustomersPoliciesNetworksRemoveNetworkArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Request body.
+    pub body: GoogleChromePolicyVersionsV1RemoveNetworkRequest,
+}
+
 /// GET v1/customers/{customersId}/policies/networks:removeNetwork
 /// Remove an existing network by guid.
 ///
@@ -1132,8 +1225,7 @@ pub fn chromepolicy_customers_policies_networks_remove_network_execute(
 
 pub fn chromepolicy_customers_policies_networks_remove_network(
     client: &SimpleHttpClient,
-    customer: &str,
-    body: &GoogleChromePolicyVersionsV1RemoveNetworkRequest,
+    args: &ChromepolicyCustomersPoliciesNetworksRemoveNetworkArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromePolicyVersionsV1RemoveNetworkResponse>, ApiError>,
@@ -1142,8 +1234,11 @@ pub fn chromepolicy_customers_policies_networks_remove_network(
         + 'static,
     ApiError,
 > {
-    let builder =
-        chromepolicy_customers_policies_networks_remove_network_builder(client, customer, body)?;
+    let builder = chromepolicy_customers_policies_networks_remove_network_builder(
+        client,
+        &args.customer,
+        &args.body,
+    )?;
     chromepolicy_customers_policies_networks_remove_network_execute(builder)
 }
 
@@ -1242,6 +1337,15 @@ pub fn chromepolicy_customers_policies_orgunits_batch_inherit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromepolicy_customers_policies_orgunits_batch_inherit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromepolicyCustomersPoliciesOrgunitsBatchInheritArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Request body.
+    pub body: GoogleChromePolicyVersionsV1BatchInheritOrgUnitPoliciesRequest,
+}
+
 /// GET v1/customers/{customersId}/policies/orgunits:batchInherit
 /// Modify multiple policy values that are applied to a specific org unit so that they now inherit the value from a parent (if applicable). All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
@@ -1254,16 +1358,18 @@ pub fn chromepolicy_customers_policies_orgunits_batch_inherit_execute(
 
 pub fn chromepolicy_customers_policies_orgunits_batch_inherit(
     client: &SimpleHttpClient,
-    customer: &str,
-    body: &GoogleChromePolicyVersionsV1BatchInheritOrgUnitPoliciesRequest,
+    args: &ChromepolicyCustomersPoliciesOrgunitsBatchInheritArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        chromepolicy_customers_policies_orgunits_batch_inherit_builder(client, customer, body)?;
+    let builder = chromepolicy_customers_policies_orgunits_batch_inherit_builder(
+        client,
+        &args.customer,
+        &args.body,
+    )?;
     chromepolicy_customers_policies_orgunits_batch_inherit_execute(builder)
 }
 
@@ -1362,6 +1468,15 @@ pub fn chromepolicy_customers_policies_orgunits_batch_modify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromepolicy_customers_policies_orgunits_batch_modify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromepolicyCustomersPoliciesOrgunitsBatchModifyArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Request body.
+    pub body: GoogleChromePolicyVersionsV1BatchModifyOrgUnitPoliciesRequest,
+}
+
 /// GET v1/customers/{customersId}/policies/orgunits:batchModify
 /// Modify multiple policy values that are applied to a specific org unit. All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
@@ -1374,16 +1489,18 @@ pub fn chromepolicy_customers_policies_orgunits_batch_modify_execute(
 
 pub fn chromepolicy_customers_policies_orgunits_batch_modify(
     client: &SimpleHttpClient,
-    customer: &str,
-    body: &GoogleChromePolicyVersionsV1BatchModifyOrgUnitPoliciesRequest,
+    args: &ChromepolicyCustomersPoliciesOrgunitsBatchModifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        chromepolicy_customers_policies_orgunits_batch_modify_builder(client, customer, body)?;
+    let builder = chromepolicy_customers_policies_orgunits_batch_modify_builder(
+        client,
+        &args.customer,
+        &args.body,
+    )?;
     chromepolicy_customers_policies_orgunits_batch_modify_execute(builder)
 }
 
@@ -1481,6 +1598,13 @@ pub fn chromepolicy_customers_policy_schemas_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromepolicy_customers_policy_schemas_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromepolicyCustomersPolicySchemasGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/customers/{customersId}/policySchemas/{policySchemasId}
 /// Get a specific policy schema for a customer by its resource name.
 ///
@@ -1493,7 +1617,7 @@ pub fn chromepolicy_customers_policy_schemas_get_execute(
 
 pub fn chromepolicy_customers_policy_schemas_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChromepolicyCustomersPolicySchemasGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromePolicyVersionsV1PolicySchema>, ApiError>,
@@ -1502,7 +1626,7 @@ pub fn chromepolicy_customers_policy_schemas_get(
         + 'static,
     ApiError,
 > {
-    let builder = chromepolicy_customers_policy_schemas_get_builder(client, name)?;
+    let builder = chromepolicy_customers_policy_schemas_get_builder(client, &args.name)?;
     chromepolicy_customers_policy_schemas_get_execute(builder)
 }
 
@@ -1624,6 +1748,19 @@ pub fn chromepolicy_customers_policy_schemas_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromepolicy_customers_policy_schemas_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromepolicyCustomersPolicySchemasListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/policySchemas
 /// Gets a list of policy schemas that match a specified filter value for a given customer.
 ///
@@ -1636,10 +1773,7 @@ pub fn chromepolicy_customers_policy_schemas_list_execute(
 
 pub fn chromepolicy_customers_policy_schemas_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ChromepolicyCustomersPolicySchemasListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1652,7 +1786,11 @@ pub fn chromepolicy_customers_policy_schemas_list(
     ApiError,
 > {
     let builder = chromepolicy_customers_policy_schemas_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     chromepolicy_customers_policy_schemas_list_execute(builder)
 }
@@ -1755,6 +1893,15 @@ pub fn chromepolicy_media_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromepolicy_media_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromepolicyMediaUploadArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Request body.
+    pub body: GoogleChromePolicyVersionsV1UploadPolicyFileRequest,
+}
+
 /// GET v1/customers/{customersId}/policies/files:uploadPolicyFile
 /// Creates an enterprise file from the content provided by user. Returns a public download url for end user.
 ///
@@ -1767,8 +1914,7 @@ pub fn chromepolicy_media_upload_execute(
 
 pub fn chromepolicy_media_upload(
     client: &SimpleHttpClient,
-    customer: &str,
-    body: &GoogleChromePolicyVersionsV1UploadPolicyFileRequest,
+    args: &ChromepolicyMediaUploadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromePolicyVersionsV1UploadPolicyFileResponse>, ApiError>,
@@ -1777,6 +1923,6 @@ pub fn chromepolicy_media_upload(
         + 'static,
     ApiError,
 > {
-    let builder = chromepolicy_media_upload_builder(client, customer, body)?;
+    let builder = chromepolicy_media_upload_builder(client, &args.customer, &args.body)?;
     chromepolicy_media_upload_execute(builder)
 }

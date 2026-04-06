@@ -8,6 +8,7 @@
 #![cfg(feature = "stripe")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// For new integrations, we recommend using the [Accounts v2 API](/api/v2/core/accounts), in place of /v1/accounts and /v1/customers to represent a user.
@@ -24,7 +25,7 @@ use serde::{Deserialize, Serialize};
 /// is stripe, which includes Standard and Express accounts, some properties are only returned
 /// until you create an [Account Link](/api/account_links) or [Account Session](/api/account_sessions)
 /// to start Connect Onboarding. Learn about the [differences between accounts](/connect/accounts).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Account {
     /// Business information about the account.
     #[serde(default)]
@@ -88,7 +89,7 @@ pub struct Account {
     pub type_: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountAnnualRevenue {
     /// A non-negative integer representing the amount in the [smallest currency unit](/currencies#zero-decimal).
     #[serde(default)]
@@ -101,7 +102,7 @@ pub struct AccountAnnualRevenue {
     pub fiscal_year_end: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountBusinessProfile {
     /// The applicant''s gross annual revenue for its preceding fiscal year.
     #[serde(default)]
@@ -140,7 +141,7 @@ pub struct AccountBusinessProfile {
     pub url: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountGroupMembership {
     /// The group the account is in to determine their payments pricing, and null if the account is on customized pricing. [See the Platform pricing tool documentation](https://docs.stripe.com/connect/platform-pricing-tools) for details.
     #[serde(default)]
@@ -151,7 +152,7 @@ pub struct AccountGroupMembership {
 /// Stripe-hosted applications, such as Connect Onboarding.
 ///
 /// Related guide: [Connect Onboarding](https://docs.stripe.com/connect/custom/hosted-onboarding)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountLink {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -170,7 +171,7 @@ pub struct AccountLink {
 /// quickly, and cannot be used more than once.
 ///
 /// Related guide: [Connect embedded components](https://docs.stripe.com/connect/get-started-connect-embedded-components)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountSession {
     /// The ID of the account the AccountSession was created for
     pub account: String,
@@ -185,7 +186,7 @@ pub struct AccountSession {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountSettings {
     #[serde(default)]
     pub bacs_debit_payments: ::core::option::Option<AccountBacsDebitPaymentsSettings>,
@@ -205,7 +206,7 @@ pub struct AccountSettings {
     pub treasury: ::core::option::Option<AccountTreasurySettings>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplePayDomain {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -218,7 +219,7 @@ pub struct ApplePayDomain {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Application {
     /// Unique identifier for the object.
     pub id: String,
@@ -229,7 +230,7 @@ pub struct Application {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplicationFee {
     /// ID of the Stripe account this fee was taken from.
     pub account: serde_json::Value,
@@ -275,7 +276,7 @@ pub struct ApplicationFee {
 /// A user scoped secret is accessible by the app backend and one specific Dashboard user. Use the user scope for per-user secrets like per-user OAuth tokens, where different users might have different permissions.
 ///
 /// Related guide: [Store data between page reloads](https://docs.stripe.com/stripe-apps/store-auth-data-custom-objects)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppsSecret {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -305,7 +306,7 @@ pub struct AppsSecret {
 /// The top-level available and pending comprise your "payments balance."
 ///
 /// Related guide: [Balances and settlement time](https://docs.stripe.com/payments/balances), [Understanding Connect account balances](https://docs.stripe.com/connect/account-balances)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Balance {
     /// Available funds that you can transfer or pay out automatically by Stripe or explicitly through the [Transfers API](https://api.stripe.com#transfers) or [Payouts API](https://api.stripe.com#payouts). You can find the available balance for each currency and payment type in the source_types property.
     pub available: ::std::vec::Vec<BalanceAmount>,
@@ -328,14 +329,14 @@ pub struct Balance {
 }
 
 /// Options for customizing account balances and payout settings for a Stripe platform’s connected accounts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceSettings {
     /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["balance_settings"]
     pub object: String,
     pub payments: BalanceSettingsResourcePayments,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceSettingsResourcePayoutSchedule {
     /// How frequently funds will be paid out. One of manual (payouts only created via API call), daily, weekly, or monthly. // TODO: enum values: ["daily", "manual", "monthly", "weekly"]
     #[serde(default)]
@@ -348,7 +349,7 @@ pub struct BalanceSettingsResourcePayoutSchedule {
     pub weekly_payout_days: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceSettingsResourcePayouts {
     /// The minimum balance amount to retain per currency after automatic payouts. Only funds that exceed these amounts are paid out. Learn more about the [minimum balances for automatic payouts](/payouts/minimum-balances-for-automatic-payouts).
     #[serde(default)]
@@ -363,7 +364,7 @@ pub struct BalanceSettingsResourcePayouts {
     pub status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BankConnectionsResourceAccountholder {
     /// The ID of the Stripe account that this account belongs to. Only available when account_holder.type is account.
     #[serde(default)]
@@ -378,7 +379,7 @@ pub struct BankConnectionsResourceAccountholder {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BankConnectionsResourceBalance {
     /// The time that the external institution calculated this balance. Measured in seconds since the Unix epoch.
     pub as_of: i64,
@@ -393,7 +394,7 @@ pub struct BankConnectionsResourceBalance {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BankConnectionsResourceBalanceRefresh {
     /// The time at which the last refresh attempt was initiated. Measured in seconds since the Unix epoch.
     pub last_attempted_at: i64,
@@ -404,7 +405,7 @@ pub struct BankConnectionsResourceBalanceRefresh {
     pub status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BankConnectionsResourceOwnershipRefresh {
     /// The time at which the last refresh attempt was initiated. Measured in seconds since the Unix epoch.
     pub last_attempted_at: i64,
@@ -415,7 +416,7 @@ pub struct BankConnectionsResourceOwnershipRefresh {
     pub status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BankConnectionsResourceTransactionRefresh {
     /// Unique identifier for the object.
     pub id: String,
@@ -429,7 +430,7 @@ pub struct BankConnectionsResourceTransactionRefresh {
 }
 
 /// A billing alert is a resource that notifies you when a certain usage threshold on a meter is crossed. For example, you might create a billing alert to notify you when a certain user made 100 API requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingAlert {
     /// Defines the type of the alert. // TODO: enum values: ["usage_threshold"]
     pub alert_type: String,
@@ -450,7 +451,7 @@ pub struct BillingAlert {
 }
 
 /// Indicates the billing credit balance for billing credits granted to a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingCreditBalanceSummary {
     /// The billing credit balances. One entry per credit grant currency. If a customer only has credit grants in a single currency, then this will have a single balance entry.
     pub balances: ::std::vec::Vec<CreditBalance>,
@@ -466,7 +467,7 @@ pub struct BillingCreditBalanceSummary {
 }
 
 /// A credit balance transaction is a resource representing a transaction (either a credit or a debit) against an existing credit grant.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingCreditBalanceTransaction {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -497,7 +498,7 @@ pub struct BillingCreditBalanceTransaction {
 /// A credit grant is an API resource that documents the allocation of some billing credits to a customer.
 ///
 /// Related guide: [Billing credits](https://docs.stripe.com/billing/subscriptions/usage-based/billing-credits)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingCreditGrant {
     pub amount: BillingCreditGrantsResourceAmount,
     pub applicability_config: BillingCreditGrantsResourceApplicabilityConfig,
@@ -543,7 +544,7 @@ pub struct BillingCreditGrant {
 /// Meters specify how to aggregate meter events over a billing period. Meter events represent the actions that customers take in your system. Meters attach to prices and form the basis of the bill.
 ///
 /// Related guide: [Usage based billing](https://docs.stripe.com/billing/subscriptions/usage-based)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingMeter {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -571,7 +572,7 @@ pub struct BillingMeter {
 }
 
 /// Meter events represent actions that customers take in your system. You can use meter events to bill a customer based on their usage. Meter events are associated with billing meters, which define both the contents of the event’s payload and how to aggregate those events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingMeterEvent {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -590,7 +591,7 @@ pub struct BillingMeterEvent {
 }
 
 /// A billing meter event adjustment is a resource that allows you to cancel a meter event. For example, you might create a billing meter event adjustment to cancel a meter event that was created in error or attached to the wrong customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingMeterEventAdjustment {
     /// Specifies which event to cancel.
     #[serde(default)]
@@ -612,7 +613,7 @@ pub struct BillingMeterEventAdjustment {
 /// usage was accrued by a customer for that period.
 ///
 /// Note: Meters events are aggregated asynchronously so the meter event summaries provide an eventually consistent view of the reported usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingMeterEventSummary {
     /// Aggregated value of all the events within start_time (inclusive) and end_time (inclusive). The aggregation strategy is defined on meter via default_aggregation.
     pub aggregated_value: f64,
@@ -630,7 +631,7 @@ pub struct BillingMeterEventSummary {
     pub start_time: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingBillResourceInvoiceItemParentsInvoiceItemParent {
     /// Details about the subscription that generated this invoice item
     #[serde(default)]
@@ -640,7 +641,7 @@ pub struct BillingBillResourceInvoiceItemParentsInvoiceItemParent {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingBillResourceInvoiceItemParentsInvoiceItemSubscriptionParent {
     /// The subscription that generated this invoice item
     pub subscription: String,
@@ -649,7 +650,7 @@ pub struct BillingBillResourceInvoiceItemParentsInvoiceItemSubscriptionParent {
     pub subscription_item: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingBillResourceInvoicingLinesCommonCreditedItems {
     /// Invoice containing the credited invoice line items
     pub invoice: String,
@@ -657,14 +658,14 @@ pub struct BillingBillResourceInvoicingLinesCommonCreditedItems {
     pub invoice_line_items: ::std::vec::Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingBillResourceInvoicingLinesCommonProrationDetails {
     /// For a credit proration line_item, the original debit line_items to which the credit proration applies.
     #[serde(default)]
     pub credited_items: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingBillResourceInvoicingLinesParentsInvoiceLineItemInvoiceItemParent {
     /// The invoice item that generated this line item
     pub invoice_item: String,
@@ -678,7 +679,7 @@ pub struct BillingBillResourceInvoicingLinesParentsInvoiceLineItemInvoiceItemPar
     pub subscription: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingBillResourceInvoicingLinesParentsInvoiceLineItemParent {
     /// Details about the invoice item that generated this line item
     #[serde(default)]
@@ -691,7 +692,7 @@ pub struct BillingBillResourceInvoicingLinesParentsInvoiceLineItemParent {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingBillResourceInvoicingLinesParentsInvoiceLineItemSubscriptionItemParent {
     /// The invoice item that generated this line item
     #[serde(default)]
@@ -708,7 +709,7 @@ pub struct BillingBillResourceInvoicingLinesParentsInvoiceLineItemSubscriptionIt
     pub subscription_item: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingBillResourceInvoicingParentsInvoiceParent {
     /// Details about the quote that generated this invoice
     #[serde(default)]
@@ -721,13 +722,13 @@ pub struct BillingBillResourceInvoicingParentsInvoiceParent {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingBillResourceInvoicingParentsInvoiceQuoteParent {
     /// The quote that generated this invoice
     pub quote: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingBillResourceInvoicingParentsInvoiceSubscriptionParent {
     /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) defined as subscription metadata when an invoice is created. Becomes an immutable snapshot of the subscription metadata at the time of invoice finalization.
     #[serde(default)]
@@ -739,7 +740,7 @@ pub struct BillingBillResourceInvoicingParentsInvoiceSubscriptionParent {
     pub subscription_proration_date: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingBillResourceInvoicingPricingPricing {
     #[serde(default)]
     pub price_details:
@@ -752,13 +753,13 @@ pub struct BillingBillResourceInvoicingPricingPricing {
     pub unit_amount_decimal: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingBillResourceInvoicingTaxesTaxRateDetails {
     /// ID of the tax rate
     pub tax_rate: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingCreditGrantsResourceBalanceCredit {
     pub amount: BillingCreditGrantsResourceAmount,
     /// Details of the invoice to which the reinstated credits were originally applied. Only present if type is credits_application_invoice_voided.
@@ -769,7 +770,7 @@ pub struct BillingCreditGrantsResourceBalanceCredit {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingCreditGrantsResourceBalanceCreditsApplicationInvoiceVoided {
     /// The invoice to which the reinstated billing credits were originally applied.
     pub invoice: serde_json::Value,
@@ -777,7 +778,7 @@ pub struct BillingCreditGrantsResourceBalanceCreditsApplicationInvoiceVoided {
     pub invoice_line_item: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingCreditGrantsResourceBalanceCreditsApplied {
     /// The invoice to which the billing credits were applied.
     pub invoice: serde_json::Value,
@@ -785,7 +786,7 @@ pub struct BillingCreditGrantsResourceBalanceCreditsApplied {
     pub invoice_line_item: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingCreditGrantsResourceBalanceDebit {
     pub amount: BillingCreditGrantsResourceAmount,
     /// Details of how the billing credits were applied to an invoice. Only present if type is credits_applied.
@@ -796,7 +797,7 @@ pub struct BillingCreditGrantsResourceBalanceDebit {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingCreditGrantsResourceMonetaryAmount {
     /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
     pub currency: String,
@@ -804,7 +805,7 @@ pub struct BillingCreditGrantsResourceMonetaryAmount {
     pub value: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingMeterResourceBillingMeterEventAdjustmentCancel {
     /// Unique identifier for the event.
     #[serde(default)]
@@ -812,7 +813,7 @@ pub struct BillingMeterResourceBillingMeterEventAdjustmentCancel {
 }
 
 /// A portal configuration describes the functionality and behavior you embed in a portal session. Related guide: [Configure the customer portal](/customer-management/configure-portal).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingPortalConfiguration {
     /// Whether the configuration is active and can be used to create portal sessions.
     pub active: bool,
@@ -859,7 +860,7 @@ pub struct BillingPortalConfiguration {
 /// and billing details.
 ///
 /// Related guide: [Customer management](/customer-management)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingPortalSession {
     /// The configuration used by this session, describing the features available.
     pub configuration: serde_json::Value,
@@ -892,7 +893,7 @@ pub struct BillingPortalSession {
     pub url: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancellationDetails {
     /// Additional comments about why the user canceled the subscription, if the subscription was canceled explicitly by the user.
     #[serde(default)]
@@ -908,7 +909,7 @@ pub struct CancellationDetails {
 /// This is an object representing a capability for a Stripe account.
 ///
 /// Related guide: [Account capabilities](https://docs.stripe.com/connect/account-capabilities)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Capability {
     /// The account for which the capability enables functionality.
     pub account: serde_json::Value,
@@ -929,7 +930,7 @@ pub struct Capability {
     pub status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CardGeneratedFromPaymentMethodDetails {
     #[serde(default)]
     pub card_present: ::core::option::Option<PaymentMethodDetailsCardPresent>,
@@ -938,11 +939,11 @@ pub struct CardGeneratedFromPaymentMethodDetails {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CardMandatePaymentMethodDetails {}
 
 /// A customer''s Cash balance represents real funds. Customers can add funds to their cash balance by sending a bank transfer. These funds can be used for payment and can eventually be paid out to your bank account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CashBalance {
     /// A hash of all cash balances available to this customer. You cannot delete a customer with any cash balances, even if the balance is 0. Amounts are represented in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
     #[serde(default)]
@@ -962,7 +963,7 @@ pub struct CashBalance {
 /// The Charge object represents a single attempt to move money into your Stripe account.
 /// PaymentIntent confirmation is the most common way to create Charges, but [Account Debits](https://docs.stripe.com/connect/account-debits) may also create Charges.
 /// Some legacy payment flows create Charges directly, which is not recommended for new integrations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Charge {
     /// Amount intended to be collected by this payment. A positive integer representing how much to charge in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal) (e.g., 100 cents to charge $1.00 or 100 to charge ¥100, a zero-decimal currency). The minimum amount is $0.50 US or [equivalent in charge currency](https://docs.stripe.com/currencies#minimum-and-maximum-charge-amounts). The amount value supports up to eight digits (e.g., a value of 99999999 for a USD charge of $999,999.99).
     pub amount: i64,
@@ -1083,7 +1084,7 @@ pub struct Charge {
     pub transfer_group: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChargeFraudDetails {
     /// Assessments from Stripe. If set, the value is fraudulent.
     #[serde(default)]
@@ -1093,7 +1094,7 @@ pub struct ChargeFraudDetails {
     pub user_report: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChargeOutcome {
     /// An enumerated value providing a more detailed explanation on [how to proceed with an error](https://docs.stripe.com/declines#retrying-issuer-declines). // TODO: enum values: ["confirm_card_data", "do_not_try_again", "try_again_later"]
     #[serde(default)]
@@ -1127,7 +1128,7 @@ pub struct ChargeOutcome {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChargeTransferData {
     /// The amount transferred to the destination account, if specified. By default, the entire charge amount is transferred to the destination account.
     #[serde(default)]
@@ -1150,7 +1151,7 @@ pub struct ChargeTransferData {
 /// to begin Checkout.
 ///
 /// Related guide: [Checkout quickstart](https://docs.stripe.com/checkout/quickstart)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutSession {
     /// Settings for price localization with [Adaptive Pricing](https://docs.stripe.com/payments/checkout/adaptive-pricing).
     #[serde(default)]
@@ -1338,7 +1339,7 @@ pub struct CheckoutSession {
     pub wallet_options: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutSessionPaymentMethodOptions {
     #[serde(default)]
     pub acss_debit: ::core::option::Option<CheckoutAcssDebitPaymentMethodOptions>,
@@ -1428,7 +1429,7 @@ pub struct CheckoutSessionPaymentMethodOptions {
     pub us_bank_account: ::core::option::Option<CheckoutUsBankAccountPaymentMethodOptions>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutSessionWalletOptions {
     #[serde(default)]
     pub link: ::core::option::Option<CheckoutLinkWalletOptions>,
@@ -1436,7 +1437,7 @@ pub struct CheckoutSessionWalletOptions {
 
 /// Orders represent your intent to purchase a particular Climate product. When you create an order, the
 /// payment is deducted from your merchant balance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClimateOrder {
     /// Total amount of [Frontier](https://frontierclimate.com/)''s service fees in the currency''s smallest unit.
     pub amount_fees: i64,
@@ -1493,7 +1494,7 @@ pub struct ClimateOrder {
 
 /// A Climate product represents a type of carbon removal unit available for reservation.
 /// You can retrieve it to see the current price and availability.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClimateProduct {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -1516,7 +1517,7 @@ pub struct ClimateProduct {
     pub suppliers: ::std::vec::Vec<ClimateSupplier>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClimateRemovalsProductsPrice {
     /// Fees for one metric ton of carbon removal in the currency''s smallest unit.
     pub amount_fees: i64,
@@ -1533,7 +1534,7 @@ pub struct ClimateRemovalsProductsPrice {
 /// To learn more about how to use ConfirmationToken, visit the related guides:
 /// - [Finalize payments on the server](https://docs.stripe.com/payments/finalize-payments-on-the-server)
 /// - [Build two-step confirmation](https://docs.stripe.com/payments/build-a-two-step-confirmation).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfirmationToken {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -1575,13 +1576,13 @@ pub struct ConfirmationToken {
 }
 
 /// Data used for generating a Mandate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfirmationTokensResourceMandateData {
     pub customer_acceptance: ConfirmationTokensResourceMandateDataResourceCustomerAcceptance,
 }
 
 /// This hash contains details about the online acceptance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfirmationTokensResourceMandateDataResourceCustomerAcceptanceResourceOnline {
     /// The IP address from which the Mandate was accepted by the customer.
     #[serde(default)]
@@ -1592,7 +1593,7 @@ pub struct ConfirmationTokensResourceMandateDataResourceCustomerAcceptanceResour
 }
 
 /// Payment-method-specific configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfirmationTokensResourcePaymentMethodOptions {
     /// This hash contains the card payment method options.
     #[serde(default)]
@@ -1600,7 +1601,7 @@ pub struct ConfirmationTokensResourcePaymentMethodOptions {
 }
 
 /// This hash contains the card payment method options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfirmationTokensResourcePaymentMethodOptionsResourceCard {
     /// The cvc_update Token collected from the Payment Element.
     #[serde(default)]
@@ -1612,7 +1613,7 @@ pub struct ConfirmationTokensResourcePaymentMethodOptionsResourceCard {
 }
 
 /// Details of the PaymentMethod collected by Payment Element
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfirmationTokensResourcePaymentMethodPreview {
     #[serde(default)]
     pub acss_debit: ::core::option::Option<PaymentMethodAcssDebit>,
@@ -1734,7 +1735,7 @@ pub struct ConfirmationTokensResourcePaymentMethodPreview {
     pub zip: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfirmationTokensResourceShipping {
     pub address: Address,
     /// Recipient name.
@@ -1744,7 +1745,7 @@ pub struct ConfirmationTokensResourceShipping {
     pub phone: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectCollectionTransfer {
     /// Amount transferred, in cents (or local equivalent).
     pub amount: i64,
@@ -1760,7 +1761,7 @@ pub struct ConnectCollectionTransfer {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedBaseFeatures {}
 
 /// Stripe needs to collect certain pieces of information about each account
@@ -1769,7 +1770,7 @@ pub struct ConnectEmbeddedBaseFeatures {}
 ///
 /// You can also view the information from this API call as [an online
 /// guide](/docs/connect/required-verification-information).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CountrySpec {
     /// The default currency for this country. This applies to both payment methods and bank accounts.
     pub default_currency: String,
@@ -1791,7 +1792,7 @@ pub struct CountrySpec {
 /// A coupon contains information about a percent-off or amount-off discount you
 /// might want to apply to a customer. Coupons may be applied to [subscriptions](https://api.stripe.com#subscriptions), [invoices](https://api.stripe.com#invoices),
 /// [checkout sessions](https://docs.stripe.com/api/checkout/sessions), [quotes](https://api.stripe.com#quotes), and more. Coupons do not work with conventional one-off [charges](/api/charges/create) or [payment intents](https://docs.stripe.com/api/payment_intents).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Coupon {
     /// Amount (in the currency specified) that will be taken off the subtotal of any invoices for this customer.
     #[serde(default)]
@@ -1838,7 +1839,7 @@ pub struct Coupon {
     pub valid: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CouponCurrencyOption {
     /// Amount (in the currency specified) that will be taken off the subtotal of any invoices for this customer.
     pub amount_off: i64,
@@ -1847,7 +1848,7 @@ pub struct CouponCurrencyOption {
 /// Issue a credit note to adjust an invoice''s amount after the invoice is finalized.
 ///
 /// Related guide: [Credit notes](https://docs.stripe.com/billing/invoices/credit-notes)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreditNote {
     /// The integer amount in cents (or local equivalent) representing the total amount of the credit note, including tax.
     pub amount: i64,
@@ -1933,7 +1934,7 @@ pub struct CreditNote {
 }
 
 /// The credit note line item object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreditNoteLineItem {
     /// The integer amount in cents (or local equivalent) representing the gross amount being credited for this line item, excluding (exclusive) tax and discounts.
     pub amount: i64,
@@ -1977,7 +1978,7 @@ pub struct CreditNoteLineItem {
     pub unit_amount_decimal: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreditNotesPaymentRecordRefund {
     /// ID of the payment record.
     pub payment_record: String,
@@ -1985,7 +1986,7 @@ pub struct CreditNotesPaymentRecordRefund {
     pub refund_group: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CurrencyOption {
     /// When set, provides configuration for the amount to be adjusted by the customer during Checkout Sessions and Payment Links.
     #[serde(default)]
@@ -2004,7 +2005,7 @@ pub struct CurrencyOption {
     pub unit_amount_decimal: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomLogo {
     /// Content type of the Dashboard-only CustomPaymentMethodType logo.
     #[serde(default)]
@@ -2013,7 +2014,7 @@ pub struct CustomLogo {
     pub url: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomUnitAmount {
     /// The maximum unit amount the customer can specify for this item.
     #[serde(default)]
@@ -2028,7 +2029,7 @@ pub struct CustomUnitAmount {
 
 /// This object represents a customer of your business. Use it to [create recurring charges](https://docs.stripe.com/invoicing/customer), [save payment](https://docs.stripe.com/payments/save-during-payment) and contact information,
 /// and track payments that belong to the same customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Customer {
     /// The customer''s address.
     #[serde(default)]
@@ -2125,7 +2126,7 @@ pub struct Customer {
 /// or by creating a Customer Balance Transaction, which increments or decrements the customer''s balance by the specified amount.
 ///
 /// Related guide: [Customer balance](https://docs.stripe.com/billing/customer/balance)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceTransaction {
     /// The amount of the transaction. A negative value is a credit for the customer''s balance, and a positive value is a debit to the customer''s balance.
     pub amount: i64,
@@ -2170,7 +2171,7 @@ pub struct CustomerBalanceTransaction {
 /// by the customer to a merchant, but have not yet been allocated to a payment. Cash Balance Transactions
 /// represent when funds are moved into or out of this balance. This includes funding by the customer, allocation
 /// to payments, and refunds to the customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerCashBalanceTransaction {
     #[serde(default)]
     pub adjusted_for_overdraft: ::core::option::Option<
@@ -2226,7 +2227,7 @@ pub struct CustomerCashBalanceTransaction {
 /// Related guides: [Customer Session with the Payment Element](/payments/accept-a-payment-deferred?platform=web&type=payment#save-payment-methods),
 /// [Customer Session with the Pricing Table](/payments/checkout/pricing-table#customer-session),
 /// [Customer Session with the Buy Button](/payment-links/buy-button#pass-an-existing-customer).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSession {
     /// The client secret of this Customer Session. Used on the client to set up secure access to the given customer.
     pub client_secret: String,
@@ -2248,7 +2249,7 @@ pub struct CustomerSession {
 }
 
 /// This hash contains the features the customer sheet supports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSessionResourceComponentsResourceCustomerSheetResourceFeatures {
     /// A list of [allow_redisplay](https://docs.stripe.com/api/payment_methods/object#payment_method_object-allow_redisplay) values that controls which saved payment methods the customer sheet displays by filtering to only show payment methods with an allow_redisplay value that is present in this list.
     #[serde(default)]
@@ -2259,7 +2260,7 @@ pub struct CustomerSessionResourceComponentsResourceCustomerSheetResourceFeature
 }
 
 /// This hash contains the features the mobile payment element supports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSessionResourceComponentsResourceMobilePaymentElementResourceFeatures {
     /// A list of [allow_redisplay](https://docs.stripe.com/api/payment_methods/object#payment_method_object-allow_redisplay) values that controls which saved payment methods the mobile payment element displays by filtering to only show payment methods with an allow_redisplay value that is present in this list.
     #[serde(default)]
@@ -2279,7 +2280,7 @@ pub struct CustomerSessionResourceComponentsResourceMobilePaymentElementResource
 }
 
 /// This hash contains the features the Payment Element supports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSessionResourceComponentsResourcePaymentElementResourceFeatures {
     /// A list of [allow_redisplay](https://docs.stripe.com/api/payment_methods/object#payment_method_object-allow_redisplay) values that controls which saved payment methods the Payment Element displays by filtering to only show payment methods with an allow_redisplay value that is present in this list.
     pub payment_method_allow_redisplay_filters: ::std::vec::Vec<String>,
@@ -2297,7 +2298,7 @@ pub struct CustomerSessionResourceComponentsResourcePaymentElementResourceFeatur
     pub payment_method_save_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerTaxLocation {
     /// The identified tax country of the customer.
     pub country: String,
@@ -2308,7 +2309,7 @@ pub struct CustomerTaxLocation {
     pub state: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedAccount {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2318,7 +2319,7 @@ pub struct DeletedAccount {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedApplePayDomain {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2328,7 +2329,7 @@ pub struct DeletedApplePayDomain {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedApplication {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2341,7 +2342,7 @@ pub struct DeletedApplication {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedBankAccount {
     /// Three-letter [ISO code for the currency](https://stripe.com/docs/payouts) paid out to the bank account.
     #[serde(default)]
@@ -2354,7 +2355,7 @@ pub struct DeletedBankAccount {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedCard {
     /// Three-letter [ISO code for the currency](https://stripe.com/docs/payouts) paid out to the bank account.
     #[serde(default)]
@@ -2367,7 +2368,7 @@ pub struct DeletedCard {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedCoupon {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2377,7 +2378,7 @@ pub struct DeletedCoupon {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedCustomer {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2387,7 +2388,7 @@ pub struct DeletedCustomer {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedDiscount {
     /// The Checkout session that this coupon is applied to, if it is applied to a particular session in payment mode. Will not be present for subscription mode.
     #[serde(default)]
@@ -2424,7 +2425,7 @@ pub struct DeletedDiscount {
     pub subscription_item: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedInvoice {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2434,7 +2435,7 @@ pub struct DeletedInvoice {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedInvoiceitem {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2444,7 +2445,7 @@ pub struct DeletedInvoiceitem {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedPerson {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2454,7 +2455,7 @@ pub struct DeletedPerson {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedPlan {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2464,7 +2465,7 @@ pub struct DeletedPlan {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedPrice {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2474,7 +2475,7 @@ pub struct DeletedPrice {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedProduct {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2484,7 +2485,7 @@ pub struct DeletedProduct {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedProductFeature {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2494,7 +2495,7 @@ pub struct DeletedProductFeature {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedRadarValueList {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2504,7 +2505,7 @@ pub struct DeletedRadarValueList {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedRadarValueListItem {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2514,7 +2515,7 @@ pub struct DeletedRadarValueListItem {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedSubscriptionItem {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2524,7 +2525,7 @@ pub struct DeletedSubscriptionItem {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedTaxId {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2534,7 +2535,7 @@ pub struct DeletedTaxId {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedTerminalConfiguration {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2544,7 +2545,7 @@ pub struct DeletedTerminalConfiguration {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedTerminalLocation {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2554,7 +2555,7 @@ pub struct DeletedTerminalLocation {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedTerminalReader {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2568,7 +2569,7 @@ pub struct DeletedTerminalReader {
     pub serial_number: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedTestHelpersTestClock {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2578,7 +2579,7 @@ pub struct DeletedTestHelpersTestClock {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedWebhookEndpoint {
     /// Always true for a deleted object // TODO: enum values: [true]
     pub deleted: bool,
@@ -2588,7 +2589,7 @@ pub struct DeletedWebhookEndpoint {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DestinationDetailsUnimplemented {}
 
 /// A dispute occurs when a customer questions your charge with their card issuer.
@@ -2596,7 +2597,7 @@ pub struct DestinationDetailsUnimplemented {}
 /// evidence that shows that the charge is legitimate.
 ///
 /// Related guide: [Disputes and fraud](https://docs.stripe.com/disputes)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Dispute {
     /// Disputed amount. Usually the amount of the charge, but it can differ (usually because of currency fluctuation or because only part of the order is disputed).
     pub amount: i64,
@@ -2633,7 +2634,7 @@ pub struct Dispute {
     pub status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputeTransactionShippingAddress {
     /// City, district, suburb, town, or village.
     #[serde(default)]
@@ -2655,7 +2656,7 @@ pub struct DisputeTransactionShippingAddress {
     pub state: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputeVisaCompellingEvidence3DisputedTransaction {
     /// User Account ID used to log into business platform. Must be recognizable by the user.
     #[serde(default)]
@@ -2684,7 +2685,7 @@ pub struct DisputeVisaCompellingEvidence3DisputedTransaction {
 }
 
 /// An active entitlement describes access to a feature for a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntitlementsActiveEntitlement {
     /// The [Feature](https://docs.stripe.com/api/entitlements/feature) that the customer is entitled to.
     pub feature: serde_json::Value,
@@ -2698,7 +2699,7 @@ pub struct EntitlementsActiveEntitlement {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EphemeralKey {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -2716,7 +2717,7 @@ pub struct EphemeralKey {
 }
 
 /// An error response from the Stripe API
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Error {
     pub error: ApiErrors,
 }
@@ -2739,7 +2740,7 @@ pub struct Error {
 ///
 /// You can access events through the [Retrieve Event API](https://docs.stripe.com/api/events#retrieve_event)
 /// for 30 days.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Event {
     /// The connected account that originates the event.
     #[serde(default)]
@@ -2797,7 +2798,7 @@ pub struct Event {
 /// - *determine app fees to charge a connected account*
 ///
 /// *Using this Exchange Rates API beta for any purpose other than to transact on Stripe is strictly prohibited and constitutes a violation of Stripe''s terms of service.*
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExchangeRate {
     /// Unique identifier for the object. Represented as the three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html) in lowercase.
     pub id: String,
@@ -2807,7 +2808,7 @@ pub struct ExchangeRate {
     pub rates: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalAccountRequirements {
     /// Fields that need to be resolved to keep the external account enabled. If not resolved by current_deadline, these fields will appear in past_due as well, and the account is disabled.
     #[serde(default)]
@@ -2828,7 +2829,7 @@ pub struct ExternalAccountRequirements {
 /// the Stripe account from which the fee was originally collected.
 ///
 /// Related guide: [Refunding application fees](https://docs.stripe.com/connect/destination-charges#refunding-app-fee)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FeeRefund {
     /// Amount, in cents (or local equivalent).
     pub amount: i64,
@@ -2857,7 +2858,7 @@ pub struct FeeRefund {
 /// query](#scheduled_queries)).
 ///
 /// Related guide: [File upload guide](https://docs.stripe.com/file-upload)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct File {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -2892,7 +2893,7 @@ pub struct File {
 /// To share the contents of a File object with non-Stripe users, you can
 /// create a FileLink. FileLinks contain a URL that you can use to
 /// retrieve the contents of the file without authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileLink {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -2917,7 +2918,7 @@ pub struct FileLink {
 }
 
 /// A Financial Connections Account represents an account that exists outside of Stripe, to which you have been granted some degree of access.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FinancialConnectionsAccount {
     /// The account holder that this account belongs to.
     #[serde(default)]
@@ -2974,7 +2975,7 @@ pub struct FinancialConnectionsAccount {
 }
 
 /// Describes an owner of an account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FinancialConnectionsAccountOwner {
     /// The email address of the owner.
     #[serde(default)]
@@ -2999,7 +3000,7 @@ pub struct FinancialConnectionsAccountOwner {
 }
 
 /// Describes a snapshot of the owners of an account at a particular point in time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FinancialConnectionsAccountOwnership {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -3012,7 +3013,7 @@ pub struct FinancialConnectionsAccountOwnership {
 }
 
 /// A Financial Connections Session is the secure way to programmatically launch the client-side Stripe.js modal that lets your users link their accounts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FinancialConnectionsSession {
     /// The account holder for whom accounts are collected in this session.
     #[serde(default)]
@@ -3041,7 +3042,7 @@ pub struct FinancialConnectionsSession {
 }
 
 /// A Transaction represents a real transaction that affects a Financial Connections Account balance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FinancialConnectionsTransaction {
     /// The ID of the Financial Connections Account this transaction belongs to.
     pub account: String,
@@ -3069,7 +3070,7 @@ pub struct FinancialConnectionsTransaction {
 }
 
 /// Metadata about the forwarded request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardedRequestContext {
     /// The time it took in milliseconds for the destination endpoint to respond.
     pub destination_duration: i64,
@@ -3078,7 +3079,7 @@ pub struct ForwardedRequestContext {
 }
 
 /// Details about the request forwarded to the destination endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardedRequestDetails {
     /// The body payload to send to the destination endpoint.
     pub body: String,
@@ -3089,7 +3090,7 @@ pub struct ForwardedRequestDetails {
 }
 
 /// Details about the response from the destination endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardedResponseDetails {
     /// The response body from the destination endpoint to Stripe.
     pub body: String,
@@ -3115,7 +3116,7 @@ pub struct ForwardedResponseDetails {
 /// Stripe’s limits.
 ///
 /// Related guide: [Forward card details to third-party API endpoints](https://docs.stripe.com/payments/forwarding).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardingRequest {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -3151,7 +3152,7 @@ pub struct ForwardingRequest {
 /// Customers can fund this balance by initiating a bank transfer to any account in the
 /// financial_addresses field.
 /// Related guide: [Customer balance funding instructions](https://docs.stripe.com/payments/customer-balance/funding-instructions)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FundingInstructions {
     pub bank_transfer: FundingInstructionsBankTransfer,
     /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
@@ -3165,7 +3166,7 @@ pub struct FundingInstructions {
 }
 
 /// Point in Time
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoDataDocumentReportDateOfBirth {
     /// Numerical day between 1 and 31.
     #[serde(default)]
@@ -3179,7 +3180,7 @@ pub struct GelatoDataDocumentReportDateOfBirth {
 }
 
 /// Point in Time
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoDataDocumentReportExpirationDate {
     /// Numerical day between 1 and 31.
     #[serde(default)]
@@ -3193,7 +3194,7 @@ pub struct GelatoDataDocumentReportExpirationDate {
 }
 
 /// Point in Time
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoDataDocumentReportIssuedDate {
     /// Numerical day between 1 and 31.
     #[serde(default)]
@@ -3207,7 +3208,7 @@ pub struct GelatoDataDocumentReportIssuedDate {
 }
 
 /// Point in Time
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoDataIdNumberReportDate {
     /// Numerical day between 1 and 31.
     #[serde(default)]
@@ -3221,7 +3222,7 @@ pub struct GelatoDataIdNumberReportDate {
 }
 
 /// Point in Time
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoDataVerifiedOutputsDate {
     /// Numerical day between 1 and 31.
     #[serde(default)]
@@ -3234,7 +3235,7 @@ pub struct GelatoDataVerifiedOutputsDate {
     pub year: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoDocumentReportError {
     /// A short machine-readable string giving the reason for the verification failure. // TODO: enum values: ["document_expired", "document_type_not_supported", "document_unverified_other"]
     #[serde(default)]
@@ -3244,7 +3245,7 @@ pub struct GelatoDocumentReportError {
     pub reason: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoEmailReportError {
     /// A short machine-readable string giving the reason for the verification failure. // TODO: enum values: ["email_unverified_other", "email_verification_declined"]
     #[serde(default)]
@@ -3254,7 +3255,7 @@ pub struct GelatoEmailReportError {
     pub reason: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoIdNumberReportError {
     /// A short machine-readable string giving the reason for the verification failure. // TODO: enum values: ["id_number_insufficient_document_data", "id_number_mismatch", "id_number_unverified_other"]
     #[serde(default)]
@@ -3264,7 +3265,7 @@ pub struct GelatoIdNumberReportError {
     pub reason: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoPhoneReportError {
     /// A short machine-readable string giving the reason for the verification failure. // TODO: enum values: ["phone_unverified_other", "phone_verification_declined"]
     #[serde(default)]
@@ -3274,7 +3275,7 @@ pub struct GelatoPhoneReportError {
     pub reason: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoProvidedDetails {
     /// Email of user being verified
     #[serde(default)]
@@ -3284,10 +3285,10 @@ pub struct GelatoProvidedDetails {
     pub phone: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoReportIdNumberOptions {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoSelfieReportError {
     /// A short machine-readable string giving the reason for the verification failure. // TODO: enum values: ["selfie_document_missing_photo", "selfie_face_mismatch", "selfie_manipulated", "selfie_unverified_other"]
     #[serde(default)]
@@ -3297,11 +3298,11 @@ pub struct GelatoSelfieReportError {
     pub reason: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoSessionIdNumberOptions {}
 
 /// Shows last VerificationSession error
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoSessionLastError {
     /// A short machine-readable string giving the reason for the verification or user-session failure. // TODO: enum values: ["abandoned", "consent_declined", "country_not_supported", "device_not_supported", "document_expired", "document_type_not_supported", "document_unverified_other", "email_unverified_other", "email_verification_declined", "id_number_insufficient_document_data", "id_number_mismatch", "id_number_unverified_other", "phone_unverified_other", "phone_verification_declined", "selfie_document_missing_photo", "selfie_face_mismatch", "selfie_manipulated", "selfie_unverified_other", "under_supported_age"]
     #[serde(default)]
@@ -3311,7 +3312,7 @@ pub struct GelatoSessionLastError {
     pub reason: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoVerificationSessionOptions {
     #[serde(default)]
     pub document: ::core::option::Option<GelatoSessionDocumentOptions>,
@@ -3325,7 +3326,7 @@ pub struct GelatoVerificationSessionOptions {
     pub phone: ::core::option::Option<GelatoSessionPhoneOptions>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoVerifiedOutputs {
     /// The user''s verified address.
     #[serde(default)]
@@ -3373,7 +3374,7 @@ pub struct GelatoVerifiedOutputs {
 /// [VerificationSession](https://docs.stripe.com/api/identity/verification_sessions) API.
 ///
 /// Related guide: [Accessing verification results](https://docs.stripe.com/identity/verification-sessions#results).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityVerificationReport {
     /// A string to reference this user. This can be a customer ID, a session ID, or similar, and can be used to reconcile this verification with your internal systems.
     #[serde(default)]
@@ -3420,7 +3421,7 @@ pub struct IdentityVerificationReport {
 /// verification checks are complete.
 ///
 /// Related guide: [The Verification Sessions API](https://docs.stripe.com/identity/verification-sessions)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityVerificationSession {
     /// A string to reference this user. This can be a customer ID, a session ID, or similar, and can be used to reconcile this verification with your internal systems.
     #[serde(default)]
@@ -3477,7 +3478,7 @@ pub struct IdentityVerificationSession {
     pub verified_outputs: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InboundTransfers {
     pub billing_details: TreasurySharedResourceBillingDetails,
     /// The type of the payment method used in the InboundTransfer. // TODO: enum values: ["us_bank_account"]
@@ -3488,7 +3489,7 @@ pub struct InboundTransfers {
 }
 
 /// Billing details attached to this payment evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationBillingDetails {
     pub address: InsightsResourcesPaymentEvaluationAddress,
     /// Email address.
@@ -3503,7 +3504,7 @@ pub struct InsightsResourcesPaymentEvaluationBillingDetails {
 }
 
 /// Money Movement card details attached to this payment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationMoneyMovementCard {
     /// Describes the presence of the customer during the payment. // TODO: enum values: ["off_session", "on_session"]
     #[serde(default)]
@@ -3514,7 +3515,7 @@ pub struct InsightsResourcesPaymentEvaluationMoneyMovementCard {
 }
 
 /// Money Movement details attached to this payment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationMoneyMovementDetails {
     /// Describes card money movement details for the payment evaluation.
     #[serde(default)]
@@ -3524,7 +3525,7 @@ pub struct InsightsResourcesPaymentEvaluationMoneyMovementDetails {
 }
 
 /// Outcome details for this payment evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationOutcome {
     #[serde(default)]
     pub merchant_blocked: ::core::option::Option<InsightsResourcesPaymentEvaluationMerchantBlocked>,
@@ -3541,7 +3542,7 @@ pub struct InsightsResourcesPaymentEvaluationOutcome {
 }
 
 /// Payment method details attached to this payment evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationPaymentMethodDetails {
     /// Billing information associated with the payment evaluation.
     #[serde(default)]
@@ -3551,7 +3552,7 @@ pub struct InsightsResourcesPaymentEvaluationPaymentMethodDetails {
 }
 
 /// Shipping details attached to this payment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationShipping {
     pub address: InsightsResourcesPaymentEvaluationAddress,
     /// Shipping name.
@@ -3562,7 +3563,7 @@ pub struct InsightsResourcesPaymentEvaluationShipping {
     pub phone: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InternalCard {
     /// Brand of the card used in the transaction
     #[serde(default)]
@@ -3613,7 +3614,7 @@ pub struct InternalCard {
 /// [here](https://docs.stripe.com/billing/customer/balance).
 ///
 /// Related guide: [Send invoices to customers](https://docs.stripe.com/billing/invoices/sending)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Invoice {
     /// The country of the business associated with this invoice, most often the business creating the invoice.
     #[serde(default)]
@@ -3824,7 +3825,7 @@ pub struct Invoice {
 /// Invoice Payments include the mapping between payment objects, such as Payment Intent, and Invoices.
 /// This resource and its endpoints allows you to easily track if a payment is associated with a specific invoice and
 /// monitor the allocation details of the payments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePayment {
     /// Amount that was actually paid for this invoice, in cents (or local equivalent). This field is null until the payment is paid. This amount can be less than the amount_requested if the PaymentIntent’s amount_received is not sufficient to pay all of the invoices that it is attached to.
     #[serde(default)]
@@ -3851,7 +3852,7 @@ pub struct InvoicePayment {
     pub status_transitions: InvoicesPaymentsInvoicePaymentStatusTransitions,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePaymentMethodOptionsAcssDebit {
     #[serde(default)]
     pub mandate_options: ::core::option::Option<InvoicePaymentMethodOptionsAcssDebitMandateOptions>,
@@ -3860,13 +3861,13 @@ pub struct InvoicePaymentMethodOptionsAcssDebit {
     pub verification_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePaymentMethodOptionsBancontact {
     /// Preferred language of the Bancontact authorization page that the customer is redirected to. // TODO: enum values: ["de", "en", "fr", "nl"]
     pub preferred_language: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePaymentMethodOptionsCard {
     #[serde(default)]
     pub installments: ::core::option::Option<InvoiceInstallmentsCard>,
@@ -3875,7 +3876,7 @@ pub struct InvoicePaymentMethodOptionsCard {
     pub request_three_d_secure: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePaymentMethodOptionsCustomerBalance {
     #[serde(default)]
     pub bank_transfer:
@@ -3885,19 +3886,19 @@ pub struct InvoicePaymentMethodOptionsCustomerBalance {
     pub funding_type: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePaymentMethodOptionsKonbini {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePaymentMethodOptionsPayto {
     #[serde(default)]
     pub mandate_options: ::core::option::Option<InvoiceMandateOptionsPayto>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePaymentMethodOptionsSepaDebit {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePaymentMethodOptionsUsBankAccount {
     #[serde(default)]
     pub financial_connections:
@@ -3907,7 +3908,7 @@ pub struct InvoicePaymentMethodOptionsUsBankAccount {
     pub verification_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceRenderingPdf {
     /// Page size of invoice pdf. Options include a4, letter, and auto. If set to auto, page size will be switched to a4 or letter based on customer locale. // TODO: enum values: ["a4", "auto", "letter"]
     #[serde(default)]
@@ -3916,7 +3917,7 @@ pub struct InvoiceRenderingPdf {
 
 /// Invoice Rendering Templates are used to configure how invoices are rendered on surfaces like the PDF. Invoice Rendering Templates
 /// can be created from within the Dashboard, and they can be used over the API when creating invoices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceRenderingTemplate {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -3938,7 +3939,7 @@ pub struct InvoiceRenderingTemplate {
     pub version: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceSettingCheckoutRenderingOptions {
     /// How line-item prices and amounts will be displayed with respect to tax on invoice PDFs.
     #[serde(default)]
@@ -3948,7 +3949,7 @@ pub struct InvoiceSettingCheckoutRenderingOptions {
     pub template: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceSettingCustomerRenderingOptions {
     /// How line-item prices and amounts will be displayed with respect to tax on invoice PDFs.
     #[serde(default)]
@@ -3958,7 +3959,7 @@ pub struct InvoiceSettingCustomerRenderingOptions {
     pub template: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceSettingSubscriptionSchedulePhaseSetting {
     /// The account tax IDs associated with this phase of the subscription schedule. Will be set on invoices generated by this phase of the subscription schedule.
     #[serde(default)]
@@ -3979,7 +3980,7 @@ pub struct InvoiceSettingSubscriptionSchedulePhaseSetting {
 /// (to minimize per-transaction fees), or for having Stripe tabulate your usage-based billing totals.
 ///
 /// Related guides: [Integrate with the Invoicing API](https://docs.stripe.com/invoicing/integration), [Subscription Invoices](https://docs.stripe.com/billing/invoices/subscription#adding-upcoming-invoice-items).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Invoiceitem {
     /// Amount (in the currency specified) of the invoice item. This should always be equal to unit_amount * quantity.
     pub amount: i64,
@@ -4038,7 +4039,7 @@ pub struct Invoiceitem {
     pub test_clock: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicesPaymentMethodOptions {
     /// If paying by acss_debit, this sub-hash contains details about the Canadian pre-authorized debit payment method options to pass to the invoice’s PaymentIntent.
     #[serde(default)]
@@ -4066,7 +4067,7 @@ pub struct InvoicesPaymentMethodOptions {
     pub us_bank_account: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicesResourceConfirmationSecret {
     /// The client_secret of the payment that Stripe creates for the invoice after finalization.
     pub client_secret: String,
@@ -4075,7 +4076,7 @@ pub struct InvoicesResourceConfirmationSecret {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicesResourceFromInvoice {
     /// The relation between this invoice and the cloned invoice
     pub action: String,
@@ -4083,7 +4084,7 @@ pub struct InvoicesResourceFromInvoice {
     pub invoice: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicesResourceInvoiceRendering {
     /// How line-item prices and amounts will be displayed with respect to tax on invoice PDFs.
     #[serde(default)]
@@ -4099,7 +4100,7 @@ pub struct InvoicesResourceInvoiceRendering {
     pub template_version: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicesResourceShippingCost {
     /// Total shipping cost before any taxes are applied.
     pub amount_subtotal: i64,
@@ -4118,7 +4119,7 @@ pub struct InvoicesResourceShippingCost {
 /// As a [card issuer](https://docs.stripe.com/issuing), you can dispute transactions that the cardholder does not recognize, suspects to be fraudulent, or has other issues with.
 ///
 /// Related guide: [Issuing disputes](https://docs.stripe.com/issuing/purchases/disputes)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDispute {
     /// Disputed amount in the card''s currency and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). Usually the amount of the transaction, but can differ (usually because of currency fluctuation).
     pub amount: i64,
@@ -4151,7 +4152,7 @@ pub struct IssuingDispute {
 }
 
 /// A Personalization Design is a logical grouping of a Physical Bundle, card logo, and carrier text that represents a product line.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingPersonalizationDesign {
     /// The file for the card logo to use with physical bundles that support card logos. Must have a purpose value of issuing_logo.
     #[serde(default)]
@@ -4184,7 +4185,7 @@ pub struct IssuingPersonalizationDesign {
 }
 
 /// A Physical Bundle represents the bundle of physical items - card stock, carrier letter, and envelope - that is shipped to a cardholder when you create a physical card.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingPhysicalBundle {
     pub features: IssuingPhysicalBundleFeatures,
     /// Unique identifier for the object.
@@ -4203,7 +4204,7 @@ pub struct IssuingPhysicalBundle {
 }
 
 /// When a non-stripe BIN is used, any use of an [issued card](https://docs.stripe.com/issuing) must be settled directly with the card network. The net amount owed is represented by an Issuing Settlement object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingSettlement {
     /// The Bank Identification Number reflecting this settlement record.
     pub bin: String,
@@ -4242,7 +4243,7 @@ pub struct IssuingSettlement {
 }
 
 /// An issuing token object is created when an issued card is added to a digital wallet. As a [card issuer](https://docs.stripe.com/issuing), you can [view and manage these tokens](https://docs.stripe.com/issuing/controls/token-management) through Stripe.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingToken {
     /// Card associated with this token.
     pub card: serde_json::Value,
@@ -4273,7 +4274,7 @@ pub struct IssuingToken {
     pub wallet_provider: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationAmountDetails {
     /// The fee charged by the ATM for the cash withdrawal.
     #[serde(default)]
@@ -4283,7 +4284,7 @@ pub struct IssuingAuthorizationAmountDetails {
     pub cashback_amount: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationAuthenticationExemption {
     /// The entity that requested the exemption, either the acquiring merchant or the Issuing user. // TODO: enum values: ["acquirer", "issuer"]
     pub claimed_by: String,
@@ -4292,7 +4293,7 @@ pub struct IssuingAuthorizationAuthenticationExemption {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationFleetCardholderPromptData {
     /// [Deprecated] An alphanumeric ID, though typical point of sales only support numeric entry. The card program can be configured to prompt for a vehicle ID, driver ID, or generic ID.
     #[serde(default)]
@@ -4314,7 +4315,7 @@ pub struct IssuingAuthorizationFleetCardholderPromptData {
     pub vehicle_number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationFleetData {
     /// Answers to prompts presented to the cardholder at the point of sale. Prompted fields vary depending on the configuration of your physical fleet cards. Typical points of sale support only numeric entry.
     #[serde(default)]
@@ -4330,21 +4331,21 @@ pub struct IssuingAuthorizationFleetData {
     pub service_type: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationFleetFuelPriceData {
     /// Gross fuel amount that should equal Fuel Quantity multiplied by Fuel Unit Cost, inclusive of taxes.
     #[serde(default)]
     pub gross_amount_decimal: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationFleetNonFuelPriceData {
     /// Gross non-fuel amount that should equal the sum of the line items, inclusive of taxes.
     #[serde(default)]
     pub gross_amount_decimal: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationFleetReportedBreakdown {
     /// Breakdown of fuel portion of the purchase.
     #[serde(default)]
@@ -4357,7 +4358,7 @@ pub struct IssuingAuthorizationFleetReportedBreakdown {
     pub tax: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationFleetTaxData {
     /// Amount of state or provincial Sales Tax included in the transaction amount. null if not reported by merchant or not subject to tax.
     #[serde(default)]
@@ -4367,7 +4368,7 @@ pub struct IssuingAuthorizationFleetTaxData {
     pub national_amount_decimal: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationFuelData {
     /// [Conexxus Payment System Product Code](https://www.conexxus.org/conexxus-payment-system-product-codes) identifying the primary fuel product purchased.
     #[serde(default)]
@@ -4386,7 +4387,7 @@ pub struct IssuingAuthorizationFuelData {
     pub unit_cost_decimal: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationNetworkData {
     /// Identifier assigned to the acquirer by the card network. Sometimes this value is not provided by the network; in this case, the value will be null.
     #[serde(default)]
@@ -4399,7 +4400,7 @@ pub struct IssuingAuthorizationNetworkData {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationPendingRequest {
     /// The additional amount Stripe will hold if the authorization is approved, in the card''s [currency](https://docs.stripe.com/api#issuing_authorization_object-pending-request-currency) and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
     pub amount: i64,
@@ -4419,13 +4420,13 @@ pub struct IssuingAuthorizationPendingRequest {
     pub network_risk_score: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationThreeDSecure {
     /// The outcome of the 3D Secure authentication request. // TODO: enum values: ["attempt_acknowledged", "authenticated", "failed", "required"]
     pub result: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationTreasury {
     /// The array of [ReceivedCredits](https://docs.stripe.com/api/treasury/received_credits) associated with this authorization
     pub received_credits: ::std::vec::Vec<String>,
@@ -4436,7 +4437,7 @@ pub struct IssuingAuthorizationTreasury {
     pub transaction: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardFraudWarning {
     /// Timestamp of the most recent fraud warning.
     #[serde(default)]
@@ -4446,12 +4447,12 @@ pub struct IssuingCardFraudWarning {
     pub type_: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardLifecycleControls {
     pub cancel_after: IssuingCardLifecycleConditions,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardShipping {
     pub address: Address,
     /// Address validation details for the shipment.
@@ -4490,7 +4491,7 @@ pub struct IssuingCardShipping {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardShippingAddressValidation {
     /// The address validation capabilities to use. // TODO: enum values: ["disabled", "normalization_only", "validation_and_normalization"]
     pub mode: String,
@@ -4502,14 +4503,14 @@ pub struct IssuingCardShippingAddressValidation {
     pub result: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardShippingCustoms {
     /// A registration number used for customs in Europe. See [https://www.gov.uk/eori](https://www.gov.uk/eori) for the UK and [https://ec.europa.eu/taxation_customs/business/customs-procedures-import-and-export/customs-procedures/economic-operators-registration-and-identification-number-eori_en](https://ec.europa.eu/taxation_customs/business/customs-procedures-import-and-export/customs-procedures/economic-operators-registration-and-identification-number-eori_en) for the EU.
     #[serde(default)]
     pub eori_number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardWallets {
     pub apple_pay: IssuingCardApplePay,
     pub google_pay: IssuingCardGooglePay,
@@ -4518,7 +4519,7 @@ pub struct IssuingCardWallets {
     pub primary_account_identifier: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholderAuthorizationControls {
     /// Array of strings containing [categories](https://docs.stripe.com/api#issuing_authorization_object-merchant_data-category) of authorizations to allow. All other categories will be blocked. Cannot be set with blocked_categories.
     #[serde(default)]
@@ -4540,20 +4541,20 @@ pub struct IssuingCardholderAuthorizationControls {
     pub spending_limits_currency: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholderCardIssuing {
     /// Information about cardholder acceptance of Celtic [Authorized User Terms](https://stripe.com/docs/issuing/cards#accept-authorized-user-terms). Required for cards backed by a Celtic program.
     #[serde(default)]
     pub user_terms_acceptance: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholderCompany {
     /// Whether the company''s business ID number was provided.
     pub tax_id_provided: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholderIdDocument {
     /// The back of a document returned by a [file upload](https://api.stripe.com#create_file) with a purpose value of identity_document.
     #[serde(default)]
@@ -4563,7 +4564,7 @@ pub struct IssuingCardholderIdDocument {
     pub front: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholderIndividual {
     /// Information related to the card_issuing program for this cardholder.
     #[serde(default)]
@@ -4582,7 +4583,7 @@ pub struct IssuingCardholderIndividual {
     pub verification: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholderIndividualDob {
     /// The day of birth, between 1 and 31.
     #[serde(default)]
@@ -4595,7 +4596,7 @@ pub struct IssuingCardholderIndividualDob {
     pub year: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholderUserTermsAcceptance {
     /// The Unix timestamp marking when the cardholder accepted the Authorized User Terms.
     #[serde(default)]
@@ -4608,14 +4609,14 @@ pub struct IssuingCardholderUserTermsAcceptance {
     pub user_agent: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholderVerification {
     /// An identifying document, either a passport or local ID card.
     #[serde(default)]
     pub document: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeTreasury {
     /// The Treasury [DebitReversal](https://docs.stripe.com/api/treasury/debit_reversals) representing this Issuing dispute
     #[serde(default)]
@@ -4624,7 +4625,7 @@ pub struct IssuingDisputeTreasury {
     pub received_debit: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingPersonalizationDesignCarrierText {
     /// The footer body text of the carrier letter.
     #[serde(default)]
@@ -4640,7 +4641,7 @@ pub struct IssuingPersonalizationDesignCarrierText {
     pub header_title: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionAmountDetails {
     /// The fee charged by the ATM for the cash withdrawal.
     #[serde(default)]
@@ -4650,7 +4651,7 @@ pub struct IssuingTransactionAmountDetails {
     pub cashback_amount: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionFleetCardholderPromptData {
     /// Driver ID.
     #[serde(default)]
@@ -4669,7 +4670,7 @@ pub struct IssuingTransactionFleetCardholderPromptData {
     pub vehicle_number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionFleetData {
     /// Answers to prompts presented to cardholder at point of sale.
     #[serde(default)]
@@ -4685,21 +4686,21 @@ pub struct IssuingTransactionFleetData {
     pub service_type: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionFleetFuelPriceData {
     /// Gross fuel amount that should equal Fuel Volume multipled by Fuel Unit Cost, inclusive of taxes.
     #[serde(default)]
     pub gross_amount_decimal: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionFleetNonFuelPriceData {
     /// Gross non-fuel amount that should equal the sum of the line items, inclusive of taxes.
     #[serde(default)]
     pub gross_amount_decimal: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionFleetReportedBreakdown {
     /// Breakdown of fuel portion of the purchase.
     #[serde(default)]
@@ -4712,7 +4713,7 @@ pub struct IssuingTransactionFleetReportedBreakdown {
     pub tax: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionFleetTaxData {
     /// Amount of state or provincial Sales Tax included in the transaction amount. Null if not reported by merchant or not subject to tax.
     #[serde(default)]
@@ -4722,7 +4723,7 @@ pub struct IssuingTransactionFleetTaxData {
     pub national_amount_decimal: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionFlightData {
     /// The time that the flight departed.
     #[serde(default)]
@@ -4741,7 +4742,7 @@ pub struct IssuingTransactionFlightData {
     pub travel_agency: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionFuelData {
     /// [Conexxus Payment System Product Code](https://www.conexxus.org/conexxus-payment-system-product-codes) identifying the primary fuel product purchased.
     #[serde(default)]
@@ -4758,7 +4759,7 @@ pub struct IssuingTransactionFuelData {
     pub unit_cost_decimal: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionLodgingData {
     /// The time of checking into the lodging.
     #[serde(default)]
@@ -4768,7 +4769,7 @@ pub struct IssuingTransactionLodgingData {
     pub nights: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionNetworkData {
     /// A code created by Stripe which is shared with the merchant to validate the authorization. This field will be populated if the authorization message was approved. The code typically starts with the letter "S", followed by a six-digit number. For example, "S498162". Please note that the code is not guaranteed to be unique across authorizations.
     #[serde(default)]
@@ -4781,7 +4782,7 @@ pub struct IssuingTransactionNetworkData {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionPurchaseDetails {
     /// Fleet-specific information for transactions using Fleet cards.
     #[serde(default)]
@@ -4803,7 +4804,7 @@ pub struct IssuingTransactionPurchaseDetails {
     pub reference: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionTreasury {
     /// The Treasury [ReceivedCredit](https://docs.stripe.com/api/treasury/received_credits) representing this Issuing transaction if it is a refund
     #[serde(default)]
@@ -4814,7 +4815,7 @@ pub struct IssuingTransactionTreasury {
 }
 
 /// A line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Item {
     #[serde(default)]
     pub adjustable_quantity: ::core::option::Option<serde_json::Value>,
@@ -4852,26 +4853,26 @@ pub struct Item {
     pub taxes: ::core::option::Option<::std::vec::Vec<LineItemsTaxAmount>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KlarnaAddress {
     /// The payer address country
     #[serde(default)]
     pub country: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KlarnaPayerDetails {
     /// The payer''s address
     #[serde(default)]
     pub address: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegalEntityCompanyVerification {
     pub document: LegalEntityCompanyVerificationDocument,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegalEntityDirectorshipDeclaration {
     /// The Unix timestamp marking when the directorship declaration attestation was made.
     #[serde(default)]
@@ -4884,7 +4885,7 @@ pub struct LegalEntityDirectorshipDeclaration {
     pub user_agent: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegalEntityRepresentativeDeclaration {
     /// The Unix timestamp marking when the representative declaration attestation was made.
     #[serde(default)]
@@ -4897,7 +4898,7 @@ pub struct LegalEntityRepresentativeDeclaration {
     pub user_agent: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegalEntityUboDeclaration {
     /// The Unix timestamp marking when the beneficial owner attestation was made.
     #[serde(default)]
@@ -4913,7 +4914,7 @@ pub struct LegalEntityUboDeclaration {
 /// Invoice Line Items represent the individual lines within an [invoice](https://docs.stripe.com/api/invoices) and only exist within the context of an invoice.
 ///
 /// Each line item is backed by either an [invoice item](https://docs.stripe.com/api/invoiceitems) or a [subscription item](https://docs.stripe.com/api/subscription_items).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LineItem {
     /// The amount, in cents (or local equivalent).
     pub amount: i64,
@@ -4966,7 +4967,7 @@ pub struct LineItem {
     pub taxes: ::core::option::Option<::std::vec::Vec<BillingBillResourceInvoicingTaxesTax>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LineItemsAdjustableQuantity {
     pub enabled: bool,
     #[serde(default)]
@@ -4977,7 +4978,7 @@ pub struct LineItemsAdjustableQuantity {
 
 /// Login Links are single-use URLs that takes an Express account to the login page for their Stripe dashboard.
 /// A Login Link differs from an [Account Link](https://docs.stripe.com/api/account_links) in that it takes the user directly to their [Express dashboard for the specified account](https://docs.stripe.com/connect/integrate-express-dashboard#create-login-link)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoginLink {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -4988,7 +4989,7 @@ pub struct LoginLink {
 }
 
 /// A Mandate is a record of the permission that your customer gives you to debit their payment method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Mandate {
     pub customer_acceptance: CustomerAcceptance,
     /// Unique identifier for the object.
@@ -5014,37 +5015,37 @@ pub struct Mandate {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateAmazonPay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateCashapp {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateKakaoPay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateKlarna {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateKrCard {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateLink {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateMultiUse {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateNaverPay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateNzBankAccount {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateRevolutPay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Networks {
     /// All networks available for selection via [payment_method_options.card.network](/api/payment_intents/confirm#confirm_payment_intent-payment_method_options-card-network).
     pub available: ::std::vec::Vec<String>,
@@ -5053,7 +5054,7 @@ pub struct Networks {
     pub preferred: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationEventRequest {
     /// ID of the API request that caused the event. If null, the event was automatic (e.g., Stripe''s automatic subscription handling). Request logs are available in the [dashboard](https://dashboard.stripe.com/logs), but currently not in the API.
     #[serde(default)]
@@ -5063,10 +5064,10 @@ pub struct NotificationEventRequest {
     pub idempotency_key: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OfflineAcceptance {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutboundPaymentsPaymentMethodDetails {
     pub billing_details: TreasurySharedResourceBillingDetails,
     #[serde(default)]
@@ -5079,7 +5080,7 @@ pub struct OutboundPaymentsPaymentMethodDetails {
     pub us_bank_account: ::core::option::Option<OutboundPaymentsPaymentMethodDetailsUsBankAccount>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PackageDimensions {
     /// Height, in inches.
     pub height: f64,
@@ -5095,7 +5096,7 @@ pub struct PackageDimensions {
 /// Each payment attempt tries to collect a fixed amount of money from a fixed customer and payment
 /// method. Payment Attempt Records are attached to Payment Records. Only one attempt per Payment Record
 /// can have guaranteed funds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentAttemptRecord {
     pub amount: PaymentsPrimitivesPaymentRecordsResourceAmount,
     pub amount_authorized: PaymentsPrimitivesPaymentRecordsResourceAmount,
@@ -5140,7 +5141,7 @@ pub struct PaymentAttemptRecord {
     pub shipping_details: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsAmountDetails {
     /// The total discount applied on the transaction represented in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). An integer greater than 0.
     #[serde(default)]
@@ -5158,13 +5159,13 @@ pub struct PaymentFlowsAmountDetails {
     pub tip: ::core::option::Option<PaymentFlowsAmountDetailsClientResourceTip>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsAmountDetailsClient {
     #[serde(default)]
     pub tip: ::core::option::Option<PaymentFlowsAmountDetailsClientResourceTip>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsAmountDetailsResourceLineItemsListResourceLineItemResourcePaymentMethodOptions {
     #[serde(default)]
     pub card: ::core::option::Option<PaymentFlowsPrivatePaymentMethodsCardPaymentIntentAmountDetailsLineItemPaymentMethodOptions>,
@@ -5176,13 +5177,13 @@ pub struct PaymentFlowsAmountDetailsResourceLineItemsListResourceLineItemResourc
     pub paypal: ::core::option::Option<PaymentFlowsPrivatePaymentMethodsPaypalAmountDetailsLineItemPaymentMethodOptions>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsAmountDetailsResourceLineItemsListResourceLineItemResourceTax {
     /// The total amount of tax on the transaction represented in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). Required for L2 rates. An integer greater than or equal to 0.
     pub total_tax_amount: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsAutomaticPaymentMethodsPaymentIntent {
     /// Controls whether this PaymentIntent will accept redirect-based payment methods.
     #[serde(default)]
@@ -5191,7 +5192,7 @@ pub struct PaymentFlowsAutomaticPaymentMethodsPaymentIntent {
     pub enabled: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsAutomaticPaymentMethodsSetupIntent {
     /// Controls whether this SetupIntent will accept redirect-based payment methods.
     #[serde(default)]
@@ -5201,10 +5202,10 @@ pub struct PaymentFlowsAutomaticPaymentMethodsSetupIntent {
     pub enabled: ::core::option::Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsAlipay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsKakaoPayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -5214,7 +5215,7 @@ pub struct PaymentFlowsPrivatePaymentMethodsKakaoPayPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsKlarnaDob {
     /// The day of birth, between 1 and 31.
     #[serde(default)]
@@ -5227,7 +5228,7 @@ pub struct PaymentFlowsPrivatePaymentMethodsKlarnaDob {
     pub year: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsNaverPayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -5237,21 +5238,21 @@ pub struct PaymentFlowsPrivatePaymentMethodsNaverPayPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsPaycoPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsSamsungPayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentAmountDetailsLineItem {
     /// The discount applied on this line item represented in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). An integer greater than 0.
     #[serde(default)]
@@ -5280,7 +5281,7 @@ pub struct PaymentIntentAmountDetailsLineItem {
     pub unit_of_measure: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextAction {
     #[serde(default)]
     pub alipay_handle_redirect: ::core::option::Option<PaymentIntentNextActionAlipayHandleRedirect>,
@@ -5337,7 +5338,7 @@ pub struct PaymentIntentNextAction {
         ::core::option::Option<PaymentIntentNextActionWechatPayRedirectToIosApp>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionKonbiniFamilymart {
     /// The confirmation number.
     #[serde(default)]
@@ -5346,7 +5347,7 @@ pub struct PaymentIntentNextActionKonbiniFamilymart {
     pub payment_code: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionKonbiniLawson {
     /// The confirmation number.
     #[serde(default)]
@@ -5355,7 +5356,7 @@ pub struct PaymentIntentNextActionKonbiniLawson {
     pub payment_code: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionKonbiniMinistop {
     /// The confirmation number.
     #[serde(default)]
@@ -5364,7 +5365,7 @@ pub struct PaymentIntentNextActionKonbiniMinistop {
     pub payment_code: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionKonbiniSeicomart {
     /// The confirmation number.
     #[serde(default)]
@@ -5373,7 +5374,7 @@ pub struct PaymentIntentNextActionKonbiniSeicomart {
     pub payment_code: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptions {
     #[serde(default)]
     pub acss_debit: ::core::option::Option<serde_json::Value>,
@@ -5483,7 +5484,7 @@ pub struct PaymentIntentPaymentMethodOptions {
     pub zip: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsAcssDebit {
     #[serde(default)]
     pub mandate_options:
@@ -5499,7 +5500,7 @@ pub struct PaymentIntentPaymentMethodOptionsAcssDebit {
     pub verification_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsAuBecsDebit {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
@@ -5509,7 +5510,7 @@ pub struct PaymentIntentPaymentMethodOptionsAuBecsDebit {
     pub target_date: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsBacsDebit {
     #[serde(default)]
     pub mandate_options:
@@ -5522,14 +5523,14 @@ pub struct PaymentIntentPaymentMethodOptionsBacsDebit {
     pub target_date: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsBlik {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsCard {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -5572,14 +5573,14 @@ pub struct PaymentIntentPaymentMethodOptionsCard {
     pub statement_descriptor_suffix_kanji: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsEps {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsLink {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -5589,7 +5590,7 @@ pub struct PaymentIntentPaymentMethodOptionsLink {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsMobilepay {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -5599,7 +5600,7 @@ pub struct PaymentIntentPaymentMethodOptionsMobilepay {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsNzBankAccount {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
@@ -5609,7 +5610,7 @@ pub struct PaymentIntentPaymentMethodOptionsNzBankAccount {
     pub target_date: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsPayto {
     #[serde(default)]
     pub mandate_options:
@@ -5619,7 +5620,7 @@ pub struct PaymentIntentPaymentMethodOptionsPayto {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsSepaDebit {
     #[serde(default)]
     pub mandate_options:
@@ -5632,7 +5633,7 @@ pub struct PaymentIntentPaymentMethodOptionsSepaDebit {
     pub target_date: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsSwish {
     /// A reference for this payment to be displayed in the Swish app.
     #[serde(default)]
@@ -5642,7 +5643,7 @@ pub struct PaymentIntentPaymentMethodOptionsSwish {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsUsBankAccount {
     #[serde(default)]
     pub financial_connections: ::core::option::Option<LinkedAccountOptionsCommon>,
@@ -5662,7 +5663,7 @@ pub struct PaymentIntentPaymentMethodOptionsUsBankAccount {
     pub verification_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentProcessing {
     #[serde(default)]
     pub card: ::core::option::Option<PaymentIntentCardProcessing>,
@@ -5671,7 +5672,7 @@ pub struct PaymentIntentProcessing {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentTypeSpecificPaymentMethodOptionsClient {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual", "manual_preferred"]
     #[serde(default)]
@@ -5702,7 +5703,7 @@ pub struct PaymentIntentTypeSpecificPaymentMethodOptionsClient {
 /// When a customer opens a payment link it will open a new [checkout session](https://docs.stripe.com/api/checkout/sessions) to render the payment page. You can use [checkout session events](https://docs.stripe.com/api/events/types#event_types-checkout.session.completed) to track payments through payment links.
 ///
 /// Related guide: [Payment Links API](https://docs.stripe.com/payment-links)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLink {
     /// Whether the payment link''s url is active. If false, customers visiting the URL will be shown a page saying that the link has been deactivated.
     pub active: bool,
@@ -5786,7 +5787,7 @@ pub struct PaymentLink {
     pub url: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceConsentCollection {
     /// Settings related to the payment method reuse text shown in the Checkout UI.
     #[serde(default)]
@@ -5799,13 +5800,13 @@ pub struct PaymentLinksResourceConsentCollection {
     pub terms_of_service: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceCustomTextPosition {
     /// Text can be up to 1200 characters in length.
     pub message: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceInvoiceCreation {
     /// Enable creating an invoice on successful payment.
     pub enabled: bool,
@@ -5814,7 +5815,7 @@ pub struct PaymentLinksResourceInvoiceCreation {
     pub invoice_data: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceInvoiceSettings {
     /// The account tax IDs associated with the invoice.
     #[serde(default)]
@@ -5839,7 +5840,7 @@ pub struct PaymentLinksResourceInvoiceSettings {
     pub rendering_options: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceOptionalItemAdjustableQuantity {
     /// Set to true if the quantity can be adjusted to any non-negative integer.
     pub enabled: bool,
@@ -5851,7 +5852,7 @@ pub struct PaymentLinksResourceOptionalItemAdjustableQuantity {
     pub minimum: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourcePaymentIntentData {
     /// Indicates when the funds will be captured from the customer''s account. // TODO: enum values: ["automatic", "automatic_async", "manual"]
     #[serde(default)]
@@ -5875,24 +5876,24 @@ pub struct PaymentLinksResourcePaymentIntentData {
     pub transfer_group: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourcePaymentMethodReuseAgreement {
     /// Determines the position and visibility of the payment method reuse agreement in the UI. When set to auto, Stripe''s defaults will be used.
     pub position: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceRestrictions {
     pub completed_sessions: PaymentLinksResourceCompletedSessions,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceShippingAddressCollection {
     /// An array of two-letter ISO country codes representing which countries Checkout should provide as options for shipping locations. Unsupported country codes: AS, CX, CC, CU, HM, IR, KP, MH, FM, NF, MP, PW, SD, SY, UM, VI.
     pub allowed_countries: ::std::vec::Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceSubscriptionData {
     /// The subscription''s description, meant to be displayable to the customer. Use this field to optionally store an explanation of the subscription for rendering in Stripe surfaces and certain local payment methods UIs.
     #[serde(default)]
@@ -5908,7 +5909,7 @@ pub struct PaymentLinksResourceSubscriptionData {
     pub trial_settings: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceTransferData {
     /// The amount in cents (or local equivalent) that will be transferred to the destination account. By default, the entire amount is transferred to the destination.
     #[serde(default)]
@@ -5917,28 +5918,28 @@ pub struct PaymentLinksResourceTransferData {
     pub destination: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodAffirm {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodAfterpayClearpay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodAlma {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodAmazonPay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodBancontact {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodBillie {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodBlik {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCardChecks {
     /// If a address line1 was provided, results of the check, one of pass, fail, unavailable, or unchecked.
     #[serde(default)]
@@ -5951,7 +5952,7 @@ pub struct PaymentMethodCardChecks {
     pub cvc_check: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCardGeneratedCard {
     /// The charge that created this object.
     #[serde(default)]
@@ -5964,7 +5965,7 @@ pub struct PaymentMethodCardGeneratedCard {
     pub setup_attempt: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCardPresentNetworks {
     /// All networks available for selection via [payment_method_options.card.network](/api/payment_intents/confirm#confirm_payment_intent-payment_method_options-card-network).
     pub available: ::std::vec::Vec<String>,
@@ -5973,7 +5974,7 @@ pub struct PaymentMethodCardPresentNetworks {
     pub preferred: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCardWallet {
     #[serde(default)]
     pub amex_express_checkout: ::core::option::Option<serde_json::Value>,
@@ -5997,22 +5998,22 @@ pub struct PaymentMethodCardWallet {
     pub visa_checkout: ::core::option::Option<PaymentMethodCardWalletVisaCheckout>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCardWalletAmexExpressCheckout {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCardWalletApplePay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCardWalletGooglePay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCardWalletLink {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCardWalletSamsungPay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodConfigBizPaymentMethodConfigurationDetails {
     /// ID of the payment method configuration used.
     pub id: String,
@@ -6035,7 +6036,7 @@ pub struct PaymentMethodConfigBizPaymentMethodConfigurationDetails {
 /// - [Payment Method Configurations API](https://docs.stripe.com/connect/payment-method-configurations)
 /// - [Multiple configurations on dynamic payment methods](https://docs.stripe.com/payments/multiple-payment-method-configs)
 /// - [Multiple configurations for your Connect accounts](https://docs.stripe.com/connect/multiple-payment-method-configurations)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodConfiguration {
     #[serde(default)]
     pub acss_debit: ::core::option::Option<PaymentMethodConfigResourcePaymentMethodProperties>,
@@ -6170,13 +6171,13 @@ pub struct PaymentMethodConfiguration {
     pub zip: ::core::option::Option<PaymentMethodConfigResourcePaymentMethodProperties>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCrypto {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCustomerBalance {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetails {
     #[serde(default)]
     pub ach_credit_transfer: ::core::option::Option<PaymentMethodDetailsAchCreditTransfer>,
@@ -6297,7 +6298,7 @@ pub struct PaymentMethodDetails {
     pub zip: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardChecks {
     /// If a address line1 was provided, results of the check, one of pass, fail, unavailable, or unchecked.
     #[serde(default)]
@@ -6310,20 +6311,20 @@ pub struct PaymentMethodDetailsCardChecks {
     pub cvc_check: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardInstallments {
     /// Installment plan selected for the payment.
     #[serde(default)]
     pub plan: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardNetworkToken {
     /// Indicates if Stripe used a network token, either user provided or Stripe managed when processing the transaction.
     pub used: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardPresentOffline {
     /// Time at which the payment was collected while offline
     #[serde(default)]
@@ -6333,7 +6334,7 @@ pub struct PaymentMethodDetailsCardPresentOffline {
     pub type_: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardPresentReceipt {
     /// The type of account being debited or credited // TODO: enum values: ["checking", "credit", "prepaid", "unknown"]
     #[serde(default)]
@@ -6364,7 +6365,7 @@ pub struct PaymentMethodDetailsCardPresentReceipt {
     pub transaction_status_information: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardWallet {
     #[serde(default)]
     pub amex_express_checkout: ::core::option::Option<serde_json::Value>,
@@ -6388,25 +6389,25 @@ pub struct PaymentMethodDetailsCardWallet {
     pub visa_checkout: ::core::option::Option<PaymentMethodDetailsCardWalletVisaCheckout>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardWalletAmexExpressCheckout {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardWalletApplePay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardWalletGooglePay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardWalletLink {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardWalletSamsungPay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCustomerBalance {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsInteracPresentReceipt {
     /// The type of account being debited or credited // TODO: enum values: ["checking", "savings", "unknown"]
     #[serde(default)]
@@ -6437,45 +6438,45 @@ pub struct PaymentMethodDetailsInteracPresentReceipt {
     pub transaction_status_information: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsKonbiniStore {
     /// The name of the convenience store chain where the payment was completed. // TODO: enum values: ["familymart", "lawson", "ministop", "seicomart"]
     #[serde(default)]
     pub chain: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsMbWay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPayByBank {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordMbWay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordTwint {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordZip {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsStripeAccount {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsTwint {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsWechat {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsZip {}
 
 /// A payment method domain represents a web domain that you have registered with Stripe.
 /// Stripe Elements use registered payment method domains to control where certain payment methods are shown.
 ///
 /// Related guide: [Payment method domains](https://docs.stripe.com/payments/payment-methods/pmd-registration).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDomain {
     pub amazon_pay: PaymentMethodDomainResourcePaymentMethodStatus,
     pub apple_pay: PaymentMethodDomainResourcePaymentMethodStatus,
@@ -6497,28 +6498,28 @@ pub struct PaymentMethodDomain {
     pub paypal: PaymentMethodDomainResourcePaymentMethodStatus,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodGiropay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodGrabpay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodKakaoPay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodKonbini {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodMbWay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodMobilepay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodMultibanco {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsAffirm {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -6531,7 +6532,7 @@ pub struct PaymentMethodOptionsAffirm {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsAfterpayClearpay {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -6544,21 +6545,21 @@ pub struct PaymentMethodOptionsAfterpayClearpay {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsAlipay {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsAlma {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsAmazonPay {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -6568,7 +6569,7 @@ pub struct PaymentMethodOptionsAmazonPay {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsBancontact {
     /// Preferred language of the Bancontact authorization page that the customer is redirected to. // TODO: enum values: ["de", "en", "fr", "nl"]
     pub preferred_language: String,
@@ -6577,14 +6578,14 @@ pub struct PaymentMethodOptionsBancontact {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsBillie {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsBoleto {
     /// The number of calendar days before a Boleto voucher expires. For example, if you create a Boleto voucher on Monday and you set expires_after_days to 2, the Boleto voucher will expire on Wednesday at 23:59 America/Sao_Paulo time.
     pub expires_after_days: i64,
@@ -6593,7 +6594,7 @@ pub struct PaymentMethodOptionsBoleto {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsCardInstallments {
     /// Installment plans that may be selected for this PaymentIntent.
     #[serde(default)]
@@ -6606,7 +6607,7 @@ pub struct PaymentMethodOptionsCardInstallments {
     pub plan: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsCardMandateOptions {
     /// Amount to be charged for future payments, specified in the presentment currency.
     pub amount: i64,
@@ -6632,7 +6633,7 @@ pub struct PaymentMethodOptionsCardMandateOptions {
     pub supported_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsCardPresent {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual", "manual_preferred"]
     #[serde(default)]
@@ -6647,7 +6648,7 @@ pub struct PaymentMethodOptionsCardPresent {
     pub routing: ::core::option::Option<PaymentMethodOptionsCardPresentRouting>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsCashapp {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -6657,14 +6658,14 @@ pub struct PaymentMethodOptionsCashapp {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsCrypto {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsCustomerBalance {
     #[serde(default)]
     pub bank_transfer: ::core::option::Option<PaymentMethodOptionsCustomerBalanceBankTransfer>,
@@ -6676,38 +6677,38 @@ pub struct PaymentMethodOptionsCustomerBalance {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsFpx {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsGiropay {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsGrabpay {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsIdeal {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsInteracPresent {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsKlarna {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -6720,7 +6721,7 @@ pub struct PaymentMethodOptionsKlarna {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsKonbini {
     /// An optional 10 to 11 digit numeric-only string determining the confirmation code at applicable convenience stores.
     #[serde(default)]
@@ -6739,7 +6740,7 @@ pub struct PaymentMethodOptionsKonbini {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsKrCard {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -6749,21 +6750,21 @@ pub struct PaymentMethodOptionsKrCard {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsMbWay {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsMultibanco {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsOxxo {
     /// The number of calendar days before an OXXO invoice expires. For example, if you create an OXXO invoice on Monday and you set expires_after_days to 2, the OXXO invoice will expire on Wednesday at 23:59 America/Mexico_City time.
     pub expires_after_days: i64,
@@ -6772,24 +6773,24 @@ pub struct PaymentMethodOptionsOxxo {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsP24 {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsPayByBank {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsPaynow {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsPaypal {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -6805,7 +6806,7 @@ pub struct PaymentMethodOptionsPaypal {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsPix {
     /// Determines if the amount includes the IOF tax. // TODO: enum values: ["always", "never"]
     #[serde(default)]
@@ -6821,14 +6822,14 @@ pub struct PaymentMethodOptionsPix {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsPromptpay {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsRevolutPay {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -6838,14 +6839,14 @@ pub struct PaymentMethodOptionsRevolutPay {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsSatispay {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsSofort {
     /// Preferred language of the SOFORT authorization page that the customer is redirected to. // TODO: enum values: ["de", "en", "es", "fr", "it", "nl", "pl"]
     #[serde(default)]
@@ -6855,21 +6856,21 @@ pub struct PaymentMethodOptionsSofort {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsTwint {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsUpi {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsWechatPay {
     /// The app ID registered with WeChat Pay. Only required when client is ios or android.
     #[serde(default)]
@@ -6882,72 +6883,72 @@ pub struct PaymentMethodOptionsWechatPay {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsZip {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOxxo {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodPayByBank {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodPayco {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodPaynow {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodPix {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodPromptpay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodRevolutPay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodSamsungPay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodSatispay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodSwish {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodTwint {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodUsBankAccountStatusDetails {
     #[serde(default)]
     pub blocked: ::core::option::Option<PaymentMethodUsBankAccountBlocked>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodWechatPay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodZip {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionAdaptivePricing {
     /// If enabled, Adaptive Pricing is available on [eligible sessions](https://docs.stripe.com/payments/currencies/localize-prices/adaptive-pricing?payment-ui=stripe-hosted#restrictions).
     pub enabled: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionAfterExpiration {
     /// When set, configuration used to recover the Checkout Session on expiry.
     #[serde(default)]
     pub recovery: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionAfterExpirationRecovery {
     /// Enables user redeemable promotion codes on the recovered Checkout Sessions. Defaults to false
     pub allow_promotion_codes: bool,
@@ -6961,7 +6962,7 @@ pub struct PaymentPagesCheckoutSessionAfterExpirationRecovery {
     pub url: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionBrandingSettingsIcon {
     /// The ID of a [File upload](https://stripe.com/docs/api/files) representing the icon. Purpose must be business_icon. Required if type is file and disallowed otherwise.
     #[serde(default)]
@@ -6974,7 +6975,7 @@ pub struct PaymentPagesCheckoutSessionBrandingSettingsIcon {
     pub url: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionBrandingSettingsLogo {
     /// The ID of a [File upload](https://stripe.com/docs/api/files) representing the logo. Purpose must be business_logo. Required if type is file and disallowed otherwise.
     #[serde(default)]
@@ -6987,14 +6988,14 @@ pub struct PaymentPagesCheckoutSessionBrandingSettingsLogo {
     pub url: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionCheckoutAddressDetails {
     pub address: Address,
     /// Customer name.
     pub name: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionCollectedInformation {
     /// Customer’s business name for this Checkout Session
     #[serde(default)]
@@ -7007,7 +7008,7 @@ pub struct PaymentPagesCheckoutSessionCollectedInformation {
     pub shipping_details: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionConsent {
     /// If opt_in, the customer consents to receiving promotional communications
     #[serde(default)]
@@ -7017,7 +7018,7 @@ pub struct PaymentPagesCheckoutSessionConsent {
     pub terms_of_service: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionConsentCollection {
     /// If set to hidden, it will hide legal text related to the reuse of a payment method.
     #[serde(default)]
@@ -7030,7 +7031,7 @@ pub struct PaymentPagesCheckoutSessionConsentCollection {
     pub terms_of_service: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionCurrencyConversion {
     /// Total of all items in source currency before discounts or taxes are applied.
     pub amount_subtotal: i64,
@@ -7042,13 +7043,13 @@ pub struct PaymentPagesCheckoutSessionCurrencyConversion {
     pub source_currency: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionCustomTextPosition {
     /// Text can be up to 1200 characters in length.
     pub message: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionCustomerDetails {
     /// The customer''s address after a completed Checkout Session. Note: This property is populated only for sessions on or after March 30, 2022.
     #[serde(default)]
@@ -7076,14 +7077,14 @@ pub struct PaymentPagesCheckoutSessionCustomerDetails {
     pub tax_ids: ::core::option::Option<::std::vec::Vec<PaymentPagesCheckoutSessionTaxId>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionInvoiceCreation {
     /// Indicates whether invoice creation is enabled for the Checkout Session.
     pub enabled: bool,
     pub invoice_data: PaymentPagesCheckoutSessionInvoiceSettings,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionOptionalItemAdjustableQuantity {
     /// Set to true if the quantity can be adjusted to any non-negative integer.
     pub enabled: bool,
@@ -7095,20 +7096,20 @@ pub struct PaymentPagesCheckoutSessionOptionalItemAdjustableQuantity {
     pub minimum: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionPaymentMethodReuseAgreement {
     /// Determines the position and visibility of the payment method reuse agreement in the UI. When set to auto, Stripe''s defaults will be used.
     pub position: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionPermissions {
     /// Determines which entity is allowed to update the shipping details.
     #[serde(default)]
     pub update_shipping_details: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionSavedPaymentMethodOptions {
     /// Uses the allow_redisplay value of each saved payment method to filter the set presented to a returning customer. By default, only saved payment methods with ’allow_redisplay: ‘always’ are shown in Checkout.
     #[serde(default)]
@@ -7121,13 +7122,13 @@ pub struct PaymentPagesCheckoutSessionSavedPaymentMethodOptions {
     pub payment_method_save: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionShippingAddressCollection {
     /// An array of two-letter ISO country codes representing which countries Checkout should provide as options for
     pub allowed_countries: ::std::vec::Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionShippingCost {
     /// Total shipping cost before any discounts or taxes are applied.
     pub amount_subtotal: i64,
@@ -7143,7 +7144,7 @@ pub struct PaymentPagesCheckoutSessionShippingCost {
     pub taxes: ::core::option::Option<::std::vec::Vec<LineItemsTaxAmount>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionTotalDetails {
     /// This is the sum of all the discounts.
     pub amount_discount: i64,
@@ -7160,7 +7161,7 @@ pub struct PaymentPagesCheckoutSessionTotalDetails {
 /// For example, you can create a Payment Record to model a payment made on a different payment processor,
 /// in order to mark an Invoice as paid and a Subscription as active. Payment Records consist of one or
 /// more Payment Attempt Records, which represent individual attempts made on a payment network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentRecord {
     pub amount: PaymentsPrimitivesPaymentRecordsResourceAmount,
     pub amount_authorized: PaymentsPrimitivesPaymentRecordsResourceAmount,
@@ -7206,7 +7207,7 @@ pub struct PaymentRecord {
 }
 
 /// Billing details used by the customer for this payment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourceBillingDetails {
     pub address: PaymentsPrimitivesPaymentRecordsResourceAddress,
     /// The billing email associated with the method of payment.
@@ -7221,7 +7222,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourceBillingDetails {
 }
 
 /// Information about the customer for this payment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourceCustomerDetails {
     /// ID of the Stripe Customer associated with this payment.
     #[serde(default)]
@@ -7237,7 +7238,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourceCustomerDetails {
     pub phone: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResourceChecks {
     /// If you provide a value for address.line1, the check result is one of pass, fail, unavailable, or unchecked. // TODO: enum values: ["fail", "pass", "unavailable", "unchecked"]
     #[serde(default)]
@@ -7250,7 +7251,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResou
     pub cvc_check: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResourceInstallmentPlan {
     /// For fixed_count installment plans, this is the number of installment payments your customer will make to their credit card.
     #[serde(default)]
@@ -7263,20 +7264,20 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResou
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResourceInstallments {
     /// Installment plan selected for the payment.
     #[serde(default)]
     pub plan: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResourceNetworkToken {
     /// Indicates if Stripe used a network token, either user provided or Stripe managed when processing the transaction.
     pub used: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResourceThreeDSecure {
     /// For authenticated transactions: Indicates how the issuing bank authenticated the customer. // TODO: enum values: ["challenge", "frictionless"]
     #[serde(default)]
@@ -7304,7 +7305,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResou
     pub version: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResourceWallet {
     #[serde(default)]
     pub apple_pay: ::core::option::Option<PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResourceWalletResourceApplePay>,
@@ -7318,12 +7319,12 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResou
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResourceWalletResourceGooglePay
 {}
 
 /// Details about the Payment Method used in this payment attempt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodDetails {
     #[serde(default)]
     pub ach_credit_transfer: ::core::option::Option<PaymentMethodDetailsAchCreditTransfer>,
@@ -7455,14 +7456,14 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodDetails {
     pub zip: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodKonbiniDetailsResourceStore {
     /// The name of the convenience store chain where the payment was completed. // TODO: enum values: ["familymart", "lawson", "ministop", "seicomart"]
     #[serde(default)]
     pub chain: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodMobilepayDetailsResourceCard {
     /// Brand of the card used in the transaction
     #[serde(default)]
@@ -7482,7 +7483,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodMobilepayDetails
 }
 
 /// The customer''s shipping information associated with this payment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourceShippingDetails {
     pub address: PaymentsPrimitivesPaymentRecordsResourceAddress,
     /// The shipping recipient''s name.
@@ -7493,7 +7494,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourceShippingDetails {
     pub phone: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PayoutsTraceId {
     /// Possible values are pending, supported, and unsupported. When payout.status is pending or in_transit, this will be pending. When the payout transitions to paid, failed, or canceled, this status will become supported or unsupported shortly after in most cases. In some cases, this may appear as pending for up to 10 days after arrival_date until transitioning to supported or unsupported.
     pub status: String,
@@ -7502,7 +7503,7 @@ pub struct PayoutsTraceId {
     pub value: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaypalSellerProtection {
     /// An array of conditions that are covered for the transaction, if applicable.
     #[serde(default)]
@@ -7511,7 +7512,7 @@ pub struct PaypalSellerProtection {
     pub status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersonAdditionalTosAcceptance {
     /// The Unix timestamp marking when the legal guardian accepted the service agreement.
     #[serde(default)]
@@ -7524,7 +7525,7 @@ pub struct PersonAdditionalTosAcceptance {
     pub user_agent: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersonEthnicityDetails {
     /// The persons ethnicity
     #[serde(default)]
@@ -7534,7 +7535,7 @@ pub struct PersonEthnicityDetails {
     pub ethnicity_other: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersonFutureRequirements {
     /// Fields that are due and can be resolved by providing the corresponding alternative fields instead. Many alternatives can list the same original_fields_due, and any of these alternatives can serve as a pathway for attempting to resolve the fields again. Re-providing original_fields_due also serves as a pathway for attempting to resolve the fields again.
     #[serde(default)]
@@ -7551,7 +7552,7 @@ pub struct PersonFutureRequirements {
     pub pending_verification: ::std::vec::Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersonRaceDetails {
     /// The persons race.
     #[serde(default)]
@@ -7561,7 +7562,7 @@ pub struct PersonRaceDetails {
     pub race_other: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersonRequirements {
     /// Fields that are due and can be resolved by providing the corresponding alternative fields instead. Many alternatives can list the same original_fields_due, and any of these alternatives can serve as a pathway for attempting to resolve the fields again. Re-providing original_fields_due also serves as a pathway for attempting to resolve the fields again.
     #[serde(default)]
@@ -7578,7 +7579,7 @@ pub struct PersonRequirements {
     pub pending_verification: ::std::vec::Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersonUsCfpbData {
     /// The persons ethnicity details
     #[serde(default)]
@@ -7599,7 +7600,7 @@ pub struct PersonUsCfpbData {
 /// For example, you might have a single "gold" product that has plans for $10/month, $100/year, €9/month, and €90/year.
 ///
 /// Related guides: [Set up a subscription](https://docs.stripe.com/billing/subscriptions/set-up-subscription) and more about [products and prices](https://docs.stripe.com/products-prices/overview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Plan {
     /// Whether the plan can be used for new purchases.
     pub active: bool,
@@ -7653,7 +7654,7 @@ pub struct Plan {
     pub usage_type: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlatformEarningFeeSource {
     /// Charge ID that created this application fee.
     #[serde(default)]
@@ -7666,26 +7667,26 @@ pub struct PlatformEarningFeeSource {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalFlowsAfterCompletionHostedConfirmation {
     /// A custom message to display to the customer after the flow is completed.
     #[serde(default)]
     pub custom_message: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalFlowsAfterCompletionRedirect {
     /// The URL the customer will be redirected to after the flow is completed.
     pub return_url: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalFlowsCouponOffer {
     /// The ID of the coupon to be offered.
     pub coupon: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalFlowsFlow {
     pub after_completion: PortalFlowsFlowAfterCompletion,
     /// Configuration when flow.type=subscription_cancel.
@@ -7702,7 +7703,7 @@ pub struct PortalFlowsFlow {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalFlowsFlowSubscriptionCancel {
     /// Specify a retention strategy to be used in the cancellation flow.
     #[serde(default)]
@@ -7711,13 +7712,13 @@ pub struct PortalFlowsFlowSubscriptionCancel {
     pub subscription: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalFlowsFlowSubscriptionUpdate {
     /// The ID of the subscription to be updated.
     pub subscription: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalFlowsFlowSubscriptionUpdateConfirm {
     /// The coupon or promotion code to apply to this subscription update.
     #[serde(default)]
@@ -7729,7 +7730,7 @@ pub struct PortalFlowsFlowSubscriptionUpdateConfirm {
     pub subscription: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalFlowsRetention {
     /// Configuration when retention.type=coupon_offer.
     #[serde(default)]
@@ -7747,7 +7748,7 @@ pub struct PortalFlowsRetention {
 /// [share a Payment Link](https://docs.stripe.com/payment-links),
 /// [accept payments with Checkout](https://docs.stripe.com/payments/accept-a-payment#create-product-prices-upfront),
 /// and more about [Products and Prices](https://docs.stripe.com/products-prices/overview)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Product {
     /// Whether the product is currently available for purchase.
     pub active: bool,
@@ -7797,7 +7798,7 @@ pub struct Product {
 
 /// A product_feature represents an attachment between a feature and a product.
 /// When a product is purchased that has a feature attached, Stripe will create an entitlement to the feature for the purchasing customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductFeature {
     pub entitlement_feature: EntitlementsFeature,
     /// Unique identifier for the object.
@@ -7813,7 +7814,7 @@ pub struct ProductFeature {
 ///
 /// If you enable promotion codes in your [customer portal configuration](https://docs.stripe.com/customer-management/configure-portal), then customers can redeem a code themselves when updating a subscription in the portal.
 /// Customers can also view the currently active promotion codes and coupons on each of their subscriptions in the portal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PromotionCode {
     /// Whether the promotion code is currently active. A promotion code is only active if the coupon is also valid.
     pub active: bool,
@@ -7848,7 +7849,7 @@ pub struct PromotionCode {
     pub times_redeemed: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PromotionCodeCurrencyOption {
     /// Minimum amount required to redeem this Promotion Code into a Coupon (e.g., a purchase must be $100 or more to work).
     pub minimum_amount: i64,
@@ -7856,7 +7857,7 @@ pub struct PromotionCodeCurrencyOption {
 
 /// A Quote is a way to model prices that you''d like to provide to a customer.
 /// Once accepted, it will automatically create an invoice, subscription or subscription schedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Quote {
     /// Total before any discounts or taxes are applied.
     pub amount_subtotal: i64,
@@ -7945,7 +7946,7 @@ pub struct Quote {
     pub transfer_data: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotesResourceFromQuote {
     /// Whether this quote is a revision of a different quote.
     pub is_revision: bool,
@@ -7953,7 +7954,7 @@ pub struct QuotesResourceFromQuote {
     pub quote: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotesResourceRecurring {
     /// Total before any discounts or taxes are applied.
     pub amount_subtotal: i64,
@@ -7966,7 +7967,7 @@ pub struct QuotesResourceRecurring {
     pub total_details: QuotesResourceTotalDetails,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotesResourceTransferData {
     /// The amount in cents (or local equivalent) that will be transferred to the destination account when the invoice is paid. By default, the entire amount is transferred to the destination.
     #[serde(default)]
@@ -7982,7 +7983,7 @@ pub struct QuotesResourceTransferData {
 /// charge may be fraudulent.
 ///
 /// Related guide: [Early fraud warnings](https://docs.stripe.com/disputes/measuring#early-fraud-warnings)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RadarEarlyFraudWarning {
     /// An EFW is actionable if it has not received a dispute and has not been fully refunded. You may wish to proactively refund a charge that receives an EFW, in order to avoid receiving a dispute later.
     pub actionable: bool,
@@ -8004,7 +8005,7 @@ pub struct RadarEarlyFraudWarning {
 }
 
 /// Payment Evaluations represent the risk lifecycle of an externally processed payment. It includes the Radar risk score from Stripe, payment outcome taken by the merchant or processor, and any post transaction events, such as refunds or disputes. See the [Radar API guide](/radar/multiprocessor) for integration steps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RadarPaymentEvaluation {
     #[serde(default)]
     pub client_device_metadata_details:
@@ -8037,7 +8038,7 @@ pub struct RadarPaymentEvaluation {
 /// Value lists allow you to group values together which can then be referenced in rules.
 ///
 /// Related guide: [Default Stripe lists](https://docs.stripe.com/radar/lists#managing-list-items)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RadarValueList {
     /// The name of the value list for use in rules.
     pub alias: String,
@@ -8064,7 +8065,7 @@ pub struct RadarValueList {
 /// Value list items allow you to add specific values to a given Radar value list, which can then be used in rules.
 ///
 /// Related guide: [Managing list items](https://docs.stripe.com/radar/lists#managing-list-items)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RadarValueListItem {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -8082,7 +8083,7 @@ pub struct RadarValueListItem {
     pub value_list: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RadarReviewResourceLocation {
     /// The city where the payment originated.
     #[serde(default)]
@@ -8101,7 +8102,7 @@ pub struct RadarReviewResourceLocation {
     pub region: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RadarReviewResourceSession {
     /// The browser used in this browser session (e.g., Chrome).
     #[serde(default)]
@@ -8117,7 +8118,7 @@ pub struct RadarReviewResourceSession {
     pub version: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Recurring {
     /// The frequency at which a subscription is billed. One of day, week, month or year. // TODO: enum values: ["day", "month", "week", "year"]
     pub interval: String,
@@ -8135,7 +8136,7 @@ pub struct Recurring {
 /// initially charged.
 ///
 /// Related guide: [Refunds](https://docs.stripe.com/refunds)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Refund {
     /// Amount, in cents (or local equivalent).
     pub amount: i64,
@@ -8205,7 +8206,7 @@ pub struct Refund {
 ///
 /// Note that certain report types can only be run based on your live-mode data (not test-mode
 /// data), and will error when queried without a [live-mode API key](https://docs.stripe.com/keys#test-live-modes).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportingReportRun {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -8239,7 +8240,7 @@ pub struct ReportingReportRun {
 ///
 /// Note that certain report types can only be run based on your live-mode data (not test-mode
 /// data), and will error when queried without a [live-mode API key](https://docs.stripe.com/keys#test-live-modes).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportingReportType {
     /// Most recent time for which this Report Type is available. Measured in seconds since the Unix epoch.
     pub data_available_end: i64,
@@ -8262,7 +8263,7 @@ pub struct ReportingReportType {
     pub version: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReserveTransaction {
     pub amount: i64,
     /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
@@ -8280,7 +8281,7 @@ pub struct ReserveTransaction {
 ///
 /// Learn more about [Radar](/radar) and reviewing payments
 /// [here](https://docs.stripe.com/radar/reviews).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Review {
     /// The ZIP or postal code of the card used, if applicable.
     #[serde(default)]
@@ -8319,7 +8320,7 @@ pub struct Review {
     pub session: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Rule {
     /// The action taken on the payment.
     pub action: String,
@@ -8333,7 +8334,7 @@ pub struct Rule {
 /// receive a sigma.scheduled_query_run.created webhook each time the query
 /// runs. The webhook contains a ScheduledQueryRun object, which you can use to
 /// retrieve the query results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScheduledQueryRun {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -8360,7 +8361,7 @@ pub struct ScheduledQueryRun {
     pub title: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SepaDebitGeneratedFrom {
     /// The ID of the Charge that generated this PaymentMethod, if any.
     #[serde(default)]
@@ -8374,7 +8375,7 @@ pub struct SepaDebitGeneratedFrom {
 /// whether that confirmation is successful or unsuccessful. You can use
 /// SetupAttempts to inspect details of a specific attempt at setting up a
 /// payment method using a SetupIntent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttempt {
     /// The value of [application](https://docs.stripe.com/api/setup_intents/object#setup_intent_object-application) on the SetupIntent at the time of this confirmation.
     #[serde(default)]
@@ -8416,22 +8417,22 @@ pub struct SetupAttempt {
     pub usage: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsAcssDebit {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsAmazonPay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsAuBecsDebit {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsBacsDebit {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsBoleto {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsCardChecks {
     /// If a address line1 was provided, results of the check, one of pass, fail, unavailable, or unchecked.
     #[serde(default)]
@@ -8444,7 +8445,7 @@ pub struct SetupAttemptPaymentMethodDetailsCardChecks {
     pub cvc_check: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsCardWallet {
     #[serde(default)]
     pub apple_pay: ::core::option::Option<serde_json::Value>,
@@ -8455,43 +8456,43 @@ pub struct SetupAttemptPaymentMethodDetailsCardWallet {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsCashapp {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsKakaoPay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsKlarna {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsKrCard {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsLink {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsNzBankAccount {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsPaypal {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsPayto {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsRevolutPay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsSepaDebit {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsUpi {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsUsBankAccount {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentNextAction {
     #[serde(default)]
     pub cashapp_handle_redirect_or_display_qr_code:
@@ -8512,7 +8513,7 @@ pub struct SetupIntentNextAction {
         ::core::option::Option<SetupIntentNextActionVerifyWithMicrodeposits>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptions {
     #[serde(default)]
     pub acss_debit: ::core::option::Option<serde_json::Value>,
@@ -8540,7 +8541,7 @@ pub struct SetupIntentPaymentMethodOptions {
     pub us_bank_account: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsAcssDebit {
     /// Currency supported by the bank account // TODO: enum values: ["cad", "usd"]
     #[serde(default)]
@@ -8553,17 +8554,17 @@ pub struct SetupIntentPaymentMethodOptionsAcssDebit {
     pub verification_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsAmazonPay {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsBacsDebit {
     #[serde(default)]
     pub mandate_options:
         ::core::option::Option<SetupIntentPaymentMethodOptionsMandateOptionsBacsDebit>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsCard {
     /// Configuration options for setting up an eMandate for cards issued in India.
     #[serde(default)]
@@ -8576,7 +8577,7 @@ pub struct SetupIntentPaymentMethodOptionsCard {
     pub request_three_d_secure: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsCardMandateOptions {
     /// Amount to be charged for future payments, specified in the presentment currency.
     pub amount: i64,
@@ -8604,10 +8605,10 @@ pub struct SetupIntentPaymentMethodOptionsCardMandateOptions {
     pub supported_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsCardPresent {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsKlarna {
     /// The currency of the setup intent. Three letter ISO currency code.
     #[serde(default)]
@@ -8617,36 +8618,36 @@ pub struct SetupIntentPaymentMethodOptionsKlarna {
     pub preferred_locale: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsLink {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsPaypal {
     /// The PayPal Billing Agreement ID (BAID). This is an ID generated by PayPal which represents the mandate between the merchant and the customer.
     #[serde(default)]
     pub billing_agreement_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsPayto {
     #[serde(default)]
     pub mandate_options: ::core::option::Option<SetupIntentPaymentMethodOptionsMandateOptionsPayto>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsSepaDebit {
     #[serde(default)]
     pub mandate_options:
         ::core::option::Option<SetupIntentPaymentMethodOptionsMandateOptionsSepaDebit>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsUpi {
     #[serde(default)]
     pub mandate_options: ::core::option::Option<PaymentMethodOptionsMandateOptionsUpi>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsUsBankAccount {
     #[serde(default)]
     pub financial_connections: ::core::option::Option<LinkedAccountOptionsCommon>,
@@ -8657,7 +8658,7 @@ pub struct SetupIntentPaymentMethodOptionsUsBankAccount {
     pub verification_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentTypeSpecificPaymentMethodOptionsClient {
     #[serde(default)]
     pub mandate_options: ::core::option::Option<SetupIntentPaymentMethodOptionsMandateOptionsPayto>,
@@ -8668,7 +8669,7 @@ pub struct SetupIntentTypeSpecificPaymentMethodOptionsClient {
 
 /// Shipping rates describe the price of shipping presented to your customers and
 /// applied to a purchase. For more information, see [Charge for shipping](https://docs.stripe.com/payments/during-payment/charge-shipping).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShippingRate {
     /// Whether the shipping rate can be used for new purchases. Defaults to true.
     pub active: bool,
@@ -8701,7 +8702,7 @@ pub struct ShippingRate {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShippingRateCurrencyOption {
     /// A non-negative integer in cents representing how much to charge.
     pub amount: i64,
@@ -8709,7 +8710,7 @@ pub struct ShippingRateCurrencyOption {
     pub tax_behavior: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShippingRateDeliveryEstimate {
     /// The upper bound of the estimated range. If empty, represents no upper bound i.e., infinite.
     #[serde(default)]
@@ -8719,7 +8720,7 @@ pub struct ShippingRateDeliveryEstimate {
     pub minimum: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShippingRateDeliveryEstimateBound {
     /// A unit of time. // TODO: enum values: ["business_day", "day", "hour", "month", "week"]
     pub unit: String,
@@ -8728,7 +8729,7 @@ pub struct ShippingRateDeliveryEstimateBound {
 }
 
 /// A saved query object represents a query that can be executed for a run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SigmaSigmaApiQuery {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -8747,7 +8748,7 @@ pub struct SigmaSigmaApiQuery {
 /// Source mandate notifications should be created when a notification related to
 /// a source mandate must be sent to the payer. They will trigger a webhook or
 /// deliver an email to the customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceMandateNotification {
     #[serde(default)]
     pub acss_debit: ::core::option::Option<SourceMandateNotificationAcssDebitData>,
@@ -8776,7 +8777,7 @@ pub struct SourceMandateNotification {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceOwner {
     /// Owner''s address.
     #[serde(default)]
@@ -8808,7 +8809,7 @@ pub struct SourceOwner {
 /// Customers can be instructed to send any amount, and it can be made up of
 /// multiple transactions. As such, sources can have multiple associated
 /// transactions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTransaction {
     #[serde(default)]
     pub ach_credit_transfer: ::core::option::Option<SourceTransactionAchCreditTransferData>,
@@ -8844,7 +8845,7 @@ pub struct SourceTransaction {
 /// Subscriptions allow you to charge a customer on a recurring basis.
 ///
 /// Related guide: [Creating subscriptions](https://docs.stripe.com/billing/subscriptions/creating)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subscription {
     /// ID of the Connect Application that created the subscription.
     #[serde(default)]
@@ -8966,7 +8967,7 @@ pub struct Subscription {
     pub trial_start: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionBillingThresholds {
     /// Monetary threshold that triggers the subscription to create an invoice
     #[serde(default)]
@@ -8976,14 +8977,14 @@ pub struct SubscriptionBillingThresholds {
     pub reset_billing_cycle_anchor: ::core::option::Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionItemBillingThresholds {
     /// Usage threshold that triggers the subscription to create an invoice
     #[serde(default)]
     pub usage_gte: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionPaymentMethodOptionsCard {
     #[serde(default)]
     pub mandate_options: ::core::option::Option<InvoiceMandateOptionsCard>,
@@ -8995,7 +8996,7 @@ pub struct SubscriptionPaymentMethodOptionsCard {
     pub request_three_d_secure: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionPendingInvoiceItemInterval {
     /// Specifies invoicing frequency. Either day, week, month or year. // TODO: enum values: ["day", "month", "week", "year"]
     pub interval: String,
@@ -9006,7 +9007,7 @@ pub struct SubscriptionPendingInvoiceItemInterval {
 /// A subscription schedule allows you to create and manage the lifecycle of a subscription by predefining expected changes.
 ///
 /// Related guide: [Subscription schedules](https://docs.stripe.com/billing/subscriptions/subscription-schedules)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionSchedule {
     /// ID of the Connect Application that created the schedule.
     #[serde(default)]
@@ -9058,7 +9059,7 @@ pub struct SubscriptionSchedule {
     pub test_clock: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionScheduleCurrentPhase {
     /// The end of this phase of the subscription schedule.
     pub end_date: i64,
@@ -9066,7 +9067,7 @@ pub struct SubscriptionScheduleCurrentPhase {
     pub start_date: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionTransferData {
     /// A non-negative decimal between 0 and 100, with at most two decimal places. This represents the percentage of the subscription invoice total that will be transferred to the destination account. By default, the entire amount is transferred to the destination.
     #[serde(default)]
@@ -9075,7 +9076,7 @@ pub struct SubscriptionTransferData {
     pub destination: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionsResourceBillingCycleAnchorConfig {
     /// The day of the month of the billing_cycle_anchor.
     pub day_of_month: i64,
@@ -9095,7 +9096,7 @@ pub struct SubscriptionsResourceBillingCycleAnchorConfig {
 
 /// The Pause Collection settings determine how we will pause collection for this subscription and for how long the subscription
 /// should be paused.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionsResourcePauseCollection {
     /// The payment collection behavior for this subscription while paused. // TODO: enum values: ["keep_as_draft", "mark_uncollectible", "void"]
     pub behavior: String,
@@ -9104,7 +9105,7 @@ pub struct SubscriptionsResourcePauseCollection {
     pub resumes_at: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionsResourcePaymentMethodOptions {
     /// This sub-hash contains details about the Canadian pre-authorized debit payment method options to pass to invoices created by the subscription.
     #[serde(default)]
@@ -9132,7 +9133,7 @@ pub struct SubscriptionsResourcePaymentMethodOptions {
     pub us_bank_account: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionsResourcePaymentSettings {
     /// Payment-method-specific configuration to provide to invoices created by the subscription.
     #[serde(default)]
@@ -9147,7 +9148,7 @@ pub struct SubscriptionsResourcePaymentSettings {
 
 /// Pending Updates store the changes pending from a previous update that will be applied
 /// to the Subscription upon successful payment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionsResourcePendingUpdate {
     /// If the update is applied, determines the date of the first full invoice, and, for plans with month or year intervals, the day of the month for subsequent invoices. The timestamp is in UTC format.
     #[serde(default)]
@@ -9166,19 +9167,19 @@ pub struct SubscriptionsResourcePendingUpdate {
 }
 
 /// Configures how this subscription behaves during the trial period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionsResourceTrialSettingsTrialSettings {
     pub end_behavior: SubscriptionsResourceTrialSettingsEndBehavior,
 }
 
 /// Configures how this subscription behaves during the trial period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionsTrialsResourceTrialSettings {
     pub end_behavior: SubscriptionsTrialsResourceEndBehavior,
 }
 
 /// A Tax Association exposes the Tax Transactions that Stripe attempted to create on your behalf based on the PaymentIntent input
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxAssociation {
     /// The [Tax Calculation](https://docs.stripe.com/api/tax/calculations/object) that was included in PaymentIntent.
     pub calculation: String,
@@ -9198,7 +9199,7 @@ pub struct TaxAssociation {
 /// A Tax Calculation allows you to calculate the tax to collect from your customer.
 ///
 /// Related guide: [Calculate tax in your custom payment flow](https://docs.stripe.com/tax/custom)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxCalculation {
     /// Total amount after taxes in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units).
     pub amount_total: i64,
@@ -9237,7 +9238,7 @@ pub struct TaxCalculation {
     pub tax_date: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxCalculationLineItem {
     /// The line item amount in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units). If tax_behavior=inclusive, then this amount includes taxes. Otherwise, taxes were calculated on top of this amount.
     pub amount: i64,
@@ -9274,7 +9275,7 @@ pub struct TaxCalculationLineItem {
 /// Stripe doesn''t register on your behalf with the relevant authorities when you create a Tax Registration object. For more information on how to register to collect tax, see [our guide](https://docs.stripe.com/tax/registering).
 ///
 /// Related guide: [Using the Registrations API](https://docs.stripe.com/tax/registrations-api)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxRegistration {
     /// Time at which the registration becomes active. Measured in seconds since the Unix epoch.
     pub active_from: i64,
@@ -9299,7 +9300,7 @@ pub struct TaxRegistration {
 /// You can use Tax Settings to manage configurations used by Stripe Tax calculations.
 ///
 /// Related guide: [Using the Settings API](https://docs.stripe.com/tax/settings-api)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxSettings {
     pub defaults: TaxProductResourceTaxSettingsDefaults,
     /// The place where your business is located.
@@ -9317,7 +9318,7 @@ pub struct TaxSettings {
 /// A Tax Transaction records the tax collected from or refunded to your customer.
 ///
 /// Related guide: [Calculate tax in your custom payment flow](https://docs.stripe.com/tax/custom#tax-transaction)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxTransaction {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -9359,7 +9360,7 @@ pub struct TaxTransaction {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxTransactionLineItem {
     /// The line item amount in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units). If tax_behavior=inclusive, then this amount includes taxes. Otherwise, taxes were calculated on top of this amount.
     pub amount: i64,
@@ -9394,7 +9395,7 @@ pub struct TaxTransactionLineItem {
 }
 
 /// [Tax codes](https://stripe.com/docs/tax/tax-categories) classify goods and services for tax purposes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxCode {
     /// A detailed description of which types of products the tax code represents.
     pub description: String,
@@ -9406,7 +9407,7 @@ pub struct TaxCode {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxDeductedAtSource {
     /// Unique identifier for the object.
     pub id: String,
@@ -9420,7 +9421,7 @@ pub struct TaxDeductedAtSource {
     pub tax_deduction_account_number: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxIDsOwner {
     /// The account being referenced when type is account.
     #[serde(default)]
@@ -9443,7 +9444,7 @@ pub struct TaxIDsOwner {
 /// Customer and account tax IDs get displayed on related invoices and credit notes.
 ///
 /// Related guides: [Customer tax identification numbers](https://docs.stripe.com/billing/taxes/tax-ids), [Account tax IDs](https://docs.stripe.com/invoicing/connect#account-tax-ids)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxId {
     /// Two-letter ISO code representing the country of the tax ID.
     #[serde(default)]
@@ -9475,7 +9476,7 @@ pub struct TaxId {
     pub verification: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxIdVerification {
     /// Verification status, one of pending, verified, unverified, or unavailable. // TODO: enum values: ["pending", "unavailable", "unverified", "verified"]
     pub status: String,
@@ -9487,7 +9488,7 @@ pub struct TaxIdVerification {
     pub verified_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceLineItemTaxRateDetails {
     /// A localized display name for tax type, intended to be human-readable. For example, "Local Sales and Use Tax", "Value-added tax (VAT)", or "Umsatzsteuer (USt.)".
     pub display_name: String,
@@ -9497,12 +9498,12 @@ pub struct TaxProductResourceLineItemTaxRateDetails {
     pub tax_type: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceShipFromDetails {
     pub address: TaxProductResourcePostalAddress,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxCalculationShippingCost {
     /// The shipping amount in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units). If tax_behavior=inclusive, then this amount includes taxes. Otherwise, taxes were calculated on top of this amount.
     pub amount: i64,
@@ -9521,28 +9522,28 @@ pub struct TaxProductResourceTaxCalculationShippingCost {
     pub tax_code: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxSettingsHeadOffice {
     pub address: Address,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxSettingsStatusDetailsResourceActive {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxTransactionLineItemResourceReversal {
     /// The id of the line item to reverse in the original transaction.
     pub original_line_item: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxTransactionResourceReversal {
     /// The id of the reversed Transaction object.
     #[serde(default)]
     pub original_transaction: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxTransactionShippingCost {
     /// The shipping amount in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units). If tax_behavior=inclusive, then this amount includes taxes. Otherwise, taxes were calculated on top of this amount.
     pub amount: i64,
@@ -9558,7 +9559,7 @@ pub struct TaxProductResourceTaxTransactionShippingCost {
 }
 
 /// The amount of the tax rate when the rate_type is flat_amount. Tax rates with rate_type percentage can vary based on the transaction, resulting in this field being null. This field exposes the amount and currency of the flat tax rate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxRateFlatAmount {
     /// Amount of the tax when the rate_type is flat_amount. This positive integer represents how much to charge in the smallest currency unit (e.g., 100 cents to charge $1.00 or 100 to charge ¥100, a zero-decimal currency). The amount value supports up to eight digits (e.g., a value of 99999999 for a USD charge of $999,999.99).
     pub amount: i64,
@@ -9568,7 +9569,7 @@ pub struct TaxRateFlatAmount {
 
 /// A Configurations object represents how features should be configured for terminal readers.
 /// For information about how to use it, see the [Terminal configurations documentation](https://docs.stripe.com/terminal/fleet/configurations-overview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalConfiguration {
     #[serde(default)]
     pub bbpos_wisepad3:
@@ -9613,7 +9614,7 @@ pub struct TerminalConfiguration {
 /// A Connection Token is used by the Stripe Terminal SDK to connect to a reader.
 ///
 /// Related guide: [Fleet management](https://docs.stripe.com/terminal/fleet/locations)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalConnectionToken {
     /// The id of the location that this connection token is scoped to. Note that location scoping only applies to internet-connected readers. For more details, see [the docs on scoping connection tokens](https://docs.stripe.com/terminal/fleet/locations-and-zones?dashboard-or-api=api#connection-tokens).
     #[serde(default)]
@@ -9627,7 +9628,7 @@ pub struct TerminalConnectionToken {
 /// A Location represents a grouping of readers.
 ///
 /// Related guide: [Fleet management](https://docs.stripe.com/terminal/fleet/locations)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalLocation {
     pub address: Address,
     #[serde(default)]
@@ -9659,7 +9660,7 @@ pub struct TerminalLocation {
 }
 
 /// Returns redirect links used for onboarding onto Tap to Pay on iPhone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalOnboardingLink {
     pub link_options: TerminalOnboardingLinkLinkOptions,
     /// The type of link being generated. // TODO: enum values: ["apple_terms_and_conditions"]
@@ -9676,7 +9677,7 @@ pub struct TerminalOnboardingLink {
 /// A Reader represents a physical device for accepting payment details.
 ///
 /// Related guide: [Connecting to a reader](https://docs.stripe.com/terminal/payments/connect-reader)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReader {
     /// The most recent action performed by the reader.
     #[serde(default)]
@@ -9713,11 +9714,11 @@ pub struct TerminalReader {
 }
 
 /// A Refund object returned by the Terminal refunds API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalRefund {}
 
 /// Options associated with the Apple Terms and Conditions link type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalOnboardingLinkAppleTermsAndConditions {
     /// Whether the link should also support users relinking their Apple account.
     #[serde(default)]
@@ -9727,7 +9728,7 @@ pub struct TerminalOnboardingLinkAppleTermsAndConditions {
 }
 
 /// Represents a cart to be displayed on the reader
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceCart {
     /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
     pub currency: String,
@@ -9741,7 +9742,7 @@ pub struct TerminalReaderReaderResourceCart {
 }
 
 /// Represents custom text to be displayed when collecting the input using a reader
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceCustomText {
     /// Customize the default description for this input
     #[serde(default)]
@@ -9758,7 +9759,7 @@ pub struct TerminalReaderReaderResourceCustomText {
 }
 
 /// Represents an action performed by the reader
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceReaderAction {
     #[serde(default)]
     pub collect_inputs: ::core::option::Option<TerminalReaderReaderResourceCollectInputsAction>,
@@ -9795,7 +9796,7 @@ pub struct TerminalReaderReaderResourceReaderAction {
 /// A test clock enables deterministic control over objects in testmode. With a test clock, you can create
 /// objects at a frozen time in the past or future, and advance to a specific future time to observe webhooks and state changes. After the clock advances,
 /// you can either validate the current state of your scenario (and test your assumptions), change the current state of your scenario (and test more complex scenarios), or keep advancing forward in time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestHelpersTestClock {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
@@ -9817,7 +9818,7 @@ pub struct TestHelpersTestClock {
     pub status_details: BillingClocksResourceStatusDetailsStatusDetails,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThreeDSecureDetails {
     /// For authenticated transactions: how the customer was authenticated by
     #[serde(default)]
@@ -9839,7 +9840,7 @@ pub struct ThreeDSecureDetails {
     pub version: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThreeDSecureDetailsCharge {
     /// For authenticated transactions: how the customer was authenticated by
     #[serde(default)]
@@ -9867,14 +9868,14 @@ pub struct ThreeDSecureDetailsCharge {
     pub version: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThreeDSecureUsage {
     /// Whether 3D Secure is supported on this card.
     pub supported: bool,
 }
 
 /// The usage threshold alert configuration enables setting up alerts for when a certain usage threshold on a specific meter is crossed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThresholdsResourceUsageThresholdConfig {
     /// The filters allow limiting the scope of this usage alert. You can only specify up to one filter at this time.
     #[serde(default)]
@@ -9907,7 +9908,7 @@ pub struct ThresholdsResourceUsageThresholdConfig {
 /// objects or [External accounts](/api#external_accounts).
 /// [Radar](https://docs.stripe.com/radar), our integrated solution for automatic fraud protection,
 /// performs best with integrations that use client-side tokenization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Token {
     #[serde(default)]
     pub bank_account: ::core::option::Option<BankAccount>,
@@ -9936,7 +9937,7 @@ pub struct Token {
 /// unique, random ID.
 ///
 /// Related guide: [Topping up your platform account](https://docs.stripe.com/connect/top-ups)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Topup {
     /// Amount transferred.
     pub amount: i64,
@@ -9990,7 +9991,7 @@ pub struct Topup {
 /// [transfer/payout split](https://docs.stripe.com/transfer-payout-split).
 ///
 /// Related guide: [Creating separate charges and transfers](https://docs.stripe.com/connect/separate-charges-and-transfers)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Transfer {
     /// Amount in cents (or local equivalent) to be transferred.
     pub amount: i64,
@@ -10035,7 +10036,7 @@ pub struct Transfer {
     pub transfer_group: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferData {
     /// The amount transferred to the destination account. This transfer will occur automatically after the payment succeeds. If no amount is specified, by default the entire payment amount is transferred to the destination account.
     #[serde(default)]
@@ -10057,7 +10058,7 @@ pub struct TransferData {
 /// reversal.
 ///
 /// Related guide: [Reverse transfers](https://docs.stripe.com/connect/separate-charges-and-transfers#reverse-transfers)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferReversal {
     /// Amount, in cents (or local equivalent).
     pub amount: i64,
@@ -10085,7 +10086,7 @@ pub struct TransferReversal {
     pub transfer: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransformQuantity {
     /// Divide usage by this number.
     pub divide_by: i64,
@@ -10093,7 +10094,7 @@ pub struct TransformQuantity {
     pub round: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransformUsage {
     /// Divide usage by this number.
     pub divide_by: i64,
@@ -10103,7 +10104,7 @@ pub struct TransformUsage {
 
 /// Stripe Treasury provides users with a container for money called a FinancialAccount that is separate from their Payments balance.
 /// FinancialAccounts serve as the source and destination of Treasury’s money movement APIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccount {
     /// The array of paths to active Features in the Features hash.
     #[serde(default)]
@@ -10148,7 +10149,7 @@ pub struct TreasuryFinancialAccount {
 }
 
 /// Transactions represent changes to a [FinancialAccount''s](https://api.stripe.com#financial_accounts) balance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryTransaction {
     /// Amount (in cents) transferred.
     pub amount: i64,
@@ -10185,7 +10186,7 @@ pub struct TreasuryTransaction {
 }
 
 /// TransactionEntries represent individual units of money movements within a single [Transaction](https://api.stripe.com#transactions).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryTransactionEntry {
     pub balance_impact: TreasuryTransactionsResourceBalanceImpact,
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
@@ -10217,14 +10218,14 @@ pub struct TreasuryTransactionEntry {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceClosedStatusDetails {
     /// The array that contains reasons for a FinancialAccount closure.
     pub reasons: ::std::vec::Vec<String>,
 }
 
 /// Restrictions that a Connect Platform has placed on this FinancialAccount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourcePlatformRestrictions {
     /// Restricts all inbound money movement. // TODO: enum values: ["restricted", "unrestricted"]
     #[serde(default)]
@@ -10234,13 +10235,13 @@ pub struct TreasuryFinancialAccountsResourcePlatformRestrictions {
     pub outbound_flows: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryInboundTransfersResourceFailureDetails {
     /// Reason for the failure. // TODO: enum values: ["account_closed", "account_frozen", "bank_account_restricted", "bank_ownership_changed", "debit_not_authorized", "incorrect_account_holder_address", "incorrect_account_holder_name", "incorrect_account_holder_tax_id", "insufficient_funds", "invalid_account_number", "invalid_currency", "no_account", "other"]
     pub code: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundPaymentsResourceOutboundPaymentResourceEndUserDetails {
     /// IP address of the user initiating the OutboundPayment. Set if present is set to true. IP address collection is required for risk and compliance reasons. This will be used to help determine if the OutboundPayment is authorized or should be blocked.
     #[serde(default)]
@@ -10249,7 +10250,7 @@ pub struct TreasuryOutboundPaymentsResourceOutboundPaymentResourceEndUserDetails
     pub present: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundPaymentsResourceOutboundPaymentResourceTrackingDetails {
     #[serde(default)]
     pub ach: ::core::option::Option<TreasuryOutboundPaymentsResourceAchTrackingDetails>,
@@ -10261,7 +10262,7 @@ pub struct TreasuryOutboundPaymentsResourceOutboundPaymentResourceTrackingDetail
         ::core::option::Option<TreasuryOutboundPaymentsResourceUsDomesticWireTrackingDetails>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundPaymentsResourceReturnedStatus {
     /// Reason for the return. // TODO: enum values: ["account_closed", "account_frozen", "bank_account_restricted", "bank_ownership_changed", "declined", "incorrect_account_holder_name", "invalid_account_number", "invalid_currency", "no_account", "other"]
     pub code: String,
@@ -10269,7 +10270,7 @@ pub struct TreasuryOutboundPaymentsResourceReturnedStatus {
     pub transaction: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundTransfersResourceOutboundTransferResourceTrackingDetails {
     #[serde(default)]
     pub ach: ::core::option::Option<TreasuryOutboundTransfersResourceAchTrackingDetails>,
@@ -10281,7 +10282,7 @@ pub struct TreasuryOutboundTransfersResourceOutboundTransferResourceTrackingDeta
         ::core::option::Option<TreasuryOutboundTransfersResourceUsDomesticWireTrackingDetails>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundTransfersResourceReturnedDetails {
     /// Reason for the return. // TODO: enum values: ["account_closed", "account_frozen", "bank_account_restricted", "bank_ownership_changed", "declined", "incorrect_account_holder_name", "invalid_account_number", "invalid_currency", "no_account", "other"]
     pub code: String,
@@ -10289,7 +10290,7 @@ pub struct TreasuryOutboundTransfersResourceReturnedDetails {
     pub transaction: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryReceivedCreditsResourceReversalDetails {
     /// Time before which a ReceivedCredit can be reversed.
     #[serde(default)]
@@ -10299,7 +10300,7 @@ pub struct TreasuryReceivedCreditsResourceReversalDetails {
     pub restricted_reason: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryReceivedCreditsResourceSourceFlowsDetails {
     #[serde(default)]
     pub credit_reversal: ::core::option::Option<TreasuryCreditReversal>,
@@ -10314,14 +10315,14 @@ pub struct TreasuryReceivedCreditsResourceSourceFlowsDetails {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryReceivedDebitsResourceDebitReversalLinkedFlows {
     /// Set if there is an Issuing dispute associated with the DebitReversal.
     #[serde(default)]
     pub issuing_dispute: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryReceivedDebitsResourceReversalDetails {
     /// Time before which a ReceivedDebit can be reversed.
     #[serde(default)]
@@ -10331,7 +10332,7 @@ pub struct TreasuryReceivedDebitsResourceReversalDetails {
     pub restricted_reason: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryTransactionsResourceFlowDetails {
     #[serde(default)]
     pub credit_reversal: ::core::option::Option<TreasuryCreditReversal>,
@@ -10354,7 +10355,7 @@ pub struct TreasuryTransactionsResourceFlowDetails {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsBankAccountNetworks {
     /// The preferred network.
     #[serde(default)]
@@ -10363,7 +10364,7 @@ pub struct UsBankAccountNetworks {
     pub supported: ::std::vec::Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerificationSessionRedaction {
     /// Indicates whether this object and its related objects have been redacted or not. // TODO: enum values: ["processing", "redacted"]
     pub status: String,
@@ -10376,7 +10377,7 @@ pub struct VerificationSessionRedaction {
 /// Most users configure webhooks from [the dashboard](https://dashboard.stripe.com/webhooks), which provides a user interface for registering and testing your webhook endpoints.
 ///
 /// Related guide: [Setting up webhooks](https://docs.stripe.com/webhooks/configure)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebhookEndpoint {
     /// The API version events are rendered as for this webhook endpoint.
     #[serde(default)]
@@ -10408,7 +10409,7 @@ pub struct WebhookEndpoint {
     pub url: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountCapabilities {
     /// The status of the Canadian pre-authorized debits payments capability of the account, or whether the account can directly process Canadian pre-authorized debits charges. // TODO: enum values: ["active", "inactive", "pending"]
     #[serde(default)]
@@ -10598,7 +10599,7 @@ pub struct AccountCapabilities {
     pub zip_payments: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegalEntityCompany {
     #[serde(default)]
     pub address: ::core::option::Option<Address>,
@@ -10666,7 +10667,7 @@ pub struct LegalEntityCompany {
     pub verification: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountUnificationAccountController {
     #[serde(default)]
     pub fees: ::core::option::Option<AccountUnificationAccountControllerFees>,
@@ -10686,7 +10687,7 @@ pub struct AccountUnificationAccountController {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountFutureRequirements {
     /// Fields that are due and can be resolved by providing the corresponding alternative fields instead. Many alternatives can list the same original_fields_due, and any of these alternatives can serve as a pathway for attempting to resolve the fields again. Re-providing original_fields_due also serves as a pathway for attempting to resolve the fields again.
     #[serde(default)]
@@ -10719,7 +10720,7 @@ pub struct AccountFutureRequirements {
 /// A platform can only access a subset of data in a person for an account where [account.controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is stripe, which includes Standard and Express accounts, after creating an Account Link or Account Session to start Connect onboarding.
 ///
 /// See the [Standard onboarding](/connect/standard-accounts) or [Express onboarding](/connect/express-accounts) documentation for information about prefilling information and account onboarding steps. Learn more about [handling identity verification with the API](/connect/handling-api-verification#person-information).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Person {
     /// The account the person is associated with.
     pub account: String,
@@ -10805,7 +10806,7 @@ pub struct Person {
     pub verification: ::core::option::Option<LegalEntityPersonVerification>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountRequirements {
     /// Fields that are due and can be resolved by providing the corresponding alternative fields instead. Many alternatives can list the same original_fields_due, and any of these alternatives can serve as a pathway for attempting to resolve the fields again. Re-providing original_fields_due also serves as a pathway for attempting to resolve the fields again.
     #[serde(default)]
@@ -10833,7 +10834,7 @@ pub struct AccountRequirements {
     pub pending_verification: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountTosAcceptance {
     /// The Unix timestamp marking when the account representative accepted their service agreement
     #[serde(default)]
@@ -10849,7 +10850,7 @@ pub struct AccountTosAcceptance {
     pub user_agent: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountMonthlyEstimatedRevenue {
     /// A non-negative integer representing how much to charge in the [smallest currency unit](/currencies#zero-decimal).
     pub amount: i64,
@@ -10857,7 +10858,7 @@ pub struct AccountMonthlyEstimatedRevenue {
     pub currency: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedAccountSessionCreateComponents {
     pub account_management: ConnectEmbeddedAccountConfigClaim,
     pub account_onboarding: ConnectEmbeddedAccountConfigClaim,
@@ -10880,7 +10881,7 @@ pub struct ConnectEmbeddedAccountSessionCreateComponents {
     pub tax_settings: ConnectEmbeddedBaseConfigClaim,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountBacsDebitPaymentsSettings {
     /// The Bacs Direct Debit display name for this account. For payments made with Bacs Direct Debit, this name appears on the mandate as the statement descriptor. Mobile banking apps display it as the name of the business. To use custom branding, set the Bacs Direct Debit Display Name during or right after creation. Custom branding incurs an additional monthly fee for the platform. The fee appears 5 business days after requesting Bacs. If you don''t set the display name before requesting Bacs capability, it''s automatically set as "Stripe" and the account is onboarded to Stripe branding, which is free.
     #[serde(default)]
@@ -10890,7 +10891,7 @@ pub struct AccountBacsDebitPaymentsSettings {
     pub service_user_number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountBrandingSettings {
     /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) An icon for the account. Must be square and at least 128px x 128px.
     #[serde(default)]
@@ -10906,13 +10907,13 @@ pub struct AccountBrandingSettings {
     pub secondary_color: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountCardIssuingSettings {
     #[serde(default)]
     pub tos_acceptance: ::core::option::Option<CardIssuingAccountTermsOfService>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountCardPaymentsSettings {
     #[serde(default)]
     pub decline_on: ::core::option::Option<AccountDeclineChargeOn>,
@@ -10927,7 +10928,7 @@ pub struct AccountCardPaymentsSettings {
     pub statement_descriptor_prefix_kanji: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountDashboardSettings {
     /// The display name for this account. This is used on the Stripe Dashboard to differentiate between accounts.
     #[serde(default)]
@@ -10937,7 +10938,7 @@ pub struct AccountDashboardSettings {
     pub timezone: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountInvoicesSettings {
     /// The list of default Account Tax IDs to automatically include on invoices. Account Tax IDs get added when an invoice is finalized.
     #[serde(default)]
@@ -10947,7 +10948,7 @@ pub struct AccountInvoicesSettings {
     pub hosted_payment_method_save: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountPaymentsSettings {
     /// The default text that appears on credit card statements when a charge is made. This field prefixes any dynamic statement_descriptor specified on the charge.
     #[serde(default)]
@@ -10960,7 +10961,7 @@ pub struct AccountPaymentsSettings {
     pub statement_descriptor_kanji: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountPayoutSettings {
     /// A Boolean indicating if Stripe should try to reclaim negative balances from an attached bank account. See [Understanding Connect account balances](/connect/account-balances) for details. The default value is false when [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is application, which includes Custom accounts, otherwise true.
     pub debit_negative_balances: bool,
@@ -10970,20 +10971,20 @@ pub struct AccountPayoutSettings {
     pub statement_descriptor: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountSepaDebitPaymentsSettings {
     /// SEPA creditor identifier that identifies the company making the payment.
     #[serde(default)]
     pub creditor_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountTreasurySettings {
     #[serde(default)]
     pub tos_acceptance: ::core::option::Option<AccountTermsOfService>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretServiceResourceScope {
     /// The secret scope type. // TODO: enum values: ["account", "user"]
     #[serde(rename = "type")]
@@ -10993,7 +10994,7 @@ pub struct SecretServiceResourceScope {
     pub user: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceAmountNet {
     /// Balance amount.
     pub amount: i64,
@@ -11006,13 +11007,13 @@ pub struct BalanceAmountNet {
     pub source_types: ::core::option::Option<BalanceAmountBySourceType>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceDetail {
     /// Funds that are available for use.
     pub available: ::std::vec::Vec<BalanceAmount>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceDetailUngated {
     /// Funds that are available for use.
     pub available: ::std::vec::Vec<BalanceAmount>,
@@ -11020,7 +11021,7 @@ pub struct BalanceDetailUngated {
     pub pending: ::std::vec::Vec<BalanceAmount>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceSettingsResourcePayments {
     /// A Boolean indicating if Stripe should try to reclaim negative balances from an attached bank account. See [Understanding Connect account balances](/connect/account-balances) for details. The default value is false when [controller.requirement_collection](/api/accounts/object#account_object-controller-requirement_collection) is application, which includes Custom accounts, otherwise true.
     #[serde(default)]
@@ -11031,32 +11032,32 @@ pub struct BalanceSettingsResourcePayments {
     pub settlement_timing: BalanceSettingsResourceSettlementTiming,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BankConnectionsResourceBalanceApiResourceCashBalance {
     /// The funds available to the account holder. Typically this is the current balance after subtracting any outbound pending transactions and adding any inbound pending transactions.
     #[serde(default)]
     pub available: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BankConnectionsResourceBalanceApiResourceCreditBalance {
     /// The credit that has been used by the account holder.
     #[serde(default)]
     pub used: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreditBalance {
     pub available_balance: BillingCreditGrantsResourceAmount,
     pub ledger_balance: BillingCreditGrantsResourceAmount,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingCreditGrantsResourceApplicabilityConfig {
     pub scope: BillingCreditGrantsResourceScope,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingMeterResourceCustomerMappingSettings {
     /// The key in the meter event payload to use for mapping the event to a customer.
     pub event_payload_key: String,
@@ -11065,26 +11066,26 @@ pub struct BillingMeterResourceCustomerMappingSettings {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingMeterResourceAggregationSettings {
     /// Specifies how events are aggregated. // TODO: enum values: ["count", "last", "sum"]
     pub formula: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingMeterResourceBillingMeterStatusTransitions {
     /// The time the meter was deactivated, if any. Measured in seconds since Unix epoch.
     #[serde(default)]
     pub deactivated_at: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingMeterResourceBillingMeterValue {
     /// The key in the meter event payload to use as the value for this meter.
     pub event_payload_key: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingBillResourceInvoicingPricingPricingPriceDetails {
     /// The ID of the price this item is associated with.
     pub price: serde_json::Value,
@@ -11092,7 +11093,7 @@ pub struct BillingBillResourceInvoicingPricingPricingPriceDetails {
     pub product: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalBusinessProfile {
     /// The messaging shown to customers in the portal.
     #[serde(default)]
@@ -11105,7 +11106,7 @@ pub struct PortalBusinessProfile {
     pub terms_of_service_url: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalFeatures {
     pub customer_update: PortalCustomerUpdate,
     pub invoice_history: PortalInvoiceList,
@@ -11114,7 +11115,7 @@ pub struct PortalFeatures {
     pub subscription_update: PortalSubscriptionUpdate,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalLoginPage {
     /// If true, a shareable url will be generated that will take your customers to a hosted login page for the customer portal.
     pub enabled: bool,
@@ -11123,7 +11124,7 @@ pub struct PortalLoginPage {
     pub url: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountCapabilityFutureRequirements {
     /// Fields that are due and can be resolved by providing the corresponding alternative fields instead. Multiple alternatives can reference the same original_fields_due. When this happens, any of these alternatives can serve as a pathway for attempting to resolve the fields. Additionally, providing original_fields_due again also serves as a pathway for attempting to resolve the fields.
     #[serde(default)]
@@ -11146,7 +11147,7 @@ pub struct AccountCapabilityFutureRequirements {
     pub pending_verification: ::std::vec::Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountCapabilityRequirements {
     /// Fields that are due and can be resolved by providing the corresponding alternative fields instead. Multiple alternatives can reference the same original_fields_due. When this happens, any of these alternatives can serve as a pathway for attempting to resolve the fields. Additionally, providing original_fields_due again also serves as a pathway for attempting to resolve the fields.
     #[serde(default)]
@@ -11169,7 +11170,7 @@ pub struct AccountCapabilityRequirements {
     pub pending_verification: ::std::vec::Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceCustomerBalanceSettings {
     /// The configuration for how funds that land in the customer cash balance are reconciled. // TODO: enum values: ["automatic", "manual"]
     pub reconciliation_mode: String,
@@ -11177,7 +11178,7 @@ pub struct CustomerBalanceCustomerBalanceSettings {
     pub using_merchant_default: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionAutomaticTax {
     /// Indicates whether automatic tax is enabled for the session
     pub enabled: bool,
@@ -11192,7 +11193,7 @@ pub struct PaymentPagesCheckoutSessionAutomaticTax {
     pub status: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionBrandingSettings {
     /// A hex color value starting with # representing the background color for the Checkout Session.
     pub background_color: String,
@@ -11212,7 +11213,7 @@ pub struct PaymentPagesCheckoutSessionBrandingSettings {
     pub logo: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionCustomFields {
     #[serde(default)]
     pub dropdown: ::core::option::Option<PaymentPagesCheckoutSessionCustomFieldsDropdown>,
@@ -11230,7 +11231,7 @@ pub struct PaymentPagesCheckoutSessionCustomFields {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionCustomText {
     /// Custom text that should be displayed after the payment confirmation button.
     #[serde(default)]
@@ -11246,7 +11247,7 @@ pub struct PaymentPagesCheckoutSessionCustomText {
     pub terms_of_service_acceptance: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionDiscount {
     /// Coupon attached to the Checkout Session.
     #[serde(default)]
@@ -11256,7 +11257,7 @@ pub struct PaymentPagesCheckoutSessionDiscount {
     pub promotion_code: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionNameCollection {
     #[serde(default)]
     pub business: ::core::option::Option<PaymentPagesCheckoutSessionBusinessName>,
@@ -11264,7 +11265,7 @@ pub struct PaymentPagesCheckoutSessionNameCollection {
     pub individual: ::core::option::Option<PaymentPagesCheckoutSessionIndividualName>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionOptionalItem {
     #[serde(default)]
     pub adjustable_quantity: ::core::option::Option<serde_json::Value>,
@@ -11272,13 +11273,13 @@ pub struct PaymentPagesCheckoutSessionOptionalItem {
     pub quantity: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionPhoneNumberCollection {
     /// Indicates whether phone number collection is enabled for the session
     pub enabled: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionShippingOption {
     /// A non-negative integer in cents representing how much to charge.
     pub shipping_amount: i64,
@@ -11286,7 +11287,7 @@ pub struct PaymentPagesCheckoutSessionShippingOption {
     pub shipping_rate: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionTaxIdCollection {
     /// Indicates whether tax ID collection is enabled for the session
     pub enabled: bool,
@@ -11294,7 +11295,7 @@ pub struct PaymentPagesCheckoutSessionTaxIdCollection {
     pub required: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutAcssDebitPaymentMethodOptions {
     /// Currency supported by the bank account. Returned when the Session is in setup mode. // TODO: enum values: ["cad", "usd"]
     #[serde(default)]
@@ -11312,7 +11313,7 @@ pub struct CheckoutAcssDebitPaymentMethodOptions {
     pub verification_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutAffirmPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -11322,7 +11323,7 @@ pub struct CheckoutAffirmPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutAfterpayClearpayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -11332,21 +11333,21 @@ pub struct CheckoutAfterpayClearpayPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutAlipayPaymentMethodOptions {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutAlmaPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutAmazonPayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -11356,7 +11357,7 @@ pub struct CheckoutAmazonPayPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutAuBecsDebitPaymentMethodOptions {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
@@ -11366,7 +11367,7 @@ pub struct CheckoutAuBecsDebitPaymentMethodOptions {
     pub target_date: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutBacsDebitPaymentMethodOptions {
     #[serde(default)]
     pub mandate_options:
@@ -11379,21 +11380,21 @@ pub struct CheckoutBacsDebitPaymentMethodOptions {
     pub target_date: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutBancontactPaymentMethodOptions {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutBilliePaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutBoletoPaymentMethodOptions {
     /// The number of calendar days before a Boleto voucher expires. For example, if you create a Boleto voucher on Monday and you set expires_after_days to 2, the Boleto voucher will expire on Wednesday at 23:59 America/Sao_Paulo time.
     pub expires_after_days: i64,
@@ -11402,7 +11403,7 @@ pub struct CheckoutBoletoPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutCardPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -11437,7 +11438,7 @@ pub struct CheckoutCardPaymentMethodOptions {
     pub statement_descriptor_suffix_kanji: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutCashappPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -11447,7 +11448,7 @@ pub struct CheckoutCashappPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutCustomerBalancePaymentMethodOptions {
     #[serde(default)]
     pub bank_transfer:
@@ -11460,42 +11461,42 @@ pub struct CheckoutCustomerBalancePaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutEpsPaymentMethodOptions {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutFpxPaymentMethodOptions {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutGiropayPaymentMethodOptions {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutGrabPayPaymentMethodOptions {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutIdealPaymentMethodOptions {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutKakaoPayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -11505,7 +11506,7 @@ pub struct CheckoutKakaoPayPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutKlarnaPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -11515,7 +11516,7 @@ pub struct CheckoutKlarnaPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutKonbiniPaymentMethodOptions {
     /// The number of calendar days (between 1 and 60) after which Konbini payment instructions will expire. For example, if a PaymentIntent is confirmed with Konbini and expires_after_days set to 2 on Monday JST, the instructions will expire on Wednesday 23:59:59 JST.
     #[serde(default)]
@@ -11525,7 +11526,7 @@ pub struct CheckoutKonbiniPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutKrCardPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -11535,7 +11536,7 @@ pub struct CheckoutKrCardPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutLinkPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -11545,7 +11546,7 @@ pub struct CheckoutLinkPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutMobilepayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -11555,14 +11556,14 @@ pub struct CheckoutMobilepayPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutMultibancoPaymentMethodOptions {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutNaverPayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -11572,7 +11573,7 @@ pub struct CheckoutNaverPayPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutOxxoPaymentMethodOptions {
     /// The number of calendar days before an OXXO invoice expires. For example, if you create an OXXO invoice on Monday and you set expires_after_days to 2, the OXXO invoice will expire on Wednesday at 23:59 America/Mexico_City time.
     pub expires_after_days: i64,
@@ -11581,28 +11582,28 @@ pub struct CheckoutOxxoPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutP24PaymentMethodOptions {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutPaycoPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutPaynowPaymentMethodOptions {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutPaypalPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -11618,7 +11619,7 @@ pub struct CheckoutPaypalPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutPaytoPaymentMethodOptions {
     #[serde(default)]
     pub mandate_options: ::core::option::Option<MandateOptionsPayto>,
@@ -11627,7 +11628,7 @@ pub struct CheckoutPaytoPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutPixPaymentMethodOptions {
     /// Determines if the amount includes the IOF tax. // TODO: enum values: ["always", "never"]
     #[serde(default)]
@@ -11640,7 +11641,7 @@ pub struct CheckoutPixPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutRevolutPayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
@@ -11650,21 +11651,21 @@ pub struct CheckoutRevolutPayPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutSamsungPayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutSatispayPaymentMethodOptions {
     /// Controls when the funds will be captured from the customer''s account. // TODO: enum values: ["manual"]
     #[serde(default)]
     pub capture_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutSepaDebitPaymentMethodOptions {
     #[serde(default)]
     pub mandate_options:
@@ -11677,28 +11678,28 @@ pub struct CheckoutSepaDebitPaymentMethodOptions {
     pub target_date: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutSofortPaymentMethodOptions {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutSwishPaymentMethodOptions {
     /// The order reference that will be displayed to customers in the Swish application. Defaults to the id of the Payment Intent.
     #[serde(default)]
     pub reference: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutTwintPaymentMethodOptions {
     /// Indicates that you intend to make future payments with this PaymentIntent''s payment method.
     #[serde(default)]
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutUpiPaymentMethodOptions {
     #[serde(default)]
     pub mandate_options: ::core::option::Option<MandateOptionsUpi>,
@@ -11707,7 +11708,7 @@ pub struct CheckoutUpiPaymentMethodOptions {
     pub setup_future_usage: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutUsBankAccountPaymentMethodOptions {
     #[serde(default)]
     pub financial_connections: ::core::option::Option<LinkedAccountOptionsCommon>,
@@ -11722,21 +11723,21 @@ pub struct CheckoutUsBankAccountPaymentMethodOptions {
     pub verification_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutLinkWalletOptions {
     /// Describes whether Checkout should display Link. Defaults to auto. // TODO: enum values: ["auto", "never"]
     #[serde(default)]
     pub display: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClimateRemovalsBeneficiary {
     /// Publicly displayable name for the end beneficiary of carbon removal.
     pub public_name: String,
 }
 
 /// The delivery of a specified quantity of carbon for an order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClimateRemovalsOrderDeliveries {
     /// Time at which the delivery occurred. Measured in seconds since the Unix epoch.
     pub delivered_at: i64,
@@ -11752,7 +11753,7 @@ pub struct ClimateRemovalsOrderDeliveries {
 }
 
 /// This hash contains details about the customer acceptance of the Mandate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfirmationTokensResourceMandateDataResourceCustomerAcceptance {
     /// If this is a Mandate accepted online, this hash contains details about the online acceptance.
     #[serde(default)]
@@ -11763,25 +11764,25 @@ pub struct ConfirmationTokensResourceMandateDataResourceCustomerAcceptance {
 }
 
 /// Installment configuration for payments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfirmationTokensResourcePaymentMethodOptionsResourceCardResourceInstallment {
     #[serde(default)]
     pub plan: ::core::option::Option<PaymentMethodDetailsCardInstallmentsPlan>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CountrySpecVerificationFields {
     pub company: CountrySpecVerificationFieldDetails,
     pub individual: CountrySpecVerificationFieldDetails,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CouponAppliesTo {
     /// A list of product IDs this coupon applies to
     pub products: ::std::vec::Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreditNoteRefund {
     /// Amount of the refund that applies to this credit note, in cents (or local equivalent).
     pub amount_refunded: i64,
@@ -11795,7 +11796,7 @@ pub struct CreditNoteRefund {
     pub type_: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreditNotesPretaxCreditAmount {
     /// The amount, in cents (or local equivalent), of the pretax credit amount.
     pub amount: i64,
@@ -11810,7 +11811,7 @@ pub struct CreditNotesPretaxCreditAmount {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceSettingCustomerSetting {
     /// Default custom fields to be displayed on invoices for this customer.
     #[serde(default)]
@@ -11826,7 +11827,7 @@ pub struct InvoiceSettingCustomerSetting {
     pub rendering_options: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerTax {
     /// Surfaces if automatic tax computation is possible given the current customer location information. // TODO: enum values: ["failed", "not_collecting", "supported", "unrecognized_location"]
     pub automatic_tax: String,
@@ -11840,7 +11841,7 @@ pub struct CustomerTax {
     pub provider: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceResourceCashBalanceTransactionResourceAdjustedForOverdraft {
     /// The [Balance Transaction](https://docs.stripe.com/api/balance_transactions/object) that corresponds to funds taken out of your Stripe balance.
     pub balance_transaction: serde_json::Value,
@@ -11848,38 +11849,38 @@ pub struct CustomerBalanceResourceCashBalanceTransactionResourceAdjustedForOverd
     pub linked_transaction: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceResourceCashBalanceTransactionResourceAppliedToPaymentTransaction {
     /// The [Payment Intent](https://docs.stripe.com/api/payment_intents/object) that funds were applied to.
     pub payment_intent: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceResourceCashBalanceTransactionResourceFundedTransaction {
     pub bank_transfer:
         CustomerBalanceResourceCashBalanceTransactionResourceFundedTransactionResourceBankTransfer,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceResourceCashBalanceTransactionResourceRefundedFromPaymentTransaction {
     /// The [Refund](https://docs.stripe.com/api/refunds/object) that moved these funds into the customer''s cash balance.
     pub refund: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceResourceCashBalanceTransactionResourceTransferredToBalance {
     /// The [Balance Transaction](https://docs.stripe.com/api/balance_transactions/object) that corresponds to funds transferred to your Stripe balance.
     pub balance_transaction: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceResourceCashBalanceTransactionResourceUnappliedFromPaymentTransaction {
     /// The [Payment Intent](https://docs.stripe.com/api/payment_intents/object) that funds were unapplied from.
     pub payment_intent: serde_json::Value,
 }
 
 /// Configuration for the components supported by this Customer Session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSessionResourceComponents {
     pub buy_button: CustomerSessionResourceComponentsResourceBuyButton,
     pub customer_sheet: CustomerSessionResourceComponentsResourceCustomerSheet,
@@ -11888,7 +11889,7 @@ pub struct CustomerSessionResourceComponents {
     pub pricing_table: CustomerSessionResourceComponentsResourcePricingTable,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputeEvidence {
     /// Any server or activity logs showing proof that the customer accessed or downloaded the purchased digital product. This information should include IP addresses, corresponding timestamps, and any detailed recorded activity.
     #[serde(default)]
@@ -11974,7 +11975,7 @@ pub struct DisputeEvidence {
     pub uncategorized_text: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputeEvidenceDetails {
     /// Date by which evidence must be submitted in order to successfully challenge dispute. Will be 0 if the customer''s bank or credit card company doesn''t allow a response for this particular dispute.
     #[serde(default)]
@@ -11988,7 +11989,7 @@ pub struct DisputeEvidenceDetails {
     pub submission_count: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputePaymentMethodDetails {
     #[serde(default)]
     pub amazon_pay: ::core::option::Option<DisputePaymentMethodDetailsAmazonPay>,
@@ -12003,7 +12004,7 @@ pub struct DisputePaymentMethodDetails {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiErrors {
     /// For card errors resulting from a card issuer decline, a short string indicating [how to proceed with an error](https://docs.stripe.com/declines#retrying-issuer-declines) if they provide one.
     #[serde(default)]
@@ -12052,7 +12053,7 @@ pub struct ApiErrors {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationEventData {
     /// Object containing the API resource relevant to the event. For example, an invoice.created event will have a full [invoice object](https://api.stripe.com#invoice_object) as the value of the object key.
     pub object: serde_json::Value,
@@ -12061,7 +12062,7 @@ pub struct NotificationEventData {
     pub previous_attributes: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BankConnectionsResourceAccountNumberDetails {
     /// When the account number is expected to expire, if applicable.
     #[serde(default)]
@@ -12074,7 +12075,7 @@ pub struct BankConnectionsResourceAccountNumberDetails {
     pub supported_networks: ::std::vec::Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BankConnectionsResourceLinkAccountSessionFilters {
     /// Restricts the Session to subcategories of accounts that can be linked. Valid subcategories are: checking, savings, mortgage, line_of_credit, credit_card.
     #[serde(default)]
@@ -12084,7 +12085,7 @@ pub struct BankConnectionsResourceLinkAccountSessionFilters {
     pub countries: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BankConnectionsResourceTransactionResourceStatusTransitions {
     /// Time at which this transaction posted. Measured in seconds since the Unix epoch.
     #[serde(default)]
@@ -12095,7 +12096,7 @@ pub struct BankConnectionsResourceTransactionResourceStatusTransitions {
 }
 
 /// Header data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardedRequestHeader {
     /// The header name.
     pub name: String,
@@ -12103,7 +12104,7 @@ pub struct ForwardedRequestHeader {
     pub value: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FundingInstructionsBankTransfer {
     /// The country of the bank account to fund
     pub country: String,
@@ -12114,7 +12115,7 @@ pub struct FundingInstructionsBankTransfer {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoSessionDocumentOptions {
     /// Array of strings of allowed identity document types. If the provided identity document isn’t one of the allowed types, the verification check will fail with a document_type_not_allowed error code.
     #[serde(default)]
@@ -12130,14 +12131,14 @@ pub struct GelatoSessionDocumentOptions {
     pub require_matching_selfie: ::core::option::Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoSessionEmailOptions {
     /// Request one time password verification of provided_details.email.
     #[serde(default)]
     pub require_verification: ::core::option::Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoSessionMatchingOptions {
     /// Strictness of the DOB matching policy to apply. // TODO: enum values: ["none", "similar"]
     #[serde(default)]
@@ -12147,7 +12148,7 @@ pub struct GelatoSessionMatchingOptions {
     pub name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoSessionPhoneOptions {
     /// Request one time password verification of provided_details.phone.
     #[serde(default)]
@@ -12155,7 +12156,7 @@ pub struct GelatoSessionPhoneOptions {
 }
 
 /// Result from a document check
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoDocumentReport {
     /// Address as it appears in the document.
     #[serde(default)]
@@ -12204,7 +12205,7 @@ pub struct GelatoDocumentReport {
 }
 
 /// Result from a email check
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoEmailReport {
     /// Email to be verified.
     #[serde(default)]
@@ -12217,7 +12218,7 @@ pub struct GelatoEmailReport {
 }
 
 /// Result from an id_number check
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoIdNumberReport {
     /// Date of birth.
     #[serde(default)]
@@ -12241,7 +12242,7 @@ pub struct GelatoIdNumberReport {
     pub status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoVerificationReportOptions {
     #[serde(default)]
     pub document: ::core::option::Option<GelatoReportDocumentOptions>,
@@ -12250,7 +12251,7 @@ pub struct GelatoVerificationReportOptions {
 }
 
 /// Result from a phone check
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoPhoneReport {
     /// Details on the verification error. Present when status is unverified.
     #[serde(default)]
@@ -12263,7 +12264,7 @@ pub struct GelatoPhoneReport {
 }
 
 /// Result from a selfie check
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoSelfieReport {
     /// ID of the [File](https://docs.stripe.com/api/files) holding the image of the identity document used in this check.
     #[serde(default)]
@@ -12278,7 +12279,7 @@ pub struct GelatoSelfieReport {
     pub status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoRelatedPerson {
     /// Token referencing the associated Account of the related Person resource.
     pub account: String,
@@ -12286,7 +12287,7 @@ pub struct GelatoRelatedPerson {
     pub person: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InboundTransfersPaymentMethodDetailsUsBankAccount {
     /// Account holder type: individual or company. // TODO: enum values: ["company", "individual"]
     #[serde(default)]
@@ -12314,28 +12315,28 @@ pub struct InboundTransfersPaymentMethodDetailsUsBankAccount {
 }
 
 /// Details of a merchant_blocked outcome attached to this payment evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationMerchantBlocked {
     /// The reason the payment was blocked by the merchant. // TODO: enum values: ["authentication_required", "blocked_for_fraud", "invalid_payment", "other"]
     pub reason: String,
 }
 
 /// Details of an rejected outcome attached to this payment evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationRejected {
     #[serde(default)]
     pub card: ::core::option::Option<InsightsResourcesPaymentEvaluationRejectedCard>,
 }
 
 /// Details of a succeeded outcome attached to this payment evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationSucceeded {
     #[serde(default)]
     pub card: ::core::option::Option<InsightsResourcesPaymentEvaluationSucceededCard>,
 }
 
 /// Address data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationAddress {
     /// City, district, suburb, town, or village.
     #[serde(default)]
@@ -12357,7 +12358,7 @@ pub struct InsightsResourcesPaymentEvaluationAddress {
     pub state: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutomaticTax {
     /// If Stripe disabled automatic tax, this enum describes why. // TODO: enum values: ["finalization_requires_location_inputs", "finalization_system_error"]
     #[serde(default)]
@@ -12375,7 +12376,7 @@ pub struct AutomaticTax {
     pub status: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicesResourceInvoiceTaxId {
     /// The type of the tax ID, one of ad_nrt, ar_cuit, eu_vat, bo_tin, br_cnpj, br_cpf, cn_tin, co_nit, cr_tin, do_rcn, ec_ruc, eu_oss_vat, hr_oib, pe_ruc, ro_tin, rs_pib, sv_nit, uy_ruc, ve_rif, vn_tin, gb_vat, nz_gst, au_abn, au_arn, in_gst, no_vat, no_voec, za_vat, ch_vat, mx_rfc, sg_uen, ru_inn, ru_kpp, ca_bn, hk_br, es_cif, pl_nip, tw_vat, th_vat, jp_cn, jp_rn, jp_trn, li_uid, li_vat, lk_vat, my_itn, us_ein, kr_brn, ca_qst, ca_gst_hst, ca_pst_bc, ca_pst_mb, ca_pst_sk, my_sst, sg_gst, ae_trn, cl_tin, sa_vat, id_npwp, my_frp, il_vat, ge_vat, ua_vat, is_vat, bg_uic, hu_tin, si_tin, ke_pin, tr_tin, eg_tin, ph_tin, al_tin, bh_vat, kz_bin, ng_tin, om_vat, de_stn, ch_uid, tz_vat, uz_vat, uz_tin, md_vat, ma_vat, by_tin, ao_tin, bs_tin, bb_tin, cd_nif, mr_nif, me_pib, zw_tin, ba_tin, gn_nif, mk_vat, sr_fin, sn_ninea, am_tin, np_pan, tj_tin, ug_tin, zm_tin, kh_tin, aw_tin, az_tin, bd_bin, bj_ifu, et_tin, kg_tin, la_tin, cm_niu, cv_nif, bf_ifu, or unknown // TODO: enum values: ["ad_nrt", "ae_trn", "al_tin", "am_tin", "ao_tin", "ar_cuit", "au_abn", "au_arn", "aw_tin", "az_tin", "ba_tin", "bb_tin", "bd_bin", "bf_ifu", "bg_uic", "bh_vat", "bj_ifu", "bo_tin", "br_cnpj", "br_cpf", "bs_tin", "by_tin", "ca_bn", "ca_gst_hst", "ca_pst_bc", "ca_pst_mb", "ca_pst_sk", "ca_qst", "cd_nif", "ch_uid", "ch_vat", "cl_tin", "cm_niu", "cn_tin", "co_nit", "cr_tin", "cv_nif", "de_stn", "do_rcn", "ec_ruc", "eg_tin", "es_cif", "et_tin", "eu_oss_vat", "eu_vat", "gb_vat", "ge_vat", "gn_nif", "hk_br", "hr_oib", "hu_tin", "id_npwp", "il_vat", "in_gst", "is_vat", "jp_cn", "jp_rn", "jp_trn", "ke_pin", "kg_tin", "kh_tin", "kr_brn", "kz_bin", "la_tin", "li_uid", "li_vat", "lk_vat", "ma_vat", "md_vat", "me_pib", "mk_vat", "mr_nif", "mx_rfc", "my_frp", "my_itn", "my_sst", "ng_tin", "no_vat", "no_voec", "np_pan", "nz_gst", "om_vat", "pe_ruc", "ph_tin", "pl_nip", "ro_tin", "rs_pib", "ru_inn", "ru_kpp", "sa_vat", "sg_gst", "sg_uen", "si_tin", "sn_ninea", "sr_fin", "sv_nit", "th_vat", "tj_tin", "tr_tin", "tw_vat", "tz_vat", "ua_vat", "ug_tin", "unknown", "us_ein", "uy_ruc", "uz_tin", "uz_vat", "ve_rif", "vn_tin", "za_vat", "zm_tin", "zw_tin"]
     #[serde(rename = "type")]
@@ -12385,7 +12386,7 @@ pub struct InvoicesResourceInvoiceTaxId {
     pub value: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicesPaymentSettings {
     /// ID of the mandate to be used for this invoice. It must correspond to the payment method used to pay the invoice, including the invoice''s default_payment_method or default_source, if set.
     #[serde(default)]
@@ -12398,7 +12399,7 @@ pub struct InvoicesPaymentSettings {
     pub payment_method_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicesResourceStatusTransitions {
     /// The time that the invoice draft was finalized.
     #[serde(default)]
@@ -12414,7 +12415,7 @@ pub struct InvoicesResourceStatusTransitions {
     pub voided_at: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceThresholdReason {
     /// The total invoice amount threshold boundary if it triggered the threshold invoice.
     #[serde(default)]
@@ -12423,7 +12424,7 @@ pub struct InvoiceThresholdReason {
     pub item_reasons: ::std::vec::Vec<InvoiceItemThresholdReason>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicesPaymentsInvoicePaymentAssociatedPayment {
     /// ID of the successful charge for this payment when type is charge.Note: charge is only surfaced if the charge object is not associated with a payment intent. If the charge object does have a payment intent, the Invoice Payment surfaces the payment intent instead.
     #[serde(default)]
@@ -12439,7 +12440,7 @@ pub struct InvoicesPaymentsInvoicePaymentAssociatedPayment {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicesPaymentsInvoicePaymentStatusTransitions {
     /// The time that the payment was canceled.
     #[serde(default)]
@@ -12449,21 +12450,21 @@ pub struct InvoicesPaymentsInvoicePaymentStatusTransitions {
     pub paid_at: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePaymentMethodOptionsAcssDebitMandateOptions {
     /// Transaction type of the mandate. // TODO: enum values: ["business", "personal"]
     #[serde(default)]
     pub transaction_type: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceInstallmentsCard {
     /// Whether Installments are enabled for this Invoice.
     #[serde(default)]
     pub enabled: ::core::option::Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePaymentMethodOptionsCustomerBalanceBankTransfer {
     #[serde(default)]
     pub eu_bank_transfer: ::core::option::Option<
@@ -12474,7 +12475,7 @@ pub struct InvoicePaymentMethodOptionsCustomerBalanceBankTransfer {
     pub type_: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceMandateOptionsPayto {
     /// The maximum amount that can be collected in a single invoice. If you don''t specify a maximum, then there is no limit.
     #[serde(default)]
@@ -12487,7 +12488,7 @@ pub struct InvoiceMandateOptionsPayto {
     pub purpose: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePaymentMethodOptionsUsBankAccountLinkedAccountOptions {
     #[serde(default)]
     pub filters:
@@ -12500,13 +12501,13 @@ pub struct InvoicePaymentMethodOptionsUsBankAccountLinkedAccountOptions {
     pub prefetch: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProrationDetails {
     /// Discount amounts applied when the proration was created.
     pub discount_amounts: ::std::vec::Vec<DiscountsResourceDiscountAmount>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeEvidence {
     #[serde(default)]
     pub canceled: ::core::option::Option<IssuingDisputeCanceledEvidence>,
@@ -12530,7 +12531,7 @@ pub struct IssuingDisputeEvidence {
         ::core::option::Option<IssuingDisputeServiceNotAsDescribedEvidence>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingPersonalizationDesignPreferences {
     /// Whether we use this personalization design to create cards when one isn''t specified. A connected account uses the Connect platform''s default design if no personalization design is set as the default design.
     pub is_default: bool,
@@ -12539,7 +12540,7 @@ pub struct IssuingPersonalizationDesignPreferences {
     pub is_platform_default: ::core::option::Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingPersonalizationDesignRejectionReasons {
     /// The reason(s) the card logo was rejected.
     #[serde(default)]
@@ -12549,7 +12550,7 @@ pub struct IssuingPersonalizationDesignRejectionReasons {
     pub carrier_text: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingPhysicalBundleFeatures {
     /// The policy for how to use card logo images in a card design with this physical bundle. // TODO: enum values: ["optional", "required", "unsupported"]
     pub card_logo: String,
@@ -12559,7 +12560,7 @@ pub struct IssuingPhysicalBundleFeatures {
     pub second_line: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingNetworkTokenNetworkData {
     #[serde(default)]
     pub device: ::core::option::Option<IssuingNetworkTokenDevice>,
@@ -12574,13 +12575,13 @@ pub struct IssuingNetworkTokenNetworkData {
     pub wallet_provider: ::core::option::Option<IssuingNetworkTokenWalletProvider>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardLifecycleConditions {
     /// The card is automatically cancelled when it makes this number of non-zero payment authorizations and transactions. The count includes penny authorizations, but doesn''t include non-payment actions, such as authorization advice.
     pub payment_count: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardApplePay {
     /// Apple Pay Eligibility
     pub eligible: bool,
@@ -12589,7 +12590,7 @@ pub struct IssuingCardApplePay {
     pub ineligible_reason: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardGooglePay {
     /// Google Pay Eligibility
     pub eligible: bool,
@@ -12598,7 +12599,7 @@ pub struct IssuingCardGooglePay {
     pub ineligible_reason: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholderSpendingLimit {
     /// Maximum amount allowed to spend per interval. This amount is in the card''s currency and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
     pub amount: i64,
@@ -12609,7 +12610,7 @@ pub struct IssuingCardholderSpendingLimit {
     pub interval: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionFlightDataLeg {
     /// The three-letter IATA airport code of the flight''s destination.
     #[serde(default)]
@@ -12631,7 +12632,7 @@ pub struct IssuingTransactionFlightDataLeg {
     pub stopover_allowed: ::core::option::Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransactionReceiptData {
     /// The description of the item. The maximum length of this field is 26 characters.
     #[serde(default)]
@@ -12647,7 +12648,7 @@ pub struct IssuingTransactionReceiptData {
     pub unit_cost: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegalEntityCompanyVerificationDocument {
     /// The back of a document returned by a [file upload](https://api.stripe.com#create_file) with a purpose value of additional_verification. Note that additional_verification files are [not downloadable](/file-upload#uploading-a-file).
     #[serde(default)]
@@ -12663,7 +12664,7 @@ pub struct LegalEntityCompanyVerificationDocument {
     pub front: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceLineItemPeriod {
     /// The end of the period, which must be greater than or equal to the start. This value is inclusive.
     pub end: i64,
@@ -12671,7 +12672,7 @@ pub struct InvoiceLineItemPeriod {
     pub start: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicesResourcePretaxCreditAmount {
     /// The amount, in cents (or local equivalent), of the pretax credit amount.
     pub amount: i64,
@@ -12686,7 +12687,7 @@ pub struct InvoicesResourcePretaxCreditAmount {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingBillResourceInvoicingTaxesTax {
     /// The amount of the tax, in cents (or local equivalent).
     pub amount: i64,
@@ -12705,7 +12706,7 @@ pub struct BillingBillResourceInvoicingTaxesTax {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerAcceptance {
     /// The time that the customer accepts the mandate.
     #[serde(default)]
@@ -12719,7 +12720,7 @@ pub struct CustomerAcceptance {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandatePaymentMethodDetails {
     #[serde(default)]
     pub acss_debit: ::core::option::Option<MandateAcssDebit>,
@@ -12762,7 +12763,7 @@ pub struct MandatePaymentMethodDetails {
     pub us_bank_account: ::core::option::Option<MandateUsBankAccount>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateSingleUse {
     /// The amount of the payment on a single use mandate.
     pub amount: i64,
@@ -12770,7 +12771,7 @@ pub struct MandateSingleUse {
     pub currency: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutboundPaymentsPaymentMethodDetailsFinancialAccount {
     /// Token of the FinancialAccount.
     pub id: String,
@@ -12778,7 +12779,7 @@ pub struct OutboundPaymentsPaymentMethodDetailsFinancialAccount {
     pub network: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutboundPaymentsPaymentMethodDetailsUsBankAccount {
     /// Account holder type: individual or company. // TODO: enum values: ["company", "individual"]
     #[serde(default)]
@@ -12805,7 +12806,7 @@ pub struct OutboundPaymentsPaymentMethodDetailsUsBankAccount {
     pub routing_number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsAmountDetailsResourceError {
     /// The code of the error that occurred when validating the current amount details. // TODO: enum values: ["amount_details_amount_mismatch", "amount_details_tax_shipping_discount_greater_than_amount"]
     #[serde(default)]
@@ -12815,7 +12816,7 @@ pub struct PaymentFlowsAmountDetailsResourceError {
     pub message: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsAmountDetailsResourceShipping {
     /// If a physical good is being shipped, the cost of shipping represented in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). An integer greater than or equal to 0.
     #[serde(default)]
@@ -12828,34 +12829,34 @@ pub struct PaymentFlowsAmountDetailsResourceShipping {
     pub to_postal_code: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsAmountDetailsResourceTax {
     /// The total amount of tax on the transaction represented in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). Required for L2 rates. An integer greater than or equal to 0.
     #[serde(default)]
     pub total_tax_amount: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsAmountDetailsClientResourceTip {
     /// Portion of the amount that corresponds to a tip.
     #[serde(default)]
     pub amount: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsCardPaymentIntentAmountDetailsLineItemPaymentMethodOptions
 {
     #[serde(default)]
     pub commodity_code: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsCardPresentAmountDetailsLineItemPaymentMethodOptions {
     #[serde(default)]
     pub commodity_code: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsKlarnaPaymentIntentAmountDetailsLineItemPaymentMethodOptions
 {
     #[serde(default)]
@@ -12868,7 +12869,7 @@ pub struct PaymentFlowsPrivatePaymentMethodsKlarnaPaymentIntentAmountDetailsLine
     pub subscription_reference: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsPaypalAmountDetailsLineItemPaymentMethodOptions {
     /// Type of the line item. // TODO: enum values: ["digital_goods", "donation", "physical_goods"]
     #[serde(default)]
@@ -12881,7 +12882,7 @@ pub struct PaymentFlowsPrivatePaymentMethodsPaypalAmountDetailsLineItemPaymentMe
     pub sold_by: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionAlipayHandleRedirect {
     /// The native data to be used with Alipay SDK you must redirect your customer to in order to authenticate the payment in an Android App.
     #[serde(default)]
@@ -12897,7 +12898,7 @@ pub struct PaymentIntentNextActionAlipayHandleRedirect {
     pub url: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionBoleto {
     /// The timestamp after which the boleto expires.
     #[serde(default)]
@@ -12913,7 +12914,7 @@ pub struct PaymentIntentNextActionBoleto {
     pub pdf: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionCardAwaitNotification {
     /// The time that payment will be attempted. If customer approval is required, they need to provide approval before this time.
     #[serde(default)]
@@ -12923,7 +12924,7 @@ pub struct PaymentIntentNextActionCardAwaitNotification {
     pub customer_approval_required: ::core::option::Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionDisplayBankTransferInstructions {
     /// The remaining amount that needs to be transferred to complete the payment.
     #[serde(default)]
@@ -12946,7 +12947,7 @@ pub struct PaymentIntentNextActionDisplayBankTransferInstructions {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionKonbini {
     /// The timestamp at which the pending Konbini payment expires.
     pub expires_at: i64,
@@ -12956,7 +12957,7 @@ pub struct PaymentIntentNextActionKonbini {
     pub stores: PaymentIntentNextActionKonbiniStores,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionDisplayMultibancoDetails {
     /// Entity number associated with this Multibanco payment.
     #[serde(default)]
@@ -12972,7 +12973,7 @@ pub struct PaymentIntentNextActionDisplayMultibancoDetails {
     pub reference: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionDisplayOxxoDetails {
     /// The timestamp after which the OXXO voucher expires.
     #[serde(default)]
@@ -12985,7 +12986,7 @@ pub struct PaymentIntentNextActionDisplayOxxoDetails {
     pub number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionPaynowDisplayQrCode {
     /// The raw data string used to generate QR code, it should be used together with QR code library.
     pub data: String,
@@ -12998,7 +12999,7 @@ pub struct PaymentIntentNextActionPaynowDisplayQrCode {
     pub image_url_svg: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionPixDisplayQrCode {
     /// The raw data string used to generate QR code, it should be used together with QR code library.
     #[serde(default)]
@@ -13017,7 +13018,7 @@ pub struct PaymentIntentNextActionPixDisplayQrCode {
     pub image_url_svg: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionPromptpayDisplayQrCode {
     /// The raw data string used to generate QR code, it should be used together with QR code library.
     pub data: String,
@@ -13029,7 +13030,7 @@ pub struct PaymentIntentNextActionPromptpayDisplayQrCode {
     pub image_url_svg: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionRedirectToUrl {
     /// If the customer does not exit their browser while authenticating, they will be redirected to this specified URL after completion.
     #[serde(default)]
@@ -13039,14 +13040,14 @@ pub struct PaymentIntentNextActionRedirectToUrl {
     pub url: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionSwishHandleRedirectOrDisplayQrCode {
     /// The URL to the hosted Swish instructions page, which allows customers to view the QR code.
     pub hosted_instructions_url: String,
     pub qr_code: PaymentIntentNextActionSwishQrCode,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionVerifyWithMicrodeposits {
     /// The timestamp when the microdeposits are expected to land.
     pub arrival_date: i64,
@@ -13057,7 +13058,7 @@ pub struct PaymentIntentNextActionVerifyWithMicrodeposits {
     pub microdeposit_type: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionWechatPayDisplayQrCode {
     /// The data being used to generate QR code
     pub data: String,
@@ -13071,7 +13072,7 @@ pub struct PaymentIntentNextActionWechatPayDisplayQrCode {
     pub image_url_svg: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionWechatPayRedirectToAndroidApp {
     /// app_id is the APP ID registered on WeChat open platform
     pub app_id: String,
@@ -13089,13 +13090,13 @@ pub struct PaymentIntentNextActionWechatPayRedirectToAndroidApp {
     pub timestamp: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionWechatPayRedirectToIosApp {
     /// An universal link that redirect to WeChat Pay app
     pub native_url: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsMandateOptionsAcssDebit {
     /// A URL for custom mandate text
     #[serde(default)]
@@ -13111,34 +13112,34 @@ pub struct PaymentIntentPaymentMethodOptionsMandateOptionsAcssDebit {
     pub transaction_type: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsMandateOptionsBacsDebit {
     /// Prefix used to generate the Mandate reference. Must be at most 12 characters long. Must consist of only uppercase letters, numbers, spaces, or the following special characters: ''/'', ''_'', ''-'', ''&'', ''.''. Cannot begin with ''DDIC'' or ''STRIPE''.
     #[serde(default)]
     pub reference_prefix: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsMandateOptionsSepaDebit {
     /// Prefix used to generate the Mandate reference. Must be at most 12 characters long. Must consist of only uppercase letters, numbers, spaces, or the following special characters: ''/'', ''_'', ''-'', ''&'', ''.''. Cannot begin with ''STRIPE''.
     #[serde(default)]
     pub reference_prefix: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentCardProcessing {
     #[serde(default)]
     pub customer_notification: ::core::option::Option<PaymentIntentProcessingCustomerNotification>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsInstallmentOptions {
     pub enabled: bool,
     #[serde(default)]
     pub plan: ::core::option::Option<PaymentMethodDetailsCardInstallmentsPlan>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentPaymentMethodOptionsMandateOptionsPayto {
     /// Amount that will be collected. It is required when amount_type is fixed.
     #[serde(default)]
@@ -13160,7 +13161,7 @@ pub struct PaymentIntentPaymentMethodOptionsMandateOptionsPayto {
     pub purpose: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceAfterCompletion {
     #[serde(default)]
     pub hosted_confirmation:
@@ -13172,7 +13173,7 @@ pub struct PaymentLinksResourceAfterCompletion {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceAutomaticTax {
     /// If true, tax will be calculated automatically using the customer''s location.
     pub enabled: bool,
@@ -13181,7 +13182,7 @@ pub struct PaymentLinksResourceAutomaticTax {
     pub liability: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceCustomFields {
     #[serde(default)]
     pub dropdown: ::core::option::Option<PaymentLinksResourceCustomFieldsDropdown>,
@@ -13199,7 +13200,7 @@ pub struct PaymentLinksResourceCustomFields {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceCustomText {
     /// Custom text that should be displayed after the payment confirmation button.
     #[serde(default)]
@@ -13215,7 +13216,7 @@ pub struct PaymentLinksResourceCustomText {
     pub terms_of_service_acceptance: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceNameCollection {
     #[serde(default)]
     pub business: ::core::option::Option<PaymentLinksResourceBusinessName>,
@@ -13223,7 +13224,7 @@ pub struct PaymentLinksResourceNameCollection {
     pub individual: ::core::option::Option<PaymentLinksResourceIndividualName>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceOptionalItem {
     #[serde(default)]
     pub adjustable_quantity: ::core::option::Option<serde_json::Value>,
@@ -13231,13 +13232,13 @@ pub struct PaymentLinksResourceOptionalItem {
     pub quantity: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourcePhoneNumberCollection {
     /// If true, a phone number will be collected during checkout.
     pub enabled: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceShippingOption {
     /// A non-negative integer in cents representing how much to charge.
     pub shipping_amount: i64,
@@ -13245,7 +13246,7 @@ pub struct PaymentLinksResourceShippingOption {
     pub shipping_rate: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceTaxIdCollection {
     /// Indicates whether tax ID collection is enabled for the session.
     pub enabled: bool,
@@ -13253,7 +13254,7 @@ pub struct PaymentLinksResourceTaxIdCollection {
     pub required: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceCompletedSessions {
     /// The current number of checkout sessions that have been completed on the payment link which count towards the completed_sessions restriction to be met.
     pub count: i64,
@@ -13261,12 +13262,12 @@ pub struct PaymentLinksResourceCompletedSessions {
     pub limit: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceSubscriptionDataInvoiceSettings {
     pub issuer: ConnectAccountReference,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCardWalletMasterpass {
     /// Owner''s verified billing address. Values are verified or provided by the wallet directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
@@ -13282,7 +13283,7 @@ pub struct PaymentMethodCardWalletMasterpass {
     pub shipping_address: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCardWalletVisaCheckout {
     /// Owner''s verified billing address. Values are verified or provided by the wallet directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
@@ -13298,14 +13299,14 @@ pub struct PaymentMethodCardWalletVisaCheckout {
     pub shipping_address: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodConfigResourcePaymentMethodProperties {
     /// Whether this payment method may be offered at checkout. True if display_preference is on and the payment method''s capability is active.
     pub available: bool,
     pub display_preference: PaymentMethodConfigResourceDisplayPreference,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsAffirm {
     /// ID of the [location](https://docs.stripe.com/api/terminal/locations) that this transaction''s reader is assigned to.
     #[serde(default)]
@@ -13318,7 +13319,7 @@ pub struct PaymentMethodDetailsAffirm {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsAfterpayClearpay {
     /// The Afterpay order ID associated with this payment intent.
     #[serde(default)]
@@ -13328,7 +13329,7 @@ pub struct PaymentMethodDetailsAfterpayClearpay {
     pub reference: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsBancontact {
     /// Bank code of bank associated with the bank account.
     #[serde(default)]
@@ -13356,13 +13357,13 @@ pub struct PaymentMethodDetailsBancontact {
     pub verified_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsBoleto {
     /// The tax ID of the customer (CPF for individuals consumers or CNPJ for businesses consumers)
     pub tax_id: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCard {
     /// The authorized amount.
     #[serde(default)]
@@ -13429,7 +13430,7 @@ pub struct PaymentMethodDetailsCard {
     pub wallet: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCashapp {
     /// A unique and immutable identifier assigned by Cash App to every buyer.
     #[serde(default)]
@@ -13442,7 +13443,7 @@ pub struct PaymentMethodDetailsCashapp {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsGiropay {
     /// Bank code of bank associated with the bank account.
     #[serde(default)]
@@ -13458,7 +13459,7 @@ pub struct PaymentMethodDetailsGiropay {
     pub verified_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsIdeal {
     /// The customer''s bank. Can be one of abn_amro, adyen, asn_bank, bunq, buut, finom, handelsbanken, ing, knab, mollie, moneyou, n26, nn, rabobank, regiobank, revolut, sns_bank, triodos_bank, van_lanschot, or yoursafe. // TODO: enum values: ["abn_amro", "adyen", "asn_bank", "bunq", "buut", "finom", "handelsbanken", "ing", "knab", "mollie", "moneyou", "n26", "nn", "rabobank", "regiobank", "revolut", "sns_bank", "triodos_bank", "van_lanschot", "yoursafe"]
     #[serde(default)]
@@ -13483,7 +13484,7 @@ pub struct PaymentMethodDetailsIdeal {
     pub verified_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsKakaoPay {
     /// A unique identifier for the buyer as determined by the local payment processor.
     #[serde(default)]
@@ -13493,21 +13494,21 @@ pub struct PaymentMethodDetailsKakaoPay {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsKonbini {
     /// If the payment succeeded, this contains the details of the convenience store where the payment was completed.
     #[serde(default)]
     pub store: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsMobilepay {
     /// Internal card details
     #[serde(default)]
     pub card: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsMultibanco {
     /// Entity number associated with this Multibanco payment.
     #[serde(default)]
@@ -13517,7 +13518,7 @@ pub struct PaymentMethodDetailsMultibanco {
     pub reference: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsNaverPay {
     /// A unique identifier for the buyer as determined by the local payment processor.
     #[serde(default)]
@@ -13527,14 +13528,14 @@ pub struct PaymentMethodDetailsNaverPay {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsOxxo {
     /// OXXO reference number
     #[serde(default)]
     pub number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPayco {
     /// A unique identifier for the buyer as determined by the local payment processor.
     #[serde(default)]
@@ -13544,7 +13545,7 @@ pub struct PaymentMethodDetailsPayco {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaynow {
     /// ID of the [location](https://docs.stripe.com/api/terminal/locations) that this transaction''s reader is assigned to.
     #[serde(default)]
@@ -13557,21 +13558,21 @@ pub struct PaymentMethodDetailsPaynow {
     pub reference: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPix {
     /// Unique transaction id generated by BCB
     #[serde(default)]
     pub bank_transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPromptpay {
     /// Bill reference generated by PromptPay
     #[serde(default)]
     pub reference: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsSamsungPay {
     /// A unique identifier for the buyer as determined by the local payment processor.
     #[serde(default)]
@@ -13581,7 +13582,7 @@ pub struct PaymentMethodDetailsSamsungPay {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsSepaDebit {
     /// Bank code of bank associated with the bank account.
     #[serde(default)]
@@ -13606,7 +13607,7 @@ pub struct PaymentMethodDetailsSepaDebit {
     pub mandate: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsSofort {
     /// Bank code of bank associated with the bank account.
     #[serde(default)]
@@ -13637,7 +13638,7 @@ pub struct PaymentMethodDetailsSofort {
     pub verified_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsSwish {
     /// Uniquely identifies the payer''s Swish account. You can use this attribute to check whether two Swish transactions were paid for by the same payer
     #[serde(default)]
@@ -13650,7 +13651,7 @@ pub struct PaymentMethodDetailsSwish {
     pub verified_phone_last4: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsUsBankAccount {
     /// Account holder type: individual or company. // TODO: enum values: ["company", "individual"]
     #[serde(default)]
@@ -13681,7 +13682,7 @@ pub struct PaymentMethodDetailsUsBankAccount {
     pub routing_number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsWechatPay {
     /// Uniquely identifies this particular WeChat Pay account. You can use this attribute to check whether two WeChat accounts are the same.
     #[serde(default)]
@@ -13697,7 +13698,7 @@ pub struct PaymentMethodDetailsWechatPay {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardWalletMasterpass {
     /// Owner''s verified billing address. Values are verified or provided by the wallet directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
@@ -13713,7 +13714,7 @@ pub struct PaymentMethodDetailsCardWalletMasterpass {
     pub shipping_address: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardWalletVisaCheckout {
     /// Owner''s verified billing address. Values are verified or provided by the wallet directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
@@ -13730,7 +13731,7 @@ pub struct PaymentMethodDetailsCardWalletVisaCheckout {
 }
 
 /// Indicates the status of a specific payment method on a payment method domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDomainResourcePaymentMethodStatus {
     /// The status of the payment method on the domain. // TODO: enum values: ["active", "inactive"]
     pub status: String,
@@ -13739,14 +13740,14 @@ pub struct PaymentMethodDomainResourcePaymentMethodStatus {
         ::core::option::Option<PaymentMethodDomainResourcePaymentMethodStatusDetails>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsCardPresentRouting {
     /// Requested routing priority // TODO: enum values: ["domestic", "international"]
     #[serde(default)]
     pub requested_priority: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsCustomerBalanceBankTransfer {
     #[serde(default)]
     pub eu_bank_transfer: ::core::option::Option<PaymentMethodOptionsCustomerBalanceEuBankAccount>,
@@ -13758,7 +13759,7 @@ pub struct PaymentMethodOptionsCustomerBalanceBankTransfer {
     pub type_: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodUsBankAccountBlocked {
     /// The ACH network code that resulted in this block. // TODO: enum values: ["R02", "R03", "R04", "R05", "R07", "R08", "R10", "R11", "R16", "R20", "R29", "R31"]
     #[serde(default)]
@@ -13768,7 +13769,7 @@ pub struct PaymentMethodUsBankAccountBlocked {
     pub reason: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionTaxId {
     /// The type of the tax ID, one of ad_nrt, ar_cuit, eu_vat, bo_tin, br_cnpj, br_cpf, cn_tin, co_nit, cr_tin, do_rcn, ec_ruc, eu_oss_vat, hr_oib, pe_ruc, ro_tin, rs_pib, sv_nit, uy_ruc, ve_rif, vn_tin, gb_vat, nz_gst, au_abn, au_arn, in_gst, no_vat, no_voec, za_vat, ch_vat, mx_rfc, sg_uen, ru_inn, ru_kpp, ca_bn, hk_br, es_cif, pl_nip, tw_vat, th_vat, jp_cn, jp_rn, jp_trn, li_uid, li_vat, lk_vat, my_itn, us_ein, kr_brn, ca_qst, ca_gst_hst, ca_pst_bc, ca_pst_mb, ca_pst_sk, my_sst, sg_gst, ae_trn, cl_tin, sa_vat, id_npwp, my_frp, il_vat, ge_vat, ua_vat, is_vat, bg_uic, hu_tin, si_tin, ke_pin, tr_tin, eg_tin, ph_tin, al_tin, bh_vat, kz_bin, ng_tin, om_vat, de_stn, ch_uid, tz_vat, uz_vat, uz_tin, md_vat, ma_vat, by_tin, ao_tin, bs_tin, bb_tin, cd_nif, mr_nif, me_pib, zw_tin, ba_tin, gn_nif, mk_vat, sr_fin, sn_ninea, am_tin, np_pan, tj_tin, ug_tin, zm_tin, kh_tin, aw_tin, az_tin, bd_bin, bj_ifu, et_tin, kg_tin, la_tin, cm_niu, cv_nif, bf_ifu, or unknown // TODO: enum values: ["ad_nrt", "ae_trn", "al_tin", "am_tin", "ao_tin", "ar_cuit", "au_abn", "au_arn", "aw_tin", "az_tin", "ba_tin", "bb_tin", "bd_bin", "bf_ifu", "bg_uic", "bh_vat", "bj_ifu", "bo_tin", "br_cnpj", "br_cpf", "bs_tin", "by_tin", "ca_bn", "ca_gst_hst", "ca_pst_bc", "ca_pst_mb", "ca_pst_sk", "ca_qst", "cd_nif", "ch_uid", "ch_vat", "cl_tin", "cm_niu", "cn_tin", "co_nit", "cr_tin", "cv_nif", "de_stn", "do_rcn", "ec_ruc", "eg_tin", "es_cif", "et_tin", "eu_oss_vat", "eu_vat", "gb_vat", "ge_vat", "gn_nif", "hk_br", "hr_oib", "hu_tin", "id_npwp", "il_vat", "in_gst", "is_vat", "jp_cn", "jp_rn", "jp_trn", "ke_pin", "kg_tin", "kh_tin", "kr_brn", "kz_bin", "la_tin", "li_uid", "li_vat", "lk_vat", "ma_vat", "md_vat", "me_pib", "mk_vat", "mr_nif", "mx_rfc", "my_frp", "my_itn", "my_sst", "ng_tin", "no_vat", "no_voec", "np_pan", "nz_gst", "om_vat", "pe_ruc", "ph_tin", "pl_nip", "ro_tin", "rs_pib", "ru_inn", "ru_kpp", "sa_vat", "sg_gst", "sg_uen", "si_tin", "sn_ninea", "sr_fin", "sv_nit", "th_vat", "tj_tin", "tr_tin", "tw_vat", "tz_vat", "ua_vat", "ug_tin", "unknown", "us_ein", "uy_ruc", "uz_tin", "uz_vat", "ve_rif", "vn_tin", "za_vat", "zm_tin", "zw_tin"]
     #[serde(rename = "type")]
@@ -13778,7 +13779,7 @@ pub struct PaymentPagesCheckoutSessionTaxId {
     pub value: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionInvoiceSettings {
     /// The account tax IDs associated with the invoice.
     #[serde(default)]
@@ -13803,7 +13804,7 @@ pub struct PaymentPagesCheckoutSessionInvoiceSettings {
     pub rendering_options: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionTotalDetailsResourceBreakdown {
     /// The aggregated discounts.
     pub discounts: ::std::vec::Vec<LineItemsDiscountAmount>,
@@ -13812,7 +13813,7 @@ pub struct PaymentPagesCheckoutSessionTotalDetailsResourceBreakdown {
 }
 
 /// A representation of an amount of money, consisting of an amount and a currency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourceAmount {
     /// Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
     pub currency: String,
@@ -13821,7 +13822,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourceAmount {
 }
 
 /// Processor information associated with this payment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourceProcessorDetails {
     #[serde(default)]
     pub custom: ::core::option::Option<
@@ -13832,7 +13833,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourceProcessorDetails {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResourceWalletResourceApplePay
 {
     /// Type of the apple_pay transaction, one of apple_pay or apple_pay_later.
@@ -13840,7 +13841,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResou
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsAchCreditTransfer {
     /// Account number to transfer funds to.
     #[serde(default)]
@@ -13856,7 +13857,7 @@ pub struct PaymentMethodDetailsAchCreditTransfer {
     pub swift_code: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsAchDebit {
     /// Type of entity that holds the account. This can be either individual or company. // TODO: enum values: ["company", "individual"]
     #[serde(default)]
@@ -13878,7 +13879,7 @@ pub struct PaymentMethodDetailsAchDebit {
     pub routing_number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsAcssDebit {
     /// Name of the bank associated with the bank account.
     #[serde(default)]
@@ -13903,7 +13904,7 @@ pub struct PaymentMethodDetailsAcssDebit {
     pub transit_number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordAffirm {
     /// ID of the location that this reader is assigned to.
     #[serde(default)]
@@ -13916,7 +13917,7 @@ pub struct PaymentMethodDetailsPaymentRecordAffirm {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordAfterpayClearpay {
     /// The Afterpay order ID associated with this payment intent.
     #[serde(default)]
@@ -13926,7 +13927,7 @@ pub struct PaymentMethodDetailsPaymentRecordAfterpayClearpay {
     pub reference: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsAlipayDetails {
     /// Uniquely identifies this particular Alipay account. You can use this attribute to check whether two Alipay accounts are the same.
     #[serde(default)]
@@ -13939,7 +13940,7 @@ pub struct PaymentFlowsPrivatePaymentMethodsAlipayDetails {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsAlma {
     #[serde(default)]
     pub installments: ::core::option::Option<AlmaInstallments>,
@@ -13948,7 +13949,7 @@ pub struct PaymentMethodDetailsAlma {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsAmazonPay {
     #[serde(default)]
     pub funding: ::core::option::Option<AmazonPayUnderlyingPaymentMethodFundingDetails>,
@@ -13957,7 +13958,7 @@ pub struct PaymentMethodDetailsAmazonPay {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsAuBecsDebit {
     /// Bank-State-Branch number of the bank account.
     #[serde(default)]
@@ -13976,7 +13977,7 @@ pub struct PaymentMethodDetailsAuBecsDebit {
     pub mandate: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsBacsDebit {
     /// Estimated date to debit the customer''s bank account. A date string in YYYY-MM-DD format.
     #[serde(default)]
@@ -13995,7 +13996,7 @@ pub struct PaymentMethodDetailsBacsDebit {
     pub sort_code: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordBancontact {
     /// Bank code of bank associated with the bank account.
     #[serde(default)]
@@ -14023,21 +14024,21 @@ pub struct PaymentMethodDetailsPaymentRecordBancontact {
     pub verified_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsBillie {
     /// The Billie transaction ID associated with this payment.
     #[serde(default)]
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsBlik {
     /// A unique and immutable identifier assigned by BLIK to every buyer.
     #[serde(default)]
     pub buyer_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordBoleto {
     /// The tax ID of the customer (CPF for individuals consumers or CNPJ for businesses consumers)
     #[serde(default)]
@@ -14045,7 +14046,7 @@ pub struct PaymentMethodDetailsPaymentRecordBoleto {
 }
 
 /// Details of the card used for this payment attempt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetails {
     /// The authorization code of the payment.
     #[serde(default)]
@@ -14115,7 +14116,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetails {
     pub wallet: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardPresent {
     /// The authorized amount
     #[serde(default)]
@@ -14192,7 +14193,7 @@ pub struct PaymentMethodDetailsCardPresent {
     pub wallet: ::core::option::Option<PaymentFlowsPrivatePaymentMethodsCardPresentCommonWallet>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordCashapp {
     /// A unique and immutable identifier assigned by Cash App to every buyer.
     #[serde(default)]
@@ -14205,7 +14206,7 @@ pub struct PaymentMethodDetailsPaymentRecordCashapp {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCrypto {
     /// The wallet address of the customer.
     #[serde(default)]
@@ -14224,7 +14225,7 @@ pub struct PaymentMethodDetailsCrypto {
 /// Custom Payment Methods represent Payment Method types not modeled directly in
 /// the Stripe API. This resource consists of details about the custom payment method
 /// used for this payment attempt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCustomDetails {
     /// Display name for the custom (user-defined) payment method type used to make this payment.
     pub display_name: String,
@@ -14233,7 +14234,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCustomDetails {
     pub type_: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsEps {
     /// The customer''s bank. Should be one of arzte_und_apotheker_bank, austrian_anadi_bank_ag, bank_austria, bankhaus_carl_spangler, bankhaus_schelhammer_und_schattera_ag, bawag_psk_ag, bks_bank_ag, brull_kallmus_bank_ag, btv_vier_lander_bank, capital_bank_grawe_gruppe_ag, deutsche_bank_ag, dolomitenbank, easybank_ag, erste_bank_und_sparkassen, hypo_alpeadriabank_international_ag, hypo_noe_lb_fur_niederosterreich_u_wien, hypo_oberosterreich_salzburg_steiermark, hypo_tirol_bank_ag, hypo_vorarlberg_bank_ag, hypo_bank_burgenland_aktiengesellschaft, marchfelder_bank, oberbank_ag, raiffeisen_bankengruppe_osterreich, schoellerbank_ag, sparda_bank_wien, volksbank_gruppe, volkskreditbank_ag, or vr_bank_braunau. // TODO: enum values: ["arzte_und_apotheker_bank", "austrian_anadi_bank_ag", "bank_austria", "bankhaus_carl_spangler", "bankhaus_schelhammer_und_schattera_ag", "bawag_psk_ag", "bks_bank_ag", "brull_kallmus_bank_ag", "btv_vier_lander_bank", "capital_bank_grawe_gruppe_ag", "deutsche_bank_ag", "dolomitenbank", "easybank_ag", "erste_bank_und_sparkassen", "hypo_alpeadriabank_international_ag", "hypo_bank_burgenland_aktiengesellschaft", "hypo_noe_lb_fur_niederosterreich_u_wien", "hypo_oberosterreich_salzburg_steiermark", "hypo_tirol_bank_ag", "hypo_vorarlberg_bank_ag", "marchfelder_bank", "oberbank_ag", "raiffeisen_bankengruppe_osterreich", "schoellerbank_ag", "sparda_bank_wien", "volksbank_gruppe", "volkskreditbank_ag", "vr_bank_braunau"]
     #[serde(default)]
@@ -14243,7 +14244,7 @@ pub struct PaymentMethodDetailsEps {
     pub verified_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsFpx {
     /// The customer''s bank. Can be one of affin_bank, agrobank, alliance_bank, ambank, bank_islam, bank_muamalat, bank_rakyat, bsn, cimb, hong_leong_bank, hsbc, kfh, maybank2u, ocbc, public_bank, rhb, standard_chartered, uob, deutsche_bank, maybank2e, pb_enterprise, or bank_of_china. // TODO: enum values: ["affin_bank", "agrobank", "alliance_bank", "ambank", "bank_islam", "bank_muamalat", "bank_of_china", "bank_rakyat", "bsn", "cimb", "deutsche_bank", "hong_leong_bank", "hsbc", "kfh", "maybank2e", "maybank2u", "ocbc", "pb_enterprise", "public_bank", "rhb", "standard_chartered", "uob"]
     pub bank: String,
@@ -14252,7 +14253,7 @@ pub struct PaymentMethodDetailsFpx {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordGiropay {
     /// Bank code of bank associated with the bank account.
     #[serde(default)]
@@ -14268,14 +14269,14 @@ pub struct PaymentMethodDetailsPaymentRecordGiropay {
     pub verified_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsGrabpay {
     /// Unique transaction id generated by GrabPay
     #[serde(default)]
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordIdeal {
     /// The customer''s bank. Can be one of abn_amro, adyen, asn_bank, bunq, buut, finom, handelsbanken, ing, knab, mollie, moneyou, n26, nn, rabobank, regiobank, revolut, sns_bank, triodos_bank, van_lanschot, or yoursafe. // TODO: enum values: ["abn_amro", "adyen", "asn_bank", "bunq", "buut", "finom", "handelsbanken", "ing", "knab", "mollie", "moneyou", "n26", "nn", "rabobank", "regiobank", "revolut", "sns_bank", "triodos_bank", "van_lanschot", "yoursafe"]
     #[serde(default)]
@@ -14300,7 +14301,7 @@ pub struct PaymentMethodDetailsPaymentRecordIdeal {
     pub verified_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsInteracPresent {
     /// Card brand. Can be interac, mastercard or visa.
     #[serde(default)]
@@ -14359,7 +14360,7 @@ pub struct PaymentMethodDetailsInteracPresent {
     pub receipt: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordKakaoPay {
     /// A unique identifier for the buyer as determined by the local payment processor.
     #[serde(default)]
@@ -14369,7 +14370,7 @@ pub struct PaymentMethodDetailsPaymentRecordKakaoPay {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsKlarna {
     /// The payer details for this transaction.
     #[serde(default)]
@@ -14382,14 +14383,14 @@ pub struct PaymentMethodDetailsKlarna {
     pub preferred_locale: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordKonbini {
     /// If the payment succeeded, this contains the details of the convenience store where the payment was completed.
     #[serde(default)]
     pub store: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsKrCard {
     /// The local credit or debit card brand. // TODO: enum values: ["bc", "citi", "hana", "hyundai", "jeju", "jeonbuk", "kakaobank", "kbank", "kdbbank", "kookmin", "kwangju", "lotte", "mg", "nh", "post", "samsung", "savingsbank", "shinhan", "shinhyup", "suhyup", "tossbank", "woori"]
     #[serde(default)]
@@ -14405,21 +14406,21 @@ pub struct PaymentMethodDetailsKrCard {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsLink {
     /// Two-letter ISO code representing the funding source country beneath the Link payment.
     #[serde(default)]
     pub country: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordMobilepay {
     /// Internal card details
     #[serde(default)]
     pub card: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordMultibanco {
     /// Entity number associated with this Multibanco payment.
     #[serde(default)]
@@ -14429,7 +14430,7 @@ pub struct PaymentMethodDetailsPaymentRecordMultibanco {
     pub reference: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordNaverPay {
     /// A unique identifier for the buyer as determined by the local payment processor.
     #[serde(default)]
@@ -14439,7 +14440,7 @@ pub struct PaymentMethodDetailsPaymentRecordNaverPay {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsNzBankAccount {
     /// The name on the bank account. Only present if the account holder name is different from the name of the authorized signatory collected in the PaymentMethod’s billing details.
     #[serde(default)]
@@ -14460,14 +14461,14 @@ pub struct PaymentMethodDetailsNzBankAccount {
     pub suffix: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordOxxo {
     /// OXXO reference number
     #[serde(default)]
     pub number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsP24 {
     /// The customer''s bank. Can be one of ing, citi_handlowy, tmobile_usbugi_bankowe, plus_bank, etransfer_pocztowy24, banki_spbdzielcze, bank_nowy_bfg_sa, getin_bank, velobank, blik, noble_pay, ideabank, envelobank, santander_przelew24, nest_przelew, mbank_mtransfer, inteligo, pbac_z_ipko, bnp_paribas, credit_agricole, toyota_bank, bank_pekao_sa, volkswagen_bank, bank_millennium, alior_bank, or boz. // TODO: enum values: ["alior_bank", "bank_millennium", "bank_nowy_bfg_sa", "bank_pekao_sa", "banki_spbdzielcze", "blik", "bnp_paribas", "boz", "citi_handlowy", "credit_agricole", "envelobank", "etransfer_pocztowy24", "getin_bank", "ideabank", "ing", "inteligo", "mbank_mtransfer", "nest_przelew", "noble_pay", "pbac_z_ipko", "plus_bank", "santander_przelew24", "tmobile_usbugi_bankowe", "toyota_bank", "velobank", "volkswagen_bank"]
     #[serde(default)]
@@ -14480,7 +14481,7 @@ pub struct PaymentMethodDetailsP24 {
     pub verified_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordPayco {
     /// A unique identifier for the buyer as determined by the local payment processor.
     #[serde(default)]
@@ -14490,7 +14491,7 @@ pub struct PaymentMethodDetailsPaymentRecordPayco {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordPaynow {
     /// ID of the [location](https://docs.stripe.com/api/terminal/locations) that this transaction''s reader is assigned to.
     #[serde(default)]
@@ -14503,7 +14504,7 @@ pub struct PaymentMethodDetailsPaymentRecordPaynow {
     pub reference: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaypal {
     /// Two-letter ISO code representing the buyer''s country. Values are provided by PayPal directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
@@ -14525,7 +14526,7 @@ pub struct PaymentMethodDetailsPaypal {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPayto {
     /// Bank-State-Branch number of the bank account.
     #[serde(default)]
@@ -14541,21 +14542,21 @@ pub struct PaymentMethodDetailsPayto {
     pub pay_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordPix {
     /// Unique transaction id generated by BCB
     #[serde(default)]
     pub bank_transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordPromptpay {
     /// Bill reference generated by PromptPay
     #[serde(default)]
     pub reference: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsRevolutPay {
     #[serde(default)]
     pub funding: ::core::option::Option<RevolutPayUnderlyingPaymentMethodFundingDetails>,
@@ -14564,7 +14565,7 @@ pub struct PaymentMethodDetailsRevolutPay {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordSamsungPay {
     /// A unique identifier for the buyer as determined by the local payment processor.
     #[serde(default)]
@@ -14574,14 +14575,14 @@ pub struct PaymentMethodDetailsPaymentRecordSamsungPay {
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsSatispay {
     /// The Satispay transaction ID associated with this payment.
     #[serde(default)]
     pub transaction_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordSepaDebit {
     /// Bank code of bank associated with the bank account.
     #[serde(default)]
@@ -14606,7 +14607,7 @@ pub struct PaymentMethodDetailsPaymentRecordSepaDebit {
     pub mandate: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordSofort {
     /// Bank code of bank associated with the bank account.
     #[serde(default)]
@@ -14637,7 +14638,7 @@ pub struct PaymentMethodDetailsPaymentRecordSofort {
     pub verified_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordSwish {
     /// Uniquely identifies the payer''s Swish account. You can use this attribute to check whether two Swish transactions were paid for by the same payer
     #[serde(default)]
@@ -14650,14 +14651,14 @@ pub struct PaymentMethodDetailsPaymentRecordSwish {
     pub verified_phone_last4: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsUpi {
     /// Customer''s unique Virtual Payment Address.
     #[serde(default)]
     pub vpa: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordUsBankAccount {
     /// The type of entity that holds the account. This can be either ''individual'' or ''company''. // TODO: enum values: ["company", "individual"]
     #[serde(default)]
@@ -14688,7 +14689,7 @@ pub struct PaymentMethodDetailsPaymentRecordUsBankAccount {
     pub routing_number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordWechatPay {
     /// Uniquely identifies this particular WeChat Pay account. You can use this attribute to check whether two WeChat accounts are the same.
     #[serde(default)]
@@ -14705,7 +14706,7 @@ pub struct PaymentMethodDetailsPaymentRecordWechatPay {
 }
 
 /// A representation of a physical address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourceAddress {
     /// City, district, suburb, town, or village.
     #[serde(default)]
@@ -14727,7 +14728,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourceAddress {
     pub state: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlanTier {
     /// Price for the entire tier.
     #[serde(default)]
@@ -14746,7 +14747,7 @@ pub struct PlanTier {
     pub up_to: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalFlowsFlowAfterCompletion {
     /// Configuration when after_completion.type=hosted_confirmation.
     #[serde(default)]
@@ -14759,7 +14760,7 @@ pub struct PortalFlowsFlowAfterCompletion {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalFlowsSubscriptionUpdateConfirmDiscount {
     /// The ID of the coupon to apply to this subscription update.
     #[serde(default)]
@@ -14769,7 +14770,7 @@ pub struct PortalFlowsSubscriptionUpdateConfirmDiscount {
     pub promotion_code: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalFlowsSubscriptionUpdateConfirmItem {
     /// The ID of the [subscription item](https://docs.stripe.com/api/subscriptions/object#subscription_object-items-data-id) to be updated.
     #[serde(default)]
@@ -14782,7 +14783,7 @@ pub struct PortalFlowsSubscriptionUpdateConfirmItem {
     pub quantity: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductMarketingFeature {
     /// The marketing feature name. Up to 80 characters long.
     #[serde(default)]
@@ -14791,7 +14792,7 @@ pub struct ProductMarketingFeature {
 
 /// A feature represents a monetizable ability or functionality in your system.
 /// Features can be assigned to products, and when those products are purchased, Stripe will create an entitlement to the feature for the purchasing customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntitlementsFeature {
     /// Inactive features cannot be attached to new products and will not be returned from the features list endpoint.
     pub active: bool,
@@ -14809,7 +14810,7 @@ pub struct EntitlementsFeature {
     pub object: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PromotionCodesResourcePromotion {
     /// If promotion type is coupon, the coupon for this promotion.
     #[serde(default)]
@@ -14819,7 +14820,7 @@ pub struct PromotionCodesResourcePromotion {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PromotionCodesResourceRestrictions {
     /// Promotion code restrictions defined in each available currency option. Each key must be a three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html) and a [supported currency](https://stripe.com/docs/currencies).
     #[serde(default)]
@@ -14834,7 +14835,7 @@ pub struct PromotionCodesResourceRestrictions {
     pub minimum_amount_currency: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotesResourceAutomaticTax {
     /// Automatically calculate taxes
     pub enabled: bool,
@@ -14849,7 +14850,7 @@ pub struct QuotesResourceAutomaticTax {
     pub status: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotesResourceComputed {
     /// The definitive totals and line items the customer will be charged on a recurring basis. Takes into account the line items with recurring prices and discounts with duration=forever coupons only. Defaults to null if no inputted line items with recurring prices.
     #[serde(default)]
@@ -14857,7 +14858,7 @@ pub struct QuotesResourceComputed {
     pub upfront: QuotesResourceUpfront,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceSettingQuoteSetting {
     /// Number of days within which a customer must pay invoices generated by this quote. This value will be null for quotes where collection_method=charge_automatically.
     #[serde(default)]
@@ -14865,7 +14866,7 @@ pub struct InvoiceSettingQuoteSetting {
     pub issuer: ConnectAccountReference,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotesResourceStatusTransitions {
     /// The time that the quote was accepted. Measured in seconds since Unix epoch.
     #[serde(default)]
@@ -14878,7 +14879,7 @@ pub struct QuotesResourceStatusTransitions {
     pub finalized_at: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotesResourceSubscriptionDataSubscriptionData {
     pub billing_mode: QuotesResourceSubscriptionDataBillingMode,
     /// The subscription''s description, meant to be displayable to the customer. Use this field to optionally store an explanation of the subscription for rendering in Stripe surfaces and certain local payment methods UIs.
@@ -14896,14 +14897,14 @@ pub struct QuotesResourceSubscriptionDataSubscriptionData {
 }
 
 /// Client device metadata attached to this payment evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationClientDeviceMetadata {
     /// ID for the Radar Session associated with the payment evaluation. A [Radar Session](https://docs.stripe.com/radar/radar-session) is a snapshot of the browser metadata and device details that help Radar make more accurate predictions on your payments.
     pub radar_session: String,
 }
 
 /// Customer details attached to this payment evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationCustomerDetails {
     /// The ID of the customer associated with the payment evaluation.
     #[serde(default)]
@@ -14923,7 +14924,7 @@ pub struct InsightsResourcesPaymentEvaluationCustomerDetails {
 }
 
 /// Event reported for this payment evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationEvent {
     #[serde(default)]
     pub dispute_opened: ::core::option::Option<InsightsResourcesPaymentEvaluationDisputeOpened>,
@@ -14946,7 +14947,7 @@ pub struct InsightsResourcesPaymentEvaluationEvent {
 }
 
 /// Payment details attached to this payment evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationPaymentDetails {
     /// Amount intended to be collected by this payment. A positive integer representing how much to charge in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal) (e.g., 100 cents to charge $1.00 or 100 to charge ¥100, a zero-decimal currency). The minimum amount is $0.50 US or [equivalent in charge currency](https://docs.stripe.com/currencies#minimum-and-maximum-charge-amounts). The amount value supports up to eight digits (e.g., a value of 99999999 for a USD charge of $999,999.99).
     pub amount: i64,
@@ -14970,12 +14971,12 @@ pub struct InsightsResourcesPaymentEvaluationPaymentDetails {
 }
 
 /// Collection of signals for this payment evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationSignals {
     pub fraudulent_payment: InsightsResourcesPaymentEvaluationSignalV2,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetails {
     #[serde(default)]
     pub affirm: ::core::option::Option<serde_json::Value>,
@@ -15052,7 +15053,7 @@ pub struct RefundDestinationDetails {
     pub zip: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundNextAction {
     #[serde(default)]
     pub display_details: ::core::option::Option<RefundNextActionDisplayDetails>,
@@ -15061,7 +15062,7 @@ pub struct RefundNextAction {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FinancialReportingFinanceReportRunRunParameters {
     /// The set of output columns requested for inclusion in the report run.
     #[serde(default)]
@@ -15089,13 +15090,13 @@ pub struct FinancialReportingFinanceReportRunRunParameters {
     pub timezone: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SigmaScheduledQueryRunError {
     /// Information about the run failure.
     pub message: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetails {
     #[serde(default)]
     pub acss_debit: ::core::option::Option<serde_json::Value>,
@@ -15148,7 +15149,7 @@ pub struct SetupAttemptPaymentMethodDetails {
     pub us_bank_account: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionCashappHandleRedirectOrDisplayQrCode {
     /// The URL to the hosted Cash App Pay instructions page, which allows customers to view the QR code, and supports QR code refreshing on expiration.
     pub hosted_instructions_url: String,
@@ -15157,7 +15158,7 @@ pub struct PaymentIntentNextActionCashappHandleRedirectOrDisplayQrCode {
     pub qr_code: PaymentIntentNextActionCashappQrCode,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentNextActionRedirectToUrl {
     /// If the customer does not exit their browser while authenticating, they will be redirected to this specified URL after completion.
     #[serde(default)]
@@ -15167,14 +15168,14 @@ pub struct SetupIntentNextActionRedirectToUrl {
     pub url: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionUpiHandleRedirectOrDisplayQrCode {
     /// The URL to the hosted UPI instructions page, which allows customers to view the QR code.
     pub hosted_instructions_url: String,
     pub qr_code: PaymentIntentNextActionUpiqrCode,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentNextActionVerifyWithMicrodeposits {
     /// The timestamp when the microdeposits are expected to land.
     pub arrival_date: i64,
@@ -15185,7 +15186,7 @@ pub struct SetupIntentNextActionVerifyWithMicrodeposits {
     pub microdeposit_type: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsMandateOptionsAcssDebit {
     /// A URL for custom mandate text
     #[serde(default)]
@@ -15204,21 +15205,21 @@ pub struct SetupIntentPaymentMethodOptionsMandateOptionsAcssDebit {
     pub transaction_type: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsMandateOptionsBacsDebit {
     /// Prefix used to generate the Mandate reference. Must be at most 12 characters long. Must consist of only uppercase letters, numbers, spaces, or the following special characters: ''/'', ''_'', ''-'', ''&'', ''.''. Cannot begin with ''DDIC'' or ''STRIPE''.
     #[serde(default)]
     pub reference_prefix: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsMandateOptionsSepaDebit {
     /// Prefix used to generate the Mandate reference. Must be at most 12 characters long. Must consist of only uppercase letters, numbers, spaces, or the following special characters: ''/'', ''_'', ''-'', ''&'', ''.''. Cannot begin with ''STRIPE''.
     #[serde(default)]
     pub reference_prefix: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsMandateOptionsUpi {
     /// Amount to be charged for future payments.
     #[serde(default)]
@@ -15234,14 +15235,14 @@ pub struct PaymentMethodOptionsMandateOptionsUpi {
     pub end_date: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsUsBankAccountMandateOptions {
     /// Mandate collection method // TODO: enum values: ["paper"]
     #[serde(default)]
     pub collection_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsMandateOptionsPayto {
     /// Amount that will be collected. It is required when amount_type is fixed.
     #[serde(default)]
@@ -15266,7 +15267,7 @@ pub struct SetupIntentPaymentMethodOptionsMandateOptionsPayto {
     pub start_date: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShippingRateFixedAmount {
     /// A non-negative integer in cents representing how much to charge.
     pub amount: i64,
@@ -15277,21 +15278,21 @@ pub struct ShippingRateFixedAmount {
     pub currency_options: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceMandateNotificationAcssDebitData {
     /// The statement descriptor associate with the debit.
     #[serde(default)]
     pub statement_descriptor: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceMandateNotificationBacsDebitData {
     /// Last 4 digits of the account number associated with the debit.
     #[serde(default)]
     pub last4: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceMandateNotificationSepaDebitData {
     /// SEPA creditor ID.
     #[serde(default)]
@@ -15314,7 +15315,7 @@ pub struct SourceMandateNotificationSepaDebitData {
 /// This newer API provides access to our latest features and payment method types.
 ///
 /// Related guides: [Sources API](https://docs.stripe.com/sources) and [Sources & Customers](https://docs.stripe.com/sources/customers).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Source {
     #[serde(default)]
     pub ach_credit_transfer: ::core::option::Option<SourceTypeAchCreditTransfer>,
@@ -15403,7 +15404,7 @@ pub struct Source {
     pub wechat: ::core::option::Option<SourceTypeWechat>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTransactionAchCreditTransferData {
     /// Customer data associated with the transfer.
     #[serde(default)]
@@ -15419,7 +15420,7 @@ pub struct SourceTransactionAchCreditTransferData {
     pub routing_number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTransactionChfCreditTransferData {
     /// Reference associated with the transfer.
     #[serde(default)]
@@ -15438,7 +15439,7 @@ pub struct SourceTransactionChfCreditTransferData {
     pub sender_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTransactionGbpCreditTransferData {
     /// Bank account fingerprint associated with the Stripe owned bank account receiving the transfer.
     #[serde(default)]
@@ -15463,7 +15464,7 @@ pub struct SourceTransactionGbpCreditTransferData {
     pub sender_sort_code: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTransactionPaperCheckData {
     /// Time at which the deposited funds will be available for use. Measured in seconds since the Unix epoch.
     #[serde(default)]
@@ -15473,7 +15474,7 @@ pub struct SourceTransactionPaperCheckData {
     pub invoices: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTransactionSepaCreditTransferData {
     /// Reference associated with the transfer.
     #[serde(default)]
@@ -15486,7 +15487,7 @@ pub struct SourceTransactionSepaCreditTransferData {
     pub sender_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionAutomaticTax {
     /// If Stripe disabled automatic tax, this enum describes why. // TODO: enum values: ["requires_location_inputs"]
     #[serde(default)]
@@ -15498,7 +15499,7 @@ pub struct SubscriptionAutomaticTax {
     pub liability: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionsResourceSubscriptionInvoiceSettings {
     /// The account tax IDs associated with the subscription. Will be set on invoices generated by the subscription.
     #[serde(default)]
@@ -15506,13 +15507,13 @@ pub struct SubscriptionsResourceSubscriptionInvoiceSettings {
     pub issuer: ConnectAccountReference,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionsResourceSubscriptionPresentmentDetails {
     /// Currency used for customer payments.
     pub presentment_currency: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceMandateOptionsCard {
     /// Amount to be charged for future payments, specified in the presentment currency.
     #[serde(default)]
@@ -15526,7 +15527,7 @@ pub struct InvoiceMandateOptionsCard {
 }
 
 /// The billing mode of the subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionsResourceBillingMode {
     /// Configure behavior for flexible billing mode
     #[serde(default)]
@@ -15539,7 +15540,7 @@ pub struct SubscriptionsResourceBillingMode {
     pub updated_at: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionSchedulesResourceDefaultSettings {
     /// A non-negative decimal between 0 and 100, with at most two decimal places. This represents the percentage of the subscription invoice total that will be transferred to the application owner''s Stripe account during this phase of the schedule.
     #[serde(default)]
@@ -15571,7 +15572,7 @@ pub struct SubscriptionSchedulesResourceDefaultSettings {
 }
 
 /// A phase describes the plans, coupon, and trialing status of a subscription for a predefined time period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionSchedulePhaseConfiguration {
     /// A list of prices and quantities that will generate invoice items appended to the next invoice for this phase.
     pub add_invoice_items: ::std::vec::Vec<SubscriptionScheduleAddInvoiceItem>,
@@ -15629,7 +15630,7 @@ pub struct SubscriptionSchedulePhaseConfiguration {
 
 /// Subscription items allow you to create customer subscriptions with more than
 /// one plan, making it easy to represent complex billing relationships.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionItem {
     /// Define thresholds at which an invoice will be sent, and the related subscription advanced to a new billing period
     #[serde(default)]
@@ -15660,20 +15661,20 @@ pub struct SubscriptionItem {
 }
 
 /// Defines how a subscription behaves when a trial ends.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionsResourceTrialSettingsEndBehavior {
     /// Indicates how the subscription should change when the trial ends if the user did not provide a payment method. // TODO: enum values: ["cancel", "create_invoice", "pause"]
     pub missing_payment_method: String,
 }
 
 /// Defines how a subscription behaves when a free trial ends.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionsTrialsResourceEndBehavior {
     /// Indicates how the subscription should change when the trial ends if the user did not provide a payment method. // TODO: enum values: ["cancel", "create_invoice", "pause"]
     pub missing_payment_method: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxAssociationTransactionAttempts {
     #[serde(default)]
     pub committed: ::core::option::Option<
@@ -15688,7 +15689,7 @@ pub struct TaxProductResourceTaxAssociationTransactionAttempts {
     pub status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxBreakdown {
     /// The amount of tax, in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units).
     pub amount: i64,
@@ -15701,7 +15702,7 @@ pub struct TaxProductResourceTaxBreakdown {
     pub taxable_amount: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptions {
     #[serde(default)]
     pub ae:
@@ -15915,7 +15916,7 @@ pub struct TaxProductRegistrationsResourceCountryOptions {
     pub zw: ::core::option::Option<TaxProductRegistrationsResourceCountryOptionsDefault>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxSettingsDefaults {
     /// The tax calculation provider this account uses. Defaults to stripe when not using a [third-party provider](/tax/third-party-apps). // TODO: enum values: ["anrok", "avalara", "sphere", "stripe"]
     pub provider: String,
@@ -15927,7 +15928,7 @@ pub struct TaxProductResourceTaxSettingsDefaults {
     pub tax_code: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxSettingsStatusDetails {
     #[serde(default)]
     pub active: ::core::option::Option<serde_json::Value>,
@@ -15935,7 +15936,7 @@ pub struct TaxProductResourceTaxSettingsStatusDetails {
     pub pending: ::core::option::Option<TaxProductResourceTaxSettingsStatusDetailsResourcePending>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceCustomerDetails {
     /// The customer''s postal address (for example, home or business location).
     #[serde(default)]
@@ -15952,7 +15953,7 @@ pub struct TaxProductResourceCustomerDetails {
     pub taxability_override: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourcePostalAddress {
     /// City, district, suburb, town, or village.
     #[serde(default)]
@@ -15973,7 +15974,7 @@ pub struct TaxProductResourcePostalAddress {
     pub state: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceLineItemTaxBreakdown {
     /// The amount of tax, in the [smallest currency unit](https://docs.stripe.com/currencies#minor-units).
     pub amount: i64,
@@ -15989,27 +15990,27 @@ pub struct TaxProductResourceLineItemTaxBreakdown {
     pub taxable_amount: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalConfigurationConfigurationResourceDeviceTypeSpecificConfig {
     /// A File ID representing an image to display on the reader
     #[serde(default)]
     pub splashscreen: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalConfigurationConfigurationResourceCellularConfig {
     /// Whether a cellular-capable reader can connect to the internet over cellular.
     pub enabled: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalConfigurationConfigurationResourceOfflineConfig {
     /// Determines whether to allow transactions to be collected while reader is offline. Defaults to false.
     #[serde(default)]
     pub enabled: ::core::option::Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalConfigurationConfigurationResourceRebootWindow {
     /// Integer between 0 to 23 that represents the end hour of the reboot time window. The value must be different than the start_hour.
     pub end_hour: i64,
@@ -16017,7 +16018,7 @@ pub struct TerminalConfigurationConfigurationResourceRebootWindow {
     pub start_hour: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalConfigurationConfigurationResourceTipping {
     #[serde(default)]
     pub aed:
@@ -16084,7 +16085,7 @@ pub struct TerminalConfigurationConfigurationResourceTipping {
         ::core::option::Option<TerminalConfigurationConfigurationResourceCurrencySpecificConfig>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalConfigurationConfigurationResourceWifiConfig {
     #[serde(default)]
     pub enterprise_eap_peap:
@@ -16100,7 +16101,7 @@ pub struct TerminalConfigurationConfigurationResourceWifiConfig {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegalEntityJapanAddress {
     /// City/Ward.
     #[serde(default)]
@@ -16126,7 +16127,7 @@ pub struct LegalEntityJapanAddress {
 }
 
 /// Link type options associated with the current onboarding link object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalOnboardingLinkLinkOptions {
     /// The options associated with the Apple Terms and Conditions link type.
     #[serde(default)]
@@ -16134,7 +16135,7 @@ pub struct TerminalOnboardingLinkLinkOptions {
 }
 
 /// Represents a line item to be displayed on the reader
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceLineItem {
     /// The amount of the line item. A positive integer in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
     pub amount: i64,
@@ -16145,7 +16146,7 @@ pub struct TerminalReaderReaderResourceLineItem {
 }
 
 /// Represents a reader action to collect customer inputs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceCollectInputsAction {
     /// List of inputs to be collected.
     pub inputs: ::std::vec::Vec<TerminalReaderReaderResourceInput>,
@@ -16155,7 +16156,7 @@ pub struct TerminalReaderReaderResourceCollectInputsAction {
 }
 
 /// Represents a reader action to collect a payment method
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceCollectPaymentMethodAction {
     #[serde(default)]
     pub collect_config: ::core::option::Option<TerminalReaderReaderResourceCollectConfig>,
@@ -16166,7 +16167,7 @@ pub struct TerminalReaderReaderResourceCollectPaymentMethodAction {
 }
 
 /// Represents a reader action to confirm a payment
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceConfirmPaymentIntentAction {
     #[serde(default)]
     pub confirm_config: ::core::option::Option<TerminalReaderReaderResourceConfirmConfig>,
@@ -16175,7 +16176,7 @@ pub struct TerminalReaderReaderResourceConfirmPaymentIntentAction {
 }
 
 /// Represents a reader action to process a payment intent
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceProcessPaymentIntentAction {
     /// Most recent PaymentIntent processed by the reader.
     pub payment_intent: serde_json::Value,
@@ -16184,7 +16185,7 @@ pub struct TerminalReaderReaderResourceProcessPaymentIntentAction {
 }
 
 /// Represents a reader action to process a setup intent
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceProcessSetupIntentAction {
     /// ID of a card PaymentMethod generated from the card_present PaymentMethod that may be attached to a Customer for future transactions. Only present if it was possible to generate a card PaymentMethod.
     #[serde(default)]
@@ -16196,7 +16197,7 @@ pub struct TerminalReaderReaderResourceProcessSetupIntentAction {
 }
 
 /// Represents a reader action to refund a payment
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceRefundPaymentAction {
     /// The amount being refunded.
     #[serde(default)]
@@ -16228,7 +16229,7 @@ pub struct TerminalReaderReaderResourceRefundPaymentAction {
 }
 
 /// Represents a reader action to set the reader display
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceSetReaderDisplayAction {
     /// Cart object to be displayed by the reader, including line items, amounts, and currency.
     #[serde(default)]
@@ -16238,13 +16239,13 @@ pub struct TerminalReaderReaderResourceSetReaderDisplayAction {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingClocksResourceStatusDetailsStatusDetails {
     #[serde(default)]
     pub advancing: ::core::option::Option<BillingClocksResourceStatusDetailsAdvancingStatusDetails>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThresholdsResourceUsageAlertFilter {
     /// Limit the scope of the alert to this customer ID
     #[serde(default)]
@@ -16261,7 +16262,7 @@ pub struct ThresholdsResourceUsageAlertFilter {
 /// They can be bank accounts or debit cards as well, and are documented in the links above.
 ///
 /// Related guide: [Bank debits and transfers](/payments/bank-debits-transfers)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BankAccount {
     /// The account this bank account belongs to. Only applicable on Accounts (not customers or recipients) This property is only available when returned as an [External Account](/api/external_account_bank_accounts/object) where [controller.is_controller](/api/accounts/object#account_object-controller-is_controller) is true.
     #[serde(default)]
@@ -16321,7 +16322,7 @@ pub struct BankAccount {
 /// transfer to those cards later.
 ///
 /// Related guide: [Card payments with Sources](https://docs.stripe.com/sources/cards)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Card {
     #[serde(default)]
     pub account: ::core::option::Option<serde_json::Value>,
@@ -16413,7 +16414,7 @@ pub struct Card {
 }
 
 /// Balance information for the FinancialAccount
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceBalance {
     /// Funds the user can spend right now.
     pub cash: serde_json::Value,
@@ -16425,7 +16426,7 @@ pub struct TreasuryFinancialAccountsResourceBalance {
 
 /// Encodes whether a FinancialAccount has access to a particular Feature, with a status enum and associated status_details.
 /// Stripe or the platform can control Features via the requested field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountFeatures {
     #[serde(default)]
     pub card_issuing: ::core::option::Option<TreasuryFinancialAccountsResourceToggleSettings>,
@@ -16450,7 +16451,7 @@ pub struct TreasuryFinancialAccountFeatures {
 }
 
 /// FinancialAddresses contain identifying information that resolves to a FinancialAccount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceFinancialAddress {
     #[serde(default)]
     pub aba: ::core::option::Option<TreasuryFinancialAccountsResourceAbaRecord>,
@@ -16462,14 +16463,14 @@ pub struct TreasuryFinancialAccountsResourceFinancialAddress {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceStatusDetails {
     /// Details related to the closure of this FinancialAccount
     #[serde(default)]
     pub closed: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryTransactionsResourceAbstractTransactionResourceStatusTransitions {
     /// Timestamp describing when the Transaction changed status to posted.
     #[serde(default)]
@@ -16480,7 +16481,7 @@ pub struct TreasuryTransactionsResourceAbstractTransactionResourceStatusTransiti
 }
 
 /// Change to a FinancialAccount''s balance
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryTransactionsResourceBalanceImpact {
     /// The change made to funds the user can spend right now.
     pub cash: i64,
@@ -16490,13 +16491,13 @@ pub struct TreasuryTransactionsResourceBalanceImpact {
     pub outbound_pending: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundPaymentsResourceAchTrackingDetails {
     /// ACH trace ID of the OutboundPayment for payments sent over the ach network.
     pub trace_id: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundPaymentsResourceUsDomesticWireTrackingDetails {
     /// CHIPS System Sequence Number (SSN) of the OutboundPayment for payments sent over the us_domestic_wire network.
     #[serde(default)]
@@ -16509,13 +16510,13 @@ pub struct TreasuryOutboundPaymentsResourceUsDomesticWireTrackingDetails {
     pub omad: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundTransfersResourceAchTrackingDetails {
     /// ACH trace ID of the OutboundTransfer for transfers sent over the ach network.
     pub trace_id: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundTransfersResourceUsDomesticWireTrackingDetails {
     /// CHIPS System Sequence Number (SSN) of the OutboundTransfer for transfers sent over the us_domestic_wire network.
     #[serde(default)]
@@ -16536,7 +16537,7 @@ pub struct TreasuryOutboundTransfersResourceUsDomesticWireTrackingDetails {
 /// industry.
 ///
 /// Related guide: [Receiving payouts](https://docs.stripe.com/payouts)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Payout {
     /// The amount (in cents (or local equivalent)) that transfers to your bank account or debit card.
     pub amount: i64,
@@ -16610,7 +16611,7 @@ pub struct Payout {
 }
 
 /// You can reverse some [ReceivedCredits](https://api.stripe.com#received_credits) depending on their network and source flow. Reversing a ReceivedCredit leads to the creation of a new object known as a CreditReversal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryCreditReversal {
     /// Amount (in cents) transferred.
     pub amount: i64,
@@ -16644,7 +16645,7 @@ pub struct TreasuryCreditReversal {
 }
 
 /// You can reverse some [ReceivedDebits](https://api.stripe.com#received_debits) depending on their network and source flow. Reversing a ReceivedDebit leads to the creation of a new object known as a DebitReversal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryDebitReversal {
     /// Amount (in cents) transferred.
     pub amount: i64,
@@ -16684,7 +16685,7 @@ pub struct TreasuryDebitReversal {
 /// Use [InboundTransfers](https://docs.stripe.com/docs/treasury/moving-money/financial-accounts/into/inbound-transfers) to add funds to your [FinancialAccount](https://api.stripe.com#financial_accounts) via a PaymentMethod that is owned by you. The funds will be transferred via an ACH debit.
 ///
 /// Related guide: [Moving money with Treasury using InboundTransfer objects](https://docs.stripe.com/docs/treasury/moving-money/financial-accounts/into/inbound-transfers)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryInboundTransfer {
     /// Amount (in cents) transferred.
     pub amount: i64,
@@ -16739,7 +16740,7 @@ pub struct TreasuryInboundTransfer {
 /// purchase to be completed successfully.
 ///
 /// Related guide: [Issued card authorizations](https://docs.stripe.com/issuing/purchases/authorizations)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorization {
     /// The total amount that was authorized or rejected. This amount is in currency and in the [smallest currency unit](https://stripe.com/docs/currencies#zero-decimal). amount should be the same as merchant_amount, unless currency and merchant_currency are different.
     pub amount: i64,
@@ -16815,7 +16816,7 @@ pub struct IssuingAuthorization {
 /// Simulate OutboundPayment state changes with the /v1/test_helpers/treasury/outbound_payments endpoints. These methods can only be called on test mode objects.
 ///
 /// Related guide: [Moving money with Treasury using OutboundPayment objects](https://docs.stripe.com/docs/treasury/moving-money/financial-accounts/out-of/outbound-payments)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundPayment {
     /// Amount (in cents) transferred.
     pub amount: i64,
@@ -16876,7 +16877,7 @@ pub struct TreasuryOutboundPayment {
 /// Simulate OutboundTransfer state changes with the /v1/test_helpers/treasury/outbound_transfers endpoints. These methods can only be called on test mode objects.
 ///
 /// Related guide: [Moving money with Treasury using OutboundTransfer objects](https://docs.stripe.com/docs/treasury/moving-money/financial-accounts/out-of/outbound-transfers)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundTransfer {
     /// Amount (in cents) transferred.
     pub amount: i64,
@@ -16924,7 +16925,7 @@ pub struct TreasuryOutboundTransfer {
 }
 
 /// ReceivedCredits represent funds sent to a [FinancialAccount](https://api.stripe.com#financial_accounts) (for example, via ACH or wire). These money movements are not initiated from the FinancialAccount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryReceivedCredit {
     /// Amount (in cents) transferred.
     pub amount: i64,
@@ -16965,7 +16966,7 @@ pub struct TreasuryReceivedCredit {
 }
 
 /// ReceivedDebits represent funds pulled from a [FinancialAccount](https://api.stripe.com#financial_accounts). These are not initiated from the FinancialAccount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryReceivedDebit {
     /// Amount (in cents) transferred.
     pub amount: i64,
@@ -17007,7 +17008,7 @@ pub struct TreasuryReceivedDebit {
     pub transaction: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegalEntityRegistrationDate {
     /// The day of registration, between 1 and 31.
     #[serde(default)]
@@ -17020,33 +17021,33 @@ pub struct LegalEntityRegistrationDate {
     pub year: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountUnificationAccountControllerFees {
     /// A value indicating the responsible payer of a bundle of Stripe fees for pricing-control eligible products on this account. Learn more about [fee behavior on connected accounts](https://docs.stripe.com/connect/direct-charges-fee-payer-behavior). // TODO: enum values: ["account", "application", "application_custom", "application_express"]
     pub payer: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountUnificationAccountControllerLosses {
     /// A value indicating who is liable when this account can''t pay back negative balances from payments. // TODO: enum values: ["application", "stripe"]
     pub payments: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountUnificationAccountControllerStripeDashboard {
     /// A value indicating the Stripe dashboard this account has access to independent of the Connect application. // TODO: enum values: ["express", "full", "none"]
     #[serde(rename = "type")]
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersonAdditionalTosAcceptances {
     /// Details on the legal guardian''s acceptance of the main Stripe service agreement.
     #[serde(default)]
     pub account: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegalEntityDob {
     /// The day of birth, between 1 and 31.
     #[serde(default)]
@@ -17059,7 +17060,7 @@ pub struct LegalEntityDob {
     pub year: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersonRelationship {
     /// Whether the person is the authorizer of the account''s representative.
     #[serde(default)]
@@ -17087,7 +17088,7 @@ pub struct PersonRelationship {
     pub title: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegalEntityPersonVerification {
     /// A document showing address, either a passport, local ID card, or utility bill from a well-known utility company.
     #[serde(default)]
@@ -17104,84 +17105,84 @@ pub struct LegalEntityPersonVerification {
     pub status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedAccountConfigClaim {
     /// Whether the embedded component is enabled.
     pub enabled: bool,
     pub features: ConnectEmbeddedAccountFeaturesClaim,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedPayoutsConfig {
     /// Whether the embedded component is enabled.
     pub enabled: bool,
     pub features: ConnectEmbeddedPayoutsFeatures,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedDisputesListConfig {
     /// Whether the embedded component is enabled.
     pub enabled: bool,
     pub features: ConnectEmbeddedDisputesListFeatures,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedBaseConfigClaim {
     /// Whether the embedded component is enabled.
     pub enabled: bool,
     pub features: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedFinancialAccountConfigClaim {
     /// Whether the embedded component is enabled.
     pub enabled: bool,
     pub features: ConnectEmbeddedFinancialAccountFeatures,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedFinancialAccountTransactionsConfigClaim {
     /// Whether the embedded component is enabled.
     pub enabled: bool,
     pub features: ConnectEmbeddedFinancialAccountTransactionsFeatures,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedInstantPayoutsPromotionConfig {
     /// Whether the embedded component is enabled.
     pub enabled: bool,
     pub features: ConnectEmbeddedInstantPayoutsPromotionFeatures,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedIssuingCardConfigClaim {
     /// Whether the embedded component is enabled.
     pub enabled: bool,
     pub features: ConnectEmbeddedIssuingCardFeatures,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedIssuingCardsListConfigClaim {
     /// Whether the embedded component is enabled.
     pub enabled: bool,
     pub features: ConnectEmbeddedIssuingCardsListFeatures,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedPaymentsConfigClaim {
     /// Whether the embedded component is enabled.
     pub enabled: bool,
     pub features: ConnectEmbeddedPaymentsFeatures,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedPaymentDisputesConfig {
     /// Whether the embedded component is enabled.
     pub enabled: bool,
     pub features: ConnectEmbeddedPaymentDisputesFeatures,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CardIssuingAccountTermsOfService {
     /// The Unix timestamp marking when the account representative accepted the service agreement.
     #[serde(default)]
@@ -17194,7 +17195,7 @@ pub struct CardIssuingAccountTermsOfService {
     pub user_agent: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountDeclineChargeOn {
     /// Whether Stripe automatically declines charges with an incorrect ZIP or postal code. This setting only applies when a ZIP or postal code is provided and they fail bank verification.
     pub avs_failure: bool,
@@ -17202,7 +17203,7 @@ pub struct AccountDeclineChargeOn {
     pub cvc_failure: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferSchedule {
     /// The number of days charges for the account will be held before being paid out.
     pub delay_days: i64,
@@ -17222,7 +17223,7 @@ pub struct TransferSchedule {
     pub weekly_payout_days: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountTermsOfService {
     /// The Unix timestamp marking when the account representative accepted the service agreement.
     #[serde(default)]
@@ -17235,7 +17236,7 @@ pub struct AccountTermsOfService {
     pub user_agent: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceNetAvailable {
     /// Net balance amount, subtracting fees from platform-set pricing.
     pub amount: i64,
@@ -17245,7 +17246,7 @@ pub struct BalanceNetAvailable {
     pub source_types: ::core::option::Option<BalanceAmountBySourceType>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceAmount {
     /// Balance amount.
     pub amount: i64,
@@ -17255,7 +17256,7 @@ pub struct BalanceAmount {
     pub source_types: ::core::option::Option<BalanceAmountBySourceType>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceSettingsResourceSettlementTiming {
     /// The number of days charge funds are held before becoming available.
     pub delay_days: i64,
@@ -17264,7 +17265,7 @@ pub struct BalanceSettingsResourceSettlementTiming {
     pub delay_days_override: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingCreditGrantsResourceAmount {
     /// The monetary amount.
     #[serde(default)]
@@ -17274,7 +17275,7 @@ pub struct BillingCreditGrantsResourceAmount {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingCreditGrantsResourceScope {
     /// The price type that credit grants can apply to. We currently only support the metered price type. This refers to prices that have a [Billing Meter](https://docs.stripe.com/api/billing/meter) attached to them. Cannot be used in combination with prices. // TODO: enum values: ["metered"]
     #[serde(default)]
@@ -17284,7 +17285,7 @@ pub struct BillingCreditGrantsResourceScope {
     pub prices: ::core::option::Option<::std::vec::Vec<BillingCreditGrantsResourceApplicablePrice>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalCustomerUpdate {
     /// The types of customer updates that are supported. When empty, customers are not updateable.
     pub allowed_updates: ::std::vec::Vec<String>,
@@ -17292,13 +17293,13 @@ pub struct PortalCustomerUpdate {
     pub enabled: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalInvoiceList {
     /// Whether the feature is enabled.
     pub enabled: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalPaymentMethodUpdate {
     /// Whether the feature is enabled.
     pub enabled: bool,
@@ -17307,7 +17308,7 @@ pub struct PortalPaymentMethodUpdate {
     pub payment_method_configuration: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalSubscriptionCancel {
     pub cancellation_reason: PortalSubscriptionCancellationReason,
     /// Whether the feature is enabled.
@@ -17318,7 +17319,7 @@ pub struct PortalSubscriptionCancel {
     pub proration_behavior: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalSubscriptionUpdate {
     /// Determines the value to use for the billing cycle anchor on subscription updates. Valid values are now or unchanged, and the default value is unchanged. Setting the value to now resets the subscription''s billing cycle anchor to the current time (in UTC). For more information, see the billing cycle [documentation](https://docs.stripe.com/billing/subscriptions/billing-cycle). // TODO: enum values: ["now", "unchanged"]
     #[serde(default)]
@@ -17337,7 +17338,7 @@ pub struct PortalSubscriptionUpdate {
     pub trial_update_behavior: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountRequirementsAlternative {
     /// Fields that can be provided to resolve all fields in original_fields_due.
     pub alternative_fields_due: ::std::vec::Vec<String>,
@@ -17345,7 +17346,7 @@ pub struct AccountRequirementsAlternative {
     pub original_fields_due: ::std::vec::Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountRequirementsError {
     /// The code for the type of error. // TODO: enum values: ["external_request", "information_missing", "invalid_address_city_state_postal_code", "invalid_address_highway_contract_box", "invalid_address_private_mailbox", "invalid_business_profile_name", "invalid_business_profile_name_denylisted", "invalid_company_name_denylisted", "invalid_dob_age_over_maximum", "invalid_dob_age_under_18", "invalid_dob_age_under_minimum", "invalid_product_description_length", "invalid_product_description_url_match", "invalid_representative_country", "invalid_signator", "invalid_statement_descriptor_business_mismatch", "invalid_statement_descriptor_denylisted", "invalid_statement_descriptor_length", "invalid_statement_descriptor_prefix_denylisted", "invalid_statement_descriptor_prefix_mismatch", "invalid_street_address", "invalid_tax_id", "invalid_tax_id_format", "invalid_tos_acceptance", "invalid_url_denylisted", "invalid_url_format", "invalid_url_web_presence_detected", "invalid_url_website_business_information_mismatch", "invalid_url_website_empty", "invalid_url_website_inaccessible", "invalid_url_website_inaccessible_geoblocked", "invalid_url_website_inaccessible_password_protected", "invalid_url_website_incomplete", "invalid_url_website_incomplete_cancellation_policy", "invalid_url_website_incomplete_customer_service_details", "invalid_url_website_incomplete_legal_restrictions", "invalid_url_website_incomplete_refund_policy", "invalid_url_website_incomplete_return_policy", "invalid_url_website_incomplete_terms_and_conditions", "invalid_url_website_incomplete_under_construction", "invalid_url_website_other", "invalid_value_other", "unsupported_business_type", "verification_directors_mismatch", "verification_document_address_mismatch", "verification_document_address_missing", "verification_document_corrupt", "verification_document_country_not_supported", "verification_document_directors_mismatch", "verification_document_dob_mismatch", "verification_document_duplicate_type", "verification_document_expired", "verification_document_failed_copy", "verification_document_failed_greyscale", "verification_document_failed_other", "verification_document_failed_test_mode", "verification_document_fraudulent", "verification_document_id_number_mismatch", "verification_document_id_number_missing", "verification_document_incomplete", "verification_document_invalid", "verification_document_issue_or_expiry_date_missing", "verification_document_manipulated", "verification_document_missing_back", "verification_document_missing_front", "verification_document_name_mismatch", "verification_document_name_missing", "verification_document_nationality_mismatch", "verification_document_not_readable", "verification_document_not_signed", "verification_document_not_uploaded", "verification_document_photo_mismatch", "verification_document_too_large", "verification_document_type_not_supported", "verification_extraneous_directors", "verification_failed_address_match", "verification_failed_authorizer_authority", "verification_failed_business_iec_number", "verification_failed_document_match", "verification_failed_id_number_match", "verification_failed_keyed_identity", "verification_failed_keyed_match", "verification_failed_name_match", "verification_failed_other", "verification_failed_representative_authority", "verification_failed_residential_address", "verification_failed_tax_id_match", "verification_failed_tax_id_not_issued", "verification_legal_entity_structure_mismatch", "verification_missing_directors", "verification_missing_executives", "verification_missing_owners", "verification_rejected_ownership_exemption_reason", "verification_requires_additional_memorandum_of_associations", "verification_requires_additional_proof_of_registration", "verification_supportability"]
     pub code: String,
@@ -17355,7 +17356,7 @@ pub struct AccountRequirementsError {
     pub requirement: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionCustomFieldsDropdown {
     /// The value that pre-fills on the payment page.
     #[serde(default)]
@@ -17367,7 +17368,7 @@ pub struct PaymentPagesCheckoutSessionCustomFieldsDropdown {
     pub value: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionCustomFieldsLabel {
     /// Custom text for the label, displayed to the customer. Up to 50 characters.
     #[serde(default)]
@@ -17377,7 +17378,7 @@ pub struct PaymentPagesCheckoutSessionCustomFieldsLabel {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionCustomFieldsNumeric {
     /// The value that pre-fills the field on the payment page.
     #[serde(default)]
@@ -17393,7 +17394,7 @@ pub struct PaymentPagesCheckoutSessionCustomFieldsNumeric {
     pub value: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionCustomFieldsText {
     /// The value that pre-fills the field on the payment page.
     #[serde(default)]
@@ -17409,7 +17410,7 @@ pub struct PaymentPagesCheckoutSessionCustomFieldsText {
     pub value: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionBusinessName {
     /// Indicates whether business name collection is enabled for the session
     pub enabled: bool,
@@ -17417,7 +17418,7 @@ pub struct PaymentPagesCheckoutSessionBusinessName {
     pub optional: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionIndividualName {
     /// Indicates whether individual name collection is enabled for the session
     pub enabled: bool,
@@ -17425,7 +17426,7 @@ pub struct PaymentPagesCheckoutSessionIndividualName {
     pub optional: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutAcssDebitMandateOptions {
     /// A URL for custom mandate text
     #[serde(default)]
@@ -17444,28 +17445,28 @@ pub struct CheckoutAcssDebitMandateOptions {
     pub transaction_type: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutPaymentMethodOptionsMandateOptionsBacsDebit {
     /// Prefix used to generate the Mandate reference. Must be at most 12 characters long. Must consist of only uppercase letters, numbers, spaces, or the following special characters: ''/'', ''_'', ''-'', ''&'', ''.''. Cannot begin with ''DDIC'' or ''STRIPE''.
     #[serde(default)]
     pub reference_prefix: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutCardInstallmentsOptions {
     /// Indicates if installments are enabled
     #[serde(default)]
     pub enabled: ::core::option::Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesPrivateCardPaymentMethodOptionsResourceRestrictions {
     /// Specify the card brands to block in the Checkout Session. If a customer enters or selects a card belonging to a blocked brand, they can''t complete the Session.
     #[serde(default)]
     pub brands_blocked: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutCustomerBalanceBankTransferPaymentMethodOptions {
     #[serde(default)]
     pub eu_bank_transfer: ::core::option::Option<PaymentMethodOptionsCustomerBalanceEuBankAccount>,
@@ -17477,7 +17478,7 @@ pub struct CheckoutCustomerBalanceBankTransferPaymentMethodOptions {
     pub type_: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateOptionsPayto {
     /// Amount that will be collected. It is required when amount_type is fixed.
     #[serde(default)]
@@ -17502,14 +17503,14 @@ pub struct MandateOptionsPayto {
     pub start_date: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutPaymentMethodOptionsMandateOptionsSepaDebit {
     /// Prefix used to generate the Mandate reference. Must be at most 12 characters long. Must consist of only uppercase letters, numbers, spaces, or the following special characters: ''/'', ''_'', ''-'', ''&'', ''.''. Cannot begin with ''STRIPE''.
     #[serde(default)]
     pub reference_prefix: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateOptionsUpi {
     /// Amount to be charged for future payments.
     #[serde(default)]
@@ -17525,7 +17526,7 @@ pub struct MandateOptionsUpi {
     pub end_date: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkedAccountOptionsCommon {
     #[serde(default)]
     pub filters: ::core::option::Option<
@@ -17543,7 +17544,7 @@ pub struct LinkedAccountOptionsCommon {
 }
 
 /// A supplier of carbon removal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClimateSupplier {
     /// Unique identifier for the object.
     pub id: String,
@@ -17561,7 +17562,7 @@ pub struct ClimateSupplier {
     pub removal_pathway: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CountrySpecVerificationFieldDetails {
     /// Additional fields which are only required for some users.
     pub additional: ::std::vec::Vec<String>,
@@ -17569,7 +17570,7 @@ pub struct CountrySpecVerificationFieldDetails {
     pub minimum: ::std::vec::Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceResourceCashBalanceTransactionResourceFundedTransactionResourceBankTransfer {
     #[serde(default)]
     pub eu_bank_transfer: ::core::option::Option<CustomerBalanceResourceCashBalanceTransactionResourceFundedTransactionResourceBankTransferResourceEuBankTransfer>,
@@ -17588,14 +17589,14 @@ pub struct CustomerBalanceResourceCashBalanceTransactionResourceFundedTransactio
 }
 
 /// This hash contains whether the buy button is enabled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSessionResourceComponentsResourceBuyButton {
     /// Whether the buy button is enabled.
     pub enabled: bool,
 }
 
 /// This hash contains whether the customer sheet is enabled and the features it supports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSessionResourceComponentsResourceCustomerSheet {
     /// Whether the customer sheet is enabled.
     pub enabled: bool,
@@ -17605,7 +17606,7 @@ pub struct CustomerSessionResourceComponentsResourceCustomerSheet {
 }
 
 /// This hash contains whether the mobile payment element is enabled and the features it supports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSessionResourceComponentsResourceMobilePaymentElement {
     /// Whether the mobile payment element is enabled.
     pub enabled: bool,
@@ -17615,7 +17616,7 @@ pub struct CustomerSessionResourceComponentsResourceMobilePaymentElement {
 }
 
 /// This hash contains whether the Payment Element is enabled and the features it supports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSessionResourceComponentsResourcePaymentElement {
     /// Whether the Payment Element is enabled.
     pub enabled: bool,
@@ -17625,13 +17626,13 @@ pub struct CustomerSessionResourceComponentsResourcePaymentElement {
 }
 
 /// This hash contains whether the pricing table is enabled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSessionResourceComponentsResourcePricingTable {
     /// Whether the pricing table is enabled.
     pub enabled: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputeEnhancedEvidence {
     #[serde(default)]
     pub visa_compelling_evidence_3:
@@ -17640,7 +17641,7 @@ pub struct DisputeEnhancedEvidence {
     pub visa_compliance: ::core::option::Option<DisputeEnhancedEvidenceVisaCompliance>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputeEnhancedEligibility {
     #[serde(default)]
     pub visa_compelling_evidence_3:
@@ -17649,14 +17650,14 @@ pub struct DisputeEnhancedEligibility {
     pub visa_compliance: ::core::option::Option<DisputeEnhancedEligibilityVisaCompliance>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputePaymentMethodDetailsAmazonPay {
     /// The AmazonPay dispute type, chargeback or claim // TODO: enum values: ["chargeback", "claim"]
     #[serde(default)]
     pub dispute_type: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputePaymentMethodDetailsCard {
     /// Card brand. Can be amex, cartes_bancaires, diners, discover, eftpos_au, jcb, link, mastercard, unionpay, visa or unknown.
     pub brand: String,
@@ -17667,7 +17668,7 @@ pub struct DisputePaymentMethodDetailsCard {
     pub network_reason_code: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputePaymentMethodDetailsKlarna {
     /// Chargeback loss reason mapped by Stripe from Klarna''s chargeback loss reason
     #[serde(default)]
@@ -17677,7 +17678,7 @@ pub struct DisputePaymentMethodDetailsKlarna {
     pub reason_code: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputePaymentMethodDetailsPaypal {
     /// The ID of the dispute in PayPal.
     #[serde(default)]
@@ -17698,7 +17699,7 @@ pub struct DisputePaymentMethodDetailsPaypal {
 /// authentication flows and ultimately creates at most one successful charge.
 ///
 /// Related guide: [Payment Intents API](https://docs.stripe.com/payments/payment-intents)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntent {
     /// Amount intended to be collected by this PaymentIntent. A positive integer representing how much to charge in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal) (e.g., 100 cents to charge $1.00 or 100 to charge ¥100, a zero-decimal currency). The minimum amount is $0.50 US or [equivalent in charge currency](https://docs.stripe.com/currencies#minimum-and-maximum-charge-amounts). The amount value supports up to eight digits (e.g., a value of 99999999 for a USD charge of $999,999.99).
     #[serde(default)]
@@ -17843,7 +17844,7 @@ pub struct PaymentIntent {
 /// By using SetupIntents, you can reduce friction for your customers, even as regulations change over time.
 ///
 /// Related guide: [Setup Intents API](https://docs.stripe.com/payments/setup-intents)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntent {
     /// ID of the Connect application that created the SetupIntent.
     #[serde(default)]
@@ -17921,7 +17922,7 @@ pub struct SetupIntent {
     pub usage: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoReportDocumentOptions {
     /// Array of strings of allowed identity document types. If the provided identity document isn’t one of the allowed types, the verification check will fail with a document_type_not_allowed error code.
     #[serde(default)]
@@ -17938,7 +17939,7 @@ pub struct GelatoReportDocumentOptions {
 }
 
 /// Details of an rejected card outcome attached to this payment evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationRejectedCard {
     /// Result of the address line 1 check. // TODO: enum values: ["fail", "pass", "unavailable", "unchecked"]
     pub address_line1_check: String,
@@ -17951,7 +17952,7 @@ pub struct InsightsResourcesPaymentEvaluationRejectedCard {
 }
 
 /// Details of an succeeded card outcome attached to this payment evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationSucceededCard {
     /// Result of the address line 1 check. // TODO: enum values: ["fail", "pass", "unavailable", "unchecked"]
     pub address_line1_check: String,
@@ -17961,7 +17962,7 @@ pub struct InsightsResourcesPaymentEvaluationSucceededCard {
     pub cvc_check: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceItemThresholdReason {
     /// The IDs of the line items that triggered the threshold invoice.
     pub line_item_ids: ::std::vec::Vec<String>,
@@ -17969,20 +17970,20 @@ pub struct InvoiceItemThresholdReason {
     pub usage_gte: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePaymentMethodOptionsCustomerBalanceBankTransferEuBankTransfer {
     /// The desired country code of the bank account information. Permitted values include: DE, FR, IE, or NL. // TODO: enum values: ["BE", "DE", "ES", "FR", "IE", "NL"]
     pub country: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePaymentMethodOptionsUsBankAccountLinkedAccountOptionsFilters {
     /// The account subcategories to use to filter for possible accounts to link. Valid subcategories are checking and savings.
     #[serde(default)]
     pub account_subcategories: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiscountsResourceDiscountAmount {
     /// The amount, in cents (or local equivalent), of the discount.
     pub amount: i64,
@@ -17990,7 +17991,7 @@ pub struct DiscountsResourceDiscountAmount {
     pub discount: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeCanceledEvidence {
     /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Additional documentation supporting the dispute.
     #[serde(default)]
@@ -18024,7 +18025,7 @@ pub struct IssuingDisputeCanceledEvidence {
     pub returned_at: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeDuplicateEvidence {
     /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Additional documentation supporting the dispute.
     #[serde(default)]
@@ -18046,7 +18047,7 @@ pub struct IssuingDisputeDuplicateEvidence {
     pub original_transaction: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeFraudulentEvidence {
     /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Additional documentation supporting the dispute.
     #[serde(default)]
@@ -18056,7 +18057,7 @@ pub struct IssuingDisputeFraudulentEvidence {
     pub explanation: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeMerchandiseNotAsDescribedEvidence {
     /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Additional documentation supporting the dispute.
     #[serde(default)]
@@ -18078,7 +18079,7 @@ pub struct IssuingDisputeMerchandiseNotAsDescribedEvidence {
     pub returned_at: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeNoValidAuthorizationEvidence {
     /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Additional documentation supporting the dispute.
     #[serde(default)]
@@ -18088,7 +18089,7 @@ pub struct IssuingDisputeNoValidAuthorizationEvidence {
     pub explanation: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeNotReceivedEvidence {
     /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Additional documentation supporting the dispute.
     #[serde(default)]
@@ -18107,7 +18108,7 @@ pub struct IssuingDisputeNotReceivedEvidence {
     pub product_type: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeOtherEvidence {
     /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Additional documentation supporting the dispute.
     #[serde(default)]
@@ -18123,7 +18124,7 @@ pub struct IssuingDisputeOtherEvidence {
     pub product_type: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingDisputeServiceNotAsDescribedEvidence {
     /// (ID of a [file upload](https://stripe.com/docs/guides/file-upload)) Additional documentation supporting the dispute.
     #[serde(default)]
@@ -18142,7 +18143,7 @@ pub struct IssuingDisputeServiceNotAsDescribedEvidence {
     pub received_at: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingNetworkTokenDevice {
     /// An obfuscated ID derived from the device ID.
     #[serde(default)]
@@ -18164,7 +18165,7 @@ pub struct IssuingNetworkTokenDevice {
     pub type_: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingNetworkTokenMastercard {
     /// A unique reference ID from MasterCard to represent the card account number.
     #[serde(default)]
@@ -18178,7 +18179,7 @@ pub struct IssuingNetworkTokenMastercard {
     pub token_requestor_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingNetworkTokenVisa {
     /// A unique reference ID from Visa to represent the card account number.
     #[serde(default)]
@@ -18192,7 +18193,7 @@ pub struct IssuingNetworkTokenVisa {
     pub token_risk_score: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingNetworkTokenWalletProvider {
     /// The wallet provider-given account ID of the digital wallet the token belongs to.
     #[serde(default)]
@@ -18225,7 +18226,7 @@ pub struct IssuingNetworkTokenWalletProvider {
     pub suggested_decision_version: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OnlineAcceptance {
     /// The customer accepts the mandate from this IP address.
     #[serde(default)]
@@ -18235,7 +18236,7 @@ pub struct OnlineAcceptance {
     pub user_agent: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateAcssDebit {
     /// List of Stripe products where this mandate can be selected automatically.
     #[serde(default)]
@@ -18249,13 +18250,13 @@ pub struct MandateAcssDebit {
     pub transaction_type: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateAuBecsDebit {
     /// The URL of the mandate. This URL generally contains sensitive information about the customer and should be shared with them exclusively.
     pub url: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateBacsDebit {
     /// The display name for the account on this mandate.
     #[serde(default)]
@@ -18274,7 +18275,7 @@ pub struct MandateBacsDebit {
     pub url: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandatePaypal {
     /// The PayPal Billing Agreement ID (BAID). This is an ID generated by PayPal which represents the mandate between the merchant and the customer.
     #[serde(default)]
@@ -18284,7 +18285,7 @@ pub struct MandatePaypal {
     pub payer_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandatePayto {
     /// Amount that will be collected. It is required when amount_type is fixed.
     #[serde(default)]
@@ -18307,7 +18308,7 @@ pub struct MandatePayto {
     pub start_date: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateSepaDebit {
     /// The unique reference of the mandate.
     pub reference: String,
@@ -18315,7 +18316,7 @@ pub struct MandateSepaDebit {
     pub url: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateUpi {
     /// Amount to be charged for future payments.
     #[serde(default)]
@@ -18331,7 +18332,7 @@ pub struct MandateUpi {
     pub end_date: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandateUsBankAccount {
     /// Mandate collection method // TODO: enum values: ["paper"]
     #[serde(default)]
@@ -18339,7 +18340,7 @@ pub struct MandateUsBankAccount {
 }
 
 /// FinancialAddresses contain identifying information that resolves to a FinancialAccount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FundingInstructionsBankTransferFinancialAddress {
     #[serde(default)]
     pub aba: ::core::option::Option<FundingInstructionsBankTransferAbaRecord>,
@@ -18361,7 +18362,7 @@ pub struct FundingInstructionsBankTransferFinancialAddress {
     pub zengin: ::core::option::Option<FundingInstructionsBankTransferZenginRecord>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionKonbiniStores {
     /// FamilyMart instruction details.
     #[serde(default)]
@@ -18377,7 +18378,7 @@ pub struct PaymentIntentNextActionKonbiniStores {
     pub seicomart: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionSwishQrCode {
     /// The raw data string used to generate QR code, it should be used together with QR code library.
     pub data: String,
@@ -18387,7 +18388,7 @@ pub struct PaymentIntentNextActionSwishQrCode {
     pub image_url_svg: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentProcessingCustomerNotification {
     /// Whether customer approval has been requested for this payment. For payments greater than INR 15000 or mandate amount, the customer must provide explicit approval of the payment with their bank.
     #[serde(default)]
@@ -18397,7 +18398,7 @@ pub struct PaymentIntentProcessingCustomerNotification {
     pub completes_at: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardInstallmentsPlan {
     /// For fixed_count installment plans, this is the number of installment payments your customer will make to their credit card.
     #[serde(default)]
@@ -18410,20 +18411,20 @@ pub struct PaymentMethodDetailsCardInstallmentsPlan {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceCompletionBehaviorConfirmationPage {
     /// The custom message that is displayed to the customer after the purchase is complete.
     #[serde(default)]
     pub custom_message: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceCompletionBehaviorRedirect {
     /// The URL the customer will be redirected to after the purchase is complete.
     pub url: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceCustomFieldsDropdown {
     /// The value that pre-fills on the payment page.
     #[serde(default)]
@@ -18432,7 +18433,7 @@ pub struct PaymentLinksResourceCustomFieldsDropdown {
     pub options: ::std::vec::Vec<PaymentLinksResourceCustomFieldsDropdownOption>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceCustomFieldsLabel {
     /// Custom text for the label, displayed to the customer. Up to 50 characters.
     #[serde(default)]
@@ -18442,7 +18443,7 @@ pub struct PaymentLinksResourceCustomFieldsLabel {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceCustomFieldsNumeric {
     /// The value that pre-fills the field on the payment page.
     #[serde(default)]
@@ -18455,7 +18456,7 @@ pub struct PaymentLinksResourceCustomFieldsNumeric {
     pub minimum_length: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceCustomFieldsText {
     /// The value that pre-fills the field on the payment page.
     #[serde(default)]
@@ -18468,7 +18469,7 @@ pub struct PaymentLinksResourceCustomFieldsText {
     pub minimum_length: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceBusinessName {
     /// Indicates whether business name collection is enabled for the payment link.
     pub enabled: bool,
@@ -18476,7 +18477,7 @@ pub struct PaymentLinksResourceBusinessName {
     pub optional: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceIndividualName {
     /// Indicates whether individual name collection is enabled for the payment link.
     pub enabled: bool,
@@ -18484,7 +18485,7 @@ pub struct PaymentLinksResourceIndividualName {
     pub optional: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodConfigResourceDisplayPreference {
     /// For child configs, whether or not the account''s preference will be observed. If false, the parent configuration''s default is used.
     #[serde(default)]
@@ -18495,27 +18496,27 @@ pub struct PaymentMethodConfigResourceDisplayPreference {
     pub value: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsCardDetailsApiResourceEnterpriseFeaturesExtendedAuthorizationExtendedAuthorization
 {
     /// Indicates whether or not the capture window is extended beyond the standard authorization. // TODO: enum values: ["disabled", "enabled"]
     pub status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsCardDetailsApiResourceEnterpriseFeaturesIncrementalAuthorizationIncrementalAuthorization
 {
     /// Indicates whether or not the incremental authorization feature is supported. // TODO: enum values: ["available", "unavailable"]
     pub status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsCardDetailsApiResourceMulticapture {
     /// Indicates whether or not multiple captures are supported. // TODO: enum values: ["available", "unavailable"]
     pub status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsCardDetailsApiResourceEnterpriseFeaturesOvercaptureOvercapture
 {
     /// The maximum amount that can be captured.
@@ -18525,13 +18526,13 @@ pub struct PaymentFlowsPrivatePaymentMethodsCardDetailsApiResourceEnterpriseFeat
 }
 
 /// Contains additional details about the status of a payment method for a specific payment method domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDomainResourcePaymentMethodStatusDetails {
     /// The error message associated with the status of the payment method on the domain.
     pub error_message: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceSettingCustomField {
     /// The name of the custom field.
     pub name: String,
@@ -18542,20 +18543,20 @@ pub struct InvoiceSettingCustomField {
 /// Custom processors represent payment processors not modeled directly in
 /// the Stripe API. This resource consists of details about the custom processor
 /// used for this payment attempt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourceProcessorDetailsResourceCustomDetails {
     /// An opaque string for manual reconciliation of this payment, for example a check number or a payment processor ID.
     #[serde(default)]
     pub payment_reference: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlmaInstallments {
     /// The number of installments.
     pub count: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AmazonPayUnderlyingPaymentMethodFundingDetails {
     #[serde(default)]
     pub card: ::core::option::Option<PaymentMethodDetailsPassthroughCard>,
@@ -18564,7 +18565,7 @@ pub struct AmazonPayUnderlyingPaymentMethodFundingDetails {
     pub type_: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevolutPayUnderlyingPaymentMethodFundingDetails {
     #[serde(default)]
     pub card: ::core::option::Option<PaymentMethodDetailsPassthroughCard>,
@@ -18573,7 +18574,7 @@ pub struct RevolutPayUnderlyingPaymentMethodFundingDetails {
     pub type_: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotesResourceUpfront {
     /// Total before any discounts or taxes are applied.
     pub amount_subtotal: i64,
@@ -18586,7 +18587,7 @@ pub struct QuotesResourceUpfront {
 }
 
 /// The billing mode of the quote.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotesResourceSubscriptionDataBillingMode {
     #[serde(default)]
     pub flexible: ::core::option::Option<SubscriptionsResourceBillingModeFlexible>,
@@ -18596,7 +18597,7 @@ pub struct QuotesResourceSubscriptionDataBillingMode {
 }
 
 /// Dispute opened event details attached to this payment evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationDisputeOpened {
     /// Amount to dispute for this payment. A positive integer representing how much to charge in [the smallest currency unit](https://docs.stripe.com/currencies#zero-decimal) (for example, 100 cents to charge 1.00 USD or 100 to charge 100 Yen, a zero-decimal currency).
     pub amount: i64,
@@ -18607,14 +18608,14 @@ pub struct InsightsResourcesPaymentEvaluationDisputeOpened {
 }
 
 /// Early Fraud Warning Received event details attached to this payment evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationEarlyFraudWarningReceived {
     /// The type of fraud labeled by the issuer. // TODO: enum values: ["made_with_lost_card", "made_with_stolen_card", "other", "unauthorized_use_of_card"]
     pub fraud_type: String,
 }
 
 /// Refunded Event details attached to this payment evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationRefunded {
     /// Amount refunded for this payment. A positive integer representing how much to charge in [the smallest currency unit](https://docs.stripe.com/currencies#zero-decimal) (for example, 100 cents to charge 1.00 USD or 100 to charge 100 Yen, a zero-decimal currency).
     pub amount: i64,
@@ -18625,7 +18626,7 @@ pub struct InsightsResourcesPaymentEvaluationRefunded {
 }
 
 /// User intervention raised event details attached to this payment evaluation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationUserInterventionRaised {
     #[serde(default)]
     pub custom:
@@ -18638,7 +18639,7 @@ pub struct InsightsResourcesPaymentEvaluationUserInterventionRaised {
 }
 
 /// User Intervention Resolved Event details attached to this payment evaluation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationUserInterventionResolved {
     /// Unique ID of this intervention. Use this to provide the result.
     pub key: String,
@@ -18648,7 +18649,7 @@ pub struct InsightsResourcesPaymentEvaluationUserInterventionResolved {
 }
 
 /// A payment evaluation signal with evaluated_at, risk_level, and score fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationSignalV2 {
     /// The time when this signal was evaluated.
     pub evaluated_at: i64,
@@ -18658,7 +18659,7 @@ pub struct InsightsResourcesPaymentEvaluationSignalV2 {
     pub score: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetailsBlik {
     /// For refunds declined by the network, a decline code provided by the network which indicates the reason the refund failed.
     #[serde(default)]
@@ -18671,7 +18672,7 @@ pub struct RefundDestinationDetailsBlik {
     pub reference_status: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetailsBrBankTransfer {
     /// The reference assigned to the refund.
     #[serde(default)]
@@ -18681,7 +18682,7 @@ pub struct RefundDestinationDetailsBrBankTransfer {
     pub reference_status: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetailsCard {
     /// Value of the reference number assigned to the refund.
     #[serde(default)]
@@ -18697,14 +18698,14 @@ pub struct RefundDestinationDetailsCard {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetailsCrypto {
     /// The transaction hash of the refund.
     #[serde(default)]
     pub reference: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetailsEuBankTransfer {
     /// The reference assigned to the refund.
     #[serde(default)]
@@ -18714,7 +18715,7 @@ pub struct RefundDestinationDetailsEuBankTransfer {
     pub reference_status: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetailsGbBankTransfer {
     /// The reference assigned to the refund.
     #[serde(default)]
@@ -18724,7 +18725,7 @@ pub struct RefundDestinationDetailsGbBankTransfer {
     pub reference_status: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetailsJpBankTransfer {
     /// The reference assigned to the refund.
     #[serde(default)]
@@ -18734,7 +18735,7 @@ pub struct RefundDestinationDetailsJpBankTransfer {
     pub reference_status: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetailsMbWay {
     /// The reference assigned to the refund.
     #[serde(default)]
@@ -18744,7 +18745,7 @@ pub struct RefundDestinationDetailsMbWay {
     pub reference_status: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetailsMultibanco {
     /// The reference assigned to the refund.
     #[serde(default)]
@@ -18754,7 +18755,7 @@ pub struct RefundDestinationDetailsMultibanco {
     pub reference_status: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetailsMxBankTransfer {
     /// The reference assigned to the refund.
     #[serde(default)]
@@ -18764,7 +18765,7 @@ pub struct RefundDestinationDetailsMxBankTransfer {
     pub reference_status: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetailsP24 {
     /// The reference assigned to the refund.
     #[serde(default)]
@@ -18774,14 +18775,14 @@ pub struct RefundDestinationDetailsP24 {
     pub reference_status: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetailsPaypal {
     /// For refunds declined by the network, a decline code provided by the network which indicates the reason the refund failed.
     #[serde(default)]
     pub network_decline_code: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetailsSwish {
     /// For refunds declined by the network, a decline code provided by the network which indicates the reason the refund failed.
     #[serde(default)]
@@ -18794,7 +18795,7 @@ pub struct RefundDestinationDetailsSwish {
     pub reference_status: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetailsThBankTransfer {
     /// The reference assigned to the refund.
     #[serde(default)]
@@ -18804,7 +18805,7 @@ pub struct RefundDestinationDetailsThBankTransfer {
     pub reference_status: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetailsUsBankTransfer {
     /// The reference assigned to the refund.
     #[serde(default)]
@@ -18814,14 +18815,14 @@ pub struct RefundDestinationDetailsUsBankTransfer {
     pub reference_status: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundNextActionDisplayDetails {
     pub email_sent: EmailSent,
     /// The expiry timestamp.
     pub expires_at: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsBancontact {
     /// Bank code of bank associated with the bank account.
     #[serde(default)]
@@ -18849,7 +18850,7 @@ pub struct SetupAttemptPaymentMethodDetailsBancontact {
     pub verified_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsCard {
     /// Card brand. Can be amex, cartes_bancaires, diners, discover, eftpos_au, jcb, link, mastercard, unionpay, visa or unknown.
     #[serde(default)]
@@ -18886,7 +18887,7 @@ pub struct SetupAttemptPaymentMethodDetailsCard {
     pub wallet: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsCardPresent {
     /// The ID of the Card PaymentMethod which was generated by this SetupAttempt.
     #[serde(default)]
@@ -18896,7 +18897,7 @@ pub struct SetupAttemptPaymentMethodDetailsCardPresent {
     pub offline: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsIdeal {
     /// The customer''s bank. Can be one of abn_amro, adyen, asn_bank, bunq, buut, finom, handelsbanken, ing, knab, mollie, moneyou, n26, nn, rabobank, regiobank, revolut, sns_bank, triodos_bank, van_lanschot, or yoursafe. // TODO: enum values: ["abn_amro", "adyen", "asn_bank", "bunq", "buut", "finom", "handelsbanken", "ing", "knab", "mollie", "moneyou", "n26", "nn", "rabobank", "regiobank", "revolut", "sns_bank", "triodos_bank", "van_lanschot", "yoursafe"]
     #[serde(default)]
@@ -18918,14 +18919,14 @@ pub struct SetupAttemptPaymentMethodDetailsIdeal {
     pub verified_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsNaverPay {
     /// Uniquely identifies this particular Naver Pay account. You can use this attribute to check whether two Naver Pay accounts are the same.
     #[serde(default)]
     pub buyer_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsSofort {
     /// Bank code of bank associated with the bank account.
     #[serde(default)]
@@ -18953,7 +18954,7 @@ pub struct SetupAttemptPaymentMethodDetailsSofort {
     pub verified_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionCashappQrCode {
     /// The date (unix timestamp) when the QR code expires.
     pub expires_at: i64,
@@ -18963,7 +18964,7 @@ pub struct PaymentIntentNextActionCashappQrCode {
     pub image_url_svg: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentIntentNextActionUpiqrCode {
     /// The date (unix timestamp) when the QR code expires.
     pub expires_at: i64,
@@ -18974,7 +18975,7 @@ pub struct PaymentIntentNextActionUpiqrCode {
 }
 
 /// SourceTypeAchCreditTransfer resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeAchCreditTransfer {
     #[serde(default)]
     pub account_number: ::core::option::Option<String>,
@@ -18995,7 +18996,7 @@ pub struct SourceTypeAchCreditTransfer {
 }
 
 /// SourceTypeAchDebit resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeAchDebit {
     #[serde(default)]
     pub bank_name: ::core::option::Option<String>,
@@ -19012,7 +19013,7 @@ pub struct SourceTypeAchDebit {
 }
 
 /// SourceTypeAcssDebit resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeAcssDebit {
     #[serde(default)]
     pub bank_address_city: ::core::option::Option<String>,
@@ -19037,7 +19038,7 @@ pub struct SourceTypeAcssDebit {
 }
 
 /// SourceTypeAlipay resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeAlipay {
     #[serde(default)]
     pub data_string: ::core::option::Option<String>,
@@ -19048,7 +19049,7 @@ pub struct SourceTypeAlipay {
 }
 
 /// SourceTypeAuBecsDebit resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeAuBecsDebit {
     #[serde(default)]
     pub bsb_number: ::core::option::Option<String>,
@@ -19059,7 +19060,7 @@ pub struct SourceTypeAuBecsDebit {
 }
 
 /// SourceTypeBancontact resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeBancontact {
     #[serde(default)]
     pub bank_code: ::core::option::Option<String>,
@@ -19076,7 +19077,7 @@ pub struct SourceTypeBancontact {
 }
 
 /// SourceTypeCard resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeCard {
     #[serde(default)]
     pub address_line1_check: ::core::option::Option<String>,
@@ -19109,7 +19110,7 @@ pub struct SourceTypeCard {
 }
 
 /// SourceTypeCardPresent resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeCardPresent {
     #[serde(default)]
     pub application_cryptogram: ::core::option::Option<String>,
@@ -19159,7 +19160,7 @@ pub struct SourceTypeCardPresent {
     pub transaction_status_information: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceCodeVerificationFlow {
     /// The number of attempts remaining to authenticate the source object with a verification code.
     pub attempts_remaining: i64,
@@ -19168,7 +19169,7 @@ pub struct SourceCodeVerificationFlow {
 }
 
 /// SourceTypeEps resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeEps {
     #[serde(default)]
     pub reference: ::core::option::Option<String>,
@@ -19177,7 +19178,7 @@ pub struct SourceTypeEps {
 }
 
 /// SourceTypeGiropay resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeGiropay {
     #[serde(default)]
     pub bank_code: ::core::option::Option<String>,
@@ -19190,7 +19191,7 @@ pub struct SourceTypeGiropay {
 }
 
 /// SourceTypeIdeal resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeIdeal {
     #[serde(default)]
     pub bank: ::core::option::Option<String>,
@@ -19203,7 +19204,7 @@ pub struct SourceTypeIdeal {
 }
 
 /// SourceTypeKlarna resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeKlarna {
     #[serde(default)]
     pub background_image_url: ::core::option::Option<String>,
@@ -19260,7 +19261,7 @@ pub struct SourceTypeKlarna {
 }
 
 /// SourceTypeMultibanco resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeMultibanco {
     #[serde(default)]
     pub entity: ::core::option::Option<String>,
@@ -19285,13 +19286,13 @@ pub struct SourceTypeMultibanco {
 }
 
 /// SourceTypeP24 resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeP24 {
     #[serde(default)]
     pub reference: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceReceiverFlow {
     /// The address of the receiver source. This is the value that should be communicated to the customer to send their funds to.
     #[serde(default)]
@@ -19308,7 +19309,7 @@ pub struct SourceReceiverFlow {
     pub refund_attributes_status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceRedirectFlow {
     /// The failure reason for the redirect, either user_abort (the customer aborted or dropped out of the redirect flow), declined (the authentication failed or the transaction was declined), or processing_error (the redirect failed due to a technical error). Present only if the redirect status is failed.
     #[serde(default)]
@@ -19322,7 +19323,7 @@ pub struct SourceRedirectFlow {
 }
 
 /// SourceTypeSepaDebit resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeSepaDebit {
     #[serde(default)]
     pub bank_code: ::core::option::Option<String>,
@@ -19341,7 +19342,7 @@ pub struct SourceTypeSepaDebit {
 }
 
 /// SourceTypeSofort resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeSofort {
     #[serde(default)]
     pub bank_code: ::core::option::Option<String>,
@@ -19359,7 +19360,7 @@ pub struct SourceTypeSofort {
     pub statement_descriptor: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceOrder {
     /// A positive integer in the smallest currency unit (that is, 100 cents for $1.00, or 1 for ¥1, Japanese Yen being a zero-decimal currency) representing the total amount for the order.
     pub amount: i64,
@@ -19376,7 +19377,7 @@ pub struct SourceOrder {
 }
 
 /// SourceTypeThreeDSecure resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeThreeDSecure {
     #[serde(default)]
     pub address_line1_check: ::core::option::Option<String>,
@@ -19415,7 +19416,7 @@ pub struct SourceTypeThreeDSecure {
 }
 
 /// SourceTypeWechat resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceTypeWechat {
     #[serde(default)]
     pub prepay_id: ::core::option::Option<String>,
@@ -19425,7 +19426,7 @@ pub struct SourceTypeWechat {
     pub statement_descriptor: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionSchedulesResourceDefaultSettingsAutomaticTax {
     /// If Stripe disabled automatic tax, this enum describes why. // TODO: enum values: ["requires_location_inputs"]
     #[serde(default)]
@@ -19437,7 +19438,7 @@ pub struct SubscriptionSchedulesResourceDefaultSettingsAutomaticTax {
     pub liability: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoiceSettingSubscriptionScheduleSetting {
     /// The account tax IDs associated with the subscription schedule. Will be set on invoices generated by the subscription schedule.
     #[serde(default)]
@@ -19449,7 +19450,7 @@ pub struct InvoiceSettingSubscriptionScheduleSetting {
 }
 
 /// An Add Invoice Item describes the prices and quantities that will be added as pending invoice items when entering a phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionScheduleAddInvoiceItem {
     /// The stackable discounts that will be applied to the item.
     pub discounts: ::std::vec::Vec<DiscountsResourceStackableDiscountWithDiscountEnd>,
@@ -19467,7 +19468,7 @@ pub struct SubscriptionScheduleAddInvoiceItem {
     pub tax_rates: ::core::option::Option<::std::vec::Vec<TaxRate>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchedulesPhaseAutomaticTax {
     /// If Stripe disabled automatic tax, this enum describes why. // TODO: enum values: ["requires_location_inputs"]
     #[serde(default)]
@@ -19479,7 +19480,7 @@ pub struct SchedulesPhaseAutomaticTax {
     pub liability: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StackableDiscountWithDiscountSettingsAndDiscountEnd {
     /// ID of the coupon to create a new discount for.
     #[serde(default)]
@@ -19493,7 +19494,7 @@ pub struct StackableDiscountWithDiscountSettingsAndDiscountEnd {
 }
 
 /// A phase item describes the price and quantity of a phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionScheduleConfigurationItem {
     /// Define thresholds at which an invoice will be sent, and the related subscription advanced to a new billing period
     #[serde(default)]
@@ -19519,7 +19520,7 @@ pub struct SubscriptionScheduleConfigurationItem {
 /// For example, you might have a single "gold" product that has prices for $10/month, $100/year, and €9 once.
 ///
 /// Related guides: [Set up a subscription](https://docs.stripe.com/billing/subscriptions/set-up-subscription), [create an invoice](https://docs.stripe.com/billing/invoices/create), and more about [products and prices](https://docs.stripe.com/products-prices/overview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Price {
     /// Whether the price can be used for new purchases.
     pub active: bool,
@@ -19577,19 +19578,19 @@ pub struct Price {
     pub unit_amount_decimal: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxAssociationTransactionAttemptsResourceCommitted {
     /// The [Tax Transaction](https://docs.stripe.com/api/tax/transaction/object)
     pub transaction: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxAssociationTransactionAttemptsResourceErrored {
     /// Details on why we couldn''t commit the tax transaction. // TODO: enum values: ["another_payment_associated_with_calculation", "calculation_expired", "currency_mismatch", "original_transaction_voided", "unique_reference_violation"]
     pub reason: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxRateDetails {
     /// Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).
     #[serde(default)]
@@ -19610,7 +19611,7 @@ pub struct TaxProductResourceTaxRateDetails {
     pub tax_type: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsDefaultInboundGoods {
     #[serde(default)]
     pub standard:
@@ -19620,21 +19621,21 @@ pub struct TaxProductRegistrationsResourceCountryOptionsDefaultInboundGoods {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsDefault {
     /// Type of registration in country. // TODO: enum values: ["standard"]
     #[serde(rename = "type")]
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsSimplified {
     /// Type of registration in country. // TODO: enum values: ["simplified"]
     #[serde(rename = "type")]
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsEurope {
     #[serde(default)]
     pub standard: ::core::option::Option<TaxProductRegistrationsResourceCountryOptionsEuStandard>,
@@ -19643,7 +19644,7 @@ pub struct TaxProductRegistrationsResourceCountryOptionsEurope {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsCanada {
     #[serde(default)]
     pub province_standard:
@@ -19653,14 +19654,14 @@ pub struct TaxProductRegistrationsResourceCountryOptionsCanada {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsThailand {
     /// Type of registration in country. // TODO: enum values: ["simplified"]
     #[serde(rename = "type")]
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsUnitedStates {
     #[serde(default)]
     pub local_amusement_tax:
@@ -19678,14 +19679,14 @@ pub struct TaxProductRegistrationsResourceCountryOptionsUnitedStates {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxSettingsStatusDetailsResourcePending {
     /// The list of missing fields that are required to perform calculations. It includes the entry head_office when the status is pending. It is recommended to set the optional values even if they aren''t listed as required for calculating taxes. Calculations can fail if missing fields aren''t explicitly provided on every call.
     #[serde(default)]
     pub missing_fields: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceCustomerDetailsResourceTaxId {
     /// The type of the tax ID, one of ad_nrt, ar_cuit, eu_vat, bo_tin, br_cnpj, br_cpf, cn_tin, co_nit, cr_tin, do_rcn, ec_ruc, eu_oss_vat, hr_oib, pe_ruc, ro_tin, rs_pib, sv_nit, uy_ruc, ve_rif, vn_tin, gb_vat, nz_gst, au_abn, au_arn, in_gst, no_vat, no_voec, za_vat, ch_vat, mx_rfc, sg_uen, ru_inn, ru_kpp, ca_bn, hk_br, es_cif, pl_nip, tw_vat, th_vat, jp_cn, jp_rn, jp_trn, li_uid, li_vat, lk_vat, my_itn, us_ein, kr_brn, ca_qst, ca_gst_hst, ca_pst_bc, ca_pst_mb, ca_pst_sk, my_sst, sg_gst, ae_trn, cl_tin, sa_vat, id_npwp, my_frp, il_vat, ge_vat, ua_vat, is_vat, bg_uic, hu_tin, si_tin, ke_pin, tr_tin, eg_tin, ph_tin, al_tin, bh_vat, kz_bin, ng_tin, om_vat, de_stn, ch_uid, tz_vat, uz_vat, uz_tin, md_vat, ma_vat, by_tin, ao_tin, bs_tin, bb_tin, cd_nif, mr_nif, me_pib, zw_tin, ba_tin, gn_nif, mk_vat, sr_fin, sn_ninea, am_tin, np_pan, tj_tin, ug_tin, zm_tin, kh_tin, aw_tin, az_tin, bd_bin, bj_ifu, et_tin, kg_tin, la_tin, cm_niu, cv_nif, bf_ifu, or unknown // TODO: enum values: ["ad_nrt", "ae_trn", "al_tin", "am_tin", "ao_tin", "ar_cuit", "au_abn", "au_arn", "aw_tin", "az_tin", "ba_tin", "bb_tin", "bd_bin", "bf_ifu", "bg_uic", "bh_vat", "bj_ifu", "bo_tin", "br_cnpj", "br_cpf", "bs_tin", "by_tin", "ca_bn", "ca_gst_hst", "ca_pst_bc", "ca_pst_mb", "ca_pst_sk", "ca_qst", "cd_nif", "ch_uid", "ch_vat", "cl_tin", "cm_niu", "cn_tin", "co_nit", "cr_tin", "cv_nif", "de_stn", "do_rcn", "ec_ruc", "eg_tin", "es_cif", "et_tin", "eu_oss_vat", "eu_vat", "gb_vat", "ge_vat", "gn_nif", "hk_br", "hr_oib", "hu_tin", "id_npwp", "il_vat", "in_gst", "is_vat", "jp_cn", "jp_rn", "jp_trn", "ke_pin", "kg_tin", "kh_tin", "kr_brn", "kz_bin", "la_tin", "li_uid", "li_vat", "lk_vat", "ma_vat", "md_vat", "me_pib", "mk_vat", "mr_nif", "mx_rfc", "my_frp", "my_itn", "my_sst", "ng_tin", "no_vat", "no_voec", "np_pan", "nz_gst", "om_vat", "pe_ruc", "ph_tin", "pl_nip", "ro_tin", "rs_pib", "ru_inn", "ru_kpp", "sa_vat", "sg_gst", "sg_uen", "si_tin", "sn_ninea", "sr_fin", "sv_nit", "th_vat", "tj_tin", "tr_tin", "tw_vat", "tz_vat", "ua_vat", "ug_tin", "unknown", "us_ein", "uy_ruc", "uz_tin", "uz_vat", "ve_rif", "vn_tin", "za_vat", "zm_tin", "zw_tin"]
     #[serde(rename = "type")]
@@ -19694,7 +19695,7 @@ pub struct TaxProductResourceCustomerDetailsResourceTaxId {
     pub value: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceJurisdiction {
     /// Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).
     pub country: String,
@@ -19707,7 +19708,7 @@ pub struct TaxProductResourceJurisdiction {
     pub state: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalConfigurationConfigurationResourceCurrencySpecificConfig {
     /// Fixed amounts displayed when collecting a tip
     #[serde(default)]
@@ -19720,7 +19721,7 @@ pub struct TerminalConfigurationConfigurationResourceCurrencySpecificConfig {
     pub smart_tip_threshold: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalConfigurationConfigurationResourceEnterprisePeapWifi {
     /// A File ID representing a PEM file containing the server certificate
     #[serde(default)]
@@ -19733,7 +19734,7 @@ pub struct TerminalConfigurationConfigurationResourceEnterprisePeapWifi {
     pub username: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalConfigurationConfigurationResourceEnterpriseTlsWifi {
     /// A File ID representing a PEM file containing the server certificate
     #[serde(default)]
@@ -19749,7 +19750,7 @@ pub struct TerminalConfigurationConfigurationResourceEnterpriseTlsWifi {
     pub ssid: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalConfigurationConfigurationResourcePersonalPskWifi {
     /// Password for connecting to the WiFi network
     pub password: String,
@@ -19758,7 +19759,7 @@ pub struct TerminalConfigurationConfigurationResourcePersonalPskWifi {
 }
 
 /// Represents an input to be collected using the reader
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceInput {
     /// Default text of input being collected.
     #[serde(default)]
@@ -19790,7 +19791,7 @@ pub struct TerminalReaderReaderResourceInput {
 }
 
 /// Represents a per-transaction override of a reader configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceCollectConfig {
     /// Enable customer-initiated cancellation when processing this payment.
     #[serde(default)]
@@ -19807,7 +19808,7 @@ pub struct TerminalReaderReaderResourceCollectConfig {
 /// Customer objects to store instrument details for future payments.
 ///
 /// Related guides: [Payment Methods](https://docs.stripe.com/payments/payment-methods) and [More Payment Scenarios](https://docs.stripe.com/payments/more-payment-scenarios).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethod {
     #[serde(default)]
     pub acss_debit: ::core::option::Option<PaymentMethodAcssDebit>,
@@ -19945,7 +19946,7 @@ pub struct PaymentMethod {
 }
 
 /// Represents a per-transaction override of a reader configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceConfirmConfig {
     /// If the customer doesn''t abandon authenticating the payment, they''re redirected to this URL after completion.
     #[serde(default)]
@@ -19953,7 +19954,7 @@ pub struct TerminalReaderReaderResourceConfirmConfig {
 }
 
 /// Represents a per-transaction override of a reader configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceProcessConfig {
     /// Enable customer-initiated cancellation when processing this payment.
     #[serde(default)]
@@ -19969,7 +19970,7 @@ pub struct TerminalReaderReaderResourceProcessConfig {
 }
 
 /// Represents a per-setup override of a reader configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceProcessSetupConfig {
     /// Enable customer-initiated cancellation when processing this SetupIntent.
     #[serde(default)]
@@ -19977,20 +19978,20 @@ pub struct TerminalReaderReaderResourceProcessSetupConfig {
 }
 
 /// Represents a per-transaction override of a reader configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceRefundPaymentConfig {
     /// Enable customer-initiated cancellation when refunding this payment.
     #[serde(default)]
     pub enable_customer_cancellation: ::core::option::Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingClocksResourceStatusDetailsAdvancingStatusDetails {
     /// The frozen_time that the Test Clock is advancing towards.
     pub target_frozen_time: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TokenCardNetworks {
     /// The preferred network for co-branded cards. Can be cartes_bancaires, mastercard, visa or invalid_preference if requested network is not valid for the card.
     #[serde(default)]
@@ -19998,21 +19999,21 @@ pub struct TokenCardNetworks {
 }
 
 /// Settings related to Financial Addresses features on a Financial Account
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceFinancialAddressesFeatures {
     #[serde(default)]
     pub aba: ::core::option::Option<TreasuryFinancialAccountsResourceAbaToggleSettings>,
 }
 
 /// InboundTransfers contains inbound transfers features for a FinancialAccount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceInboundTransfers {
     #[serde(default)]
     pub ach: ::core::option::Option<TreasuryFinancialAccountsResourceInboundAchToggleSettings>,
 }
 
 /// Settings related to Outbound Payments features on a Financial Account
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceOutboundPayments {
     #[serde(default)]
     pub ach: ::core::option::Option<TreasuryFinancialAccountsResourceOutboundAchToggleSettings>,
@@ -20021,7 +20022,7 @@ pub struct TreasuryFinancialAccountsResourceOutboundPayments {
 }
 
 /// OutboundTransfers contains outbound transfers features for a FinancialAccount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceOutboundTransfers {
     #[serde(default)]
     pub ach: ::core::option::Option<TreasuryFinancialAccountsResourceOutboundAchToggleSettings>,
@@ -20030,7 +20031,7 @@ pub struct TreasuryFinancialAccountsResourceOutboundTransfers {
 }
 
 /// ABA Records contain U.S. bank account details per the ABA format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceAbaRecord {
     /// The name of the person or business that owns the bank account.
     pub account_holder_name: String,
@@ -20045,28 +20046,28 @@ pub struct TreasuryFinancialAccountsResourceAbaRecord {
     pub routing_number: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryReceivedCreditsResourceStatusTransitions {
     /// Timestamp describing when the CreditReversal changed status to posted
     #[serde(default)]
     pub posted_at: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryReceivedDebitsResourceStatusTransitions {
     /// Timestamp describing when the DebitReversal changed status to completed.
     #[serde(default)]
     pub completed_at: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryInboundTransfersResourceInboundTransferResourceLinkedFlows {
     /// If funds for this flow were returned after the flow went to the succeeded state, this field contains a reference to the ReceivedDebit return.
     #[serde(default)]
     pub received_debit: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryInboundTransfersResourceInboundTransferResourceStatusTransitions {
     /// Timestamp describing when an InboundTransfer changed status to canceled.
     #[serde(default)]
@@ -20083,7 +20084,7 @@ pub struct TreasuryInboundTransfersResourceInboundTransferResourceStatusTransiti
 /// Stripe creates them for every type of transaction that enters or leaves your Stripe account balance.
 ///
 /// Related guide: [Balance transaction types](https://docs.stripe.com/reports/balance-transaction-types)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceTransaction {
     /// Gross amount of this transaction (in cents (or local equivalent)). A positive value represents funds charged to another party, and a negative value represents funds sent to another party.
     pub amount: i64,
@@ -20124,7 +20125,7 @@ pub struct BalanceTransaction {
 }
 
 /// You can [create physical or virtual cards](https://docs.stripe.com/issuing) that are issued to cardholders.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCard {
     /// The brand of the card.
     pub brand: String,
@@ -20194,7 +20195,7 @@ pub struct IssuingCard {
     pub wallets: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationFraudChallenge {
     /// The method by which the fraud challenge was delivered to the cardholder. // TODO: enum values: ["sms"]
     pub channel: String,
@@ -20205,7 +20206,7 @@ pub struct IssuingAuthorizationFraudChallenge {
     pub undeliverable_reason: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationRequest {
     /// The pending_request.amount at the time of the request, presented in your card''s currency and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal). Stripe held this amount from your account to fund the authorization if the request was approved.
     pub amount: i64,
@@ -20243,7 +20244,7 @@ pub struct IssuingAuthorizationRequest {
 /// Transaction object.
 ///
 /// Related guide: [Issued card transactions](https://docs.stripe.com/issuing/purchases/transactions)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingTransaction {
     /// The transaction amount, which will be reflected in your balance. This amount is in your currency and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
     pub amount: i64,
@@ -20301,7 +20302,7 @@ pub struct IssuingTransaction {
     pub wallet: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationVerificationData {
     /// Whether the cardholder provided an address first line and if it matched the cardholder’s billing.address.line1. // TODO: enum values: ["match", "mismatch", "not_provided"]
     pub address_line1_check: String,
@@ -20322,7 +20323,7 @@ pub struct IssuingAuthorizationVerificationData {
     pub three_d_secure: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundPaymentsResourceOutboundPaymentResourceStatusTransitions {
     /// Timestamp describing when an OutboundPayment changed status to canceled.
     #[serde(default)]
@@ -20338,7 +20339,7 @@ pub struct TreasuryOutboundPaymentsResourceOutboundPaymentResourceStatusTransiti
     pub returned_at: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutboundTransfersPaymentMethodDetails {
     pub billing_details: TreasurySharedResourceBillingDetails,
     #[serde(default)]
@@ -20351,7 +20352,7 @@ pub struct OutboundTransfersPaymentMethodDetails {
     pub us_bank_account: ::core::option::Option<OutboundTransfersPaymentMethodDetailsUsBankAccount>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryOutboundTransfersResourceStatusTransitions {
     /// Timestamp describing when an OutboundTransfer changed status to canceled
     #[serde(default)]
@@ -20367,7 +20368,7 @@ pub struct TreasuryOutboundTransfersResourceStatusTransitions {
     pub returned_at: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryReceivedCreditsResourceLinkedFlows {
     /// The CreditReversal created as a result of this ReceivedCredit being reversed.
     #[serde(default)]
@@ -20389,7 +20390,7 @@ pub struct TreasuryReceivedCreditsResourceLinkedFlows {
     pub source_flow_type: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasurySharedResourceInitiatingPaymentMethodDetailsInitiatingPaymentMethodDetails {
     /// Set when type is balance. // TODO: enum values: ["payments"]
     #[serde(default)]
@@ -20408,7 +20409,7 @@ pub struct TreasurySharedResourceInitiatingPaymentMethodDetailsInitiatingPayment
         ::core::option::Option<TreasurySharedResourceInitiatingPaymentMethodDetailsUsBankAccount>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryReceivedDebitsResourceLinkedFlows {
     /// The DebitReversal created as a result of this ReceivedDebit being reversed.
     #[serde(default)]
@@ -20430,7 +20431,7 @@ pub struct TreasuryReceivedDebitsResourceLinkedFlows {
     pub topup: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegalEntityPersonVerificationDocument {
     /// The back of an ID returned by a [file upload](https://api.stripe.com#create_file) with a purpose value of identity_document.
     #[serde(default)]
@@ -20446,7 +20447,7 @@ pub struct LegalEntityPersonVerificationDocument {
     pub front: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedAccountFeaturesClaim {
     /// Whether Stripe user authentication is disabled. This value can only be true for accounts where controller.requirement_collection is application for the account. The default value is the opposite of the external_account_collection value. For example, if you don''t set external_account_collection, it defaults to true and disable_stripe_user_authentication defaults to false.
     pub disable_stripe_user_authentication: bool,
@@ -20454,7 +20455,7 @@ pub struct ConnectEmbeddedAccountFeaturesClaim {
     pub external_account_collection: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedPayoutsFeatures {
     /// Whether Stripe user authentication is disabled. This value can only be true for accounts where controller.requirement_collection is application for the account. The default value is the opposite of the external_account_collection value. For example, if you don''t set external_account_collection, it defaults to true and disable_stripe_user_authentication defaults to false.
     pub disable_stripe_user_authentication: bool,
@@ -20468,7 +20469,7 @@ pub struct ConnectEmbeddedPayoutsFeatures {
     pub standard_payouts: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedDisputesListFeatures {
     /// Whether to allow capturing and cancelling payment intents. This is true by default.
     pub capture_payments: bool,
@@ -20480,7 +20481,7 @@ pub struct ConnectEmbeddedDisputesListFeatures {
     pub refund_management: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedFinancialAccountFeatures {
     /// Whether Stripe user authentication is disabled. This value can only be true for accounts where controller.requirement_collection is application for the account. The default value is the opposite of the external_account_collection value. For example, if you don''t set external_account_collection, it defaults to true and disable_stripe_user_authentication defaults to false.
     pub disable_stripe_user_authentication: bool,
@@ -20492,13 +20493,13 @@ pub struct ConnectEmbeddedFinancialAccountFeatures {
     pub transfer_balance: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedFinancialAccountTransactionsFeatures {
     /// Whether to allow card spend dispute management features.
     pub card_spend_dispute_management: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedInstantPayoutsPromotionFeatures {
     /// Whether Stripe user authentication is disabled. This value can only be true for accounts where controller.requirement_collection is application for the account. The default value is the opposite of the external_account_collection value. For example, if you don''t set external_account_collection, it defaults to true and disable_stripe_user_authentication defaults to false.
     pub disable_stripe_user_authentication: bool,
@@ -20508,7 +20509,7 @@ pub struct ConnectEmbeddedInstantPayoutsPromotionFeatures {
     pub instant_payouts: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedIssuingCardFeatures {
     /// Whether to allow card management features.
     pub card_management: bool,
@@ -20520,7 +20521,7 @@ pub struct ConnectEmbeddedIssuingCardFeatures {
     pub spend_control_management: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedIssuingCardsListFeatures {
     /// Whether to allow card management features.
     pub card_management: bool,
@@ -20534,7 +20535,7 @@ pub struct ConnectEmbeddedIssuingCardsListFeatures {
     pub spend_control_management: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedPaymentsFeatures {
     /// Whether to allow capturing and cancelling payment intents. This is true by default.
     pub capture_payments: bool,
@@ -20546,7 +20547,7 @@ pub struct ConnectEmbeddedPaymentsFeatures {
     pub refund_management: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEmbeddedPaymentDisputesFeatures {
     /// Whether connected accounts can manage destination charges that are created on behalf of them. This is false by default.
     pub destination_on_behalf_of_charge_management: bool,
@@ -20556,7 +20557,7 @@ pub struct ConnectEmbeddedPaymentDisputesFeatures {
     pub refund_management: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BalanceAmountBySourceType {
     /// Amount coming from [legacy US ACH payments](https://docs.stripe.com/ach-deprecated).
     #[serde(default)]
@@ -20569,14 +20570,14 @@ pub struct BalanceAmountBySourceType {
     pub fpx: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingCreditGrantsResourceApplicablePrice {
     /// Unique identifier for the object.
     #[serde(default)]
     pub id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalSubscriptionCancellationReason {
     /// Whether the feature is enabled.
     pub enabled: bool,
@@ -20584,7 +20585,7 @@ pub struct PortalSubscriptionCancellationReason {
     pub options: ::std::vec::Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalSubscriptionUpdateProduct {
     pub adjustable_quantity: PortalSubscriptionUpdateProductAdjustableQuantity,
     /// The list of price IDs which, when subscribed to, a subscription can be updated.
@@ -20593,13 +20594,13 @@ pub struct PortalSubscriptionUpdateProduct {
     pub product: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalResourceScheduleUpdateAtPeriodEnd {
     /// List of conditions. When any condition is true, an update will be scheduled at the end of the current period.
     pub conditions: ::std::vec::Vec<PortalResourceScheduleUpdateAtPeriodEndCondition>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionCustomFieldsOption {
     /// The label for the option, displayed to the customer. Up to 100 characters.
     pub label: String,
@@ -20607,20 +20608,20 @@ pub struct PaymentPagesCheckoutSessionCustomFieldsOption {
     pub value: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsCustomerBalanceEuBankAccount {
     /// The desired country code of the bank account information. Permitted values include: DE, FR, IE, or NL. // TODO: enum values: ["BE", "DE", "ES", "FR", "IE", "NL"]
     pub country: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsFinancialConnectionsCommonLinkedAccountOptionsFilters {
     /// The account subcategories to use to filter for possible accounts to link. Valid subcategories are checking and savings.
     #[serde(default)]
     pub account_subcategories: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClimateRemovalsLocation {
     /// The city where the supplier is located.
     #[serde(default)]
@@ -20638,7 +20639,7 @@ pub struct ClimateRemovalsLocation {
     pub region: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceResourceCashBalanceTransactionResourceFundedTransactionResourceBankTransferResourceEuBankTransfer
 {
     /// The BIC of the bank of the sender of the funding.
@@ -20652,7 +20653,7 @@ pub struct CustomerBalanceResourceCashBalanceTransactionResourceFundedTransactio
     pub sender_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceResourceCashBalanceTransactionResourceFundedTransactionResourceBankTransferResourceGbBankTransfer
 {
     /// The last 4 digits of the account number of the sender of the funding.
@@ -20666,7 +20667,7 @@ pub struct CustomerBalanceResourceCashBalanceTransactionResourceFundedTransactio
     pub sort_code: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceResourceCashBalanceTransactionResourceFundedTransactionResourceBankTransferResourceJpBankTransfer
 {
     /// The name of the bank of the sender of the funding.
@@ -20680,7 +20681,7 @@ pub struct CustomerBalanceResourceCashBalanceTransactionResourceFundedTransactio
     pub sender_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerBalanceResourceCashBalanceTransactionResourceFundedTransactionResourceBankTransferResourceUsBankTransfer
 {
     /// The banking network used for this funding. // TODO: enum values: ["ach", "domestic_wire_us", "swift"]
@@ -20691,7 +20692,7 @@ pub struct CustomerBalanceResourceCashBalanceTransactionResourceFundedTransactio
     pub sender_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputeEnhancedEvidenceVisaCompellingEvidence3 {
     /// Disputed transaction details for Visa Compelling Evidence 3.0 evidence submission.
     #[serde(default)]
@@ -20701,13 +20702,13 @@ pub struct DisputeEnhancedEvidenceVisaCompellingEvidence3 {
         ::std::vec::Vec<DisputeVisaCompellingEvidence3PriorUndisputedTransaction>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputeEnhancedEvidenceVisaCompliance {
     /// A field acknowledging the fee incurred when countering a Visa compliance dispute. If this field is set to true, evidence can be submitted for the compliance dispute. Stripe collects a 500 USD (or local equivalent) amount to cover the network costs associated with resolving compliance disputes. Stripe refunds the 500 USD network fee if you win the dispute.
     pub fee_acknowledged: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputeEnhancedEligibilityVisaCompellingEvidence3 {
     /// List of actions required to qualify dispute for Visa Compelling Evidence 3.0 evidence submission.
     pub required_actions: ::std::vec::Vec<String>,
@@ -20715,19 +20716,19 @@ pub struct DisputeEnhancedEligibilityVisaCompellingEvidence3 {
     pub status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputeEnhancedEligibilityVisaCompliance {
     /// Visa compliance eligibility status. // TODO: enum values: ["fee_acknowledged", "requires_fee_acknowledgement"]
     pub status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPaymentIntentAsyncWorkflows {
     #[serde(default)]
     pub inputs: ::core::option::Option<PaymentFlowsPaymentIntentAsyncWorkflowsResourceInputs>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPaymentDetails {
     /// A unique value to identify the customer. This field is available only for card payments.
     #[serde(default)]
@@ -20737,7 +20738,7 @@ pub struct PaymentFlowsPaymentDetails {
     pub order_reference: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPaymentIntentPresentmentDetails {
     /// Amount intended to be collected by this payment, denominated in presentment_currency.
     pub presentment_amount: i64,
@@ -20745,7 +20746,7 @@ pub struct PaymentFlowsPaymentIntentPresentmentDetails {
     pub presentment_currency: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingNetworkTokenAddress {
     /// The street address of the cardholder tokenizing the card.
     pub line1: String,
@@ -20754,7 +20755,7 @@ pub struct IssuingNetworkTokenAddress {
 }
 
 /// ABA Records contain U.S. bank account details per the ABA format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FundingInstructionsBankTransferAbaRecord {
     pub account_holder_address: Address,
     /// The account holder name
@@ -20771,7 +20772,7 @@ pub struct FundingInstructionsBankTransferAbaRecord {
 }
 
 /// Iban Records contain E.U. bank account details per the SEPA format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FundingInstructionsBankTransferIbanRecord {
     pub account_holder_address: Address,
     /// The name of the person or business that owns the bank account
@@ -20786,7 +20787,7 @@ pub struct FundingInstructionsBankTransferIbanRecord {
 }
 
 /// Sort Code Records contain U.K. bank account details per the sort code format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FundingInstructionsBankTransferSortCodeRecord {
     pub account_holder_address: Address,
     /// The name of the person or business that owns the bank account
@@ -20799,7 +20800,7 @@ pub struct FundingInstructionsBankTransferSortCodeRecord {
 }
 
 /// SPEI Records contain Mexico bank account details per the SPEI format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FundingInstructionsBankTransferSpeiRecord {
     pub account_holder_address: Address,
     /// The account holder name
@@ -20814,7 +20815,7 @@ pub struct FundingInstructionsBankTransferSpeiRecord {
 }
 
 /// SWIFT Records contain U.S. bank account details per the SWIFT format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FundingInstructionsBankTransferSwiftRecord {
     pub account_holder_address: Address,
     /// The account holder name
@@ -20831,7 +20832,7 @@ pub struct FundingInstructionsBankTransferSwiftRecord {
 }
 
 /// Zengin Records contain Japan bank account details per the Zengin format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FundingInstructionsBankTransferZenginRecord {
     pub account_holder_address: Address,
     /// The account holder name
@@ -20858,7 +20859,7 @@ pub struct FundingInstructionsBankTransferZenginRecord {
     pub branch_name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentLinksResourceCustomFieldsDropdownOption {
     /// The label for the option, displayed to the customer. Up to 100 characters.
     pub label: String,
@@ -20866,7 +20867,7 @@ pub struct PaymentLinksResourceCustomFieldsDropdownOption {
     pub value: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPassthroughCard {
     /// Card brand. Can be amex, cartes_bancaires, diners, discover, eftpos_au, jcb, link, mastercard, unionpay, visa or unknown.
     #[serde(default)]
@@ -20888,7 +20889,7 @@ pub struct PaymentMethodDetailsPassthroughCard {
     pub last4: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotesResourceTotalDetails {
     /// This is the sum of all the discounts.
     pub amount_discount: i64,
@@ -20901,7 +20902,7 @@ pub struct QuotesResourceTotalDetails {
     pub breakdown: ::core::option::Option<QuotesResourceTotalDetailsResourceBreakdown>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionsResourceBillingModeFlexible {
     /// Controls how invoices and invoice items display proration amounts and discount amounts. // TODO: enum values: ["included", "itemized"]
     #[serde(default)]
@@ -20909,14 +20910,14 @@ pub struct SubscriptionsResourceBillingModeFlexible {
 }
 
 /// User intervention raised custom event details attached to this payment evaluation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationUserInterventionRaisedCustom {
     /// Custom type of user intervention raised. The string must use a snake case description for the type of intervention performed.
     #[serde(rename = "type")]
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailSent {
     /// The timestamp when the email was sent.
     pub email_sent_at: i64,
@@ -20924,7 +20925,7 @@ pub struct EmailSent {
     pub email_sent_to: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceOrderItem {
     /// The amount (price) for this order item.
     #[serde(default)]
@@ -20946,7 +20947,7 @@ pub struct SourceOrderItem {
     pub type_: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Shipping {
     #[serde(default)]
     pub address: ::core::option::Option<Address>,
@@ -20964,7 +20965,7 @@ pub struct Shipping {
     pub tracking_number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectAccountReference {
     /// The connected account being referenced when type is account.
     #[serde(default)]
@@ -20974,7 +20975,7 @@ pub struct ConnectAccountReference {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiscountsResourceStackableDiscountWithDiscountEnd {
     /// ID of the coupon to create a new discount for.
     #[serde(default)]
@@ -20987,13 +20988,13 @@ pub struct DiscountsResourceStackableDiscountWithDiscountEnd {
     pub promotion_code: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionScheduleAddInvoiceItemPeriod {
     pub end: SubscriptionSchedulesResourceInvoiceItemPeriodResourcePeriodEnd,
     pub start: SubscriptionSchedulesResourceInvoiceItemPeriodResourcePeriodStart,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StackableDiscountWithDiscountSettings {
     /// ID of the coupon to create a new discount for.
     #[serde(default)]
@@ -21006,7 +21007,7 @@ pub struct StackableDiscountWithDiscountSettings {
     pub promotion_code: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PriceTier {
     /// Price for the entire tier.
     #[serde(default)]
@@ -21025,37 +21026,37 @@ pub struct PriceTier {
     pub up_to: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsDefaultStandard {
     /// Place of supply scheme used in an Default standard registration. // TODO: enum values: ["inbound_goods", "standard"]
     pub place_of_supply_scheme: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsEuStandard {
     /// Place of supply scheme used in an EU standard registration. // TODO: enum values: ["inbound_goods", "small_seller", "standard"]
     pub place_of_supply_scheme: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsCaProvinceStandard {
     /// Two-letter CA province code ([ISO 3166-2](https://en.wikipedia.org/wiki/ISO_3166-2)).
     pub province: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsUsLocalAmusementTax {
     /// A [FIPS code](https://www.census.gov/library/reference/code-lists/ansi.html) representing the local jurisdiction.
     pub jurisdiction: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsUsLocalLeaseTax {
     /// A [FIPS code](https://www.census.gov/library/reference/code-lists/ansi.html) representing the local jurisdiction.
     pub jurisdiction: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsUsStateSalesTax {
     /// Elections for the state sales tax registration.
     #[serde(default)]
@@ -21065,7 +21066,7 @@ pub struct TaxProductRegistrationsResourceCountryOptionsUsStateSalesTax {
 }
 
 /// Information about a email being collected using a reader
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceEmail {
     /// The collected email address
     #[serde(default)]
@@ -21073,7 +21074,7 @@ pub struct TerminalReaderReaderResourceEmail {
 }
 
 /// Information about a number being collected using a reader
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceNumeric {
     /// The collected number
     #[serde(default)]
@@ -21081,7 +21082,7 @@ pub struct TerminalReaderReaderResourceNumeric {
 }
 
 /// Information about a phone number being collected using a reader
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourcePhone {
     /// The collected phone number
     #[serde(default)]
@@ -21089,7 +21090,7 @@ pub struct TerminalReaderReaderResourcePhone {
 }
 
 /// Information about a selection being collected using a reader
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceSelection {
     /// List of possible choices to be selected
     pub choices: ::std::vec::Vec<TerminalReaderReaderResourceChoice>,
@@ -21102,7 +21103,7 @@ pub struct TerminalReaderReaderResourceSelection {
 }
 
 /// Information about a signature being collected using a reader
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceSignature {
     /// The File ID of a collected signature image
     #[serde(default)]
@@ -21110,7 +21111,7 @@ pub struct TerminalReaderReaderResourceSignature {
 }
 
 /// Information about text being collected using a reader
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceText {
     /// The collected text value
     #[serde(default)]
@@ -21118,7 +21119,7 @@ pub struct TerminalReaderReaderResourceText {
 }
 
 /// Information about an input''s toggle
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceToggle {
     /// The toggle''s default value. Can be enabled or disabled. // TODO: enum values: ["disabled", "enabled"]
     #[serde(default)]
@@ -21134,7 +21135,7 @@ pub struct TerminalReaderReaderResourceToggle {
     pub value: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodAcssDebit {
     /// Name of the bank associated with the bank account.
     #[serde(default)]
@@ -21153,7 +21154,7 @@ pub struct PaymentMethodAcssDebit {
     pub transit_number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodAuBecsDebit {
     /// Six-digit number identifying bank and branch associated with this bank account.
     #[serde(default)]
@@ -21166,7 +21167,7 @@ pub struct PaymentMethodAuBecsDebit {
     pub last4: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodBacsDebit {
     /// Uniquely identifies this particular bank account. You can use this attribute to check whether two bank accounts are the same.
     #[serde(default)]
@@ -21179,7 +21180,7 @@ pub struct PaymentMethodBacsDebit {
     pub sort_code: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingDetails {
     /// Billing address.
     #[serde(default)]
@@ -21198,13 +21199,13 @@ pub struct BillingDetails {
     pub tax_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodBoleto {
     /// Uniquely identifies the customer tax id (CNPJ or CPF)
     pub tax_id: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCard {
     /// Card brand. Can be amex, cartes_bancaires, diners, discover, eftpos_au, jcb, link, mastercard, unionpay, visa or unknown.
     pub brand: String,
@@ -21245,7 +21246,7 @@ pub struct PaymentMethodCard {
     pub wallet: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCardPresent {
     /// Card brand. Can be amex, cartes_bancaires, diners, discover, eftpos_au, jcb, link, mastercard, unionpay, visa or unknown.
     #[serde(default)]
@@ -21294,7 +21295,7 @@ pub struct PaymentMethodCardPresent {
     pub wallet: ::core::option::Option<PaymentFlowsPrivatePaymentMethodsCardPresentCommonWallet>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCashapp {
     /// A unique and immutable identifier assigned by Cash App to every buyer.
     #[serde(default)]
@@ -21304,7 +21305,7 @@ pub struct PaymentMethodCashapp {
     pub cashtag: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCustom {
     /// Display name of the Dashboard-only CustomPaymentMethodType.
     #[serde(default)]
@@ -21317,20 +21318,20 @@ pub struct PaymentMethodCustom {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodEps {
     /// The customer''s bank. Should be one of arzte_und_apotheker_bank, austrian_anadi_bank_ag, bank_austria, bankhaus_carl_spangler, bankhaus_schelhammer_und_schattera_ag, bawag_psk_ag, bks_bank_ag, brull_kallmus_bank_ag, btv_vier_lander_bank, capital_bank_grawe_gruppe_ag, deutsche_bank_ag, dolomitenbank, easybank_ag, erste_bank_und_sparkassen, hypo_alpeadriabank_international_ag, hypo_noe_lb_fur_niederosterreich_u_wien, hypo_oberosterreich_salzburg_steiermark, hypo_tirol_bank_ag, hypo_vorarlberg_bank_ag, hypo_bank_burgenland_aktiengesellschaft, marchfelder_bank, oberbank_ag, raiffeisen_bankengruppe_osterreich, schoellerbank_ag, sparda_bank_wien, volksbank_gruppe, volkskreditbank_ag, or vr_bank_braunau. // TODO: enum values: ["arzte_und_apotheker_bank", "austrian_anadi_bank_ag", "bank_austria", "bankhaus_carl_spangler", "bankhaus_schelhammer_und_schattera_ag", "bawag_psk_ag", "bks_bank_ag", "brull_kallmus_bank_ag", "btv_vier_lander_bank", "capital_bank_grawe_gruppe_ag", "deutsche_bank_ag", "dolomitenbank", "easybank_ag", "erste_bank_und_sparkassen", "hypo_alpeadriabank_international_ag", "hypo_bank_burgenland_aktiengesellschaft", "hypo_noe_lb_fur_niederosterreich_u_wien", "hypo_oberosterreich_salzburg_steiermark", "hypo_tirol_bank_ag", "hypo_vorarlberg_bank_ag", "marchfelder_bank", "oberbank_ag", "raiffeisen_bankengruppe_osterreich", "schoellerbank_ag", "sparda_bank_wien", "volksbank_gruppe", "volkskreditbank_ag", "vr_bank_braunau"]
     #[serde(default)]
     pub bank: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodFpx {
     /// The customer''s bank, if provided. Can be one of affin_bank, agrobank, alliance_bank, ambank, bank_islam, bank_muamalat, bank_rakyat, bsn, cimb, hong_leong_bank, hsbc, kfh, maybank2u, ocbc, public_bank, rhb, standard_chartered, uob, deutsche_bank, maybank2e, pb_enterprise, or bank_of_china. // TODO: enum values: ["affin_bank", "agrobank", "alliance_bank", "ambank", "bank_islam", "bank_muamalat", "bank_of_china", "bank_rakyat", "bsn", "cimb", "deutsche_bank", "hong_leong_bank", "hsbc", "kfh", "maybank2e", "maybank2u", "ocbc", "pb_enterprise", "public_bank", "rhb", "standard_chartered", "uob"]
     pub bank: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodIdeal {
     /// The customer''s bank, if provided. Can be one of abn_amro, adyen, asn_bank, bunq, buut, finom, handelsbanken, ing, knab, mollie, moneyou, n26, nn, rabobank, regiobank, revolut, sns_bank, triodos_bank, van_lanschot, or yoursafe. // TODO: enum values: ["abn_amro", "adyen", "asn_bank", "bunq", "buut", "finom", "handelsbanken", "ing", "knab", "mollie", "moneyou", "n26", "nn", "rabobank", "regiobank", "revolut", "sns_bank", "triodos_bank", "van_lanschot", "yoursafe"]
     #[serde(default)]
@@ -21340,7 +21341,7 @@ pub struct PaymentMethodIdeal {
     pub bic: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodInteracPresent {
     /// Card brand. Can be interac, mastercard or visa.
     #[serde(default)]
@@ -21381,14 +21382,14 @@ pub struct PaymentMethodInteracPresent {
     pub read_method: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodKlarna {
     /// The customer''s date of birth, if provided.
     #[serde(default)]
     pub dob: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodKrCard {
     /// The local credit or debit card brand. // TODO: enum values: ["bc", "citi", "hana", "hyundai", "jeju", "jeonbuk", "kakaobank", "kbank", "kdbbank", "kookmin", "kwangju", "lotte", "mg", "nh", "post", "samsung", "savingsbank", "shinhan", "shinhyup", "suhyup", "tossbank", "woori"]
     #[serde(default)]
@@ -21398,14 +21399,14 @@ pub struct PaymentMethodKrCard {
     pub last4: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodLink {
     /// Account owner''s email address.
     #[serde(default)]
     pub email: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodNaverPay {
     /// Uniquely identifies this particular Naver Pay account. You can use this attribute to check whether two Naver Pay accounts are the same.
     #[serde(default)]
@@ -21414,7 +21415,7 @@ pub struct PaymentMethodNaverPay {
     pub funding: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodNzBankAccount {
     /// The name on the bank account. Only present if the account holder name is different from the name of the authorized signatory collected in the PaymentMethod’s billing details.
     #[serde(default)]
@@ -21432,14 +21433,14 @@ pub struct PaymentMethodNzBankAccount {
     pub suffix: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodP24 {
     /// The customer''s bank, if provided. // TODO: enum values: ["alior_bank", "bank_millennium", "bank_nowy_bfg_sa", "bank_pekao_sa", "banki_spbdzielcze", "blik", "bnp_paribas", "boz", "citi_handlowy", "credit_agricole", "envelobank", "etransfer_pocztowy24", "getin_bank", "ideabank", "ing", "inteligo", "mbank_mtransfer", "nest_przelew", "noble_pay", "pbac_z_ipko", "plus_bank", "santander_przelew24", "tmobile_usbugi_bankowe", "toyota_bank", "velobank", "volkswagen_bank"]
     #[serde(default)]
     pub bank: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodPaypal {
     /// Two-letter ISO code representing the buyer''s country. Values are provided by PayPal directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
@@ -21452,7 +21453,7 @@ pub struct PaymentMethodPaypal {
     pub payer_id: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodPayto {
     /// Bank-State-Branch number of the bank account.
     #[serde(default)]
@@ -21466,14 +21467,14 @@ pub struct PaymentMethodPayto {
 }
 
 /// Options to configure Radar. See [Radar Session](https://docs.stripe.com/radar/radar-session) for more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RadarRadarOptions {
     /// A [Radar Session](https://docs.stripe.com/radar/radar-session) is a snapshot of the browser metadata and device details that help Radar make more accurate predictions on your payments.
     #[serde(default)]
     pub session: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodSepaDebit {
     /// Bank code of bank associated with the bank account.
     #[serde(default)]
@@ -21495,21 +21496,21 @@ pub struct PaymentMethodSepaDebit {
     pub last4: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodSofort {
     /// Two-letter ISO code representing the country the bank account is located in.
     #[serde(default)]
     pub country: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodUpi {
     /// Customer''s unique Virtual Payment Address
     #[serde(default)]
     pub vpa: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodUsBankAccount {
     /// Account holder type: individual or company. // TODO: enum values: ["company", "individual"]
     #[serde(default)]
@@ -21541,7 +21542,7 @@ pub struct PaymentMethodUsBankAccount {
 }
 
 /// Represents a per-transaction tipping configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceTippingConfig {
     /// Amount used to calculate tip suggestions on tipping selection screen for this transaction. Must be a positive integer in the smallest currency unit (e.g., 100 cents to represent $1.00 or 100 to represent ¥100, a zero-decimal currency).
     #[serde(default)]
@@ -21549,7 +21550,7 @@ pub struct TerminalReaderReaderResourceTippingConfig {
 }
 
 /// Toggle settings for enabling/disabling the ABA address feature
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceAbaToggleSettings {
     /// Whether the FinancialAccount should have the Feature.
     pub requested: bool,
@@ -21561,7 +21562,7 @@ pub struct TreasuryFinancialAccountsResourceAbaToggleSettings {
 }
 
 /// Toggle settings for enabling/disabling an inbound ACH specific feature
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceInboundAchToggleSettings {
     /// Whether the FinancialAccount should have the Feature.
     pub requested: bool,
@@ -21573,7 +21574,7 @@ pub struct TreasuryFinancialAccountsResourceInboundAchToggleSettings {
 }
 
 /// Toggle settings for enabling/disabling an outbound ACH specific feature
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceOutboundAchToggleSettings {
     /// Whether the FinancialAccount should have the Feature.
     pub requested: bool,
@@ -21585,7 +21586,7 @@ pub struct TreasuryFinancialAccountsResourceOutboundAchToggleSettings {
 }
 
 /// Toggle settings for enabling/disabling a feature
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceToggleSettings {
     /// Whether the FinancialAccount should have the Feature.
     pub requested: bool,
@@ -21596,7 +21597,7 @@ pub struct TreasuryFinancialAccountsResourceToggleSettings {
         ::std::vec::Vec<TreasuryFinancialAccountsResourceTogglesSettingStatusDetails>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Fee {
     /// Amount of the fee, in cents.
     pub amount: i64,
@@ -21616,7 +21617,7 @@ pub struct Fee {
 /// An Issuing Cardholder object represents an individual or business entity who is [issued](https://docs.stripe.com/issuing) cards.
 ///
 /// Related guide: [How to create a cardholder](https://docs.stripe.com/issuing/cards/virtual/issue-cards#create-cardholder)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholder {
     pub billing: IssuingCardholderAddress,
     /// Additional information about a company cardholder.
@@ -21657,7 +21658,7 @@ pub struct IssuingCardholder {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardAuthorizationControls {
     /// Array of strings containing [categories](https://docs.stripe.com/api#issuing_authorization_object-merchant_data-category) of authorizations to allow. All other categories will be blocked. Cannot be set with blocked_categories.
     #[serde(default)]
@@ -21679,7 +21680,7 @@ pub struct IssuingCardAuthorizationControls {
     pub spending_limits_currency: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingAuthorizationMerchantData {
     /// A categorization of the seller''s type of business. See our [merchant categories guide](https://docs.stripe.com/issuing/merchant-categories) for a list of possible values.
     pub category: String,
@@ -21713,7 +21714,7 @@ pub struct IssuingAuthorizationMerchantData {
     pub url: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutboundTransfersPaymentMethodDetailsFinancialAccount {
     /// Token of the FinancialAccount.
     pub id: String,
@@ -21721,7 +21722,7 @@ pub struct OutboundTransfersPaymentMethodDetailsFinancialAccount {
     pub network: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutboundTransfersPaymentMethodDetailsUsBankAccount {
     /// Account holder type: individual or company. // TODO: enum values: ["company", "individual"]
     #[serde(default)]
@@ -21748,7 +21749,7 @@ pub struct OutboundTransfersPaymentMethodDetailsUsBankAccount {
     pub routing_number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasurySharedResourceBillingDetails {
     pub address: Address,
     /// Email address.
@@ -21759,7 +21760,7 @@ pub struct TreasurySharedResourceBillingDetails {
     pub name: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReceivedPaymentMethodDetailsFinancialAccount {
     /// The FinancialAccount ID.
     pub id: String,
@@ -21767,7 +21768,7 @@ pub struct ReceivedPaymentMethodDetailsFinancialAccount {
     pub network: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasurySharedResourceInitiatingPaymentMethodDetailsUsBankAccount {
     /// Bank name.
     #[serde(default)]
@@ -21780,7 +21781,7 @@ pub struct TreasurySharedResourceInitiatingPaymentMethodDetailsUsBankAccount {
     pub routing_number: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalSubscriptionUpdateProductAdjustableQuantity {
     /// If true, the quantity can be adjusted to any non-negative integer.
     pub enabled: bool,
@@ -21791,14 +21792,14 @@ pub struct PortalSubscriptionUpdateProductAdjustableQuantity {
     pub minimum: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortalResourceScheduleUpdateAtPeriodEndCondition {
     /// The type of condition. // TODO: enum values: ["decreasing_item_amount", "shortening_interval"]
     #[serde(rename = "type")]
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisputeVisaCompellingEvidence3PriorUndisputedTransaction {
     /// Stripe charge ID for the Visa Compelling Evidence 3.0 eligible prior charge.
     pub charge: String,
@@ -21825,14 +21826,14 @@ pub struct DisputeVisaCompellingEvidence3PriorUndisputedTransaction {
     pub shipping_address: ::core::option::Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPaymentIntentAsyncWorkflowsResourceInputs {
     #[serde(default)]
     pub tax:
         ::core::option::Option<PaymentFlowsPaymentIntentAsyncWorkflowsResourceInputsResourceTax>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotesResourceTotalDetailsResourceBreakdown {
     /// The aggregated discounts.
     pub discounts: ::std::vec::Vec<LineItemsDiscountAmount>,
@@ -21840,7 +21841,7 @@ pub struct QuotesResourceTotalDetailsResourceBreakdown {
     pub taxes: ::std::vec::Vec<LineItemsTaxAmount>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionSchedulesResourceInvoiceItemPeriodResourcePeriodEnd {
     /// A precise Unix timestamp for the end of the invoice item period. Must be greater than or equal to period.start.
     #[serde(default)]
@@ -21850,7 +21851,7 @@ pub struct SubscriptionSchedulesResourceInvoiceItemPeriodResourcePeriodEnd {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionSchedulesResourceInvoiceItemPeriodResourcePeriodStart {
     /// A precise Unix timestamp for the start of the invoice item period. Must be less than or equal to period.end.
     #[serde(default)]
@@ -21860,7 +21861,7 @@ pub struct SubscriptionSchedulesResourceInvoiceItemPeriodResourcePeriodStart {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductRegistrationsResourceCountryOptionsUsStateSalesTaxElection {
     /// A [FIPS code](https://www.census.gov/library/reference/code-lists/ansi.html) representing the local jurisdiction.
     #[serde(default)]
@@ -21871,7 +21872,7 @@ pub struct TaxProductRegistrationsResourceCountryOptionsUsStateSalesTaxElection 
 }
 
 /// Choice to be selected on a Reader
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminalReaderReaderResourceChoice {
     /// The identifier for the selected choice. Maximum 50 characters.
     #[serde(default)]
@@ -21883,7 +21884,7 @@ pub struct TerminalReaderReaderResourceChoice {
     pub text: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsCardPresentCommonWallet {
     /// The type of mobile wallet, one of apple_pay, google_pay, samsung_pay, or unknown. // TODO: enum values: ["apple_pay", "google_pay", "samsung_pay", "unknown"]
     #[serde(rename = "type")]
@@ -21891,7 +21892,7 @@ pub struct PaymentFlowsPrivatePaymentMethodsCardPresentCommonWallet {
 }
 
 /// Additional details on the FinancialAccount Features information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreasuryFinancialAccountsResourceTogglesSettingStatusDetails {
     /// Represents the reason why the status is pending or restricted. // TODO: enum values: ["activating", "capability_not_requested", "financial_account_closed", "rejected_other", "rejected_unsupported_business", "requirements_past_due", "requirements_pending_verification", "restricted_by_platform", "restricted_other"]
     pub code: String,
@@ -21903,12 +21904,12 @@ pub struct TreasuryFinancialAccountsResourceTogglesSettingStatusDetails {
     pub restriction: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholderAddress {
     pub address: Address,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardholderRequirements {
     /// If disabled_reason is present, all cards will decline authorizations with cardholder_verification_required reason. // TODO: enum values: ["listed", "rejected.listed", "requirements.past_due", "under_review"]
     #[serde(default)]
@@ -21918,7 +21919,7 @@ pub struct IssuingCardholderRequirements {
     pub past_due: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuingCardSpendingLimit {
     /// Maximum amount allowed to spend per interval. This amount is in the card''s currency and in the [smallest currency unit](https://docs.stripe.com/currencies#zero-decimal).
     pub amount: i64,
@@ -21929,20 +21930,20 @@ pub struct IssuingCardSpendingLimit {
     pub interval: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPaymentIntentAsyncWorkflowsResourceInputsResourceTax {
     /// The [TaxCalculation](https://docs.stripe.com/api/tax/calculations) id
     pub calculation: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LineItemsDiscountAmount {
     /// The amount discounted.
     pub amount: i64,
     pub discount: Discount,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LineItemsTaxAmount {
     /// Amount of tax applied for this rate.
     pub amount: i64,
@@ -21955,7 +21956,7 @@ pub struct LineItemsTaxAmount {
     pub taxable_amount: ::core::option::Option<i64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Address {
     /// City, district, suburb, town, or village.
     #[serde(default)]
@@ -21981,7 +21982,7 @@ pub struct Address {
 /// It contains information about when the discount began, when it will end, and what it is applied to.
 ///
 /// Related guide: [Applying discounts to subscriptions](https://docs.stripe.com/billing/subscriptions/discounts)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Discount {
     /// The Checkout session that this coupon is applied to, if it is applied to a particular session in payment mode. Will not be present for subscription mode.
     #[serde(default)]
@@ -22022,7 +22023,7 @@ pub struct Discount {
 /// Tax rates can be applied to [invoices](/invoicing/taxes/tax-rates), [subscriptions](/billing/taxes/tax-rates) and [Checkout Sessions](/payments/checkout/use-manual-tax-rates) to collect tax.
 ///
 /// Related guide: [Tax rates](/billing/taxes/tax-rates)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxRate {
     /// Defaults to true. When set to false, this tax rate cannot be used with new applications or Checkout Sessions, but will still work for subscriptions and invoices that already have it set.
     pub active: bool,
@@ -22072,7 +22073,7 @@ pub struct TaxRate {
     pub tax_type: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiscountSource {
     /// The coupon that was redeemed to create this discount.
     #[serde(default)]

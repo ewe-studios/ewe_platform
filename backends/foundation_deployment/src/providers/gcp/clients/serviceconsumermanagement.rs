@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
@@ -109,6 +111,15 @@ pub fn serviceconsumermanagement_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceconsumermanagement_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceconsumermanagementOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -121,13 +132,13 @@ pub fn serviceconsumermanagement_operations_cancel_execute(
 
 pub fn serviceconsumermanagement_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ServiceconsumermanagementOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = serviceconsumermanagement_operations_cancel_builder(client, name, body)?;
+    let builder =
+        serviceconsumermanagement_operations_cancel_builder(client, &args.name, &args.body)?;
     serviceconsumermanagement_operations_cancel_execute(builder)
 }
 
@@ -221,6 +232,13 @@ pub fn serviceconsumermanagement_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceconsumermanagement_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceconsumermanagementOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -233,12 +251,12 @@ pub fn serviceconsumermanagement_operations_delete_execute(
 
 pub fn serviceconsumermanagement_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServiceconsumermanagementOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = serviceconsumermanagement_operations_delete_builder(client, name)?;
+    let builder = serviceconsumermanagement_operations_delete_builder(client, &args.name)?;
     serviceconsumermanagement_operations_delete_execute(builder)
 }
 
@@ -332,6 +350,13 @@ pub fn serviceconsumermanagement_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceconsumermanagement_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceconsumermanagementOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -344,12 +369,12 @@ pub fn serviceconsumermanagement_operations_get_execute(
 
 pub fn serviceconsumermanagement_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServiceconsumermanagementOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = serviceconsumermanagement_operations_get_builder(client, name)?;
+    let builder = serviceconsumermanagement_operations_get_builder(client, &args.name)?;
     serviceconsumermanagement_operations_get_execute(builder)
 }
 
@@ -469,6 +494,21 @@ pub fn serviceconsumermanagement_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceconsumermanagement_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceconsumermanagementOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -481,11 +521,7 @@ pub fn serviceconsumermanagement_operations_list_execute(
 
 pub fn serviceconsumermanagement_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ServiceconsumermanagementOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -494,11 +530,11 @@ pub fn serviceconsumermanagement_operations_list(
 > {
     let builder = serviceconsumermanagement_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     serviceconsumermanagement_operations_list_execute(builder)
 }
@@ -617,6 +653,19 @@ pub fn serviceconsumermanagement_services_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceconsumermanagement_services_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceconsumermanagementServicesSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v1/services/{servicesId}:search
 /// Search tenancy units for a managed service.
 ///
@@ -629,10 +678,7 @@ pub fn serviceconsumermanagement_services_search_execute(
 
 pub fn serviceconsumermanagement_services_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    args: &ServiceconsumermanagementServicesSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchTenancyUnitsResponse>, ApiError>,
@@ -642,7 +688,11 @@ pub fn serviceconsumermanagement_services_search(
     ApiError,
 > {
     let builder = serviceconsumermanagement_services_search_builder(
-        client, parent, pageSize, pageToken, query,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
     )?;
     serviceconsumermanagement_services_search_execute(builder)
 }
@@ -740,6 +790,15 @@ pub fn serviceconsumermanagement_services_tenancy_units_add_project_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceconsumermanagement_services_tenancy_units_add_project`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceconsumermanagementServicesTenancyUnitsAddProjectArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AddTenantProjectRequest,
+}
+
 /// GET v1/services/{servicesId}/{servicesId1}/{servicesId2}/tenancyUnits/{tenancyUnitsId}:addProject
 /// Add a new tenant project to the tenancy unit. There can be a maximum of 1024 tenant projects in a tenancy unit. If there are previously failed AddTenantProject calls, you might need to call RemoveTenantProject first to resolve them before you can make another call to AddTenantProject with the same tag. Operation.
 ///
@@ -752,14 +811,16 @@ pub fn serviceconsumermanagement_services_tenancy_units_add_project_execute(
 
 pub fn serviceconsumermanagement_services_tenancy_units_add_project(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AddTenantProjectRequest,
+    args: &ServiceconsumermanagementServicesTenancyUnitsAddProjectArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        serviceconsumermanagement_services_tenancy_units_add_project_builder(client, parent, body)?;
+    let builder = serviceconsumermanagement_services_tenancy_units_add_project_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     serviceconsumermanagement_services_tenancy_units_add_project_execute(builder)
 }
 
@@ -856,6 +917,15 @@ pub fn serviceconsumermanagement_services_tenancy_units_apply_project_config_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceconsumermanagement_services_tenancy_units_apply_project_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceconsumermanagementServicesTenancyUnitsApplyProjectConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ApplyTenantProjectConfigRequest,
+}
+
 /// GET v1/services/{servicesId}/{servicesId1}/{servicesId2}/tenancyUnits/{tenancyUnitsId}:applyProjectConfig
 /// Apply a configuration to an existing tenant project. This project must exist in an active state and have the original owner account. The caller must have permission to add a project to the given tenancy unit. The configuration is applied, but any existing settings on the project aren't modified. Specified policy bindings are applied. Existing bindings aren't modified. Specified services are activated. No service is deactivated. If specified, new billing configuration is applied. Omit a billing configuration to keep the existing one. A service account in the project is created if previously non existed. Specified labels will be appended to tenant project, note that the value of existing label key will be updated if the same label key is requested. The specified folder is ignored, as moving a tenant project to a different folder isn't supported. The operation fails if any of the steps fail, but no rollback of already applied configuration changes is attempted. Operation.
 ///
@@ -868,14 +938,13 @@ pub fn serviceconsumermanagement_services_tenancy_units_apply_project_config_exe
 
 pub fn serviceconsumermanagement_services_tenancy_units_apply_project_config(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ApplyTenantProjectConfigRequest,
+    args: &ServiceconsumermanagementServicesTenancyUnitsApplyProjectConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = serviceconsumermanagement_services_tenancy_units_apply_project_config_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     serviceconsumermanagement_services_tenancy_units_apply_project_config_execute(builder)
 }
@@ -973,6 +1042,15 @@ pub fn serviceconsumermanagement_services_tenancy_units_attach_project_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceconsumermanagement_services_tenancy_units_attach_project`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceconsumermanagementServicesTenancyUnitsAttachProjectArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AttachTenantProjectRequest,
+}
+
 /// GET v1/services/{servicesId}/{servicesId1}/{servicesId2}/tenancyUnits/{tenancyUnitsId}:attachProject
 /// Attach an existing project to the tenancy unit as a new tenant resource. The project could either be the tenant project reserved by calling AddTenantProject under a tenancy unit of a service producer's project of a managed service, or from a separate project. The caller is checked against a set of permissions as if calling AddTenantProject on the same service consumer. To trigger the attachment, the targeted tenant project must be in a folder. Make sure the ServiceConsumerManagement service account is the owner of that project. These two requirements are already met if the project is reserved by calling AddTenantProject. Operation.
 ///
@@ -985,14 +1063,13 @@ pub fn serviceconsumermanagement_services_tenancy_units_attach_project_execute(
 
 pub fn serviceconsumermanagement_services_tenancy_units_attach_project(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AttachTenantProjectRequest,
+    args: &ServiceconsumermanagementServicesTenancyUnitsAttachProjectArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = serviceconsumermanagement_services_tenancy_units_attach_project_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     serviceconsumermanagement_services_tenancy_units_attach_project_execute(builder)
 }
@@ -1090,6 +1167,15 @@ pub fn serviceconsumermanagement_services_tenancy_units_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceconsumermanagement_services_tenancy_units_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceconsumermanagementServicesTenancyUnitsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateTenancyUnitRequest,
+}
+
 /// GET v1/services/{servicesId}/{servicesId1}/{servicesId2}/tenancyUnits
 /// Creates a tenancy unit with no tenant resources. If tenancy unit already exists, it will be returned, however, in this case, returned TenancyUnit does not have tenant_resources field set and ListTenancyUnits has to be used to get a complete TenancyUnit with all fields populated.
 ///
@@ -1102,14 +1188,16 @@ pub fn serviceconsumermanagement_services_tenancy_units_create_execute(
 
 pub fn serviceconsumermanagement_services_tenancy_units_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateTenancyUnitRequest,
+    args: &ServiceconsumermanagementServicesTenancyUnitsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TenancyUnit>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        serviceconsumermanagement_services_tenancy_units_create_builder(client, parent, body)?;
+    let builder = serviceconsumermanagement_services_tenancy_units_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     serviceconsumermanagement_services_tenancy_units_create_execute(builder)
 }
 
@@ -1203,6 +1291,13 @@ pub fn serviceconsumermanagement_services_tenancy_units_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceconsumermanagement_services_tenancy_units_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceconsumermanagementServicesTenancyUnitsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/services/{servicesId}/{servicesId1}/{servicesId2}/tenancyUnits/{tenancyUnitsId}
 /// Delete a tenancy unit. Before you delete the tenancy unit, there should be no tenant resources in it that aren't in a DELETED state. Operation.
 ///
@@ -1215,12 +1310,13 @@ pub fn serviceconsumermanagement_services_tenancy_units_delete_execute(
 
 pub fn serviceconsumermanagement_services_tenancy_units_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServiceconsumermanagementServicesTenancyUnitsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = serviceconsumermanagement_services_tenancy_units_delete_builder(client, name)?;
+    let builder =
+        serviceconsumermanagement_services_tenancy_units_delete_builder(client, &args.name)?;
     serviceconsumermanagement_services_tenancy_units_delete_execute(builder)
 }
 
@@ -1317,6 +1413,15 @@ pub fn serviceconsumermanagement_services_tenancy_units_delete_project_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceconsumermanagement_services_tenancy_units_delete_project`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceconsumermanagementServicesTenancyUnitsDeleteProjectArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DeleteTenantProjectRequest,
+}
+
 /// GET v1/services/{servicesId}/{servicesId1}/{servicesId2}/tenancyUnits/{tenancyUnitsId}:deleteProject
 /// Deletes the specified project resource identified by a tenant resource tag. The mothod removes a project lien with a 'TenantManager' origin if that was added. It will then attempt to delete the project. If that operation fails, this method also fails. After the project has been deleted, the tenant resource state is set to DELETED. To permanently remove resource metadata, call the RemoveTenantProject method. New resources with the same tag can't be added if there are existing resources in a DELETED state. Operation.
 ///
@@ -1329,14 +1434,13 @@ pub fn serviceconsumermanagement_services_tenancy_units_delete_project_execute(
 
 pub fn serviceconsumermanagement_services_tenancy_units_delete_project(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DeleteTenantProjectRequest,
+    args: &ServiceconsumermanagementServicesTenancyUnitsDeleteProjectArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = serviceconsumermanagement_services_tenancy_units_delete_project_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     serviceconsumermanagement_services_tenancy_units_delete_project_execute(builder)
 }
@@ -1453,6 +1557,19 @@ pub fn serviceconsumermanagement_services_tenancy_units_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceconsumermanagement_services_tenancy_units_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceconsumermanagementServicesTenancyUnitsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/services/{servicesId}/{servicesId1}/{servicesId2}/tenancyUnits
 /// Find the tenancy unit for a managed service and service consumer. This method shouldn't be used in a service producer's runtime path, for example to find the tenant project number when creating VMs. Service producers must persist the tenant project's information after the project is created.
 ///
@@ -1465,10 +1582,7 @@ pub fn serviceconsumermanagement_services_tenancy_units_list_execute(
 
 pub fn serviceconsumermanagement_services_tenancy_units_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ServiceconsumermanagementServicesTenancyUnitsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTenancyUnitsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1476,7 +1590,11 @@ pub fn serviceconsumermanagement_services_tenancy_units_list(
     ApiError,
 > {
     let builder = serviceconsumermanagement_services_tenancy_units_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     serviceconsumermanagement_services_tenancy_units_list_execute(builder)
 }
@@ -1574,6 +1692,15 @@ pub fn serviceconsumermanagement_services_tenancy_units_remove_project_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceconsumermanagement_services_tenancy_units_remove_project`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceconsumermanagementServicesTenancyUnitsRemoveProjectArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RemoveTenantProjectRequest,
+}
+
 /// GET v1/services/{servicesId}/{servicesId1}/{servicesId2}/tenancyUnits/{tenancyUnitsId}:removeProject
 /// Removes the specified project resource identified by a tenant resource tag. The method removes the project lien with 'TenantManager' origin if that was added. It then attempts to delete the project. If that operation fails, this method also fails. Calls to remove already removed or non-existent tenant project succeed. After the project has been deleted, or if was already in a DELETED state, resource metadata is permanently removed from the tenancy unit. Operation.
 ///
@@ -1586,14 +1713,13 @@ pub fn serviceconsumermanagement_services_tenancy_units_remove_project_execute(
 
 pub fn serviceconsumermanagement_services_tenancy_units_remove_project(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RemoveTenantProjectRequest,
+    args: &ServiceconsumermanagementServicesTenancyUnitsRemoveProjectArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = serviceconsumermanagement_services_tenancy_units_remove_project_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     serviceconsumermanagement_services_tenancy_units_remove_project_execute(builder)
 }
@@ -1691,6 +1817,15 @@ pub fn serviceconsumermanagement_services_tenancy_units_undelete_project_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceconsumermanagement_services_tenancy_units_undelete_project`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceconsumermanagementServicesTenancyUnitsUndeleteProjectArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UndeleteTenantProjectRequest,
+}
+
 /// GET v1/services/{servicesId}/{servicesId1}/{servicesId2}/tenancyUnits/{tenancyUnitsId}:undeleteProject
 /// Attempts to undelete a previously deleted tenant project. The project must be in a DELETED state. There are no guarantees that an undeleted project will be in a fully restored and functional state. Call the ApplyTenantProjectConfig method to update its configuration and then validate all managed service resources. Operation.
 ///
@@ -1703,14 +1838,13 @@ pub fn serviceconsumermanagement_services_tenancy_units_undelete_project_execute
 
 pub fn serviceconsumermanagement_services_tenancy_units_undelete_project(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UndeleteTenantProjectRequest,
+    args: &ServiceconsumermanagementServicesTenancyUnitsUndeleteProjectArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = serviceconsumermanagement_services_tenancy_units_undelete_project_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     serviceconsumermanagement_services_tenancy_units_undelete_project_execute(builder)
 }

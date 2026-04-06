@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET queries
 /// Creates a new query.
@@ -105,6 +107,13 @@ pub fn doubleclickbidmanager_queries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclickbidmanager_queries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclickbidmanagerQueriesCreateArgs {
+    /// Request body.
+    pub body: Query,
+}
+
 /// GET queries
 /// Creates a new query.
 ///
@@ -117,12 +126,12 @@ pub fn doubleclickbidmanager_queries_create_execute(
 
 pub fn doubleclickbidmanager_queries_create(
     client: &SimpleHttpClient,
-    body: &Query,
+    args: &DoubleclickbidmanagerQueriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Query>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = doubleclickbidmanager_queries_create_builder(client, body)?;
+    let builder = doubleclickbidmanager_queries_create_builder(client, &args.body)?;
     doubleclickbidmanager_queries_create_execute(builder)
 }
 
@@ -213,6 +222,13 @@ pub fn doubleclickbidmanager_queries_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclickbidmanager_queries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclickbidmanagerQueriesDeleteArgs {
+    /// Path parameter: queryId
+    pub queryId: String,
+}
+
 /// GET queries/{queryId}
 /// Deletes an existing query as well as its generated reports.
 ///
@@ -225,12 +241,12 @@ pub fn doubleclickbidmanager_queries_delete_execute(
 
 pub fn doubleclickbidmanager_queries_delete(
     client: &SimpleHttpClient,
-    queryId: &str,
+    args: &DoubleclickbidmanagerQueriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = doubleclickbidmanager_queries_delete_builder(client, queryId)?;
+    let builder = doubleclickbidmanager_queries_delete_builder(client, &args.queryId)?;
     doubleclickbidmanager_queries_delete_execute(builder)
 }
 
@@ -324,6 +340,13 @@ pub fn doubleclickbidmanager_queries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclickbidmanager_queries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclickbidmanagerQueriesGetArgs {
+    /// Path parameter: queryId
+    pub queryId: String,
+}
+
 /// GET queries/{queryId}
 /// Retrieves a query.
 ///
@@ -336,12 +359,12 @@ pub fn doubleclickbidmanager_queries_get_execute(
 
 pub fn doubleclickbidmanager_queries_get(
     client: &SimpleHttpClient,
-    queryId: &str,
+    args: &DoubleclickbidmanagerQueriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Query>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = doubleclickbidmanager_queries_get_builder(client, queryId)?;
+    let builder = doubleclickbidmanager_queries_get_builder(client, &args.queryId)?;
     doubleclickbidmanager_queries_get_execute(builder)
 }
 
@@ -453,6 +476,17 @@ pub fn doubleclickbidmanager_queries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclickbidmanager_queries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclickbidmanagerQueriesListArgs {
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET queries
 /// Lists queries created by the current user.
 ///
@@ -465,16 +499,19 @@ pub fn doubleclickbidmanager_queries_list_execute(
 
 pub fn doubleclickbidmanager_queries_list(
     client: &SimpleHttpClient,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DoubleclickbidmanagerQueriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListQueriesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = doubleclickbidmanager_queries_list_builder(client, orderBy, pageSize, pageToken)?;
+    let builder = doubleclickbidmanager_queries_list_builder(
+        client,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     doubleclickbidmanager_queries_list_execute(builder)
 }
 
@@ -583,6 +620,17 @@ pub fn doubleclickbidmanager_queries_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclickbidmanager_queries_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclickbidmanagerQueriesRunArgs {
+    /// Path parameter: queryId
+    pub queryId: String,
+    /// Query parameter: synchronous
+    pub synchronous: Option<bool>,
+    /// Request body.
+    pub body: RunQueryRequest,
+}
+
 /// GET queries/{queryId}:run
 /// Runs an existing query to generate a report.
 ///
@@ -595,14 +643,17 @@ pub fn doubleclickbidmanager_queries_run_execute(
 
 pub fn doubleclickbidmanager_queries_run(
     client: &SimpleHttpClient,
-    queryId: &str,
-    synchronous: Option<bool>,
-    body: &RunQueryRequest,
+    args: &DoubleclickbidmanagerQueriesRunArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = doubleclickbidmanager_queries_run_builder(client, queryId, synchronous, body)?;
+    let builder = doubleclickbidmanager_queries_run_builder(
+        client,
+        &args.queryId,
+        args.synchronous,
+        &args.body,
+    )?;
     doubleclickbidmanager_queries_run_execute(builder)
 }
 
@@ -697,6 +748,15 @@ pub fn doubleclickbidmanager_queries_reports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclickbidmanager_queries_reports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclickbidmanagerQueriesReportsGetArgs {
+    /// Path parameter: queryId
+    pub queryId: String,
+    /// Path parameter: reportId
+    pub reportId: String,
+}
+
 /// GET queries/{queryId}/reports/{reportId}
 /// Retrieves a report.
 ///
@@ -709,13 +769,13 @@ pub fn doubleclickbidmanager_queries_reports_get_execute(
 
 pub fn doubleclickbidmanager_queries_reports_get(
     client: &SimpleHttpClient,
-    queryId: &str,
-    reportId: &str,
+    args: &DoubleclickbidmanagerQueriesReportsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = doubleclickbidmanager_queries_reports_get_builder(client, queryId, reportId)?;
+    let builder =
+        doubleclickbidmanager_queries_reports_get_builder(client, &args.queryId, &args.reportId)?;
     doubleclickbidmanager_queries_reports_get_execute(builder)
 }
 
@@ -831,6 +891,19 @@ pub fn doubleclickbidmanager_queries_reports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclickbidmanager_queries_reports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclickbidmanagerQueriesReportsListArgs {
+    /// Path parameter: queryId
+    pub queryId: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET queries/{queryId}/reports
 /// Lists reports generated by the provided query.
 ///
@@ -843,10 +916,7 @@ pub fn doubleclickbidmanager_queries_reports_list_execute(
 
 pub fn doubleclickbidmanager_queries_reports_list(
     client: &SimpleHttpClient,
-    queryId: &str,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DoubleclickbidmanagerQueriesReportsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListReportsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -854,7 +924,11 @@ pub fn doubleclickbidmanager_queries_reports_list(
     ApiError,
 > {
     let builder = doubleclickbidmanager_queries_reports_list_builder(
-        client, queryId, orderBy, pageSize, pageToken,
+        client,
+        &args.queryId,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     doubleclickbidmanager_queries_reports_list_execute(builder)
 }

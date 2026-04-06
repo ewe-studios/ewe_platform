@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -110,6 +112,13 @@ pub fn alloydb_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -122,7 +131,7 @@ pub fn alloydb_projects_locations_get_execute(
 
 pub fn alloydb_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AlloydbProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudLocationLocation>, ApiError>,
@@ -131,7 +140,7 @@ pub fn alloydb_projects_locations_get(
         + 'static,
     ApiError,
 > {
-    let builder = alloydb_projects_locations_get_builder(client, name)?;
+    let builder = alloydb_projects_locations_get_builder(client, &args.name)?;
     alloydb_projects_locations_get_execute(builder)
 }
 
@@ -253,6 +262,21 @@ pub fn alloydb_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -265,11 +289,7 @@ pub fn alloydb_projects_locations_list_execute(
 
 pub fn alloydb_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AlloydbProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudLocationListLocationsResponse>, ApiError>,
@@ -280,11 +300,11 @@ pub fn alloydb_projects_locations_list(
 > {
     let builder = alloydb_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     alloydb_projects_locations_list_execute(builder)
 }
@@ -402,6 +422,21 @@ pub fn alloydb_projects_locations_backups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_backups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsBackupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupId
+    pub backupId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backups
 /// Creates a new Backup in a given project and location.
 ///
@@ -414,22 +449,18 @@ pub fn alloydb_projects_locations_backups_create_execute(
 
 pub fn alloydb_projects_locations_backups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backupId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Backup,
+    args: &AlloydbProjectsLocationsBackupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = alloydb_projects_locations_backups_create_builder(
         client,
-        parent,
-        backupId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.backupId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     alloydb_projects_locations_backups_create_execute(builder)
 }
@@ -544,6 +575,19 @@ pub fn alloydb_projects_locations_backups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backups/{backupsId}
 /// Deletes a single Backup.
 ///
@@ -556,20 +600,17 @@ pub fn alloydb_projects_locations_backups_delete_execute(
 
 pub fn alloydb_projects_locations_backups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &AlloydbProjectsLocationsBackupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = alloydb_projects_locations_backups_delete_builder(
         client,
-        name,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     alloydb_projects_locations_backups_delete_execute(builder)
 }
@@ -676,6 +717,15 @@ pub fn alloydb_projects_locations_backups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backups/{backupsId}
 /// Gets details of a single Backup.
 ///
@@ -688,13 +738,13 @@ pub fn alloydb_projects_locations_backups_get_execute(
 
 pub fn alloydb_projects_locations_backups_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &AlloydbProjectsLocationsBackupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alloydb_projects_locations_backups_get_builder(client, name, view)?;
+    let builder =
+        alloydb_projects_locations_backups_get_builder(client, &args.name, args.view.as_deref())?;
     alloydb_projects_locations_backups_get_execute(builder)
 }
 
@@ -818,6 +868,23 @@ pub fn alloydb_projects_locations_backups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backups
 /// Lists Backups in a given project and location.
 ///
@@ -830,12 +897,7 @@ pub fn alloydb_projects_locations_backups_list_execute(
 
 pub fn alloydb_projects_locations_backups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &AlloydbProjectsLocationsBackupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -843,7 +905,13 @@ pub fn alloydb_projects_locations_backups_list(
     ApiError,
 > {
     let builder = alloydb_projects_locations_backups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     alloydb_projects_locations_backups_list_execute(builder)
 }
@@ -965,6 +1033,23 @@ pub fn alloydb_projects_locations_backups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_backups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsBackupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backups/{backupsId}
 /// Updates the parameters of a single Backup.
 ///
@@ -977,24 +1062,19 @@ pub fn alloydb_projects_locations_backups_patch_execute(
 
 pub fn alloydb_projects_locations_backups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Backup,
+    args: &AlloydbProjectsLocationsBackupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = alloydb_projects_locations_backups_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     alloydb_projects_locations_backups_patch_execute(builder)
 }
@@ -1112,6 +1192,21 @@ pub fn alloydb_projects_locations_clusters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: clusterId
+    pub clusterId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Cluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
 /// Creates a new Cluster in a given project and location.
 ///
@@ -1124,22 +1219,18 @@ pub fn alloydb_projects_locations_clusters_create_execute(
 
 pub fn alloydb_projects_locations_clusters_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    clusterId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Cluster,
+    args: &AlloydbProjectsLocationsClustersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = alloydb_projects_locations_clusters_create_builder(
         client,
-        parent,
-        clusterId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.clusterId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     alloydb_projects_locations_clusters_create_execute(builder)
 }
@@ -1257,6 +1348,21 @@ pub fn alloydb_projects_locations_clusters_createsecondary_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_createsecondary`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersCreatesecondaryArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: clusterId
+    pub clusterId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Cluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters:createsecondary
 /// Creates a cluster of type SECONDARY in the given location using the primary cluster as the source.
 ///
@@ -1269,22 +1375,18 @@ pub fn alloydb_projects_locations_clusters_createsecondary_execute(
 
 pub fn alloydb_projects_locations_clusters_createsecondary(
     client: &SimpleHttpClient,
-    parent: &str,
-    clusterId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Cluster,
+    args: &AlloydbProjectsLocationsClustersCreatesecondaryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = alloydb_projects_locations_clusters_createsecondary_builder(
         client,
-        parent,
-        clusterId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.clusterId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     alloydb_projects_locations_clusters_createsecondary_execute(builder)
 }
@@ -1403,6 +1505,21 @@ pub fn alloydb_projects_locations_clusters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
 /// Deletes a single Cluster.
 ///
@@ -1415,22 +1532,18 @@ pub fn alloydb_projects_locations_clusters_delete_execute(
 
 pub fn alloydb_projects_locations_clusters_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    force: Option<bool>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &AlloydbProjectsLocationsClustersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = alloydb_projects_locations_clusters_delete_builder(
         client,
-        name,
-        etag,
-        force,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.force,
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     alloydb_projects_locations_clusters_delete_execute(builder)
 }
@@ -1528,6 +1641,15 @@ pub fn alloydb_projects_locations_clusters_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersExportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExportClusterRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:export
 /// Exports data from the cluster. Imperative only.
 ///
@@ -1540,13 +1662,13 @@ pub fn alloydb_projects_locations_clusters_export_execute(
 
 pub fn alloydb_projects_locations_clusters_export(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExportClusterRequest,
+    args: &AlloydbProjectsLocationsClustersExportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alloydb_projects_locations_clusters_export_builder(client, name, body)?;
+    let builder =
+        alloydb_projects_locations_clusters_export_builder(client, &args.name, &args.body)?;
     alloydb_projects_locations_clusters_export_execute(builder)
 }
 
@@ -1652,6 +1774,15 @@ pub fn alloydb_projects_locations_clusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
 /// Gets details of a single Cluster.
 ///
@@ -1664,13 +1795,13 @@ pub fn alloydb_projects_locations_clusters_get_execute(
 
 pub fn alloydb_projects_locations_clusters_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &AlloydbProjectsLocationsClustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alloydb_projects_locations_clusters_get_builder(client, name, view)?;
+    let builder =
+        alloydb_projects_locations_clusters_get_builder(client, &args.name, args.view.as_deref())?;
     alloydb_projects_locations_clusters_get_execute(builder)
 }
 
@@ -1767,6 +1898,15 @@ pub fn alloydb_projects_locations_clusters_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersImportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ImportClusterRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:import
 /// Imports data to the cluster. Imperative only.
 ///
@@ -1779,13 +1919,13 @@ pub fn alloydb_projects_locations_clusters_import_execute(
 
 pub fn alloydb_projects_locations_clusters_import(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ImportClusterRequest,
+    args: &AlloydbProjectsLocationsClustersImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alloydb_projects_locations_clusters_import_builder(client, name, body)?;
+    let builder =
+        alloydb_projects_locations_clusters_import_builder(client, &args.name, &args.body)?;
     alloydb_projects_locations_clusters_import_execute(builder)
 }
 
@@ -1905,6 +2045,21 @@ pub fn alloydb_projects_locations_clusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
 /// Lists Clusters in a given project and location.
 ///
@@ -1917,11 +2072,7 @@ pub fn alloydb_projects_locations_clusters_list_execute(
 
 pub fn alloydb_projects_locations_clusters_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AlloydbProjectsLocationsClustersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1929,7 +2080,12 @@ pub fn alloydb_projects_locations_clusters_list(
     ApiError,
 > {
     let builder = alloydb_projects_locations_clusters_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     alloydb_projects_locations_clusters_list_execute(builder)
 }
@@ -2051,6 +2207,23 @@ pub fn alloydb_projects_locations_clusters_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Cluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
 /// Updates the parameters of a single Cluster.
 ///
@@ -2063,24 +2236,19 @@ pub fn alloydb_projects_locations_clusters_patch_execute(
 
 pub fn alloydb_projects_locations_clusters_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Cluster,
+    args: &AlloydbProjectsLocationsClustersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = alloydb_projects_locations_clusters_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     alloydb_projects_locations_clusters_patch_execute(builder)
 }
@@ -2178,6 +2346,15 @@ pub fn alloydb_projects_locations_clusters_promote_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_promote`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersPromoteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: PromoteClusterRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:promote
 /// Promotes a SECONDARY cluster. This turns down replication from the PRIMARY cluster and promotes a secondary cluster into its own standalone cluster. Imperative only.
 ///
@@ -2190,13 +2367,13 @@ pub fn alloydb_projects_locations_clusters_promote_execute(
 
 pub fn alloydb_projects_locations_clusters_promote(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &PromoteClusterRequest,
+    args: &AlloydbProjectsLocationsClustersPromoteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alloydb_projects_locations_clusters_promote_builder(client, name, body)?;
+    let builder =
+        alloydb_projects_locations_clusters_promote_builder(client, &args.name, &args.body)?;
     alloydb_projects_locations_clusters_promote_execute(builder)
 }
 
@@ -2293,6 +2470,15 @@ pub fn alloydb_projects_locations_clusters_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersRestoreArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: RestoreClusterRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters:restore
 /// Creates a new Cluster in a given project and location, with a volume restored from the provided source, either a backup ID or a point-in-time and a source cluster.
 ///
@@ -2305,13 +2491,13 @@ pub fn alloydb_projects_locations_clusters_restore_execute(
 
 pub fn alloydb_projects_locations_clusters_restore(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &RestoreClusterRequest,
+    args: &AlloydbProjectsLocationsClustersRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alloydb_projects_locations_clusters_restore_builder(client, parent, body)?;
+    let builder =
+        alloydb_projects_locations_clusters_restore_builder(client, &args.parent, &args.body)?;
     alloydb_projects_locations_clusters_restore_execute(builder)
 }
 
@@ -2408,6 +2594,15 @@ pub fn alloydb_projects_locations_clusters_restore_from_cloud_sql_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_restore_from_cloud_sql`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersRestoreFromCloudSqlArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: RestoreFromCloudSQLRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters:restoreFromCloudSQL
 /// Restores an AlloyDB cluster from a CloudSQL resource.
 ///
@@ -2420,14 +2615,16 @@ pub fn alloydb_projects_locations_clusters_restore_from_cloud_sql_execute(
 
 pub fn alloydb_projects_locations_clusters_restore_from_cloud_sql(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &RestoreFromCloudSQLRequest,
+    args: &AlloydbProjectsLocationsClustersRestoreFromCloudSqlArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        alloydb_projects_locations_clusters_restore_from_cloud_sql_builder(client, parent, body)?;
+    let builder = alloydb_projects_locations_clusters_restore_from_cloud_sql_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     alloydb_projects_locations_clusters_restore_from_cloud_sql_execute(builder)
 }
 
@@ -2524,6 +2721,15 @@ pub fn alloydb_projects_locations_clusters_switchover_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_switchover`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersSwitchoverArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SwitchoverClusterRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:switchover
 /// Switches the roles of PRIMARY and SECONDARY clusters without any data loss. This promotes the SECONDARY cluster to PRIMARY and sets up the original PRIMARY cluster to replicate from this newly promoted cluster.
 ///
@@ -2536,13 +2742,13 @@ pub fn alloydb_projects_locations_clusters_switchover_execute(
 
 pub fn alloydb_projects_locations_clusters_switchover(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SwitchoverClusterRequest,
+    args: &AlloydbProjectsLocationsClustersSwitchoverArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alloydb_projects_locations_clusters_switchover_builder(client, name, body)?;
+    let builder =
+        alloydb_projects_locations_clusters_switchover_builder(client, &args.name, &args.body)?;
     alloydb_projects_locations_clusters_switchover_execute(builder)
 }
 
@@ -2639,6 +2845,15 @@ pub fn alloydb_projects_locations_clusters_upgrade_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_upgrade`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersUpgradeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpgradeClusterRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:upgrade
 /// Upgrades a single Cluster. Imperative only.
 ///
@@ -2651,13 +2866,13 @@ pub fn alloydb_projects_locations_clusters_upgrade_execute(
 
 pub fn alloydb_projects_locations_clusters_upgrade(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpgradeClusterRequest,
+    args: &AlloydbProjectsLocationsClustersUpgradeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alloydb_projects_locations_clusters_upgrade_builder(client, name, body)?;
+    let builder =
+        alloydb_projects_locations_clusters_upgrade_builder(client, &args.name, &args.body)?;
     alloydb_projects_locations_clusters_upgrade_execute(builder)
 }
 
@@ -2774,6 +2989,21 @@ pub fn alloydb_projects_locations_clusters_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: instanceId
+    pub instanceId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/instances
 /// Creates a new Instance in a given project and location.
 ///
@@ -2786,22 +3016,18 @@ pub fn alloydb_projects_locations_clusters_instances_create_execute(
 
 pub fn alloydb_projects_locations_clusters_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    instanceId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Instance,
+    args: &AlloydbProjectsLocationsClustersInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = alloydb_projects_locations_clusters_instances_create_builder(
         client,
-        parent,
-        instanceId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.instanceId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     alloydb_projects_locations_clusters_instances_create_execute(builder)
 }
@@ -2919,6 +3145,21 @@ pub fn alloydb_projects_locations_clusters_instances_createsecondary_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_instances_createsecondary`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersInstancesCreatesecondaryArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: instanceId
+    pub instanceId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/instances:createsecondary
 /// Creates a new SECONDARY Instance in a given project and location.
 ///
@@ -2931,22 +3172,18 @@ pub fn alloydb_projects_locations_clusters_instances_createsecondary_execute(
 
 pub fn alloydb_projects_locations_clusters_instances_createsecondary(
     client: &SimpleHttpClient,
-    parent: &str,
-    instanceId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Instance,
+    args: &AlloydbProjectsLocationsClustersInstancesCreatesecondaryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = alloydb_projects_locations_clusters_instances_createsecondary_builder(
         client,
-        parent,
-        instanceId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.instanceId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     alloydb_projects_locations_clusters_instances_createsecondary_execute(builder)
 }
@@ -3061,6 +3298,19 @@ pub fn alloydb_projects_locations_clusters_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/instances/{instancesId}
 /// Deletes a single Instance.
 ///
@@ -3073,20 +3323,17 @@ pub fn alloydb_projects_locations_clusters_instances_delete_execute(
 
 pub fn alloydb_projects_locations_clusters_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &AlloydbProjectsLocationsClustersInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = alloydb_projects_locations_clusters_instances_delete_builder(
         client,
-        name,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     alloydb_projects_locations_clusters_instances_delete_execute(builder)
 }
@@ -3184,6 +3431,15 @@ pub fn alloydb_projects_locations_clusters_instances_failover_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_instances_failover`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersInstancesFailoverArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: FailoverInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/instances/{instancesId}:failover
 /// Forces a Failover for a highly available instance. Failover promotes the HA standby instance as the new primary. Imperative only.
 ///
@@ -3196,14 +3452,14 @@ pub fn alloydb_projects_locations_clusters_instances_failover_execute(
 
 pub fn alloydb_projects_locations_clusters_instances_failover(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &FailoverInstanceRequest,
+    args: &AlloydbProjectsLocationsClustersInstancesFailoverArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        alloydb_projects_locations_clusters_instances_failover_builder(client, name, body)?;
+    let builder = alloydb_projects_locations_clusters_instances_failover_builder(
+        client, &args.name, &args.body,
+    )?;
     alloydb_projects_locations_clusters_instances_failover_execute(builder)
 }
 
@@ -3309,6 +3565,15 @@ pub fn alloydb_projects_locations_clusters_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/instances/{instancesId}
 /// Gets details of a single Instance.
 ///
@@ -3321,13 +3586,16 @@ pub fn alloydb_projects_locations_clusters_instances_get_execute(
 
 pub fn alloydb_projects_locations_clusters_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &AlloydbProjectsLocationsClustersInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alloydb_projects_locations_clusters_instances_get_builder(client, name, view)?;
+    let builder = alloydb_projects_locations_clusters_instances_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     alloydb_projects_locations_clusters_instances_get_execute(builder)
 }
 
@@ -3435,6 +3703,15 @@ pub fn alloydb_projects_locations_clusters_instances_get_connection_info_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_instances_get_connection_info`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersInstancesGetConnectionInfoArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/instances/{instancesId}/connectionInfo
 /// Get instance metadata used for a connection.
 ///
@@ -3447,8 +3724,7 @@ pub fn alloydb_projects_locations_clusters_instances_get_connection_info_execute
 
 pub fn alloydb_projects_locations_clusters_instances_get_connection_info(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
+    args: &AlloydbProjectsLocationsClustersInstancesGetConnectionInfoArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConnectionInfo>, ApiError>, P = ApiPending>
         + Send
@@ -3456,7 +3732,9 @@ pub fn alloydb_projects_locations_clusters_instances_get_connection_info(
     ApiError,
 > {
     let builder = alloydb_projects_locations_clusters_instances_get_connection_info_builder(
-        client, parent, requestId,
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
     )?;
     alloydb_projects_locations_clusters_instances_get_connection_info_execute(builder)
 }
@@ -3554,6 +3832,15 @@ pub fn alloydb_projects_locations_clusters_instances_inject_fault_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_instances_inject_fault`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersInstancesInjectFaultArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: InjectFaultRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/instances/{instancesId}:injectFault
 /// Injects fault in an instance. Imperative only.
 ///
@@ -3566,14 +3853,14 @@ pub fn alloydb_projects_locations_clusters_instances_inject_fault_execute(
 
 pub fn alloydb_projects_locations_clusters_instances_inject_fault(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &InjectFaultRequest,
+    args: &AlloydbProjectsLocationsClustersInstancesInjectFaultArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        alloydb_projects_locations_clusters_instances_inject_fault_builder(client, name, body)?;
+    let builder = alloydb_projects_locations_clusters_instances_inject_fault_builder(
+        client, &args.name, &args.body,
+    )?;
     alloydb_projects_locations_clusters_instances_inject_fault_execute(builder)
 }
 
@@ -3693,6 +3980,21 @@ pub fn alloydb_projects_locations_clusters_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/instances
 /// Lists Instances in a given project and location.
 ///
@@ -3705,11 +4007,7 @@ pub fn alloydb_projects_locations_clusters_instances_list_execute(
 
 pub fn alloydb_projects_locations_clusters_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AlloydbProjectsLocationsClustersInstancesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3717,7 +4015,12 @@ pub fn alloydb_projects_locations_clusters_instances_list(
     ApiError,
 > {
     let builder = alloydb_projects_locations_clusters_instances_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     alloydb_projects_locations_clusters_instances_list_execute(builder)
 }
@@ -3839,6 +4142,23 @@ pub fn alloydb_projects_locations_clusters_instances_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/instances/{instancesId}
 /// Updates the parameters of a single Instance.
 ///
@@ -3851,24 +4171,19 @@ pub fn alloydb_projects_locations_clusters_instances_patch_execute(
 
 pub fn alloydb_projects_locations_clusters_instances_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Instance,
+    args: &AlloydbProjectsLocationsClustersInstancesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = alloydb_projects_locations_clusters_instances_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     alloydb_projects_locations_clusters_instances_patch_execute(builder)
 }
@@ -3966,6 +4281,15 @@ pub fn alloydb_projects_locations_clusters_instances_restart_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_instances_restart`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersInstancesRestartArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RestartInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/instances/{instancesId}:restart
 /// Restart an Instance in a cluster. Imperative only.
 ///
@@ -3978,14 +4302,14 @@ pub fn alloydb_projects_locations_clusters_instances_restart_execute(
 
 pub fn alloydb_projects_locations_clusters_instances_restart(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RestartInstanceRequest,
+    args: &AlloydbProjectsLocationsClustersInstancesRestartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        alloydb_projects_locations_clusters_instances_restart_builder(client, name, body)?;
+    let builder = alloydb_projects_locations_clusters_instances_restart_builder(
+        client, &args.name, &args.body,
+    )?;
     alloydb_projects_locations_clusters_instances_restart_execute(builder)
 }
 
@@ -4102,6 +4426,21 @@ pub fn alloydb_projects_locations_clusters_users_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_users_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersUsersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: userId
+    pub userId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: User,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/users
 /// Creates a new User in a given project, location, and cluster.
 ///
@@ -4114,22 +4453,18 @@ pub fn alloydb_projects_locations_clusters_users_create_execute(
 
 pub fn alloydb_projects_locations_clusters_users_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    userId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &User,
+    args: &AlloydbProjectsLocationsClustersUsersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = alloydb_projects_locations_clusters_users_create_builder(
         client,
-        parent,
-        requestId,
-        userId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.userId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     alloydb_projects_locations_clusters_users_create_execute(builder)
 }
@@ -4240,6 +4575,17 @@ pub fn alloydb_projects_locations_clusters_users_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_users_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersUsersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/users/{usersId}
 /// Deletes a single User.
 ///
@@ -4252,18 +4598,16 @@ pub fn alloydb_projects_locations_clusters_users_delete_execute(
 
 pub fn alloydb_projects_locations_clusters_users_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &AlloydbProjectsLocationsClustersUsersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = alloydb_projects_locations_clusters_users_delete_builder(
         client,
-        name,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     alloydb_projects_locations_clusters_users_delete_execute(builder)
 }
@@ -4358,6 +4702,13 @@ pub fn alloydb_projects_locations_clusters_users_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_users_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersUsersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/users/{usersId}
 /// Gets details of a single User.
 ///
@@ -4370,12 +4721,12 @@ pub fn alloydb_projects_locations_clusters_users_get_execute(
 
 pub fn alloydb_projects_locations_clusters_users_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AlloydbProjectsLocationsClustersUsersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alloydb_projects_locations_clusters_users_get_builder(client, name)?;
+    let builder = alloydb_projects_locations_clusters_users_get_builder(client, &args.name)?;
     alloydb_projects_locations_clusters_users_get_execute(builder)
 }
 
@@ -4495,6 +4846,21 @@ pub fn alloydb_projects_locations_clusters_users_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_users_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersUsersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/users
 /// Lists Users in a given project and location.
 ///
@@ -4507,11 +4873,7 @@ pub fn alloydb_projects_locations_clusters_users_list_execute(
 
 pub fn alloydb_projects_locations_clusters_users_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AlloydbProjectsLocationsClustersUsersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListUsersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4519,7 +4881,12 @@ pub fn alloydb_projects_locations_clusters_users_list(
     ApiError,
 > {
     let builder = alloydb_projects_locations_clusters_users_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     alloydb_projects_locations_clusters_users_list_execute(builder)
 }
@@ -4641,6 +5008,23 @@ pub fn alloydb_projects_locations_clusters_users_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_clusters_users_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsClustersUsersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: User,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/users/{usersId}
 /// Updates the parameters of a single User.
 ///
@@ -4653,24 +5037,19 @@ pub fn alloydb_projects_locations_clusters_users_patch_execute(
 
 pub fn alloydb_projects_locations_clusters_users_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &User,
+    args: &AlloydbProjectsLocationsClustersUsersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = alloydb_projects_locations_clusters_users_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     alloydb_projects_locations_clusters_users_patch_execute(builder)
 }
@@ -4768,6 +5147,15 @@ pub fn alloydb_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -4780,13 +5168,13 @@ pub fn alloydb_projects_locations_operations_cancel_execute(
 
 pub fn alloydb_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &AlloydbProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alloydb_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        alloydb_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     alloydb_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -4880,6 +5268,13 @@ pub fn alloydb_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -4892,12 +5287,12 @@ pub fn alloydb_projects_locations_operations_delete_execute(
 
 pub fn alloydb_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AlloydbProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alloydb_projects_locations_operations_delete_builder(client, name)?;
+    let builder = alloydb_projects_locations_operations_delete_builder(client, &args.name)?;
     alloydb_projects_locations_operations_delete_execute(builder)
 }
 
@@ -4991,6 +5386,13 @@ pub fn alloydb_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -5003,12 +5405,12 @@ pub fn alloydb_projects_locations_operations_get_execute(
 
 pub fn alloydb_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AlloydbProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alloydb_projects_locations_operations_get_builder(client, name)?;
+    let builder = alloydb_projects_locations_operations_get_builder(client, &args.name)?;
     alloydb_projects_locations_operations_get_execute(builder)
 }
 
@@ -5128,6 +5530,21 @@ pub fn alloydb_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -5140,11 +5557,7 @@ pub fn alloydb_projects_locations_operations_list_execute(
 
 pub fn alloydb_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &AlloydbProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5153,11 +5566,11 @@ pub fn alloydb_projects_locations_operations_list(
 > {
     let builder = alloydb_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     alloydb_projects_locations_operations_list_execute(builder)
 }
@@ -5276,6 +5689,19 @@ pub fn alloydb_projects_locations_supported_database_flags_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alloydb_projects_locations_supported_database_flags_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlloydbProjectsLocationsSupportedDatabaseFlagsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: scope
+    pub scope: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/supportedDatabaseFlags
 /// Lists SupportedDatabaseFlags for a given project and location.
 ///
@@ -5288,10 +5714,7 @@ pub fn alloydb_projects_locations_supported_database_flags_list_execute(
 
 pub fn alloydb_projects_locations_supported_database_flags_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    scope: Option<&str>,
+    args: &AlloydbProjectsLocationsSupportedDatabaseFlagsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSupportedDatabaseFlagsResponse>, ApiError>,
@@ -5301,7 +5724,11 @@ pub fn alloydb_projects_locations_supported_database_flags_list(
     ApiError,
 > {
     let builder = alloydb_projects_locations_supported_database_flags_list_builder(
-        client, parent, pageSize, pageToken, scope,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.scope.as_deref(),
     )?;
     alloydb_projects_locations_supported_database_flags_list_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn rapidmigrationassessment_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`rapidmigrationassessment_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RapidmigrationassessmentProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn rapidmigrationassessment_projects_locations_get_execute(
 
 pub fn rapidmigrationassessment_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RapidmigrationassessmentProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = rapidmigrationassessment_projects_locations_get_builder(client, name)?;
+    let builder = rapidmigrationassessment_projects_locations_get_builder(client, &args.name)?;
     rapidmigrationassessment_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn rapidmigrationassessment_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`rapidmigrationassessment_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RapidmigrationassessmentProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service.
 ///
@@ -255,11 +279,7 @@ pub fn rapidmigrationassessment_projects_locations_list_execute(
 
 pub fn rapidmigrationassessment_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RapidmigrationassessmentProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn rapidmigrationassessment_projects_locations_list(
 > {
     let builder = rapidmigrationassessment_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     rapidmigrationassessment_projects_locations_list_execute(builder)
 }
@@ -382,6 +402,17 @@ pub fn rapidmigrationassessment_projects_locations_annotations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`rapidmigrationassessment_projects_locations_annotations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RapidmigrationassessmentProjectsLocationsAnnotationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Annotation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/annotations
 /// Creates an Annotation
 ///
@@ -394,15 +425,16 @@ pub fn rapidmigrationassessment_projects_locations_annotations_create_execute(
 
 pub fn rapidmigrationassessment_projects_locations_annotations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    body: &Annotation,
+    args: &RapidmigrationassessmentProjectsLocationsAnnotationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = rapidmigrationassessment_projects_locations_annotations_create_builder(
-        client, parent, requestId, body,
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     rapidmigrationassessment_projects_locations_annotations_create_execute(builder)
 }
@@ -497,6 +529,13 @@ pub fn rapidmigrationassessment_projects_locations_annotations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`rapidmigrationassessment_projects_locations_annotations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RapidmigrationassessmentProjectsLocationsAnnotationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/annotations/{annotationsId}
 /// Gets details of a single Annotation.
 ///
@@ -509,13 +548,13 @@ pub fn rapidmigrationassessment_projects_locations_annotations_get_execute(
 
 pub fn rapidmigrationassessment_projects_locations_annotations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RapidmigrationassessmentProjectsLocationsAnnotationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Annotation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        rapidmigrationassessment_projects_locations_annotations_get_builder(client, name)?;
+        rapidmigrationassessment_projects_locations_annotations_get_builder(client, &args.name)?;
     rapidmigrationassessment_projects_locations_annotations_get_execute(builder)
 }
 
@@ -628,6 +667,19 @@ pub fn rapidmigrationassessment_projects_locations_collectors_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`rapidmigrationassessment_projects_locations_collectors_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RapidmigrationassessmentProjectsLocationsCollectorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: collectorId
+    pub collectorId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Collector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collectors
 /// Create a Collector to manage the on-prem appliance which collects information about Customer assets.
 ///
@@ -640,20 +692,17 @@ pub fn rapidmigrationassessment_projects_locations_collectors_create_execute(
 
 pub fn rapidmigrationassessment_projects_locations_collectors_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    collectorId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Collector,
+    args: &RapidmigrationassessmentProjectsLocationsCollectorsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = rapidmigrationassessment_projects_locations_collectors_create_builder(
         client,
-        parent,
-        collectorId,
-        requestId,
-        body,
+        &args.parent,
+        args.collectorId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     rapidmigrationassessment_projects_locations_collectors_create_execute(builder)
 }
@@ -760,6 +809,15 @@ pub fn rapidmigrationassessment_projects_locations_collectors_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`rapidmigrationassessment_projects_locations_collectors_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RapidmigrationassessmentProjectsLocationsCollectorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collectors/{collectorsId}
 /// Deletes a single Collector - changes state of collector to "Deleting". Background jobs does final deletion through producer API.
 ///
@@ -772,14 +830,15 @@ pub fn rapidmigrationassessment_projects_locations_collectors_delete_execute(
 
 pub fn rapidmigrationassessment_projects_locations_collectors_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &RapidmigrationassessmentProjectsLocationsCollectorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = rapidmigrationassessment_projects_locations_collectors_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     rapidmigrationassessment_projects_locations_collectors_delete_execute(builder)
 }
@@ -874,6 +933,13 @@ pub fn rapidmigrationassessment_projects_locations_collectors_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`rapidmigrationassessment_projects_locations_collectors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RapidmigrationassessmentProjectsLocationsCollectorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collectors/{collectorsId}
 /// Gets details of a single Collector.
 ///
@@ -886,12 +952,13 @@ pub fn rapidmigrationassessment_projects_locations_collectors_get_execute(
 
 pub fn rapidmigrationassessment_projects_locations_collectors_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RapidmigrationassessmentProjectsLocationsCollectorsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Collector>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = rapidmigrationassessment_projects_locations_collectors_get_builder(client, name)?;
+    let builder =
+        rapidmigrationassessment_projects_locations_collectors_get_builder(client, &args.name)?;
     rapidmigrationassessment_projects_locations_collectors_get_execute(builder)
 }
 
@@ -1011,6 +1078,21 @@ pub fn rapidmigrationassessment_projects_locations_collectors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`rapidmigrationassessment_projects_locations_collectors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RapidmigrationassessmentProjectsLocationsCollectorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collectors
 /// Lists Collectors in a given project and location.
 ///
@@ -1023,11 +1105,7 @@ pub fn rapidmigrationassessment_projects_locations_collectors_list_execute(
 
 pub fn rapidmigrationassessment_projects_locations_collectors_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RapidmigrationassessmentProjectsLocationsCollectorsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCollectorsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1035,7 +1113,12 @@ pub fn rapidmigrationassessment_projects_locations_collectors_list(
     ApiError,
 > {
     let builder = rapidmigrationassessment_projects_locations_collectors_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     rapidmigrationassessment_projects_locations_collectors_list_execute(builder)
 }
@@ -1149,6 +1232,19 @@ pub fn rapidmigrationassessment_projects_locations_collectors_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`rapidmigrationassessment_projects_locations_collectors_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RapidmigrationassessmentProjectsLocationsCollectorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Collector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collectors/{collectorsId}
 /// Updates the parameters of a single Collector.
 ///
@@ -1161,16 +1257,17 @@ pub fn rapidmigrationassessment_projects_locations_collectors_patch_execute(
 
 pub fn rapidmigrationassessment_projects_locations_collectors_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Collector,
+    args: &RapidmigrationassessmentProjectsLocationsCollectorsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = rapidmigrationassessment_projects_locations_collectors_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     rapidmigrationassessment_projects_locations_collectors_patch_execute(builder)
 }
@@ -1268,6 +1365,15 @@ pub fn rapidmigrationassessment_projects_locations_collectors_pause_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`rapidmigrationassessment_projects_locations_collectors_pause`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RapidmigrationassessmentProjectsLocationsCollectorsPauseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: PauseCollectorRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collectors/{collectorsId}:pause
 /// Pauses the given collector.
 ///
@@ -1280,14 +1386,14 @@ pub fn rapidmigrationassessment_projects_locations_collectors_pause_execute(
 
 pub fn rapidmigrationassessment_projects_locations_collectors_pause(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &PauseCollectorRequest,
+    args: &RapidmigrationassessmentProjectsLocationsCollectorsPauseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        rapidmigrationassessment_projects_locations_collectors_pause_builder(client, name, body)?;
+    let builder = rapidmigrationassessment_projects_locations_collectors_pause_builder(
+        client, &args.name, &args.body,
+    )?;
     rapidmigrationassessment_projects_locations_collectors_pause_execute(builder)
 }
 
@@ -1384,6 +1490,15 @@ pub fn rapidmigrationassessment_projects_locations_collectors_register_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`rapidmigrationassessment_projects_locations_collectors_register`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RapidmigrationassessmentProjectsLocationsCollectorsRegisterArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RegisterCollectorRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collectors/{collectorsId}:register
 /// Registers the given collector.
 ///
@@ -1396,14 +1511,13 @@ pub fn rapidmigrationassessment_projects_locations_collectors_register_execute(
 
 pub fn rapidmigrationassessment_projects_locations_collectors_register(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RegisterCollectorRequest,
+    args: &RapidmigrationassessmentProjectsLocationsCollectorsRegisterArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = rapidmigrationassessment_projects_locations_collectors_register_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     rapidmigrationassessment_projects_locations_collectors_register_execute(builder)
 }
@@ -1501,6 +1615,15 @@ pub fn rapidmigrationassessment_projects_locations_collectors_resume_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`rapidmigrationassessment_projects_locations_collectors_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RapidmigrationassessmentProjectsLocationsCollectorsResumeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResumeCollectorRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collectors/{collectorsId}:resume
 /// Resumes the given collector.
 ///
@@ -1513,14 +1636,14 @@ pub fn rapidmigrationassessment_projects_locations_collectors_resume_execute(
 
 pub fn rapidmigrationassessment_projects_locations_collectors_resume(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResumeCollectorRequest,
+    args: &RapidmigrationassessmentProjectsLocationsCollectorsResumeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        rapidmigrationassessment_projects_locations_collectors_resume_builder(client, name, body)?;
+    let builder = rapidmigrationassessment_projects_locations_collectors_resume_builder(
+        client, &args.name, &args.body,
+    )?;
     rapidmigrationassessment_projects_locations_collectors_resume_execute(builder)
 }
 
@@ -1617,6 +1740,15 @@ pub fn rapidmigrationassessment_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`rapidmigrationassessment_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RapidmigrationassessmentProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1629,14 +1761,14 @@ pub fn rapidmigrationassessment_projects_locations_operations_cancel_execute(
 
 pub fn rapidmigrationassessment_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &RapidmigrationassessmentProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        rapidmigrationassessment_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = rapidmigrationassessment_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     rapidmigrationassessment_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -1730,6 +1862,13 @@ pub fn rapidmigrationassessment_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`rapidmigrationassessment_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RapidmigrationassessmentProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1742,13 +1881,13 @@ pub fn rapidmigrationassessment_projects_locations_operations_delete_execute(
 
 pub fn rapidmigrationassessment_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RapidmigrationassessmentProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        rapidmigrationassessment_projects_locations_operations_delete_builder(client, name)?;
+        rapidmigrationassessment_projects_locations_operations_delete_builder(client, &args.name)?;
     rapidmigrationassessment_projects_locations_operations_delete_execute(builder)
 }
 
@@ -1842,6 +1981,13 @@ pub fn rapidmigrationassessment_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`rapidmigrationassessment_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RapidmigrationassessmentProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1854,12 +2000,13 @@ pub fn rapidmigrationassessment_projects_locations_operations_get_execute(
 
 pub fn rapidmigrationassessment_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RapidmigrationassessmentProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = rapidmigrationassessment_projects_locations_operations_get_builder(client, name)?;
+    let builder =
+        rapidmigrationassessment_projects_locations_operations_get_builder(client, &args.name)?;
     rapidmigrationassessment_projects_locations_operations_get_execute(builder)
 }
 
@@ -1975,6 +2122,19 @@ pub fn rapidmigrationassessment_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`rapidmigrationassessment_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RapidmigrationassessmentProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1987,10 +2147,7 @@ pub fn rapidmigrationassessment_projects_locations_operations_list_execute(
 
 pub fn rapidmigrationassessment_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RapidmigrationassessmentProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1998,7 +2155,11 @@ pub fn rapidmigrationassessment_projects_locations_operations_list(
     ApiError,
 > {
     let builder = rapidmigrationassessment_projects_locations_operations_list_builder(
-        client, name, filter, pageSize, pageToken,
+        client,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     rapidmigrationassessment_projects_locations_operations_list_execute(builder)
 }

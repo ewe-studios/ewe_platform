@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:detachServiceProjectAttachment
 /// Detaches a service project from a host project. You can call this API from any service project without needing access to the host project that it is attached to.
@@ -113,6 +115,15 @@ pub fn apphub_projects_locations_detach_service_project_attachment_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_detach_service_project_attachment`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsDetachServiceProjectAttachmentArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DetachServiceProjectAttachmentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:detachServiceProjectAttachment
 /// Detaches a service project from a host project. You can call this API from any service project without needing access to the host project that it is attached to.
 ///
@@ -125,8 +136,7 @@ pub fn apphub_projects_locations_detach_service_project_attachment_execute(
 
 pub fn apphub_projects_locations_detach_service_project_attachment(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DetachServiceProjectAttachmentRequest,
+    args: &ApphubProjectsLocationsDetachServiceProjectAttachmentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DetachServiceProjectAttachmentResponse>, ApiError>,
@@ -135,8 +145,9 @@ pub fn apphub_projects_locations_detach_service_project_attachment(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apphub_projects_locations_detach_service_project_attachment_builder(client, name, body)?;
+    let builder = apphub_projects_locations_detach_service_project_attachment_builder(
+        client, &args.name, &args.body,
+    )?;
     apphub_projects_locations_detach_service_project_attachment_execute(builder)
 }
 
@@ -230,6 +241,13 @@ pub fn apphub_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -242,12 +260,12 @@ pub fn apphub_projects_locations_get_execute(
 
 pub fn apphub_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApphubProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apphub_projects_locations_get_builder(client, name)?;
+    let builder = apphub_projects_locations_get_builder(client, &args.name)?;
     apphub_projects_locations_get_execute(builder)
 }
 
@@ -341,6 +359,13 @@ pub fn apphub_projects_locations_get_boundary_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_get_boundary`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsGetBoundaryArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/boundary
 /// Gets a Boundary.
 ///
@@ -353,12 +378,12 @@ pub fn apphub_projects_locations_get_boundary_execute(
 
 pub fn apphub_projects_locations_get_boundary(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApphubProjectsLocationsGetBoundaryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Boundary>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apphub_projects_locations_get_boundary_builder(client, name)?;
+    let builder = apphub_projects_locations_get_boundary_builder(client, &args.name)?;
     apphub_projects_locations_get_boundary_execute(builder)
 }
 
@@ -478,6 +503,21 @@ pub fn apphub_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -490,11 +530,7 @@ pub fn apphub_projects_locations_list_execute(
 
 pub fn apphub_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApphubProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -503,11 +539,11 @@ pub fn apphub_projects_locations_list(
 > {
     let builder = apphub_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apphub_projects_locations_list_execute(builder)
 }
@@ -606,6 +642,13 @@ pub fn apphub_projects_locations_lookup_service_project_attachment_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_lookup_service_project_attachment`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsLookupServiceProjectAttachmentArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:lookupServiceProjectAttachment
 /// Lists a service project attachment for a given service project. You can call this API from any project to find if it is attached to a host project.
 ///
@@ -618,7 +661,7 @@ pub fn apphub_projects_locations_lookup_service_project_attachment_execute(
 
 pub fn apphub_projects_locations_lookup_service_project_attachment(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApphubProjectsLocationsLookupServiceProjectAttachmentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LookupServiceProjectAttachmentResponse>, ApiError>,
@@ -628,7 +671,7 @@ pub fn apphub_projects_locations_lookup_service_project_attachment(
     ApiError,
 > {
     let builder =
-        apphub_projects_locations_lookup_service_project_attachment_builder(client, name)?;
+        apphub_projects_locations_lookup_service_project_attachment_builder(client, &args.name)?;
     apphub_projects_locations_lookup_service_project_attachment_execute(builder)
 }
 
@@ -741,6 +784,19 @@ pub fn apphub_projects_locations_update_boundary_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_update_boundary`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsUpdateBoundaryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Boundary,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/boundary
 /// Updates a Boundary.
 ///
@@ -753,16 +809,17 @@ pub fn apphub_projects_locations_update_boundary_execute(
 
 pub fn apphub_projects_locations_update_boundary(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Boundary,
+    args: &ApphubProjectsLocationsUpdateBoundaryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apphub_projects_locations_update_boundary_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apphub_projects_locations_update_boundary_execute(builder)
 }
@@ -876,6 +933,19 @@ pub fn apphub_projects_locations_applications_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: applicationId
+    pub applicationId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Application,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications
 /// Creates an Application in a host project and location.
 ///
@@ -888,20 +958,17 @@ pub fn apphub_projects_locations_applications_create_execute(
 
 pub fn apphub_projects_locations_applications_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    applicationId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Application,
+    args: &ApphubProjectsLocationsApplicationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apphub_projects_locations_applications_create_builder(
         client,
-        parent,
-        applicationId,
-        requestId,
-        body,
+        &args.parent,
+        args.applicationId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     apphub_projects_locations_applications_create_execute(builder)
 }
@@ -1008,6 +1075,15 @@ pub fn apphub_projects_locations_applications_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}
 /// Deletes an Application in a host project and location.
 ///
@@ -1020,13 +1096,16 @@ pub fn apphub_projects_locations_applications_delete_execute(
 
 pub fn apphub_projects_locations_applications_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &ApphubProjectsLocationsApplicationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apphub_projects_locations_applications_delete_builder(client, name, requestId)?;
+    let builder = apphub_projects_locations_applications_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     apphub_projects_locations_applications_delete_execute(builder)
 }
 
@@ -1120,6 +1199,13 @@ pub fn apphub_projects_locations_applications_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}
 /// Gets an Application in a host project and location.
 ///
@@ -1132,12 +1218,12 @@ pub fn apphub_projects_locations_applications_get_execute(
 
 pub fn apphub_projects_locations_applications_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApphubProjectsLocationsApplicationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Application>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apphub_projects_locations_applications_get_builder(client, name)?;
+    let builder = apphub_projects_locations_applications_get_builder(client, &args.name)?;
     apphub_projects_locations_applications_get_execute(builder)
 }
 
@@ -1243,6 +1329,15 @@ pub fn apphub_projects_locations_applications_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1255,16 +1350,15 @@ pub fn apphub_projects_locations_applications_get_iam_policy_execute(
 
 pub fn apphub_projects_locations_applications_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApphubProjectsLocationsApplicationsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apphub_projects_locations_applications_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apphub_projects_locations_applications_get_iam_policy_execute(builder)
 }
@@ -1385,6 +1479,21 @@ pub fn apphub_projects_locations_applications_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications
 /// Lists Applications in a host project and location.
 ///
@@ -1397,11 +1506,7 @@ pub fn apphub_projects_locations_applications_list_execute(
 
 pub fn apphub_projects_locations_applications_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApphubProjectsLocationsApplicationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListApplicationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1409,7 +1514,12 @@ pub fn apphub_projects_locations_applications_list(
     ApiError,
 > {
     let builder = apphub_projects_locations_applications_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apphub_projects_locations_applications_list_execute(builder)
 }
@@ -1523,6 +1633,19 @@ pub fn apphub_projects_locations_applications_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Application,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}
 /// Updates an Application in a host project and location.
 ///
@@ -1535,16 +1658,17 @@ pub fn apphub_projects_locations_applications_patch_execute(
 
 pub fn apphub_projects_locations_applications_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Application,
+    args: &ApphubProjectsLocationsApplicationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apphub_projects_locations_applications_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apphub_projects_locations_applications_patch_execute(builder)
 }
@@ -1642,6 +1766,15 @@ pub fn apphub_projects_locations_applications_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1654,14 +1787,16 @@ pub fn apphub_projects_locations_applications_set_iam_policy_execute(
 
 pub fn apphub_projects_locations_applications_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ApphubProjectsLocationsApplicationsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apphub_projects_locations_applications_set_iam_policy_builder(client, resource, body)?;
+    let builder = apphub_projects_locations_applications_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     apphub_projects_locations_applications_set_iam_policy_execute(builder)
 }
 
@@ -1762,6 +1897,15 @@ pub fn apphub_projects_locations_applications_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1774,8 +1918,7 @@ pub fn apphub_projects_locations_applications_test_iam_permissions_execute(
 
 pub fn apphub_projects_locations_applications_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ApphubProjectsLocationsApplicationsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1785,7 +1928,9 @@ pub fn apphub_projects_locations_applications_test_iam_permissions(
     ApiError,
 > {
     let builder = apphub_projects_locations_applications_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apphub_projects_locations_applications_test_iam_permissions_execute(builder)
 }
@@ -1899,6 +2044,19 @@ pub fn apphub_projects_locations_applications_services_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_services_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsServicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: serviceId
+    pub serviceId: Option<String>,
+    /// Request body.
+    pub body: Service,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services
 /// Creates a Service in an Application.
 ///
@@ -1911,16 +2069,17 @@ pub fn apphub_projects_locations_applications_services_create_execute(
 
 pub fn apphub_projects_locations_applications_services_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    serviceId: Option<&str>,
-    body: &Service,
+    args: &ApphubProjectsLocationsApplicationsServicesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apphub_projects_locations_applications_services_create_builder(
-        client, parent, requestId, serviceId, body,
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.serviceId.as_deref(),
+        &args.body,
     )?;
     apphub_projects_locations_applications_services_create_execute(builder)
 }
@@ -2027,6 +2186,15 @@ pub fn apphub_projects_locations_applications_services_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_services_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsServicesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}
 /// Deletes a Service from an Application.
 ///
@@ -2039,14 +2207,16 @@ pub fn apphub_projects_locations_applications_services_delete_execute(
 
 pub fn apphub_projects_locations_applications_services_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &ApphubProjectsLocationsApplicationsServicesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apphub_projects_locations_applications_services_delete_builder(client, name, requestId)?;
+    let builder = apphub_projects_locations_applications_services_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     apphub_projects_locations_applications_services_delete_execute(builder)
 }
 
@@ -2140,6 +2310,13 @@ pub fn apphub_projects_locations_applications_services_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_services_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsServicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}
 /// Gets a Service in an Application.
 ///
@@ -2152,12 +2329,12 @@ pub fn apphub_projects_locations_applications_services_get_execute(
 
 pub fn apphub_projects_locations_applications_services_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApphubProjectsLocationsApplicationsServicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apphub_projects_locations_applications_services_get_builder(client, name)?;
+    let builder = apphub_projects_locations_applications_services_get_builder(client, &args.name)?;
     apphub_projects_locations_applications_services_get_execute(builder)
 }
 
@@ -2277,6 +2454,21 @@ pub fn apphub_projects_locations_applications_services_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsServicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services
 /// Lists Services in an Application.
 ///
@@ -2289,11 +2481,7 @@ pub fn apphub_projects_locations_applications_services_list_execute(
 
 pub fn apphub_projects_locations_applications_services_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApphubProjectsLocationsApplicationsServicesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2301,7 +2489,12 @@ pub fn apphub_projects_locations_applications_services_list(
     ApiError,
 > {
     let builder = apphub_projects_locations_applications_services_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apphub_projects_locations_applications_services_list_execute(builder)
 }
@@ -2415,6 +2608,19 @@ pub fn apphub_projects_locations_applications_services_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_services_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsServicesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Service,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}
 /// Updates a Service in an Application.
 ///
@@ -2427,16 +2633,17 @@ pub fn apphub_projects_locations_applications_services_patch_execute(
 
 pub fn apphub_projects_locations_applications_services_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Service,
+    args: &ApphubProjectsLocationsApplicationsServicesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apphub_projects_locations_applications_services_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apphub_projects_locations_applications_services_patch_execute(builder)
 }
@@ -2550,6 +2757,19 @@ pub fn apphub_projects_locations_applications_workloads_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_workloads_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsWorkloadsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: workloadId
+    pub workloadId: Option<String>,
+    /// Request body.
+    pub body: Workload,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/workloads
 /// Creates a Workload in an Application.
 ///
@@ -2562,16 +2782,17 @@ pub fn apphub_projects_locations_applications_workloads_create_execute(
 
 pub fn apphub_projects_locations_applications_workloads_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    workloadId: Option<&str>,
-    body: &Workload,
+    args: &ApphubProjectsLocationsApplicationsWorkloadsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apphub_projects_locations_applications_workloads_create_builder(
-        client, parent, requestId, workloadId, body,
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.workloadId.as_deref(),
+        &args.body,
     )?;
     apphub_projects_locations_applications_workloads_create_execute(builder)
 }
@@ -2678,6 +2899,15 @@ pub fn apphub_projects_locations_applications_workloads_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_workloads_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsWorkloadsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/workloads/{workloadsId}
 /// Deletes a Workload from an Application.
 ///
@@ -2690,14 +2920,16 @@ pub fn apphub_projects_locations_applications_workloads_delete_execute(
 
 pub fn apphub_projects_locations_applications_workloads_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &ApphubProjectsLocationsApplicationsWorkloadsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apphub_projects_locations_applications_workloads_delete_builder(client, name, requestId)?;
+    let builder = apphub_projects_locations_applications_workloads_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     apphub_projects_locations_applications_workloads_delete_execute(builder)
 }
 
@@ -2791,6 +3023,13 @@ pub fn apphub_projects_locations_applications_workloads_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_workloads_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsWorkloadsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/workloads/{workloadsId}
 /// Gets a Workload in an Application.
 ///
@@ -2803,12 +3042,12 @@ pub fn apphub_projects_locations_applications_workloads_get_execute(
 
 pub fn apphub_projects_locations_applications_workloads_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApphubProjectsLocationsApplicationsWorkloadsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Workload>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apphub_projects_locations_applications_workloads_get_builder(client, name)?;
+    let builder = apphub_projects_locations_applications_workloads_get_builder(client, &args.name)?;
     apphub_projects_locations_applications_workloads_get_execute(builder)
 }
 
@@ -2928,6 +3167,21 @@ pub fn apphub_projects_locations_applications_workloads_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_workloads_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsWorkloadsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/workloads
 /// Lists Workloads in an Application.
 ///
@@ -2940,11 +3194,7 @@ pub fn apphub_projects_locations_applications_workloads_list_execute(
 
 pub fn apphub_projects_locations_applications_workloads_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApphubProjectsLocationsApplicationsWorkloadsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListWorkloadsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2952,7 +3202,12 @@ pub fn apphub_projects_locations_applications_workloads_list(
     ApiError,
 > {
     let builder = apphub_projects_locations_applications_workloads_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apphub_projects_locations_applications_workloads_list_execute(builder)
 }
@@ -3066,6 +3321,19 @@ pub fn apphub_projects_locations_applications_workloads_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_applications_workloads_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsApplicationsWorkloadsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Workload,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/workloads/{workloadsId}
 /// Updates a Workload in an Application.
 ///
@@ -3078,16 +3346,17 @@ pub fn apphub_projects_locations_applications_workloads_patch_execute(
 
 pub fn apphub_projects_locations_applications_workloads_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Workload,
+    args: &ApphubProjectsLocationsApplicationsWorkloadsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apphub_projects_locations_applications_workloads_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apphub_projects_locations_applications_workloads_patch_execute(builder)
 }
@@ -3184,6 +3453,13 @@ pub fn apphub_projects_locations_discovered_services_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_discovered_services_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsDiscoveredServicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredServices/{discoveredServicesId}
 /// Gets a Discovered Service in a host project and location.
 ///
@@ -3196,14 +3472,14 @@ pub fn apphub_projects_locations_discovered_services_get_execute(
 
 pub fn apphub_projects_locations_discovered_services_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApphubProjectsLocationsDiscoveredServicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DiscoveredService>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apphub_projects_locations_discovered_services_get_builder(client, name)?;
+    let builder = apphub_projects_locations_discovered_services_get_builder(client, &args.name)?;
     apphub_projects_locations_discovered_services_get_execute(builder)
 }
 
@@ -3325,6 +3601,21 @@ pub fn apphub_projects_locations_discovered_services_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_discovered_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsDiscoveredServicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredServices
 /// Lists Discovered Services that can be added to an Application in a host project and location.
 ///
@@ -3337,11 +3628,7 @@ pub fn apphub_projects_locations_discovered_services_list_execute(
 
 pub fn apphub_projects_locations_discovered_services_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApphubProjectsLocationsDiscoveredServicesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDiscoveredServicesResponse>, ApiError>,
@@ -3351,7 +3638,12 @@ pub fn apphub_projects_locations_discovered_services_list(
     ApiError,
 > {
     let builder = apphub_projects_locations_discovered_services_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apphub_projects_locations_discovered_services_list_execute(builder)
 }
@@ -3462,6 +3754,15 @@ pub fn apphub_projects_locations_discovered_services_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_discovered_services_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsDiscoveredServicesLookupArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: uri
+    pub uri: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredServices:lookup
 /// Lists a Discovered Service in a host project and location, with a given resource URI.
 ///
@@ -3474,8 +3775,7 @@ pub fn apphub_projects_locations_discovered_services_lookup_execute(
 
 pub fn apphub_projects_locations_discovered_services_lookup(
     client: &SimpleHttpClient,
-    parent: &str,
-    uri: Option<&str>,
+    args: &ApphubProjectsLocationsDiscoveredServicesLookupArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LookupDiscoveredServiceResponse>, ApiError>,
@@ -3484,8 +3784,11 @@ pub fn apphub_projects_locations_discovered_services_lookup(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apphub_projects_locations_discovered_services_lookup_builder(client, parent, uri)?;
+    let builder = apphub_projects_locations_discovered_services_lookup_builder(
+        client,
+        &args.parent,
+        args.uri.as_deref(),
+    )?;
     apphub_projects_locations_discovered_services_lookup_execute(builder)
 }
 
@@ -3581,6 +3884,13 @@ pub fn apphub_projects_locations_discovered_workloads_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_discovered_workloads_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsDiscoveredWorkloadsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredWorkloads/{discoveredWorkloadsId}
 /// Gets a Discovered Workload in a host project and location.
 ///
@@ -3593,14 +3903,14 @@ pub fn apphub_projects_locations_discovered_workloads_get_execute(
 
 pub fn apphub_projects_locations_discovered_workloads_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApphubProjectsLocationsDiscoveredWorkloadsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DiscoveredWorkload>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apphub_projects_locations_discovered_workloads_get_builder(client, name)?;
+    let builder = apphub_projects_locations_discovered_workloads_get_builder(client, &args.name)?;
     apphub_projects_locations_discovered_workloads_get_execute(builder)
 }
 
@@ -3722,6 +4032,21 @@ pub fn apphub_projects_locations_discovered_workloads_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_discovered_workloads_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsDiscoveredWorkloadsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredWorkloads
 /// Lists Discovered Workloads that can be added to an Application in a host project and location.
 ///
@@ -3734,11 +4059,7 @@ pub fn apphub_projects_locations_discovered_workloads_list_execute(
 
 pub fn apphub_projects_locations_discovered_workloads_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApphubProjectsLocationsDiscoveredWorkloadsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDiscoveredWorkloadsResponse>, ApiError>,
@@ -3748,7 +4069,12 @@ pub fn apphub_projects_locations_discovered_workloads_list(
     ApiError,
 > {
     let builder = apphub_projects_locations_discovered_workloads_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apphub_projects_locations_discovered_workloads_list_execute(builder)
 }
@@ -3859,6 +4185,15 @@ pub fn apphub_projects_locations_discovered_workloads_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_discovered_workloads_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsDiscoveredWorkloadsLookupArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: uri
+    pub uri: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredWorkloads:lookup
 /// Lists a Discovered Workload in a host project and location, with a given resource URI.
 ///
@@ -3871,8 +4206,7 @@ pub fn apphub_projects_locations_discovered_workloads_lookup_execute(
 
 pub fn apphub_projects_locations_discovered_workloads_lookup(
     client: &SimpleHttpClient,
-    parent: &str,
-    uri: Option<&str>,
+    args: &ApphubProjectsLocationsDiscoveredWorkloadsLookupArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LookupDiscoveredWorkloadResponse>, ApiError>,
@@ -3881,8 +4215,11 @@ pub fn apphub_projects_locations_discovered_workloads_lookup(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apphub_projects_locations_discovered_workloads_lookup_builder(client, parent, uri)?;
+    let builder = apphub_projects_locations_discovered_workloads_lookup_builder(
+        client,
+        &args.parent,
+        args.uri.as_deref(),
+    )?;
     apphub_projects_locations_discovered_workloads_lookup_execute(builder)
 }
 
@@ -3978,6 +4315,13 @@ pub fn apphub_projects_locations_extended_metadata_schemas_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_extended_metadata_schemas_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsExtendedMetadataSchemasGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/extendedMetadataSchemas/{extendedMetadataSchemasId}
 /// Gets an Extended Metadata Schema.
 ///
@@ -3990,14 +4334,15 @@ pub fn apphub_projects_locations_extended_metadata_schemas_get_execute(
 
 pub fn apphub_projects_locations_extended_metadata_schemas_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApphubProjectsLocationsExtendedMetadataSchemasGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExtendedMetadataSchema>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apphub_projects_locations_extended_metadata_schemas_get_builder(client, name)?;
+    let builder =
+        apphub_projects_locations_extended_metadata_schemas_get_builder(client, &args.name)?;
     apphub_projects_locations_extended_metadata_schemas_get_execute(builder)
 }
 
@@ -4111,6 +4456,17 @@ pub fn apphub_projects_locations_extended_metadata_schemas_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_extended_metadata_schemas_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsExtendedMetadataSchemasListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/extendedMetadataSchemas
 /// Lists Extended Metadata Schemas available in a host project and location.
 ///
@@ -4123,9 +4479,7 @@ pub fn apphub_projects_locations_extended_metadata_schemas_list_execute(
 
 pub fn apphub_projects_locations_extended_metadata_schemas_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApphubProjectsLocationsExtendedMetadataSchemasListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListExtendedMetadataSchemasResponse>, ApiError>,
@@ -4135,7 +4489,10 @@ pub fn apphub_projects_locations_extended_metadata_schemas_list(
     ApiError,
 > {
     let builder = apphub_projects_locations_extended_metadata_schemas_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apphub_projects_locations_extended_metadata_schemas_list_execute(builder)
 }
@@ -4233,6 +4590,15 @@ pub fn apphub_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -4245,13 +4611,13 @@ pub fn apphub_projects_locations_operations_cancel_execute(
 
 pub fn apphub_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ApphubProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apphub_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        apphub_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     apphub_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -4345,6 +4711,13 @@ pub fn apphub_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -4357,12 +4730,12 @@ pub fn apphub_projects_locations_operations_delete_execute(
 
 pub fn apphub_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApphubProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apphub_projects_locations_operations_delete_builder(client, name)?;
+    let builder = apphub_projects_locations_operations_delete_builder(client, &args.name)?;
     apphub_projects_locations_operations_delete_execute(builder)
 }
 
@@ -4456,6 +4829,13 @@ pub fn apphub_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -4468,12 +4848,12 @@ pub fn apphub_projects_locations_operations_get_execute(
 
 pub fn apphub_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApphubProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apphub_projects_locations_operations_get_builder(client, name)?;
+    let builder = apphub_projects_locations_operations_get_builder(client, &args.name)?;
     apphub_projects_locations_operations_get_execute(builder)
 }
 
@@ -4593,6 +4973,21 @@ pub fn apphub_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -4605,11 +5000,7 @@ pub fn apphub_projects_locations_operations_list_execute(
 
 pub fn apphub_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ApphubProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4618,11 +5009,11 @@ pub fn apphub_projects_locations_operations_list(
 > {
     let builder = apphub_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     apphub_projects_locations_operations_list_execute(builder)
 }
@@ -4736,6 +5127,19 @@ pub fn apphub_projects_locations_service_project_attachments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_service_project_attachments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsServiceProjectAttachmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: serviceProjectAttachmentId
+    pub serviceProjectAttachmentId: Option<String>,
+    /// Request body.
+    pub body: ServiceProjectAttachment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceProjectAttachments
 /// Attaches a service project to the host project.
 ///
@@ -4748,20 +5152,17 @@ pub fn apphub_projects_locations_service_project_attachments_create_execute(
 
 pub fn apphub_projects_locations_service_project_attachments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    serviceProjectAttachmentId: Option<&str>,
-    body: &ServiceProjectAttachment,
+    args: &ApphubProjectsLocationsServiceProjectAttachmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apphub_projects_locations_service_project_attachments_create_builder(
         client,
-        parent,
-        requestId,
-        serviceProjectAttachmentId,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.serviceProjectAttachmentId.as_deref(),
+        &args.body,
     )?;
     apphub_projects_locations_service_project_attachments_create_execute(builder)
 }
@@ -4868,6 +5269,15 @@ pub fn apphub_projects_locations_service_project_attachments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_service_project_attachments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsServiceProjectAttachmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceProjectAttachments/{serviceProjectAttachmentsId}
 /// Deletes a service project attachment.
 ///
@@ -4880,14 +5290,15 @@ pub fn apphub_projects_locations_service_project_attachments_delete_execute(
 
 pub fn apphub_projects_locations_service_project_attachments_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &ApphubProjectsLocationsServiceProjectAttachmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apphub_projects_locations_service_project_attachments_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     apphub_projects_locations_service_project_attachments_delete_execute(builder)
 }
@@ -4984,6 +5395,13 @@ pub fn apphub_projects_locations_service_project_attachments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_service_project_attachments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsServiceProjectAttachmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceProjectAttachments/{serviceProjectAttachmentsId}
 /// Gets a service project attachment.
 ///
@@ -4996,14 +5414,15 @@ pub fn apphub_projects_locations_service_project_attachments_get_execute(
 
 pub fn apphub_projects_locations_service_project_attachments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApphubProjectsLocationsServiceProjectAttachmentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ServiceProjectAttachment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apphub_projects_locations_service_project_attachments_get_builder(client, name)?;
+    let builder =
+        apphub_projects_locations_service_project_attachments_get_builder(client, &args.name)?;
     apphub_projects_locations_service_project_attachments_get_execute(builder)
 }
 
@@ -5125,6 +5544,21 @@ pub fn apphub_projects_locations_service_project_attachments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apphub_projects_locations_service_project_attachments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApphubProjectsLocationsServiceProjectAttachmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceProjectAttachments
 /// Lists service projects attached to the host project.
 ///
@@ -5137,11 +5571,7 @@ pub fn apphub_projects_locations_service_project_attachments_list_execute(
 
 pub fn apphub_projects_locations_service_project_attachments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApphubProjectsLocationsServiceProjectAttachmentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListServiceProjectAttachmentsResponse>, ApiError>,
@@ -5151,7 +5581,12 @@ pub fn apphub_projects_locations_service_project_attachments_list(
     ApiError,
 > {
     let builder = apphub_projects_locations_service_project_attachments_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apphub_projects_locations_service_project_attachments_list_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/projectSettings
 /// Retrieves the Settings for the Project.
@@ -108,6 +110,13 @@ pub fn artifactregistry_projects_get_project_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_get_project_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsGetProjectSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/projectSettings
 /// Retrieves the Settings for the Project.
 ///
@@ -120,14 +129,14 @@ pub fn artifactregistry_projects_get_project_settings_execute(
 
 pub fn artifactregistry_projects_get_project_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsGetProjectSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProjectSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = artifactregistry_projects_get_project_settings_builder(client, name)?;
+    let builder = artifactregistry_projects_get_project_settings_builder(client, &args.name)?;
     artifactregistry_projects_get_project_settings_execute(builder)
 }
 
@@ -238,6 +247,17 @@ pub fn artifactregistry_projects_update_project_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_update_project_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsUpdateProjectSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ProjectSettings,
+}
+
 /// GET v1/projects/{projectsId}/projectSettings
 /// Updates the Settings for the Project.
 ///
@@ -250,17 +270,19 @@ pub fn artifactregistry_projects_update_project_settings_execute(
 
 pub fn artifactregistry_projects_update_project_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ProjectSettings,
+    args: &ArtifactregistryProjectsUpdateProjectSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProjectSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        artifactregistry_projects_update_project_settings_builder(client, name, updateMask, body)?;
+    let builder = artifactregistry_projects_update_project_settings_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     artifactregistry_projects_update_project_settings_execute(builder)
 }
 
@@ -354,6 +376,13 @@ pub fn artifactregistry_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -366,12 +395,12 @@ pub fn artifactregistry_projects_locations_get_execute(
 
 pub fn artifactregistry_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = artifactregistry_projects_locations_get_builder(client, name)?;
+    let builder = artifactregistry_projects_locations_get_builder(client, &args.name)?;
     artifactregistry_projects_locations_get_execute(builder)
 }
 
@@ -467,6 +496,13 @@ pub fn artifactregistry_projects_locations_get_project_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_get_project_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsGetProjectConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/projectConfig
 /// Retrieves the project configuration.
 ///
@@ -479,14 +515,15 @@ pub fn artifactregistry_projects_locations_get_project_config_execute(
 
 pub fn artifactregistry_projects_locations_get_project_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsGetProjectConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProjectConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = artifactregistry_projects_locations_get_project_config_builder(client, name)?;
+    let builder =
+        artifactregistry_projects_locations_get_project_config_builder(client, &args.name)?;
     artifactregistry_projects_locations_get_project_config_execute(builder)
 }
 
@@ -580,6 +617,13 @@ pub fn artifactregistry_projects_locations_get_vpcsc_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_get_vpcsc_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsGetVpcscConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vpcscConfig
 /// Retrieves the VPCSC Config for the Project.
 ///
@@ -592,12 +636,12 @@ pub fn artifactregistry_projects_locations_get_vpcsc_config_execute(
 
 pub fn artifactregistry_projects_locations_get_vpcsc_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsGetVpcscConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VPCSCConfig>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = artifactregistry_projects_locations_get_vpcsc_config_builder(client, name)?;
+    let builder = artifactregistry_projects_locations_get_vpcsc_config_builder(client, &args.name)?;
     artifactregistry_projects_locations_get_vpcsc_config_execute(builder)
 }
 
@@ -717,6 +761,21 @@ pub fn artifactregistry_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
 ///
@@ -729,11 +788,7 @@ pub fn artifactregistry_projects_locations_list_execute(
 
 pub fn artifactregistry_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ArtifactregistryProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -742,11 +797,11 @@ pub fn artifactregistry_projects_locations_list(
 > {
     let builder = artifactregistry_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     artifactregistry_projects_locations_list_execute(builder)
 }
@@ -858,6 +913,17 @@ pub fn artifactregistry_projects_locations_update_project_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_update_project_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsUpdateProjectConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ProjectConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/projectConfig
 /// Updates the project configuration.
 ///
@@ -870,9 +936,7 @@ pub fn artifactregistry_projects_locations_update_project_config_execute(
 
 pub fn artifactregistry_projects_locations_update_project_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ProjectConfig,
+    args: &ArtifactregistryProjectsLocationsUpdateProjectConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProjectConfig>, ApiError>, P = ApiPending>
         + Send
@@ -880,7 +944,10 @@ pub fn artifactregistry_projects_locations_update_project_config(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_update_project_config_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     artifactregistry_projects_locations_update_project_config_execute(builder)
 }
@@ -990,6 +1057,17 @@ pub fn artifactregistry_projects_locations_update_vpcsc_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_update_vpcsc_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsUpdateVpcscConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: VPCSCConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vpcscConfig
 /// Updates the VPCSC Config for the Project.
 ///
@@ -1002,15 +1080,16 @@ pub fn artifactregistry_projects_locations_update_vpcsc_config_execute(
 
 pub fn artifactregistry_projects_locations_update_vpcsc_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &VPCSCConfig,
+    args: &ArtifactregistryProjectsLocationsUpdateVpcscConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VPCSCConfig>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_update_vpcsc_config_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     artifactregistry_projects_locations_update_vpcsc_config_execute(builder)
 }
@@ -1108,6 +1187,15 @@ pub fn artifactregistry_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1120,14 +1208,14 @@ pub fn artifactregistry_projects_locations_operations_cancel_execute(
 
 pub fn artifactregistry_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ArtifactregistryProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        artifactregistry_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = artifactregistry_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     artifactregistry_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -1221,6 +1309,13 @@ pub fn artifactregistry_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1233,12 +1328,12 @@ pub fn artifactregistry_projects_locations_operations_get_execute(
 
 pub fn artifactregistry_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = artifactregistry_projects_locations_operations_get_builder(client, name)?;
+    let builder = artifactregistry_projects_locations_operations_get_builder(client, &args.name)?;
     artifactregistry_projects_locations_operations_get_execute(builder)
 }
 
@@ -1347,6 +1442,17 @@ pub fn artifactregistry_projects_locations_repositories_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: repositoryId
+    pub repositoryId: Option<String>,
+    /// Request body.
+    pub body: Repository,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories
 /// Creates a repository. The returned Operation will finish once the repository has been created. Its response will be the created Repository.
 ///
@@ -1359,18 +1465,16 @@ pub fn artifactregistry_projects_locations_repositories_create_execute(
 
 pub fn artifactregistry_projects_locations_repositories_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    repositoryId: Option<&str>,
-    body: &Repository,
+    args: &ArtifactregistryProjectsLocationsRepositoriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_create_builder(
         client,
-        parent,
-        repositoryId,
-        body,
+        &args.parent,
+        args.repositoryId.as_deref(),
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_create_execute(builder)
 }
@@ -1465,6 +1569,13 @@ pub fn artifactregistry_projects_locations_repositories_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
 /// Deletes a repository and all of its contents. The returned Operation will finish once the repository has been deleted. It will not have any Operation metadata and will return a google.protobuf.Empty response.
 ///
@@ -1477,12 +1588,13 @@ pub fn artifactregistry_projects_locations_repositories_delete_execute(
 
 pub fn artifactregistry_projects_locations_repositories_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = artifactregistry_projects_locations_repositories_delete_builder(client, name)?;
+    let builder =
+        artifactregistry_projects_locations_repositories_delete_builder(client, &args.name)?;
     artifactregistry_projects_locations_repositories_delete_execute(builder)
 }
 
@@ -1579,6 +1691,15 @@ pub fn artifactregistry_projects_locations_repositories_export_artifact_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_export_artifact`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesExportArtifactArgs {
+    /// Path parameter: repository
+    pub repository: String,
+    /// Request body.
+    pub body: ExportArtifactRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:exportArtifact
 /// Exports an artifact to a Cloud Storage bucket.
 ///
@@ -1591,14 +1712,15 @@ pub fn artifactregistry_projects_locations_repositories_export_artifact_execute(
 
 pub fn artifactregistry_projects_locations_repositories_export_artifact(
     client: &SimpleHttpClient,
-    repository: &str,
-    body: &ExportArtifactRequest,
+    args: &ArtifactregistryProjectsLocationsRepositoriesExportArtifactArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_export_artifact_builder(
-        client, repository, body,
+        client,
+        &args.repository,
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_export_artifact_execute(builder)
 }
@@ -1693,6 +1815,13 @@ pub fn artifactregistry_projects_locations_repositories_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
 /// Gets a repository.
 ///
@@ -1705,12 +1834,12 @@ pub fn artifactregistry_projects_locations_repositories_get_execute(
 
 pub fn artifactregistry_projects_locations_repositories_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Repository>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = artifactregistry_projects_locations_repositories_get_builder(client, name)?;
+    let builder = artifactregistry_projects_locations_repositories_get_builder(client, &args.name)?;
     artifactregistry_projects_locations_repositories_get_execute(builder)
 }
 
@@ -1816,6 +1945,15 @@ pub fn artifactregistry_projects_locations_repositories_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:getIamPolicy
 /// Gets the IAM policy for a given resource.
 ///
@@ -1828,16 +1966,15 @@ pub fn artifactregistry_projects_locations_repositories_get_iam_policy_execute(
 
 pub fn artifactregistry_projects_locations_repositories_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ArtifactregistryProjectsLocationsRepositoriesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     artifactregistry_projects_locations_repositories_get_iam_policy_execute(builder)
 }
@@ -1958,6 +2095,21 @@ pub fn artifactregistry_projects_locations_repositories_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories
 /// Lists repositories.
 ///
@@ -1970,11 +2122,7 @@ pub fn artifactregistry_projects_locations_repositories_list_execute(
 
 pub fn artifactregistry_projects_locations_repositories_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ArtifactregistryProjectsLocationsRepositoriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRepositoriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1982,7 +2130,12 @@ pub fn artifactregistry_projects_locations_repositories_list(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     artifactregistry_projects_locations_repositories_list_execute(builder)
 }
@@ -2092,6 +2245,17 @@ pub fn artifactregistry_projects_locations_repositories_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Repository,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
 /// Updates a repository.
 ///
@@ -2104,15 +2268,16 @@ pub fn artifactregistry_projects_locations_repositories_patch_execute(
 
 pub fn artifactregistry_projects_locations_repositories_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Repository,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Repository>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_patch_execute(builder)
 }
@@ -2210,6 +2375,15 @@ pub fn artifactregistry_projects_locations_repositories_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:setIamPolicy
 /// Updates the IAM policy for a given resource.
 ///
@@ -2222,14 +2396,15 @@ pub fn artifactregistry_projects_locations_repositories_set_iam_policy_execute(
 
 pub fn artifactregistry_projects_locations_repositories_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ArtifactregistryProjectsLocationsRepositoriesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_set_iam_policy_execute(builder)
 }
@@ -2331,6 +2506,15 @@ pub fn artifactregistry_projects_locations_repositories_test_iam_permissions_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:testIamPermissions
 /// Tests if the caller has a list of permissions on a resource.
 ///
@@ -2343,8 +2527,7 @@ pub fn artifactregistry_projects_locations_repositories_test_iam_permissions_exe
 
 pub fn artifactregistry_projects_locations_repositories_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ArtifactregistryProjectsLocationsRepositoriesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2354,7 +2537,9 @@ pub fn artifactregistry_projects_locations_repositories_test_iam_permissions(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_test_iam_permissions_execute(builder)
 }
@@ -2452,6 +2637,15 @@ pub fn artifactregistry_projects_locations_repositories_apt_artifacts_import_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_apt_artifacts_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesAptArtifactsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ImportAptArtifactsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/aptArtifacts:import
 /// Imports Apt artifacts. The returned Operation will complete once the resources are imported. Package, Version, and File resources are created based on the imported artifacts. Imported artifacts that conflict with existing resources are ignored.
 ///
@@ -2464,14 +2658,15 @@ pub fn artifactregistry_projects_locations_repositories_apt_artifacts_import_exe
 
 pub fn artifactregistry_projects_locations_repositories_apt_artifacts_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ImportAptArtifactsRequest,
+    args: &ArtifactregistryProjectsLocationsRepositoriesAptArtifactsImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_apt_artifacts_import_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_apt_artifacts_import_execute(builder)
 }
@@ -2573,6 +2768,15 @@ pub fn artifactregistry_projects_locations_repositories_apt_artifacts_upload_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_apt_artifacts_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesAptArtifactsUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UploadAptArtifactRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/aptArtifacts:create
 /// Directly uploads an Apt artifact. The returned Operation will complete once the resources are uploaded. Package, Version, and File resources are created based on the imported artifact. Imported artifacts that conflict with existing resources are ignored.
 ///
@@ -2585,8 +2789,7 @@ pub fn artifactregistry_projects_locations_repositories_apt_artifacts_upload_exe
 
 pub fn artifactregistry_projects_locations_repositories_apt_artifacts_upload(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UploadAptArtifactRequest,
+    args: &ArtifactregistryProjectsLocationsRepositoriesAptArtifactsUploadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UploadAptArtifactMediaResponse>, ApiError>,
@@ -2596,7 +2799,9 @@ pub fn artifactregistry_projects_locations_repositories_apt_artifacts_upload(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_apt_artifacts_upload_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_apt_artifacts_upload_execute(builder)
 }
@@ -2706,6 +2911,17 @@ pub fn artifactregistry_projects_locations_repositories_attachments_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_attachments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesAttachmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: attachmentId
+    pub attachmentId: Option<String>,
+    /// Request body.
+    pub body: Attachment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments
 /// Creates an attachment. The returned Operation will finish once the attachment has been created. Its response will be the created attachment.
 ///
@@ -2718,18 +2934,16 @@ pub fn artifactregistry_projects_locations_repositories_attachments_create_execu
 
 pub fn artifactregistry_projects_locations_repositories_attachments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    attachmentId: Option<&str>,
-    body: &Attachment,
+    args: &ArtifactregistryProjectsLocationsRepositoriesAttachmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_attachments_create_builder(
         client,
-        parent,
-        attachmentId,
-        body,
+        &args.parent,
+        args.attachmentId.as_deref(),
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_attachments_create_execute(builder)
 }
@@ -2824,6 +3038,13 @@ pub fn artifactregistry_projects_locations_repositories_attachments_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_attachments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesAttachmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments/{attachmentsId}
 /// Deletes an attachment. The returned Operation will finish once the attachments has been deleted. It will not have any Operation metadata and will return a google.protobuf.Empty response.
 ///
@@ -2836,13 +3057,14 @@ pub fn artifactregistry_projects_locations_repositories_attachments_delete_execu
 
 pub fn artifactregistry_projects_locations_repositories_attachments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesAttachmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        artifactregistry_projects_locations_repositories_attachments_delete_builder(client, name)?;
+    let builder = artifactregistry_projects_locations_repositories_attachments_delete_builder(
+        client, &args.name,
+    )?;
     artifactregistry_projects_locations_repositories_attachments_delete_execute(builder)
 }
 
@@ -2936,6 +3158,13 @@ pub fn artifactregistry_projects_locations_repositories_attachments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_attachments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesAttachmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments/{attachmentsId}
 /// Gets an attachment.
 ///
@@ -2948,13 +3177,14 @@ pub fn artifactregistry_projects_locations_repositories_attachments_get_execute(
 
 pub fn artifactregistry_projects_locations_repositories_attachments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesAttachmentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Attachment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        artifactregistry_projects_locations_repositories_attachments_get_builder(client, name)?;
+    let builder = artifactregistry_projects_locations_repositories_attachments_get_builder(
+        client, &args.name,
+    )?;
     artifactregistry_projects_locations_repositories_attachments_get_execute(builder)
 }
 
@@ -3070,6 +3300,19 @@ pub fn artifactregistry_projects_locations_repositories_attachments_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_attachments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesAttachmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments
 /// Lists attachments.
 ///
@@ -3082,10 +3325,7 @@ pub fn artifactregistry_projects_locations_repositories_attachments_list_execute
 
 pub fn artifactregistry_projects_locations_repositories_attachments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ArtifactregistryProjectsLocationsRepositoriesAttachmentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAttachmentsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3093,7 +3333,11 @@ pub fn artifactregistry_projects_locations_repositories_attachments_list(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_attachments_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     artifactregistry_projects_locations_repositories_attachments_list_execute(builder)
 }
@@ -3188,6 +3432,13 @@ pub fn artifactregistry_projects_locations_repositories_docker_images_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_docker_images_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesDockerImagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/dockerImages/{dockerImagesId}
 /// Gets a docker image.
 ///
@@ -3200,13 +3451,14 @@ pub fn artifactregistry_projects_locations_repositories_docker_images_get_execut
 
 pub fn artifactregistry_projects_locations_repositories_docker_images_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesDockerImagesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DockerImage>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        artifactregistry_projects_locations_repositories_docker_images_get_builder(client, name)?;
+    let builder = artifactregistry_projects_locations_repositories_docker_images_get_builder(
+        client, &args.name,
+    )?;
     artifactregistry_projects_locations_repositories_docker_images_get_execute(builder)
 }
 
@@ -3322,6 +3574,19 @@ pub fn artifactregistry_projects_locations_repositories_docker_images_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_docker_images_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesDockerImagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/dockerImages
 /// Lists docker images.
 ///
@@ -3334,10 +3599,7 @@ pub fn artifactregistry_projects_locations_repositories_docker_images_list_execu
 
 pub fn artifactregistry_projects_locations_repositories_docker_images_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ArtifactregistryProjectsLocationsRepositoriesDockerImagesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDockerImagesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3345,7 +3607,11 @@ pub fn artifactregistry_projects_locations_repositories_docker_images_list(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_docker_images_list_builder(
-        client, parent, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     artifactregistry_projects_locations_repositories_docker_images_list_execute(builder)
 }
@@ -3440,6 +3706,13 @@ pub fn artifactregistry_projects_locations_repositories_files_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_files_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesFilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}
 /// Deletes a file and all of its content. It is only allowed on generic repositories. The returned operation will complete once the file has been deleted.
 ///
@@ -3452,13 +3725,13 @@ pub fn artifactregistry_projects_locations_repositories_files_delete_execute(
 
 pub fn artifactregistry_projects_locations_repositories_files_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesFilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        artifactregistry_projects_locations_repositories_files_delete_builder(client, name)?;
+        artifactregistry_projects_locations_repositories_files_delete_builder(client, &args.name)?;
     artifactregistry_projects_locations_repositories_files_delete_execute(builder)
 }
 
@@ -3554,6 +3827,13 @@ pub fn artifactregistry_projects_locations_repositories_files_download_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_files_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesFilesDownloadArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}:download
 /// Download a file.
 ///
@@ -3566,15 +3846,16 @@ pub fn artifactregistry_projects_locations_repositories_files_download_execute(
 
 pub fn artifactregistry_projects_locations_repositories_files_download(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesFilesDownloadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DownloadFileResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        artifactregistry_projects_locations_repositories_files_download_builder(client, name)?;
+    let builder = artifactregistry_projects_locations_repositories_files_download_builder(
+        client, &args.name,
+    )?;
     artifactregistry_projects_locations_repositories_files_download_execute(builder)
 }
 
@@ -3672,6 +3953,13 @@ pub fn artifactregistry_projects_locations_repositories_files_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_files_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesFilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}
 /// Gets a file.
 ///
@@ -3684,7 +3972,7 @@ pub fn artifactregistry_projects_locations_repositories_files_get_execute(
 
 pub fn artifactregistry_projects_locations_repositories_files_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesFilesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1File>, ApiError>,
@@ -3693,7 +3981,8 @@ pub fn artifactregistry_projects_locations_repositories_files_get(
         + 'static,
     ApiError,
 > {
-    let builder = artifactregistry_projects_locations_repositories_files_get_builder(client, name)?;
+    let builder =
+        artifactregistry_projects_locations_repositories_files_get_builder(client, &args.name)?;
     artifactregistry_projects_locations_repositories_files_get_execute(builder)
 }
 
@@ -3813,6 +4102,21 @@ pub fn artifactregistry_projects_locations_repositories_files_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_files_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesFilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files
 /// Lists files.
 ///
@@ -3825,11 +4129,7 @@ pub fn artifactregistry_projects_locations_repositories_files_list_execute(
 
 pub fn artifactregistry_projects_locations_repositories_files_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ArtifactregistryProjectsLocationsRepositoriesFilesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFilesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3837,7 +4137,12 @@ pub fn artifactregistry_projects_locations_repositories_files_list(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_files_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     artifactregistry_projects_locations_repositories_files_list_execute(builder)
 }
@@ -3951,6 +4256,17 @@ pub fn artifactregistry_projects_locations_repositories_files_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_files_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesFilesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleDevtoolsArtifactregistryV1File,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}
 /// Updates a file.
 ///
@@ -3963,9 +4279,7 @@ pub fn artifactregistry_projects_locations_repositories_files_patch_execute(
 
 pub fn artifactregistry_projects_locations_repositories_files_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleDevtoolsArtifactregistryV1File,
+    args: &ArtifactregistryProjectsLocationsRepositoriesFilesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1File>, ApiError>,
@@ -3975,7 +4289,10 @@ pub fn artifactregistry_projects_locations_repositories_files_patch(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_files_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_files_patch_execute(builder)
 }
@@ -4075,6 +4392,15 @@ pub fn artifactregistry_projects_locations_repositories_files_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_files_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesFilesUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UploadFileRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files:upload
 /// Directly uploads a file to a repository. The returned Operation will complete once the resources are uploaded.
 ///
@@ -4087,8 +4413,7 @@ pub fn artifactregistry_projects_locations_repositories_files_upload_execute(
 
 pub fn artifactregistry_projects_locations_repositories_files_upload(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UploadFileRequest,
+    args: &ArtifactregistryProjectsLocationsRepositoriesFilesUploadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UploadFileMediaResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4096,7 +4421,9 @@ pub fn artifactregistry_projects_locations_repositories_files_upload(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_files_upload_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_files_upload_execute(builder)
 }
@@ -4198,6 +4525,15 @@ pub fn artifactregistry_projects_locations_repositories_generic_artifacts_upload
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_generic_artifacts_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesGenericArtifactsUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UploadGenericArtifactRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/genericArtifacts:create
 /// Directly uploads a Generic artifact. The returned operation will complete once the resources are uploaded. Package, version, and file resources are created based on the uploaded artifact. Uploaded artifacts that conflict with existing resources will raise an ALREADY_EXISTS error.
 ///
@@ -4210,8 +4546,7 @@ pub fn artifactregistry_projects_locations_repositories_generic_artifacts_upload
 
 pub fn artifactregistry_projects_locations_repositories_generic_artifacts_upload(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UploadGenericArtifactRequest,
+    args: &ArtifactregistryProjectsLocationsRepositoriesGenericArtifactsUploadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UploadGenericArtifactMediaResponse>, ApiError>,
@@ -4222,7 +4557,9 @@ pub fn artifactregistry_projects_locations_repositories_generic_artifacts_upload
 > {
     let builder =
         artifactregistry_projects_locations_repositories_generic_artifacts_upload_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     artifactregistry_projects_locations_repositories_generic_artifacts_upload_execute(builder)
 }
@@ -4324,6 +4661,15 @@ pub fn artifactregistry_projects_locations_repositories_go_modules_upload_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_go_modules_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesGoModulesUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UploadGoModuleRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/goModules:create
 /// Directly uploads a Go module. The returned Operation will complete once the Go module is uploaded. Package, Version, and File resources are created based on the uploaded Go module.
 ///
@@ -4336,8 +4682,7 @@ pub fn artifactregistry_projects_locations_repositories_go_modules_upload_execut
 
 pub fn artifactregistry_projects_locations_repositories_go_modules_upload(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UploadGoModuleRequest,
+    args: &ArtifactregistryProjectsLocationsRepositoriesGoModulesUploadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UploadGoModuleMediaResponse>, ApiError>,
@@ -4347,7 +4692,9 @@ pub fn artifactregistry_projects_locations_repositories_go_modules_upload(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_go_modules_upload_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_go_modules_upload_execute(builder)
 }
@@ -4445,6 +4792,15 @@ pub fn artifactregistry_projects_locations_repositories_googet_artifacts_import_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_googet_artifacts_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ImportGoogetArtifactsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/googetArtifacts:import
 /// Imports GooGet artifacts. The returned Operation will complete once the resources are imported. Package, Version, and File resources are created based on the imported artifacts. Imported artifacts that conflict with existing resources are ignored.
 ///
@@ -4457,14 +4813,15 @@ pub fn artifactregistry_projects_locations_repositories_googet_artifacts_import_
 
 pub fn artifactregistry_projects_locations_repositories_googet_artifacts_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ImportGoogetArtifactsRequest,
+    args: &ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_googet_artifacts_import_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_googet_artifacts_import_execute(builder)
 }
@@ -4566,6 +4923,15 @@ pub fn artifactregistry_projects_locations_repositories_googet_artifacts_upload_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_googet_artifacts_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UploadGoogetArtifactRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/googetArtifacts:create
 /// Directly uploads a GooGet artifact. The returned Operation will complete once the resources are uploaded. Package, Version, and File resources are created based on the imported artifact. Imported artifacts that conflict with existing resources are ignored.
 ///
@@ -4578,8 +4944,7 @@ pub fn artifactregistry_projects_locations_repositories_googet_artifacts_upload_
 
 pub fn artifactregistry_projects_locations_repositories_googet_artifacts_upload(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UploadGoogetArtifactRequest,
+    args: &ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsUploadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UploadGoogetArtifactMediaResponse>, ApiError>,
@@ -4589,7 +4954,9 @@ pub fn artifactregistry_projects_locations_repositories_googet_artifacts_upload(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_googet_artifacts_upload_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_googet_artifacts_upload_execute(builder)
 }
@@ -4691,6 +5058,15 @@ pub fn artifactregistry_projects_locations_repositories_kfp_artifacts_upload_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_kfp_artifacts_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesKfpArtifactsUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UploadKfpArtifactRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/kfpArtifacts:create
 /// Directly uploads a KFP artifact. The returned Operation will complete once the resource is uploaded. Package, Version, and File resources will be created based on the uploaded artifact. Uploaded artifacts that conflict with existing resources will be overwritten.
 ///
@@ -4703,8 +5079,7 @@ pub fn artifactregistry_projects_locations_repositories_kfp_artifacts_upload_exe
 
 pub fn artifactregistry_projects_locations_repositories_kfp_artifacts_upload(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UploadKfpArtifactRequest,
+    args: &ArtifactregistryProjectsLocationsRepositoriesKfpArtifactsUploadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UploadKfpArtifactMediaResponse>, ApiError>,
@@ -4714,7 +5089,9 @@ pub fn artifactregistry_projects_locations_repositories_kfp_artifacts_upload(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_kfp_artifacts_upload_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_kfp_artifacts_upload_execute(builder)
 }
@@ -4811,6 +5188,13 @@ pub fn artifactregistry_projects_locations_repositories_maven_artifacts_get_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_maven_artifacts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/mavenArtifacts/{mavenArtifactsId}
 /// Gets a maven artifact.
 ///
@@ -4823,15 +5207,16 @@ pub fn artifactregistry_projects_locations_repositories_maven_artifacts_get_exec
 
 pub fn artifactregistry_projects_locations_repositories_maven_artifacts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MavenArtifact>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        artifactregistry_projects_locations_repositories_maven_artifacts_get_builder(client, name)?;
+    let builder = artifactregistry_projects_locations_repositories_maven_artifacts_get_builder(
+        client, &args.name,
+    )?;
     artifactregistry_projects_locations_repositories_maven_artifacts_get_execute(builder)
 }
 
@@ -4945,6 +5330,17 @@ pub fn artifactregistry_projects_locations_repositories_maven_artifacts_list_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_maven_artifacts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/mavenArtifacts
 /// Lists maven artifacts.
 ///
@@ -4957,9 +5353,7 @@ pub fn artifactregistry_projects_locations_repositories_maven_artifacts_list_exe
 
 pub fn artifactregistry_projects_locations_repositories_maven_artifacts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMavenArtifactsResponse>, ApiError>,
@@ -4969,7 +5363,10 @@ pub fn artifactregistry_projects_locations_repositories_maven_artifacts_list(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_maven_artifacts_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     artifactregistry_projects_locations_repositories_maven_artifacts_list_execute(builder)
 }
@@ -5064,6 +5461,13 @@ pub fn artifactregistry_projects_locations_repositories_npm_packages_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_npm_packages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesNpmPackagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/npmPackages/{npmPackagesId}
 /// Gets a npm package.
 ///
@@ -5076,13 +5480,14 @@ pub fn artifactregistry_projects_locations_repositories_npm_packages_get_execute
 
 pub fn artifactregistry_projects_locations_repositories_npm_packages_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesNpmPackagesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NpmPackage>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        artifactregistry_projects_locations_repositories_npm_packages_get_builder(client, name)?;
+    let builder = artifactregistry_projects_locations_repositories_npm_packages_get_builder(
+        client, &args.name,
+    )?;
     artifactregistry_projects_locations_repositories_npm_packages_get_execute(builder)
 }
 
@@ -5194,6 +5599,17 @@ pub fn artifactregistry_projects_locations_repositories_npm_packages_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_npm_packages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesNpmPackagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/npmPackages
 /// Lists npm packages.
 ///
@@ -5206,9 +5622,7 @@ pub fn artifactregistry_projects_locations_repositories_npm_packages_list_execut
 
 pub fn artifactregistry_projects_locations_repositories_npm_packages_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ArtifactregistryProjectsLocationsRepositoriesNpmPackagesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListNpmPackagesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5216,7 +5630,10 @@ pub fn artifactregistry_projects_locations_repositories_npm_packages_list(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_npm_packages_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     artifactregistry_projects_locations_repositories_npm_packages_list_execute(builder)
 }
@@ -5311,6 +5728,13 @@ pub fn artifactregistry_projects_locations_repositories_packages_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}
 /// Deletes a package and all of its versions and tags. The returned operation will complete once the package has been deleted.
 ///
@@ -5323,13 +5747,14 @@ pub fn artifactregistry_projects_locations_repositories_packages_delete_execute(
 
 pub fn artifactregistry_projects_locations_repositories_packages_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        artifactregistry_projects_locations_repositories_packages_delete_builder(client, name)?;
+    let builder = artifactregistry_projects_locations_repositories_packages_delete_builder(
+        client, &args.name,
+    )?;
     artifactregistry_projects_locations_repositories_packages_delete_execute(builder)
 }
 
@@ -5423,6 +5848,13 @@ pub fn artifactregistry_projects_locations_repositories_packages_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}
 /// Gets a package.
 ///
@@ -5435,13 +5867,13 @@ pub fn artifactregistry_projects_locations_repositories_packages_get_execute(
 
 pub fn artifactregistry_projects_locations_repositories_packages_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Package>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        artifactregistry_projects_locations_repositories_packages_get_builder(client, name)?;
+        artifactregistry_projects_locations_repositories_packages_get_builder(client, &args.name)?;
     artifactregistry_projects_locations_repositories_packages_get_execute(builder)
 }
 
@@ -5561,6 +5993,21 @@ pub fn artifactregistry_projects_locations_repositories_packages_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages
 /// Lists packages.
 ///
@@ -5573,11 +6020,7 @@ pub fn artifactregistry_projects_locations_repositories_packages_list_execute(
 
 pub fn artifactregistry_projects_locations_repositories_packages_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPackagesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5585,7 +6028,12 @@ pub fn artifactregistry_projects_locations_repositories_packages_list(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_packages_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     artifactregistry_projects_locations_repositories_packages_list_execute(builder)
 }
@@ -5695,6 +6143,17 @@ pub fn artifactregistry_projects_locations_repositories_packages_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Package,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}
 /// Updates a package.
 ///
@@ -5707,15 +6166,16 @@ pub fn artifactregistry_projects_locations_repositories_packages_patch_execute(
 
 pub fn artifactregistry_projects_locations_repositories_packages_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Package,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Package>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_packages_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_packages_patch_execute(builder)
 }
@@ -5825,6 +6285,17 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_create_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_tags_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesTagsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: tagId
+    pub tagId: Option<String>,
+    /// Request body.
+    pub body: Tag,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags
 /// Creates a tag.
 ///
@@ -5837,15 +6308,16 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_create_exe
 
 pub fn artifactregistry_projects_locations_repositories_packages_tags_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    tagId: Option<&str>,
-    body: &Tag,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_packages_tags_create_builder(
-        client, parent, tagId, body,
+        client,
+        &args.parent,
+        args.tagId.as_deref(),
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_packages_tags_create_execute(builder)
 }
@@ -5940,6 +6412,13 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_delete_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_tags_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesTagsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}
 /// Deletes a tag.
 ///
@@ -5952,13 +6431,13 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_delete_exe
 
 pub fn artifactregistry_projects_locations_repositories_packages_tags_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_packages_tags_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     artifactregistry_projects_locations_repositories_packages_tags_delete_execute(builder)
 }
@@ -6053,6 +6532,13 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_tags_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesTagsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}
 /// Gets a tag.
 ///
@@ -6065,13 +6551,14 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_get_execut
 
 pub fn artifactregistry_projects_locations_repositories_packages_tags_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        artifactregistry_projects_locations_repositories_packages_tags_get_builder(client, name)?;
+    let builder = artifactregistry_projects_locations_repositories_packages_tags_get_builder(
+        client, &args.name,
+    )?;
     artifactregistry_projects_locations_repositories_packages_tags_get_execute(builder)
 }
 
@@ -6187,6 +6674,19 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_tags_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesTagsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags
 /// Lists tags.
 ///
@@ -6199,10 +6699,7 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_list_execu
 
 pub fn artifactregistry_projects_locations_repositories_packages_tags_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTagsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6210,7 +6707,11 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_list(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_packages_tags_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     artifactregistry_projects_locations_repositories_packages_tags_list_execute(builder)
 }
@@ -6320,6 +6821,17 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_patch_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_tags_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesTagsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Tag,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}
 /// Updates a tag.
 ///
@@ -6332,15 +6844,16 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_patch_exec
 
 pub fn artifactregistry_projects_locations_repositories_packages_tags_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Tag,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_packages_tags_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_packages_tags_patch_execute(builder)
 }
@@ -6438,6 +6951,15 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_batch_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_versions_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsBatchDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchDeleteVersionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions:batchDelete
 /// Deletes multiple versions across a repository. The returned operation will complete once the versions have been deleted.
 ///
@@ -6450,15 +6972,16 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_batch_
 
 pub fn artifactregistry_projects_locations_repositories_packages_versions_batch_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchDeleteVersionsRequest,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         artifactregistry_projects_locations_repositories_packages_versions_batch_delete_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     artifactregistry_projects_locations_repositories_packages_versions_batch_delete_execute(builder)
 }
@@ -6565,6 +7088,15 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_delete
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
 /// Deletes a version and all of its content. The returned operation will complete once the version has been deleted.
 ///
@@ -6577,15 +7109,14 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_delete
 
 pub fn artifactregistry_projects_locations_repositories_packages_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         artifactregistry_projects_locations_repositories_packages_versions_delete_builder(
-            client, name, force,
+            client, &args.name, args.force,
         )?;
     artifactregistry_projects_locations_repositories_packages_versions_delete_execute(builder)
 }
@@ -6692,6 +7223,15 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_get_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
 /// Gets a version
 ///
@@ -6704,14 +7244,15 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_get_ex
 
 pub fn artifactregistry_projects_locations_repositories_packages_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_packages_versions_get_builder(
-        client, name, view,
+        client,
+        &args.name,
+        args.view.as_deref(),
     )?;
     artifactregistry_projects_locations_repositories_packages_versions_get_execute(builder)
 }
@@ -6836,6 +7377,23 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_list_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions
 /// Lists versions.
 ///
@@ -6848,12 +7406,7 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_list_e
 
 pub fn artifactregistry_projects_locations_repositories_packages_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListVersionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6861,7 +7414,13 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_list(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_packages_versions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     artifactregistry_projects_locations_repositories_packages_versions_list_execute(builder)
 }
@@ -6971,6 +7530,17 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_patch_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_packages_versions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Version,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
 /// Updates a version.
 ///
@@ -6983,15 +7553,16 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_patch_
 
 pub fn artifactregistry_projects_locations_repositories_packages_versions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Version,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_packages_versions_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_packages_versions_patch_execute(builder)
 }
@@ -7088,6 +7659,13 @@ pub fn artifactregistry_projects_locations_repositories_python_packages_get_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_python_packages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPythonPackagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pythonPackages/{pythonPackagesId}
 /// Gets a python package.
 ///
@@ -7100,15 +7678,16 @@ pub fn artifactregistry_projects_locations_repositories_python_packages_get_exec
 
 pub fn artifactregistry_projects_locations_repositories_python_packages_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPythonPackagesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PythonPackage>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        artifactregistry_projects_locations_repositories_python_packages_get_builder(client, name)?;
+    let builder = artifactregistry_projects_locations_repositories_python_packages_get_builder(
+        client, &args.name,
+    )?;
     artifactregistry_projects_locations_repositories_python_packages_get_execute(builder)
 }
 
@@ -7222,6 +7801,17 @@ pub fn artifactregistry_projects_locations_repositories_python_packages_list_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_python_packages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesPythonPackagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pythonPackages
 /// Lists python packages.
 ///
@@ -7234,9 +7824,7 @@ pub fn artifactregistry_projects_locations_repositories_python_packages_list_exe
 
 pub fn artifactregistry_projects_locations_repositories_python_packages_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ArtifactregistryProjectsLocationsRepositoriesPythonPackagesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPythonPackagesResponse>, ApiError>,
@@ -7246,7 +7834,10 @@ pub fn artifactregistry_projects_locations_repositories_python_packages_list(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_python_packages_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     artifactregistry_projects_locations_repositories_python_packages_list_execute(builder)
 }
@@ -7360,6 +7951,17 @@ pub fn artifactregistry_projects_locations_repositories_rules_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_rules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesRulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: ruleId
+    pub ruleId: Option<String>,
+    /// Request body.
+    pub body: GoogleDevtoolsArtifactregistryV1Rule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules
 /// Creates a rule.
 ///
@@ -7372,9 +7974,7 @@ pub fn artifactregistry_projects_locations_repositories_rules_create_execute(
 
 pub fn artifactregistry_projects_locations_repositories_rules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    ruleId: Option<&str>,
-    body: &GoogleDevtoolsArtifactregistryV1Rule,
+    args: &ArtifactregistryProjectsLocationsRepositoriesRulesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1Rule>, ApiError>,
@@ -7384,7 +7984,10 @@ pub fn artifactregistry_projects_locations_repositories_rules_create(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_rules_create_builder(
-        client, parent, ruleId, body,
+        client,
+        &args.parent,
+        args.ruleId.as_deref(),
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_rules_create_execute(builder)
 }
@@ -7479,6 +8082,13 @@ pub fn artifactregistry_projects_locations_repositories_rules_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_rules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesRulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}
 /// Deletes a rule.
 ///
@@ -7491,13 +8101,13 @@ pub fn artifactregistry_projects_locations_repositories_rules_delete_execute(
 
 pub fn artifactregistry_projects_locations_repositories_rules_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesRulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        artifactregistry_projects_locations_repositories_rules_delete_builder(client, name)?;
+        artifactregistry_projects_locations_repositories_rules_delete_builder(client, &args.name)?;
     artifactregistry_projects_locations_repositories_rules_delete_execute(builder)
 }
 
@@ -7595,6 +8205,13 @@ pub fn artifactregistry_projects_locations_repositories_rules_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_rules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesRulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}
 /// Gets a rule.
 ///
@@ -7607,7 +8224,7 @@ pub fn artifactregistry_projects_locations_repositories_rules_get_execute(
 
 pub fn artifactregistry_projects_locations_repositories_rules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ArtifactregistryProjectsLocationsRepositoriesRulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1Rule>, ApiError>,
@@ -7616,7 +8233,8 @@ pub fn artifactregistry_projects_locations_repositories_rules_get(
         + 'static,
     ApiError,
 > {
-    let builder = artifactregistry_projects_locations_repositories_rules_get_builder(client, name)?;
+    let builder =
+        artifactregistry_projects_locations_repositories_rules_get_builder(client, &args.name)?;
     artifactregistry_projects_locations_repositories_rules_get_execute(builder)
 }
 
@@ -7728,6 +8346,17 @@ pub fn artifactregistry_projects_locations_repositories_rules_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesRulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules
 /// Lists rules.
 ///
@@ -7740,9 +8369,7 @@ pub fn artifactregistry_projects_locations_repositories_rules_list_execute(
 
 pub fn artifactregistry_projects_locations_repositories_rules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ArtifactregistryProjectsLocationsRepositoriesRulesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRulesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7750,7 +8377,10 @@ pub fn artifactregistry_projects_locations_repositories_rules_list(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_rules_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     artifactregistry_projects_locations_repositories_rules_list_execute(builder)
 }
@@ -7864,6 +8494,17 @@ pub fn artifactregistry_projects_locations_repositories_rules_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_rules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesRulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleDevtoolsArtifactregistryV1Rule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}
 /// Updates a rule.
 ///
@@ -7876,9 +8517,7 @@ pub fn artifactregistry_projects_locations_repositories_rules_patch_execute(
 
 pub fn artifactregistry_projects_locations_repositories_rules_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleDevtoolsArtifactregistryV1Rule,
+    args: &ArtifactregistryProjectsLocationsRepositoriesRulesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleDevtoolsArtifactregistryV1Rule>, ApiError>,
@@ -7888,7 +8527,10 @@ pub fn artifactregistry_projects_locations_repositories_rules_patch(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_rules_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_rules_patch_execute(builder)
 }
@@ -7986,6 +8628,15 @@ pub fn artifactregistry_projects_locations_repositories_yum_artifacts_import_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_yum_artifacts_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesYumArtifactsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ImportYumArtifactsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/yumArtifacts:import
 /// Imports Yum (RPM) artifacts. The returned Operation will complete once the resources are imported. Package, Version, and File resources are created based on the imported artifacts. Imported artifacts that conflict with existing resources are ignored.
 ///
@@ -7998,14 +8649,15 @@ pub fn artifactregistry_projects_locations_repositories_yum_artifacts_import_exe
 
 pub fn artifactregistry_projects_locations_repositories_yum_artifacts_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ImportYumArtifactsRequest,
+    args: &ArtifactregistryProjectsLocationsRepositoriesYumArtifactsImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_yum_artifacts_import_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_yum_artifacts_import_execute(builder)
 }
@@ -8107,6 +8759,15 @@ pub fn artifactregistry_projects_locations_repositories_yum_artifacts_upload_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`artifactregistry_projects_locations_repositories_yum_artifacts_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ArtifactregistryProjectsLocationsRepositoriesYumArtifactsUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UploadYumArtifactRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/yumArtifacts:create
 /// Directly uploads a Yum artifact. The returned Operation will complete once the resources are uploaded. Package, Version, and File resources are created based on the imported artifact. Imported artifacts that conflict with existing resources are ignored.
 ///
@@ -8119,8 +8780,7 @@ pub fn artifactregistry_projects_locations_repositories_yum_artifacts_upload_exe
 
 pub fn artifactregistry_projects_locations_repositories_yum_artifacts_upload(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UploadYumArtifactRequest,
+    args: &ArtifactregistryProjectsLocationsRepositoriesYumArtifactsUploadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UploadYumArtifactMediaResponse>, ApiError>,
@@ -8130,7 +8790,9 @@ pub fn artifactregistry_projects_locations_repositories_yum_artifacts_upload(
     ApiError,
 > {
     let builder = artifactregistry_projects_locations_repositories_yum_artifacts_upload_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     artifactregistry_projects_locations_repositories_yum_artifacts_upload_execute(builder)
 }

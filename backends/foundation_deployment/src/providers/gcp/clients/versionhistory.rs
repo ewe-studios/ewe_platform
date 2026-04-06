@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/{v1Id}/platforms
 /// Returns list of platforms that are available for a given product. The resource "product" has no resource name in its name.
@@ -124,6 +126,17 @@ pub fn versionhistory_platforms_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`versionhistory_platforms_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VersionhistoryPlatformsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/{v1Id}/platforms
 /// Returns list of platforms that are available for a given product. The resource "product" has no resource name in its name.
 ///
@@ -136,16 +149,19 @@ pub fn versionhistory_platforms_list_execute(
 
 pub fn versionhistory_platforms_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VersionhistoryPlatformsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPlatformsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = versionhistory_platforms_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = versionhistory_platforms_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     versionhistory_platforms_list_execute(builder)
 }
 
@@ -257,6 +273,17 @@ pub fn versionhistory_platforms_channels_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`versionhistory_platforms_channels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VersionhistoryPlatformsChannelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/{v1Id}/platforms/{platformsId}/channels
 /// Returns list of channels that are available for a given platform.
 ///
@@ -269,17 +296,19 @@ pub fn versionhistory_platforms_channels_list_execute(
 
 pub fn versionhistory_platforms_channels_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VersionhistoryPlatformsChannelsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListChannelsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        versionhistory_platforms_channels_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = versionhistory_platforms_channels_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     versionhistory_platforms_channels_list_execute(builder)
 }
 
@@ -399,6 +428,21 @@ pub fn versionhistory_platforms_channels_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`versionhistory_platforms_channels_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VersionhistoryPlatformsChannelsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/{v1Id}/platforms/{platformsId}/channels/{channelsId}/versions
 /// Returns list of version for the given `platform/channel`.
 ///
@@ -411,11 +455,7 @@ pub fn versionhistory_platforms_channels_versions_list_execute(
 
 pub fn versionhistory_platforms_channels_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VersionhistoryPlatformsChannelsVersionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListVersionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -423,7 +463,12 @@ pub fn versionhistory_platforms_channels_versions_list(
     ApiError,
 > {
     let builder = versionhistory_platforms_channels_versions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     versionhistory_platforms_channels_versions_list_execute(builder)
 }
@@ -544,6 +589,21 @@ pub fn versionhistory_platforms_channels_versions_releases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`versionhistory_platforms_channels_versions_releases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VersionhistoryPlatformsChannelsVersionsReleasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/{v1Id}/platforms/{platformsId}/channels/{channelsId}/versions/{versionsId}/releases
 /// Returns list of releases of the given version.
 ///
@@ -556,11 +616,7 @@ pub fn versionhistory_platforms_channels_versions_releases_list_execute(
 
 pub fn versionhistory_platforms_channels_versions_releases_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VersionhistoryPlatformsChannelsVersionsReleasesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListReleasesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -568,7 +624,12 @@ pub fn versionhistory_platforms_channels_versions_releases_list(
     ApiError,
 > {
     let builder = versionhistory_platforms_channels_versions_releases_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     versionhistory_platforms_channels_versions_releases_list_execute(builder)
 }

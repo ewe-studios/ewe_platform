@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn backupdr_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn backupdr_projects_locations_get_execute(
 
 pub fn backupdr_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BackupdrProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = backupdr_projects_locations_get_builder(client, name)?;
+    let builder = backupdr_projects_locations_get_builder(client, &args.name)?;
     backupdr_projects_locations_get_execute(builder)
 }
 
@@ -217,6 +226,13 @@ pub fn backupdr_projects_locations_get_trial_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_get_trial`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsGetTrialArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/trial
 /// Gets the Trial state for a given project
 ///
@@ -229,12 +245,12 @@ pub fn backupdr_projects_locations_get_trial_execute(
 
 pub fn backupdr_projects_locations_get_trial(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BackupdrProjectsLocationsGetTrialArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Trial>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = backupdr_projects_locations_get_trial_builder(client, name)?;
+    let builder = backupdr_projects_locations_get_trial_builder(client, &args.name)?;
     backupdr_projects_locations_get_trial_execute(builder)
 }
 
@@ -354,6 +370,21 @@ pub fn backupdr_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -366,11 +397,7 @@ pub fn backupdr_projects_locations_list_execute(
 
 pub fn backupdr_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BackupdrProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -379,11 +406,11 @@ pub fn backupdr_projects_locations_list(
 > {
     let builder = backupdr_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     backupdr_projects_locations_list_execute(builder)
 }
@@ -497,6 +524,19 @@ pub fn backupdr_projects_locations_backup_plan_associations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_plan_associations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlanAssociationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupPlanAssociationId
+    pub backupPlanAssociationId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: BackupPlanAssociation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations
 /// Create a BackupPlanAssociation
 ///
@@ -509,20 +549,17 @@ pub fn backupdr_projects_locations_backup_plan_associations_create_execute(
 
 pub fn backupdr_projects_locations_backup_plan_associations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backupPlanAssociationId: Option<&str>,
-    requestId: Option<&str>,
-    body: &BackupPlanAssociation,
+    args: &BackupdrProjectsLocationsBackupPlanAssociationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_plan_associations_create_builder(
         client,
-        parent,
-        backupPlanAssociationId,
-        requestId,
-        body,
+        &args.parent,
+        args.backupPlanAssociationId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     backupdr_projects_locations_backup_plan_associations_create_execute(builder)
 }
@@ -629,6 +666,15 @@ pub fn backupdr_projects_locations_backup_plan_associations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_plan_associations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlanAssociationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}
 /// Deletes a single BackupPlanAssociation.
 ///
@@ -641,14 +687,15 @@ pub fn backupdr_projects_locations_backup_plan_associations_delete_execute(
 
 pub fn backupdr_projects_locations_backup_plan_associations_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &BackupdrProjectsLocationsBackupPlanAssociationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_plan_associations_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     backupdr_projects_locations_backup_plan_associations_delete_execute(builder)
 }
@@ -776,6 +823,23 @@ pub fn backupdr_projects_locations_backup_plan_associations_fetch_for_resource_t
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlanAssociationsFetchForResourceTypeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resourceType
+    pub resourceType: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations:fetchForResourceType
 /// List BackupPlanAssociations for a given resource type.
 ///
@@ -788,12 +852,7 @@ pub fn backupdr_projects_locations_backup_plan_associations_fetch_for_resource_t
 
 pub fn backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    resourceType: Option<&str>,
+    args: &BackupdrProjectsLocationsBackupPlanAssociationsFetchForResourceTypeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchBackupPlanAssociationsForResourceTypeResponse>, ApiError>,
@@ -805,12 +864,12 @@ pub fn backupdr_projects_locations_backup_plan_associations_fetch_for_resource_t
     let builder =
         backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_builder(
             client,
-            parent,
-            filter,
-            orderBy,
-            pageSize,
-            pageToken,
-            resourceType,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.resourceType.as_deref(),
         )?;
     backupdr_projects_locations_backup_plan_associations_fetch_for_resource_type_execute(builder)
 }
@@ -907,6 +966,13 @@ pub fn backupdr_projects_locations_backup_plan_associations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_plan_associations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlanAssociationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}
 /// Gets details of a single BackupPlanAssociation.
 ///
@@ -919,14 +985,15 @@ pub fn backupdr_projects_locations_backup_plan_associations_get_execute(
 
 pub fn backupdr_projects_locations_backup_plan_associations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BackupdrProjectsLocationsBackupPlanAssociationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BackupPlanAssociation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = backupdr_projects_locations_backup_plan_associations_get_builder(client, name)?;
+    let builder =
+        backupdr_projects_locations_backup_plan_associations_get_builder(client, &args.name)?;
     backupdr_projects_locations_backup_plan_associations_get_execute(builder)
 }
 
@@ -1044,6 +1111,19 @@ pub fn backupdr_projects_locations_backup_plan_associations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_plan_associations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlanAssociationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations
 /// Lists BackupPlanAssociations in a given project and location.
 ///
@@ -1056,10 +1136,7 @@ pub fn backupdr_projects_locations_backup_plan_associations_list_execute(
 
 pub fn backupdr_projects_locations_backup_plan_associations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BackupdrProjectsLocationsBackupPlanAssociationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBackupPlanAssociationsResponse>, ApiError>,
@@ -1069,7 +1146,11 @@ pub fn backupdr_projects_locations_backup_plan_associations_list(
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_plan_associations_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     backupdr_projects_locations_backup_plan_associations_list_execute(builder)
 }
@@ -1183,6 +1264,19 @@ pub fn backupdr_projects_locations_backup_plan_associations_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_plan_associations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlanAssociationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: BackupPlanAssociation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}
 /// Update a BackupPlanAssociation.
 ///
@@ -1195,16 +1289,17 @@ pub fn backupdr_projects_locations_backup_plan_associations_patch_execute(
 
 pub fn backupdr_projects_locations_backup_plan_associations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &BackupPlanAssociation,
+    args: &BackupdrProjectsLocationsBackupPlanAssociationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_plan_associations_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     backupdr_projects_locations_backup_plan_associations_patch_execute(builder)
 }
@@ -1302,6 +1397,15 @@ pub fn backupdr_projects_locations_backup_plan_associations_trigger_backup_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_plan_associations_trigger_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlanAssociationsTriggerBackupArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: TriggerBackupRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlanAssociations/{backupPlanAssociationsId}:triggerBackup
 /// Triggers a new Backup.
 ///
@@ -1314,14 +1418,13 @@ pub fn backupdr_projects_locations_backup_plan_associations_trigger_backup_execu
 
 pub fn backupdr_projects_locations_backup_plan_associations_trigger_backup(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &TriggerBackupRequest,
+    args: &BackupdrProjectsLocationsBackupPlanAssociationsTriggerBackupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_plan_associations_trigger_backup_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     backupdr_projects_locations_backup_plan_associations_trigger_backup_execute(builder)
 }
@@ -1435,6 +1538,19 @@ pub fn backupdr_projects_locations_backup_plans_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_plans_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlansCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupPlanId
+    pub backupPlanId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: BackupPlan,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans
 /// Create a BackupPlan
 ///
@@ -1447,20 +1563,17 @@ pub fn backupdr_projects_locations_backup_plans_create_execute(
 
 pub fn backupdr_projects_locations_backup_plans_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backupPlanId: Option<&str>,
-    requestId: Option<&str>,
-    body: &BackupPlan,
+    args: &BackupdrProjectsLocationsBackupPlansCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_plans_create_builder(
         client,
-        parent,
-        backupPlanId,
-        requestId,
-        body,
+        &args.parent,
+        args.backupPlanId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     backupdr_projects_locations_backup_plans_create_execute(builder)
 }
@@ -1567,6 +1680,15 @@ pub fn backupdr_projects_locations_backup_plans_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_plans_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlansDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
 /// Deletes a single BackupPlan.
 ///
@@ -1579,13 +1701,16 @@ pub fn backupdr_projects_locations_backup_plans_delete_execute(
 
 pub fn backupdr_projects_locations_backup_plans_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &BackupdrProjectsLocationsBackupPlansDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = backupdr_projects_locations_backup_plans_delete_builder(client, name, requestId)?;
+    let builder = backupdr_projects_locations_backup_plans_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     backupdr_projects_locations_backup_plans_delete_execute(builder)
 }
 
@@ -1679,6 +1804,13 @@ pub fn backupdr_projects_locations_backup_plans_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_plans_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlansGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
 /// Gets details of a single BackupPlan.
 ///
@@ -1691,12 +1823,12 @@ pub fn backupdr_projects_locations_backup_plans_get_execute(
 
 pub fn backupdr_projects_locations_backup_plans_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BackupdrProjectsLocationsBackupPlansGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BackupPlan>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = backupdr_projects_locations_backup_plans_get_builder(client, name)?;
+    let builder = backupdr_projects_locations_backup_plans_get_builder(client, &args.name)?;
     backupdr_projects_locations_backup_plans_get_execute(builder)
 }
 
@@ -1816,6 +1948,21 @@ pub fn backupdr_projects_locations_backup_plans_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_plans_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlansListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans
 /// Lists BackupPlans in a given project and location.
 ///
@@ -1828,11 +1975,7 @@ pub fn backupdr_projects_locations_backup_plans_list_execute(
 
 pub fn backupdr_projects_locations_backup_plans_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BackupdrProjectsLocationsBackupPlansListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackupPlansResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1840,7 +1983,12 @@ pub fn backupdr_projects_locations_backup_plans_list(
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_plans_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     backupdr_projects_locations_backup_plans_list_execute(builder)
 }
@@ -1954,6 +2102,19 @@ pub fn backupdr_projects_locations_backup_plans_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_plans_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlansPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: BackupPlan,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
 /// Update a BackupPlan.
 ///
@@ -1966,16 +2127,17 @@ pub fn backupdr_projects_locations_backup_plans_patch_execute(
 
 pub fn backupdr_projects_locations_backup_plans_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &BackupPlan,
+    args: &BackupdrProjectsLocationsBackupPlansPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_plans_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     backupdr_projects_locations_backup_plans_patch_execute(builder)
 }
@@ -2072,6 +2234,13 @@ pub fn backupdr_projects_locations_backup_plans_revisions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_plans_revisions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlansRevisionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/revisions/{revisionsId}
 /// Gets details of a single BackupPlanRevision.
 ///
@@ -2084,14 +2253,15 @@ pub fn backupdr_projects_locations_backup_plans_revisions_get_execute(
 
 pub fn backupdr_projects_locations_backup_plans_revisions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BackupdrProjectsLocationsBackupPlansRevisionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BackupPlanRevision>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = backupdr_projects_locations_backup_plans_revisions_get_builder(client, name)?;
+    let builder =
+        backupdr_projects_locations_backup_plans_revisions_get_builder(client, &args.name)?;
     backupdr_projects_locations_backup_plans_revisions_get_execute(builder)
 }
 
@@ -2205,6 +2375,17 @@ pub fn backupdr_projects_locations_backup_plans_revisions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_plans_revisions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupPlansRevisionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/revisions
 /// Lists BackupPlanRevisions in a given project and location.
 ///
@@ -2217,9 +2398,7 @@ pub fn backupdr_projects_locations_backup_plans_revisions_list_execute(
 
 pub fn backupdr_projects_locations_backup_plans_revisions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BackupdrProjectsLocationsBackupPlansRevisionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBackupPlanRevisionsResponse>, ApiError>,
@@ -2229,7 +2408,10 @@ pub fn backupdr_projects_locations_backup_plans_revisions_list(
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_plans_revisions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     backupdr_projects_locations_backup_plans_revisions_list_execute(builder)
 }
@@ -2347,6 +2529,21 @@ pub fn backupdr_projects_locations_backup_vaults_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupVaultId
+    pub backupVaultId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: BackupVault,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults
 /// Creates a new BackupVault in a given project and location.
 ///
@@ -2359,22 +2556,18 @@ pub fn backupdr_projects_locations_backup_vaults_create_execute(
 
 pub fn backupdr_projects_locations_backup_vaults_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backupVaultId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &BackupVault,
+    args: &BackupdrProjectsLocationsBackupVaultsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_vaults_create_builder(
         client,
-        parent,
-        backupVaultId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.backupVaultId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     backupdr_projects_locations_backup_vaults_create_execute(builder)
 }
@@ -2501,6 +2694,25 @@ pub fn backupdr_projects_locations_backup_vaults_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: ignoreBackupPlanReferences
+    pub ignoreBackupPlanReferences: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
 /// Deletes a BackupVault.
 ///
@@ -2513,26 +2725,20 @@ pub fn backupdr_projects_locations_backup_vaults_delete_execute(
 
 pub fn backupdr_projects_locations_backup_vaults_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    force: Option<bool>,
-    ignoreBackupPlanReferences: Option<bool>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &BackupdrProjectsLocationsBackupVaultsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_vaults_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        force,
-        ignoreBackupPlanReferences,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.force,
+        args.ignoreBackupPlanReferences,
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     backupdr_projects_locations_backup_vaults_delete_execute(builder)
 }
@@ -2655,6 +2861,21 @@ pub fn backupdr_projects_locations_backup_vaults_fetch_usable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_fetch_usable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsFetchUsableArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults:fetchUsable
 /// FetchUsableBackupVaults lists usable BackupVaults in a given project and location. Usable BackupVault are the ones that user has backupdr.`backupVaults`.get permission.
 ///
@@ -2667,11 +2888,7 @@ pub fn backupdr_projects_locations_backup_vaults_fetch_usable_execute(
 
 pub fn backupdr_projects_locations_backup_vaults_fetch_usable(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BackupdrProjectsLocationsBackupVaultsFetchUsableArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchUsableBackupVaultsResponse>, ApiError>,
@@ -2681,7 +2898,12 @@ pub fn backupdr_projects_locations_backup_vaults_fetch_usable(
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_vaults_fetch_usable_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     backupdr_projects_locations_backup_vaults_fetch_usable_execute(builder)
 }
@@ -2788,6 +3010,15 @@ pub fn backupdr_projects_locations_backup_vaults_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
 /// Gets details of a BackupVault.
 ///
@@ -2800,13 +3031,16 @@ pub fn backupdr_projects_locations_backup_vaults_get_execute(
 
 pub fn backupdr_projects_locations_backup_vaults_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &BackupdrProjectsLocationsBackupVaultsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BackupVault>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = backupdr_projects_locations_backup_vaults_get_builder(client, name, view)?;
+    let builder = backupdr_projects_locations_backup_vaults_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     backupdr_projects_locations_backup_vaults_get_execute(builder)
 }
 
@@ -2930,6 +3164,23 @@ pub fn backupdr_projects_locations_backup_vaults_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults
 /// Lists BackupVaults in a given project and location.
 ///
@@ -2942,12 +3193,7 @@ pub fn backupdr_projects_locations_backup_vaults_list_execute(
 
 pub fn backupdr_projects_locations_backup_vaults_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &BackupdrProjectsLocationsBackupVaultsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackupVaultsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2955,7 +3201,13 @@ pub fn backupdr_projects_locations_backup_vaults_list(
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_vaults_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     backupdr_projects_locations_backup_vaults_list_execute(builder)
 }
@@ -3081,6 +3333,25 @@ pub fn backupdr_projects_locations_backup_vaults_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: forceUpdateAccessRestriction
+    pub forceUpdateAccessRestriction: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: BackupVault,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
 /// Updates the settings of a BackupVault.
 ///
@@ -3093,26 +3364,20 @@ pub fn backupdr_projects_locations_backup_vaults_patch_execute(
 
 pub fn backupdr_projects_locations_backup_vaults_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    forceUpdateAccessRestriction: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &BackupVault,
+    args: &BackupdrProjectsLocationsBackupVaultsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_vaults_patch_builder(
         client,
-        name,
-        force,
-        forceUpdateAccessRestriction,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.force,
+        args.forceUpdateAccessRestriction,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     backupdr_projects_locations_backup_vaults_patch_execute(builder)
 }
@@ -3214,6 +3479,15 @@ pub fn backupdr_projects_locations_backup_vaults_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}:testIamPermissions
 /// Returns the caller's permissions on a BackupVault resource. A caller is not required to have Google IAM permission to make this request.
 ///
@@ -3226,8 +3500,7 @@ pub fn backupdr_projects_locations_backup_vaults_test_iam_permissions_execute(
 
 pub fn backupdr_projects_locations_backup_vaults_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BackupdrProjectsLocationsBackupVaultsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3237,7 +3510,9 @@ pub fn backupdr_projects_locations_backup_vaults_test_iam_permissions(
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_vaults_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     backupdr_projects_locations_backup_vaults_test_iam_permissions_execute(builder)
 }
@@ -3335,6 +3610,15 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_abandon_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesAbandonBackupArgs {
+    /// Path parameter: dataSource
+    pub dataSource: String,
+    /// Request body.
+    pub body: AbandonBackupRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:abandonBackup
 /// Internal only. Abandons a backup.
 ///
@@ -3347,14 +3631,15 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_exe
 
 pub fn backupdr_projects_locations_backup_vaults_data_sources_abandon_backup(
     client: &SimpleHttpClient,
-    dataSource: &str,
-    body: &AbandonBackupRequest,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesAbandonBackupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_builder(
-        client, dataSource, body,
+        client,
+        &args.dataSource,
+        &args.body,
     )?;
     backupdr_projects_locations_backup_vaults_data_sources_abandon_backup_execute(builder)
 }
@@ -3454,6 +3739,15 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesFetchAccessTokenArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: FetchAccessTokenRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:fetchAccessToken
 /// Internal only. Fetch access token for a given data source.
 ///
@@ -3466,8 +3760,7 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token
 
 pub fn backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &FetchAccessTokenRequest,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesFetchAccessTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FetchAccessTokenResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3476,7 +3769,7 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token
 > {
     let builder =
         backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     backupdr_projects_locations_backup_vaults_data_sources_fetch_access_token_execute(builder)
 }
@@ -3574,6 +3867,15 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_finalize_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesFinalizeBackupArgs {
+    /// Path parameter: dataSource
+    pub dataSource: String,
+    /// Request body.
+    pub body: FinalizeBackupRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:finalizeBackup
 /// Internal only. Finalize a backup that was started by a call to InitiateBackup.
 ///
@@ -3586,14 +3888,15 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_ex
 
 pub fn backupdr_projects_locations_backup_vaults_data_sources_finalize_backup(
     client: &SimpleHttpClient,
-    dataSource: &str,
-    body: &FinalizeBackupRequest,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesFinalizeBackupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_builder(
-        client, dataSource, body,
+        client,
+        &args.dataSource,
+        &args.body,
     )?;
     backupdr_projects_locations_backup_vaults_data_sources_finalize_backup_execute(builder)
 }
@@ -3688,6 +3991,13 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}
 /// Gets details of a DataSource.
 ///
@@ -3700,12 +4010,13 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_get_execute(
 
 pub fn backupdr_projects_locations_backup_vaults_data_sources_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = backupdr_projects_locations_backup_vaults_data_sources_get_builder(client, name)?;
+    let builder =
+        backupdr_projects_locations_backup_vaults_data_sources_get_builder(client, &args.name)?;
     backupdr_projects_locations_backup_vaults_data_sources_get_execute(builder)
 }
 
@@ -3804,6 +4115,15 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_initiate_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesInitiateBackupArgs {
+    /// Path parameter: dataSource
+    pub dataSource: String,
+    /// Request body.
+    pub body: InitiateBackupRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:initiateBackup
 /// Internal only. Initiates a backup.
 ///
@@ -3816,8 +4136,7 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_ex
 
 pub fn backupdr_projects_locations_backup_vaults_data_sources_initiate_backup(
     client: &SimpleHttpClient,
-    dataSource: &str,
-    body: &InitiateBackupRequest,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesInitiateBackupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InitiateBackupResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3825,7 +4144,9 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_initiate_backup(
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_builder(
-        client, dataSource, body,
+        client,
+        &args.dataSource,
+        &args.body,
     )?;
     backupdr_projects_locations_backup_vaults_data_sources_initiate_backup_execute(builder)
 }
@@ -3946,6 +4267,21 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources
 /// Lists DataSources in a given project and location.
 ///
@@ -3958,11 +4294,7 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_list_execute(
 
 pub fn backupdr_projects_locations_backup_vaults_data_sources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDataSourcesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3970,7 +4302,12 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_list(
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_vaults_data_sources_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     backupdr_projects_locations_backup_vaults_data_sources_list_execute(builder)
 }
@@ -4088,6 +4425,21 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: DataSource,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}
 /// Updates the settings of a DataSource.
 ///
@@ -4100,22 +4452,18 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_patch_execute(
 
 pub fn backupdr_projects_locations_backup_vaults_data_sources_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &DataSource,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_vaults_data_sources_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     backupdr_projects_locations_backup_vaults_data_sources_patch_execute(builder)
 }
@@ -4213,6 +4561,15 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_remove_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_remove`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesRemoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RemoveDataSourceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:remove
 /// Deletes a DataSource. This is a custom method instead of a standard delete method because external clients will not delete DataSources except for BackupDR backup appliances.
 ///
@@ -4225,14 +4582,14 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_remove_execute(
 
 pub fn backupdr_projects_locations_backup_vaults_data_sources_remove(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RemoveDataSourceRequest,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesRemoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        backupdr_projects_locations_backup_vaults_data_sources_remove_builder(client, name, body)?;
+    let builder = backupdr_projects_locations_backup_vaults_data_sources_remove_builder(
+        client, &args.name, &args.body,
+    )?;
     backupdr_projects_locations_backup_vaults_data_sources_remove_execute(builder)
 }
 
@@ -4329,6 +4686,15 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_set_internal_statu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_set_internal_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesSetInternalStatusArgs {
+    /// Path parameter: dataSource
+    pub dataSource: String,
+    /// Request body.
+    pub body: SetInternalStatusRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}:setInternalStatus
 /// Sets the internal status of a DataSource.
 ///
@@ -4341,15 +4707,16 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_set_internal_statu
 
 pub fn backupdr_projects_locations_backup_vaults_data_sources_set_internal_status(
     client: &SimpleHttpClient,
-    dataSource: &str,
-    body: &SetInternalStatusRequest,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesSetInternalStatusArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_builder(
-            client, dataSource, body,
+            client,
+            &args.dataSource,
+            &args.body,
         )?;
     backupdr_projects_locations_backup_vaults_data_sources_set_internal_status_execute(builder)
 }
@@ -4456,6 +4823,15 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_delete_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}
 /// Deletes a Backup.
 ///
@@ -4468,14 +4844,15 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_delete_exe
 
 pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_vaults_data_sources_backups_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     backupdr_projects_locations_backup_vaults_data_sources_backups_delete_execute(builder)
 }
@@ -4606,6 +4983,25 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsFetchForResourceTypeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resourceType
+    pub resourceType: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups:fetchForResourceType
 /// Fetch Backups for a given resource type.
 ///
@@ -4618,13 +5014,7 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_
 
 pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    resourceType: Option<&str>,
-    view: Option<&str>,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsFetchForResourceTypeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchBackupsForResourceTypeResponse>, ApiError>,
@@ -4633,7 +5023,7 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_
         + 'static,
     ApiError,
 > {
-    let builder = backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_builder(client, parent, filter, orderBy, pageSize, pageToken, resourceType, view)?;
+    let builder = backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_builder(client, &args.parent, args.filter.as_deref(), args.orderBy.as_deref(), args.pageSize, args.pageToken.as_deref(), args.resourceType.as_deref(), args.view.as_deref())?;
     backupdr_projects_locations_backup_vaults_data_sources_backups_fetch_for_resource_type_execute(
         builder,
     )
@@ -4741,6 +5131,15 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}
 /// Gets details of a Backup.
 ///
@@ -4753,14 +5152,15 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_get_execut
 
 pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_vaults_data_sources_backups_get_builder(
-        client, name, view,
+        client,
+        &args.name,
+        args.view.as_deref(),
     )?;
     backupdr_projects_locations_backup_vaults_data_sources_backups_get_execute(builder)
 }
@@ -4885,6 +5285,23 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups
 /// Lists Backups in a given project and location.
 ///
@@ -4897,12 +5314,7 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_list_execu
 
 pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4910,7 +5322,13 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_list(
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_vaults_data_sources_backups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     backupdr_projects_locations_backup_vaults_data_sources_backups_list_execute(builder)
 }
@@ -5024,6 +5442,19 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_patch_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_backups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}
 /// Updates the settings of a Backup.
 ///
@@ -5036,16 +5467,17 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_patch_exec
 
 pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Backup,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_vaults_data_sources_backups_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     backupdr_projects_locations_backup_vaults_data_sources_backups_patch_execute(builder)
 }
@@ -5143,6 +5575,15 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_restore_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_backup_vaults_data_sources_backups_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RestoreBackupRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/dataSources/{dataSourcesId}/backups/{backupsId}:restore
 /// Restore from a Backup
 ///
@@ -5155,14 +5596,13 @@ pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_restore_ex
 
 pub fn backupdr_projects_locations_backup_vaults_data_sources_backups_restore(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RestoreBackupRequest,
+    args: &BackupdrProjectsLocationsBackupVaultsDataSourcesBackupsRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_backup_vaults_data_sources_backups_restore_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     backupdr_projects_locations_backup_vaults_data_sources_backups_restore_execute(builder)
 }
@@ -5290,6 +5730,23 @@ pub fn backupdr_projects_locations_data_source_references_fetch_for_resource_typ
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_data_source_references_fetch_for_resource_type`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsDataSourceReferencesFetchForResourceTypeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resourceType
+    pub resourceType: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataSourceReferences:fetchForResourceType
 /// Fetch DataSourceReferences for a given project, location and resource type.
 ///
@@ -5302,12 +5759,7 @@ pub fn backupdr_projects_locations_data_source_references_fetch_for_resource_typ
 
 pub fn backupdr_projects_locations_data_source_references_fetch_for_resource_type(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    resourceType: Option<&str>,
+    args: &BackupdrProjectsLocationsDataSourceReferencesFetchForResourceTypeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchDataSourceReferencesForResourceTypeResponse>, ApiError>,
@@ -5319,12 +5771,12 @@ pub fn backupdr_projects_locations_data_source_references_fetch_for_resource_typ
     let builder =
         backupdr_projects_locations_data_source_references_fetch_for_resource_type_builder(
             client,
-            parent,
-            filter,
-            orderBy,
-            pageSize,
-            pageToken,
-            resourceType,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.resourceType.as_deref(),
         )?;
     backupdr_projects_locations_data_source_references_fetch_for_resource_type_execute(builder)
 }
@@ -5421,6 +5873,13 @@ pub fn backupdr_projects_locations_data_source_references_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_data_source_references_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsDataSourceReferencesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataSourceReferences/{dataSourceReferencesId}
 /// Gets details of a single DataSourceReference.
 ///
@@ -5433,14 +5892,15 @@ pub fn backupdr_projects_locations_data_source_references_get_execute(
 
 pub fn backupdr_projects_locations_data_source_references_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BackupdrProjectsLocationsDataSourceReferencesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DataSourceReference>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = backupdr_projects_locations_data_source_references_get_builder(client, name)?;
+    let builder =
+        backupdr_projects_locations_data_source_references_get_builder(client, &args.name)?;
     backupdr_projects_locations_data_source_references_get_execute(builder)
 }
 
@@ -5562,6 +6022,21 @@ pub fn backupdr_projects_locations_data_source_references_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_data_source_references_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsDataSourceReferencesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataSourceReferences
 /// Lists DataSourceReferences for a given project and location.
 ///
@@ -5574,11 +6049,7 @@ pub fn backupdr_projects_locations_data_source_references_list_execute(
 
 pub fn backupdr_projects_locations_data_source_references_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BackupdrProjectsLocationsDataSourceReferencesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDataSourceReferencesResponse>, ApiError>,
@@ -5588,7 +6059,12 @@ pub fn backupdr_projects_locations_data_source_references_list(
     ApiError,
 > {
     let builder = backupdr_projects_locations_data_source_references_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     backupdr_projects_locations_data_source_references_list_execute(builder)
 }
@@ -5702,6 +6178,19 @@ pub fn backupdr_projects_locations_management_servers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_management_servers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsManagementServersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: managementServerId
+    pub managementServerId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: ManagementServer,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers
 /// Creates a new ManagementServer in a given project and location.
 ///
@@ -5714,20 +6203,17 @@ pub fn backupdr_projects_locations_management_servers_create_execute(
 
 pub fn backupdr_projects_locations_management_servers_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    managementServerId: Option<&str>,
-    requestId: Option<&str>,
-    body: &ManagementServer,
+    args: &BackupdrProjectsLocationsManagementServersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_management_servers_create_builder(
         client,
-        parent,
-        managementServerId,
-        requestId,
-        body,
+        &args.parent,
+        args.managementServerId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     backupdr_projects_locations_management_servers_create_execute(builder)
 }
@@ -5834,6 +6320,15 @@ pub fn backupdr_projects_locations_management_servers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_management_servers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsManagementServersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}
 /// Deletes a single ManagementServer.
 ///
@@ -5846,14 +6341,16 @@ pub fn backupdr_projects_locations_management_servers_delete_execute(
 
 pub fn backupdr_projects_locations_management_servers_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &BackupdrProjectsLocationsManagementServersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        backupdr_projects_locations_management_servers_delete_builder(client, name, requestId)?;
+    let builder = backupdr_projects_locations_management_servers_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     backupdr_projects_locations_management_servers_delete_execute(builder)
 }
 
@@ -5949,6 +6446,13 @@ pub fn backupdr_projects_locations_management_servers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_management_servers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsManagementServersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}
 /// Gets details of a single ManagementServer.
 ///
@@ -5961,14 +6465,14 @@ pub fn backupdr_projects_locations_management_servers_get_execute(
 
 pub fn backupdr_projects_locations_management_servers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BackupdrProjectsLocationsManagementServersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ManagementServer>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = backupdr_projects_locations_management_servers_get_builder(client, name)?;
+    let builder = backupdr_projects_locations_management_servers_get_builder(client, &args.name)?;
     backupdr_projects_locations_management_servers_get_execute(builder)
 }
 
@@ -6074,6 +6578,15 @@ pub fn backupdr_projects_locations_management_servers_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_management_servers_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsManagementServersGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -6086,16 +6599,15 @@ pub fn backupdr_projects_locations_management_servers_get_iam_policy_execute(
 
 pub fn backupdr_projects_locations_management_servers_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &BackupdrProjectsLocationsManagementServersGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_management_servers_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     backupdr_projects_locations_management_servers_get_iam_policy_execute(builder)
 }
@@ -6218,6 +6730,21 @@ pub fn backupdr_projects_locations_management_servers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_management_servers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsManagementServersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers
 /// Lists ManagementServers in a given project and location.
 ///
@@ -6230,11 +6757,7 @@ pub fn backupdr_projects_locations_management_servers_list_execute(
 
 pub fn backupdr_projects_locations_management_servers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BackupdrProjectsLocationsManagementServersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListManagementServersResponse>, ApiError>,
@@ -6244,7 +6767,12 @@ pub fn backupdr_projects_locations_management_servers_list(
     ApiError,
 > {
     let builder = backupdr_projects_locations_management_servers_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     backupdr_projects_locations_management_servers_list_execute(builder)
 }
@@ -6346,6 +6874,15 @@ pub fn backupdr_projects_locations_management_servers_ms_compliance_metadata_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_management_servers_ms_compliance_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsManagementServersMsComplianceMetadataArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: FetchMsComplianceMetadataRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers:msComplianceMetadata
 /// Returns the Assured Workloads compliance metadata for a given project.
 ///
@@ -6358,8 +6895,7 @@ pub fn backupdr_projects_locations_management_servers_ms_compliance_metadata_exe
 
 pub fn backupdr_projects_locations_management_servers_ms_compliance_metadata(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &FetchMsComplianceMetadataRequest,
+    args: &BackupdrProjectsLocationsManagementServersMsComplianceMetadataArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchMsComplianceMetadataResponse>, ApiError>,
@@ -6369,7 +6905,9 @@ pub fn backupdr_projects_locations_management_servers_ms_compliance_metadata(
     ApiError,
 > {
     let builder = backupdr_projects_locations_management_servers_ms_compliance_metadata_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     backupdr_projects_locations_management_servers_ms_compliance_metadata_execute(builder)
 }
@@ -6467,6 +7005,15 @@ pub fn backupdr_projects_locations_management_servers_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_management_servers_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsManagementServersSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -6479,14 +7026,15 @@ pub fn backupdr_projects_locations_management_servers_set_iam_policy_execute(
 
 pub fn backupdr_projects_locations_management_servers_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BackupdrProjectsLocationsManagementServersSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = backupdr_projects_locations_management_servers_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     backupdr_projects_locations_management_servers_set_iam_policy_execute(builder)
 }
@@ -6588,6 +7136,15 @@ pub fn backupdr_projects_locations_management_servers_test_iam_permissions_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_management_servers_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsManagementServersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/managementServers/{managementServersId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -6600,8 +7157,7 @@ pub fn backupdr_projects_locations_management_servers_test_iam_permissions_execu
 
 pub fn backupdr_projects_locations_management_servers_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BackupdrProjectsLocationsManagementServersTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -6611,7 +7167,9 @@ pub fn backupdr_projects_locations_management_servers_test_iam_permissions(
     ApiError,
 > {
     let builder = backupdr_projects_locations_management_servers_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     backupdr_projects_locations_management_servers_test_iam_permissions_execute(builder)
 }
@@ -6709,6 +7267,15 @@ pub fn backupdr_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -6721,13 +7288,13 @@ pub fn backupdr_projects_locations_operations_cancel_execute(
 
 pub fn backupdr_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &BackupdrProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = backupdr_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        backupdr_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     backupdr_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -6821,6 +7388,13 @@ pub fn backupdr_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -6833,12 +7407,12 @@ pub fn backupdr_projects_locations_operations_delete_execute(
 
 pub fn backupdr_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BackupdrProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = backupdr_projects_locations_operations_delete_builder(client, name)?;
+    let builder = backupdr_projects_locations_operations_delete_builder(client, &args.name)?;
     backupdr_projects_locations_operations_delete_execute(builder)
 }
 
@@ -6932,6 +7506,13 @@ pub fn backupdr_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -6944,12 +7525,12 @@ pub fn backupdr_projects_locations_operations_get_execute(
 
 pub fn backupdr_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BackupdrProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = backupdr_projects_locations_operations_get_builder(client, name)?;
+    let builder = backupdr_projects_locations_operations_get_builder(client, &args.name)?;
     backupdr_projects_locations_operations_get_execute(builder)
 }
 
@@ -7069,6 +7650,21 @@ pub fn backupdr_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -7081,11 +7677,7 @@ pub fn backupdr_projects_locations_operations_list_execute(
 
 pub fn backupdr_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &BackupdrProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7094,11 +7686,11 @@ pub fn backupdr_projects_locations_operations_list(
 > {
     let builder = backupdr_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     backupdr_projects_locations_operations_list_execute(builder)
 }
@@ -7221,6 +7813,21 @@ pub fn backupdr_projects_locations_resource_backup_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_resource_backup_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsResourceBackupConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/resourceBackupConfigs
 /// Lists ResourceBackupConfigs.
 ///
@@ -7233,11 +7840,7 @@ pub fn backupdr_projects_locations_resource_backup_configs_list_execute(
 
 pub fn backupdr_projects_locations_resource_backup_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BackupdrProjectsLocationsResourceBackupConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListResourceBackupConfigsResponse>, ApiError>,
@@ -7247,7 +7850,12 @@ pub fn backupdr_projects_locations_resource_backup_configs_list(
     ApiError,
 > {
     let builder = backupdr_projects_locations_resource_backup_configs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     backupdr_projects_locations_resource_backup_configs_list_execute(builder)
 }
@@ -7345,6 +7953,15 @@ pub fn backupdr_projects_locations_service_config_initialize_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_service_config_initialize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsServiceConfigInitializeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: InitializeServiceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceConfig:initialize
 /// Initializes the service related config for a project.
 ///
@@ -7357,14 +7974,14 @@ pub fn backupdr_projects_locations_service_config_initialize_execute(
 
 pub fn backupdr_projects_locations_service_config_initialize(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &InitializeServiceRequest,
+    args: &BackupdrProjectsLocationsServiceConfigInitializeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        backupdr_projects_locations_service_config_initialize_builder(client, name, body)?;
+    let builder = backupdr_projects_locations_service_config_initialize_builder(
+        client, &args.name, &args.body,
+    )?;
     backupdr_projects_locations_service_config_initialize_execute(builder)
 }
 
@@ -7461,6 +8078,15 @@ pub fn backupdr_projects_locations_trial_end_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_trial_end`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsTrialEndArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: EndTrialRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/trial:end
 /// Ends the trial for a project
 ///
@@ -7473,13 +8099,12 @@ pub fn backupdr_projects_locations_trial_end_execute(
 
 pub fn backupdr_projects_locations_trial_end(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &EndTrialRequest,
+    args: &BackupdrProjectsLocationsTrialEndArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Trial>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = backupdr_projects_locations_trial_end_builder(client, parent, body)?;
+    let builder = backupdr_projects_locations_trial_end_builder(client, &args.parent, &args.body)?;
     backupdr_projects_locations_trial_end_execute(builder)
 }
 
@@ -7576,6 +8201,15 @@ pub fn backupdr_projects_locations_trial_subscribe_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`backupdr_projects_locations_trial_subscribe`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BackupdrProjectsLocationsTrialSubscribeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SubscribeTrialRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/trial:subscribe
 /// Subscribes to a trial for a project
 ///
@@ -7588,12 +8222,12 @@ pub fn backupdr_projects_locations_trial_subscribe_execute(
 
 pub fn backupdr_projects_locations_trial_subscribe(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SubscribeTrialRequest,
+    args: &BackupdrProjectsLocationsTrialSubscribeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Trial>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = backupdr_projects_locations_trial_subscribe_builder(client, parent, body)?;
+    let builder =
+        backupdr_projects_locations_trial_subscribe_builder(client, &args.parent, &args.body)?;
     backupdr_projects_locations_trial_subscribe_execute(builder)
 }

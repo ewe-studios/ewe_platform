@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET books/v1/users/{userId}/bookshelves/{shelf}
 /// Retrieves metadata for a specific bookshelf for the specified user.
@@ -119,6 +121,17 @@ pub fn books_bookshelves_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_bookshelves_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksBookshelvesGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: shelf
+    pub shelf: String,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/users/{userId}/bookshelves/{shelf}
 /// Retrieves metadata for a specific bookshelf for the specified user.
 ///
@@ -131,14 +144,13 @@ pub fn books_bookshelves_get_execute(
 
 pub fn books_bookshelves_get(
     client: &SimpleHttpClient,
-    userId: &str,
-    shelf: &str,
-    source: Option<&str>,
+    args: &BooksBookshelvesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Bookshelf>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_bookshelves_get_builder(client, userId, shelf, source)?;
+    let builder =
+        books_bookshelves_get_builder(client, &args.userId, &args.shelf, args.source.as_deref())?;
     books_bookshelves_get_execute(builder)
 }
 
@@ -244,6 +256,15 @@ pub fn books_bookshelves_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_bookshelves_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksBookshelvesListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/users/{userId}/bookshelves
 /// Retrieves a list of public bookshelves for the specified user.
 ///
@@ -256,13 +277,12 @@ pub fn books_bookshelves_list_execute(
 
 pub fn books_bookshelves_list(
     client: &SimpleHttpClient,
-    userId: &str,
-    source: Option<&str>,
+    args: &BooksBookshelvesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Bookshelves>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_bookshelves_list_builder(client, userId, source)?;
+    let builder = books_bookshelves_list_builder(client, &args.userId, args.source.as_deref())?;
     books_bookshelves_list_execute(builder)
 }
 
@@ -381,6 +401,23 @@ pub fn books_bookshelves_volumes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_bookshelves_volumes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksBookshelvesVolumesListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: shelf
+    pub shelf: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: showPreorders
+    pub showPreorders: Option<bool>,
+    /// Query parameter: source
+    pub source: Option<String>,
+    /// Query parameter: startIndex
+    pub startIndex: Option<i32>,
+}
+
 /// GET books/v1/users/{userId}/bookshelves/{shelf}/volumes
 /// Retrieves volumes in a specific bookshelf for the specified user.
 ///
@@ -393,24 +430,19 @@ pub fn books_bookshelves_volumes_list_execute(
 
 pub fn books_bookshelves_volumes_list(
     client: &SimpleHttpClient,
-    userId: &str,
-    shelf: &str,
-    maxResults: Option<i32>,
-    showPreorders: Option<bool>,
-    source: Option<&str>,
-    startIndex: Option<i32>,
+    args: &BooksBookshelvesVolumesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = books_bookshelves_volumes_list_builder(
         client,
-        userId,
-        shelf,
-        maxResults,
-        showPreorders,
-        source,
-        startIndex,
+        &args.userId,
+        &args.shelf,
+        args.maxResults,
+        args.showPreorders,
+        args.source.as_deref(),
+        args.startIndex,
     )?;
     books_bookshelves_volumes_list_execute(builder)
 }
@@ -527,6 +559,19 @@ pub fn books_cloudloading_add_book_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_cloudloading_add_book`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksCloudloadingAddBookArgs {
+    /// Query parameter: drive_document_id
+    pub drive_document_id: Option<String>,
+    /// Query parameter: mime_type
+    pub mime_type: Option<String>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: upload_client_token
+    pub upload_client_token: Option<String>,
+}
+
 /// GET books/v1/cloudloading/addBook
 /// Add a user-upload volume and triggers processing.
 ///
@@ -539,10 +584,7 @@ pub fn books_cloudloading_add_book_execute(
 
 pub fn books_cloudloading_add_book(
     client: &SimpleHttpClient,
-    drive_document_id: Option<&str>,
-    mime_type: Option<&str>,
-    name: Option<&str>,
-    upload_client_token: Option<&str>,
+    args: &BooksCloudloadingAddBookArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BooksCloudloadingResource>, ApiError>, P = ApiPending>
         + Send
@@ -551,10 +593,10 @@ pub fn books_cloudloading_add_book(
 > {
     let builder = books_cloudloading_add_book_builder(
         client,
-        drive_document_id,
-        mime_type,
-        name,
-        upload_client_token,
+        args.drive_document_id.as_deref(),
+        args.mime_type.as_deref(),
+        args.name.as_deref(),
+        args.upload_client_token.as_deref(),
     )?;
     books_cloudloading_add_book_execute(builder)
 }
@@ -649,6 +691,13 @@ pub fn books_cloudloading_delete_book_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_cloudloading_delete_book`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksCloudloadingDeleteBookArgs {
+    /// Path parameter: volumeId
+    pub volumeId: String,
+}
+
 /// GET books/v1/cloudloading/deleteBook
 /// Remove the book and its contents
 ///
@@ -661,12 +710,12 @@ pub fn books_cloudloading_delete_book_execute(
 
 pub fn books_cloudloading_delete_book(
     client: &SimpleHttpClient,
-    volumeId: &str,
+    args: &BooksCloudloadingDeleteBookArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_cloudloading_delete_book_builder(client, volumeId)?;
+    let builder = books_cloudloading_delete_book_builder(client, &args.volumeId)?;
     books_cloudloading_delete_book_execute(builder)
 }
 
@@ -761,6 +810,13 @@ pub fn books_cloudloading_update_book_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_cloudloading_update_book`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksCloudloadingUpdateBookArgs {
+    /// Request body.
+    pub body: BooksCloudloadingResource,
+}
+
 /// GET books/v1/cloudloading/updateBook
 /// Updates a user-upload volume.
 ///
@@ -773,14 +829,14 @@ pub fn books_cloudloading_update_book_execute(
 
 pub fn books_cloudloading_update_book(
     client: &SimpleHttpClient,
-    body: &BooksCloudloadingResource,
+    args: &BooksCloudloadingUpdateBookArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BooksCloudloadingResource>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = books_cloudloading_update_book_builder(client, body)?;
+    let builder = books_cloudloading_update_book_builder(client, &args.body)?;
     books_cloudloading_update_book_execute(builder)
 }
 
@@ -874,6 +930,13 @@ pub fn books_dictionary_list_offline_metadata_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_dictionary_list_offline_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksDictionaryListOfflineMetadataArgs {
+    /// Path parameter: cpksver
+    pub cpksver: String,
+}
+
 /// GET books/v1/dictionary/listOfflineMetadata
 /// Returns a list of offline dictionary metadata available
 ///
@@ -886,12 +949,12 @@ pub fn books_dictionary_list_offline_metadata_execute(
 
 pub fn books_dictionary_list_offline_metadata(
     client: &SimpleHttpClient,
-    cpksver: &str,
+    args: &BooksDictionaryListOfflineMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Metadata>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_dictionary_list_offline_metadata_builder(client, cpksver)?;
+    let builder = books_dictionary_list_offline_metadata_builder(client, &args.cpksver)?;
     books_dictionary_list_offline_metadata_execute(builder)
 }
 
@@ -993,6 +1056,13 @@ pub fn books_familysharing_get_family_info_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_familysharing_get_family_info`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksFamilysharingGetFamilyInfoArgs {
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/familysharing/getFamilyInfo
 /// Gets information regarding the family that the user is part of.
 ///
@@ -1005,12 +1075,12 @@ pub fn books_familysharing_get_family_info_execute(
 
 pub fn books_familysharing_get_family_info(
     client: &SimpleHttpClient,
-    source: Option<&str>,
+    args: &BooksFamilysharingGetFamilyInfoArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FamilyInfo>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_familysharing_get_family_info_builder(client, source)?;
+    let builder = books_familysharing_get_family_info_builder(client, args.source.as_deref())?;
     books_familysharing_get_family_info_execute(builder)
 }
 
@@ -1120,6 +1190,17 @@ pub fn books_familysharing_share_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_familysharing_share`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksFamilysharingShareArgs {
+    /// Query parameter: docId
+    pub docId: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+    /// Query parameter: volumeId
+    pub volumeId: Option<String>,
+}
+
 /// GET books/v1/familysharing/share
 /// Initiates sharing of the content with the user's family. Empty response indicates success.
 ///
@@ -1132,14 +1213,17 @@ pub fn books_familysharing_share_execute(
 
 pub fn books_familysharing_share(
     client: &SimpleHttpClient,
-    docId: Option<&str>,
-    source: Option<&str>,
-    volumeId: Option<&str>,
+    args: &BooksFamilysharingShareArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_familysharing_share_builder(client, docId, source, volumeId)?;
+    let builder = books_familysharing_share_builder(
+        client,
+        args.docId.as_deref(),
+        args.source.as_deref(),
+        args.volumeId.as_deref(),
+    )?;
     books_familysharing_share_execute(builder)
 }
 
@@ -1249,6 +1333,17 @@ pub fn books_familysharing_unshare_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_familysharing_unshare`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksFamilysharingUnshareArgs {
+    /// Query parameter: docId
+    pub docId: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+    /// Query parameter: volumeId
+    pub volumeId: Option<String>,
+}
+
 /// GET books/v1/familysharing/unshare
 /// Initiates revoking content that has already been shared with the user's family. Empty response indicates success.
 ///
@@ -1261,14 +1356,17 @@ pub fn books_familysharing_unshare_execute(
 
 pub fn books_familysharing_unshare(
     client: &SimpleHttpClient,
-    docId: Option<&str>,
-    source: Option<&str>,
-    volumeId: Option<&str>,
+    args: &BooksFamilysharingUnshareArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_familysharing_unshare_builder(client, docId, source, volumeId)?;
+    let builder = books_familysharing_unshare_builder(
+        client,
+        args.docId.as_deref(),
+        args.source.as_deref(),
+        args.volumeId.as_deref(),
+    )?;
     books_familysharing_unshare_execute(builder)
 }
 
@@ -1381,6 +1479,19 @@ pub fn books_layers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_layers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksLayersGetArgs {
+    /// Path parameter: volumeId
+    pub volumeId: String,
+    /// Path parameter: summaryId
+    pub summaryId: String,
+    /// Query parameter: contentVersion
+    pub contentVersion: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/volumes/{volumeId}/layersummary/{summaryId}
 /// Gets the layer summary for a volume.
 ///
@@ -1393,17 +1504,20 @@ pub fn books_layers_get_execute(
 
 pub fn books_layers_get(
     client: &SimpleHttpClient,
-    volumeId: &str,
-    summaryId: &str,
-    contentVersion: Option<&str>,
-    source: Option<&str>,
+    args: &BooksLayersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Layersummary>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = books_layers_get_builder(client, volumeId, summaryId, contentVersion, source)?;
+    let builder = books_layers_get_builder(
+        client,
+        &args.volumeId,
+        &args.summaryId,
+        args.contentVersion.as_deref(),
+        args.source.as_deref(),
+    )?;
     books_layers_get_execute(builder)
 }
 
@@ -1523,6 +1637,21 @@ pub fn books_layers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_layers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksLayersListArgs {
+    /// Path parameter: volumeId
+    pub volumeId: String,
+    /// Query parameter: contentVersion
+    pub contentVersion: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/volumes/{volumeId}/layersummary
 /// List the layer summaries for a volume.
 ///
@@ -1535,11 +1664,7 @@ pub fn books_layers_list_execute(
 
 pub fn books_layers_list(
     client: &SimpleHttpClient,
-    volumeId: &str,
-    contentVersion: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    source: Option<&str>,
+    args: &BooksLayersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Layersummaries>, ApiError>, P = ApiPending>
         + Send
@@ -1548,11 +1673,11 @@ pub fn books_layers_list(
 > {
     let builder = books_layers_list_builder(
         client,
-        volumeId,
-        contentVersion,
-        maxResults,
-        pageToken,
-        source,
+        &args.volumeId,
+        args.contentVersion.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.source.as_deref(),
     )?;
     books_layers_list_execute(builder)
 }
@@ -1684,6 +1809,31 @@ pub fn books_layers_annotation_data_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_layers_annotation_data_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksLayersAnnotationDataGetArgs {
+    /// Path parameter: volumeId
+    pub volumeId: String,
+    /// Path parameter: layerId
+    pub layerId: String,
+    /// Path parameter: annotationDataId
+    pub annotationDataId: String,
+    /// Path parameter: contentVersion
+    pub contentVersion: String,
+    /// Query parameter: allowWebDefinitions
+    pub allowWebDefinitions: Option<bool>,
+    /// Query parameter: h
+    pub h: Option<i32>,
+    /// Query parameter: locale
+    pub locale: Option<String>,
+    /// Query parameter: scale
+    pub scale: Option<i32>,
+    /// Query parameter: source
+    pub source: Option<String>,
+    /// Query parameter: w
+    pub w: Option<i32>,
+}
+
 /// GET books/v1/volumes/{volumeId}/layers/{layerId}/data/{annotationDataId}
 /// Gets the annotation data.
 ///
@@ -1696,16 +1846,7 @@ pub fn books_layers_annotation_data_get_execute(
 
 pub fn books_layers_annotation_data_get(
     client: &SimpleHttpClient,
-    volumeId: &str,
-    layerId: &str,
-    annotationDataId: &str,
-    contentVersion: &str,
-    allowWebDefinitions: Option<bool>,
-    h: Option<i32>,
-    locale: Option<&str>,
-    scale: Option<i32>,
-    source: Option<&str>,
-    w: Option<i32>,
+    args: &BooksLayersAnnotationDataGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DictionaryAnnotationdata>, ApiError>, P = ApiPending>
         + Send
@@ -1714,16 +1855,16 @@ pub fn books_layers_annotation_data_get(
 > {
     let builder = books_layers_annotation_data_get_builder(
         client,
-        volumeId,
-        layerId,
-        annotationDataId,
-        contentVersion,
-        allowWebDefinitions,
-        h,
-        locale,
-        scale,
-        source,
-        w,
+        &args.volumeId,
+        &args.layerId,
+        &args.annotationDataId,
+        &args.contentVersion,
+        args.allowWebDefinitions,
+        args.h,
+        args.locale.as_deref(),
+        args.scale,
+        args.source.as_deref(),
+        args.w,
     )?;
     books_layers_annotation_data_get_execute(builder)
 }
@@ -1870,6 +2011,37 @@ pub fn books_layers_annotation_data_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_layers_annotation_data_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksLayersAnnotationDataListArgs {
+    /// Path parameter: volumeId
+    pub volumeId: String,
+    /// Path parameter: layerId
+    pub layerId: String,
+    /// Path parameter: contentVersion
+    pub contentVersion: String,
+    /// Query parameter: annotationDataId
+    pub annotationDataId: Option<String>,
+    /// Query parameter: h
+    pub h: Option<i32>,
+    /// Query parameter: locale
+    pub locale: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: scale
+    pub scale: Option<i32>,
+    /// Query parameter: source
+    pub source: Option<String>,
+    /// Query parameter: updatedMax
+    pub updatedMax: Option<String>,
+    /// Query parameter: updatedMin
+    pub updatedMin: Option<String>,
+    /// Query parameter: w
+    pub w: Option<i32>,
+}
+
 /// GET books/v1/volumes/{volumeId}/layers/{layerId}/data
 /// Gets the annotation data for a volume and layer.
 ///
@@ -1882,19 +2054,7 @@ pub fn books_layers_annotation_data_list_execute(
 
 pub fn books_layers_annotation_data_list(
     client: &SimpleHttpClient,
-    volumeId: &str,
-    layerId: &str,
-    contentVersion: &str,
-    annotationDataId: Option<&str>,
-    h: Option<i32>,
-    locale: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    scale: Option<i32>,
-    source: Option<&str>,
-    updatedMax: Option<&str>,
-    updatedMin: Option<&str>,
-    w: Option<i32>,
+    args: &BooksLayersAnnotationDataListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Annotationsdata>, ApiError>, P = ApiPending>
         + Send
@@ -1903,19 +2063,19 @@ pub fn books_layers_annotation_data_list(
 > {
     let builder = books_layers_annotation_data_list_builder(
         client,
-        volumeId,
-        layerId,
-        contentVersion,
-        annotationDataId,
-        h,
-        locale,
-        maxResults,
-        pageToken,
-        scale,
-        source,
-        updatedMax,
-        updatedMin,
-        w,
+        &args.volumeId,
+        &args.layerId,
+        &args.contentVersion,
+        args.annotationDataId.as_deref(),
+        args.h,
+        args.locale.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.scale,
+        args.source.as_deref(),
+        args.updatedMax.as_deref(),
+        args.updatedMin.as_deref(),
+        args.w,
     )?;
     books_layers_annotation_data_list_execute(builder)
 }
@@ -2030,6 +2190,21 @@ pub fn books_layers_volume_annotations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_layers_volume_annotations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksLayersVolumeAnnotationsGetArgs {
+    /// Path parameter: volumeId
+    pub volumeId: String,
+    /// Path parameter: layerId
+    pub layerId: String,
+    /// Path parameter: annotationId
+    pub annotationId: String,
+    /// Query parameter: locale
+    pub locale: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/volumes/{volumeId}/layers/{layerId}/annotations/{annotationId}
 /// Gets the volume annotation.
 ///
@@ -2042,11 +2217,7 @@ pub fn books_layers_volume_annotations_get_execute(
 
 pub fn books_layers_volume_annotations_get(
     client: &SimpleHttpClient,
-    volumeId: &str,
-    layerId: &str,
-    annotationId: &str,
-    locale: Option<&str>,
-    source: Option<&str>,
+    args: &BooksLayersVolumeAnnotationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volumeannotation>, ApiError>, P = ApiPending>
         + Send
@@ -2055,11 +2226,11 @@ pub fn books_layers_volume_annotations_get(
 > {
     let builder = books_layers_volume_annotations_get_builder(
         client,
-        volumeId,
-        layerId,
-        annotationId,
-        locale,
-        source,
+        &args.volumeId,
+        &args.layerId,
+        &args.annotationId,
+        args.locale.as_deref(),
+        args.source.as_deref(),
     )?;
     books_layers_volume_annotations_get_execute(builder)
 }
@@ -2214,6 +2385,41 @@ pub fn books_layers_volume_annotations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_layers_volume_annotations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksLayersVolumeAnnotationsListArgs {
+    /// Path parameter: volumeId
+    pub volumeId: String,
+    /// Path parameter: layerId
+    pub layerId: String,
+    /// Path parameter: contentVersion
+    pub contentVersion: String,
+    /// Query parameter: endOffset
+    pub endOffset: Option<String>,
+    /// Query parameter: endPosition
+    pub endPosition: Option<String>,
+    /// Query parameter: locale
+    pub locale: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+    /// Query parameter: source
+    pub source: Option<String>,
+    /// Query parameter: startOffset
+    pub startOffset: Option<String>,
+    /// Query parameter: startPosition
+    pub startPosition: Option<String>,
+    /// Query parameter: updatedMax
+    pub updatedMax: Option<String>,
+    /// Query parameter: updatedMin
+    pub updatedMin: Option<String>,
+    /// Query parameter: volumeAnnotationsVersion
+    pub volumeAnnotationsVersion: Option<String>,
+}
+
 /// GET books/v1/volumes/{volumeId}/layers/{layerId}
 /// Gets the volume annotations for a volume and layer.
 ///
@@ -2226,21 +2432,7 @@ pub fn books_layers_volume_annotations_list_execute(
 
 pub fn books_layers_volume_annotations_list(
     client: &SimpleHttpClient,
-    volumeId: &str,
-    layerId: &str,
-    contentVersion: &str,
-    endOffset: Option<&str>,
-    endPosition: Option<&str>,
-    locale: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
-    source: Option<&str>,
-    startOffset: Option<&str>,
-    startPosition: Option<&str>,
-    updatedMax: Option<&str>,
-    updatedMin: Option<&str>,
-    volumeAnnotationsVersion: Option<&str>,
+    args: &BooksLayersVolumeAnnotationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volumeannotations>, ApiError>, P = ApiPending>
         + Send
@@ -2249,21 +2441,21 @@ pub fn books_layers_volume_annotations_list(
 > {
     let builder = books_layers_volume_annotations_list_builder(
         client,
-        volumeId,
-        layerId,
-        contentVersion,
-        endOffset,
-        endPosition,
-        locale,
-        maxResults,
-        pageToken,
-        showDeleted,
-        source,
-        startOffset,
-        startPosition,
-        updatedMax,
-        updatedMin,
-        volumeAnnotationsVersion,
+        &args.volumeId,
+        &args.layerId,
+        &args.contentVersion,
+        args.endOffset.as_deref(),
+        args.endPosition.as_deref(),
+        args.locale.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.showDeleted,
+        args.source.as_deref(),
+        args.startOffset.as_deref(),
+        args.startPosition.as_deref(),
+        args.updatedMax.as_deref(),
+        args.updatedMin.as_deref(),
+        args.volumeAnnotationsVersion.as_deref(),
     )?;
     books_layers_volume_annotations_list_execute(builder)
 }
@@ -2368,6 +2560,13 @@ pub fn books_myconfig_get_user_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_myconfig_get_user_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMyconfigGetUserSettingsArgs {
+    /// Query parameter: country
+    pub country: Option<String>,
+}
+
 /// GET books/v1/myconfig/getUserSettings
 /// Gets the current settings for the user.
 ///
@@ -2380,14 +2579,14 @@ pub fn books_myconfig_get_user_settings_execute(
 
 pub fn books_myconfig_get_user_settings(
     client: &SimpleHttpClient,
-    country: Option<&str>,
+    args: &BooksMyconfigGetUserSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Usersettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = books_myconfig_get_user_settings_builder(client, country)?;
+    let builder = books_myconfig_get_user_settings_builder(client, args.country.as_deref())?;
     books_myconfig_get_user_settings_execute(builder)
 }
 
@@ -2500,6 +2699,19 @@ pub fn books_myconfig_release_download_access_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_myconfig_release_download_access`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMyconfigReleaseDownloadAccessArgs {
+    /// Path parameter: cpksver
+    pub cpksver: String,
+    /// Path parameter: volumeIds
+    pub volumeIds: String,
+    /// Query parameter: locale
+    pub locale: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/myconfig/releaseDownloadAccess
 /// Release downloaded content access restriction.
 ///
@@ -2512,18 +2724,20 @@ pub fn books_myconfig_release_download_access_execute(
 
 pub fn books_myconfig_release_download_access(
     client: &SimpleHttpClient,
-    cpksver: &str,
-    volumeIds: &str,
-    locale: Option<&str>,
-    source: Option<&str>,
+    args: &BooksMyconfigReleaseDownloadAccessArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DownloadAccesses>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        books_myconfig_release_download_access_builder(client, cpksver, volumeIds, locale, source)?;
+    let builder = books_myconfig_release_download_access_builder(
+        client,
+        &args.cpksver,
+        &args.volumeIds,
+        args.locale.as_deref(),
+        args.source.as_deref(),
+    )?;
     books_myconfig_release_download_access_execute(builder)
 }
 
@@ -2638,6 +2852,23 @@ pub fn books_myconfig_request_access_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_myconfig_request_access`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMyconfigRequestAccessArgs {
+    /// Path parameter: cpksver
+    pub cpksver: String,
+    /// Path parameter: nonce
+    pub nonce: String,
+    /// Path parameter: source
+    pub source: String,
+    /// Path parameter: volumeId
+    pub volumeId: String,
+    /// Query parameter: licenseTypes
+    pub licenseTypes: Option<String>,
+    /// Query parameter: locale
+    pub locale: Option<String>,
+}
+
 /// GET books/v1/myconfig/requestAccess
 /// Request concurrent and download access restrictions.
 ///
@@ -2650,12 +2881,7 @@ pub fn books_myconfig_request_access_execute(
 
 pub fn books_myconfig_request_access(
     client: &SimpleHttpClient,
-    cpksver: &str,
-    nonce: &str,
-    source: &str,
-    volumeId: &str,
-    licenseTypes: Option<&str>,
-    locale: Option<&str>,
+    args: &BooksMyconfigRequestAccessArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RequestAccessData>, ApiError>, P = ApiPending>
         + Send
@@ -2664,12 +2890,12 @@ pub fn books_myconfig_request_access(
 > {
     let builder = books_myconfig_request_access_builder(
         client,
-        cpksver,
-        nonce,
-        source,
-        volumeId,
-        licenseTypes,
-        locale,
+        &args.cpksver,
+        &args.nonce,
+        &args.source,
+        &args.volumeId,
+        args.licenseTypes.as_deref(),
+        args.locale.as_deref(),
     )?;
     books_myconfig_request_access_execute(builder)
 }
@@ -2794,6 +3020,27 @@ pub fn books_myconfig_sync_volume_licenses_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_myconfig_sync_volume_licenses`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMyconfigSyncVolumeLicensesArgs {
+    /// Path parameter: cpksver
+    pub cpksver: String,
+    /// Path parameter: nonce
+    pub nonce: String,
+    /// Path parameter: source
+    pub source: String,
+    /// Query parameter: features
+    pub features: Option<String>,
+    /// Query parameter: includeNonComicsSeries
+    pub includeNonComicsSeries: Option<bool>,
+    /// Query parameter: locale
+    pub locale: Option<String>,
+    /// Query parameter: showPreorders
+    pub showPreorders: Option<bool>,
+    /// Query parameter: volumeIds
+    pub volumeIds: Option<String>,
+}
+
 /// GET books/v1/myconfig/syncVolumeLicenses
 /// Request downloaded content access for specified volumes on the My eBooks shelf.
 ///
@@ -2806,28 +3053,21 @@ pub fn books_myconfig_sync_volume_licenses_execute(
 
 pub fn books_myconfig_sync_volume_licenses(
     client: &SimpleHttpClient,
-    cpksver: &str,
-    nonce: &str,
-    source: &str,
-    features: Option<&str>,
-    includeNonComicsSeries: Option<bool>,
-    locale: Option<&str>,
-    showPreorders: Option<bool>,
-    volumeIds: Option<&str>,
+    args: &BooksMyconfigSyncVolumeLicensesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = books_myconfig_sync_volume_licenses_builder(
         client,
-        cpksver,
-        nonce,
-        source,
-        features,
-        includeNonComicsSeries,
-        locale,
-        showPreorders,
-        volumeIds,
+        &args.cpksver,
+        &args.nonce,
+        &args.source,
+        args.features.as_deref(),
+        args.includeNonComicsSeries,
+        args.locale.as_deref(),
+        args.showPreorders,
+        args.volumeIds.as_deref(),
     )?;
     books_myconfig_sync_volume_licenses_execute(builder)
 }
@@ -2923,6 +3163,13 @@ pub fn books_myconfig_update_user_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_myconfig_update_user_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMyconfigUpdateUserSettingsArgs {
+    /// Request body.
+    pub body: Usersettings,
+}
+
 /// GET books/v1/myconfig/updateUserSettings
 /// Sets the settings for the user. If a sub-object is specified, it will overwrite the existing sub-object stored in the server. Unspecified sub-objects will retain the existing value.
 ///
@@ -2935,14 +3182,14 @@ pub fn books_myconfig_update_user_settings_execute(
 
 pub fn books_myconfig_update_user_settings(
     client: &SimpleHttpClient,
-    body: &Usersettings,
+    args: &BooksMyconfigUpdateUserSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Usersettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = books_myconfig_update_user_settings_builder(client, body)?;
+    let builder = books_myconfig_update_user_settings_builder(client, &args.body)?;
     books_myconfig_update_user_settings_execute(builder)
 }
 
@@ -3048,6 +3295,15 @@ pub fn books_mylibrary_annotations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_mylibrary_annotations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMylibraryAnnotationsDeleteArgs {
+    /// Path parameter: annotationId
+    pub annotationId: String,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/mylibrary/annotations/{annotationId}
 /// Deletes an annotation.
 ///
@@ -3060,13 +3316,16 @@ pub fn books_mylibrary_annotations_delete_execute(
 
 pub fn books_mylibrary_annotations_delete(
     client: &SimpleHttpClient,
-    annotationId: &str,
-    source: Option<&str>,
+    args: &BooksMylibraryAnnotationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_mylibrary_annotations_delete_builder(client, annotationId, source)?;
+    let builder = books_mylibrary_annotations_delete_builder(
+        client,
+        &args.annotationId,
+        args.source.as_deref(),
+    )?;
     books_mylibrary_annotations_delete_execute(builder)
 }
 
@@ -3183,6 +3442,21 @@ pub fn books_mylibrary_annotations_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_mylibrary_annotations_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMylibraryAnnotationsInsertArgs {
+    /// Query parameter: annotationId
+    pub annotationId: Option<String>,
+    /// Query parameter: country
+    pub country: Option<String>,
+    /// Query parameter: showOnlySummaryInResponse
+    pub showOnlySummaryInResponse: Option<bool>,
+    /// Query parameter: source
+    pub source: Option<String>,
+    /// Request body.
+    pub body: Annotation,
+}
+
 /// GET books/v1/mylibrary/annotations
 /// Inserts a new annotation.
 ///
@@ -3195,22 +3469,18 @@ pub fn books_mylibrary_annotations_insert_execute(
 
 pub fn books_mylibrary_annotations_insert(
     client: &SimpleHttpClient,
-    annotationId: Option<&str>,
-    country: Option<&str>,
-    showOnlySummaryInResponse: Option<bool>,
-    source: Option<&str>,
-    body: &Annotation,
+    args: &BooksMylibraryAnnotationsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Annotation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = books_mylibrary_annotations_insert_builder(
         client,
-        annotationId,
-        country,
-        showOnlySummaryInResponse,
-        source,
-        body,
+        args.annotationId.as_deref(),
+        args.country.as_deref(),
+        args.showOnlySummaryInResponse,
+        args.source.as_deref(),
+        &args.body,
     )?;
     books_mylibrary_annotations_insert_execute(builder)
 }
@@ -3349,6 +3619,31 @@ pub fn books_mylibrary_annotations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_mylibrary_annotations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMylibraryAnnotationsListArgs {
+    /// Query parameter: contentVersion
+    pub contentVersion: Option<String>,
+    /// Query parameter: layerId
+    pub layerId: Option<String>,
+    /// Query parameter: layerIds
+    pub layerIds: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+    /// Query parameter: source
+    pub source: Option<String>,
+    /// Query parameter: updatedMax
+    pub updatedMax: Option<String>,
+    /// Query parameter: updatedMin
+    pub updatedMin: Option<String>,
+    /// Query parameter: volumeId
+    pub volumeId: Option<String>,
+}
+
 /// GET books/v1/mylibrary/annotations
 /// Retrieves a list of annotations, possibly filtered.
 ///
@@ -3361,32 +3656,23 @@ pub fn books_mylibrary_annotations_list_execute(
 
 pub fn books_mylibrary_annotations_list(
     client: &SimpleHttpClient,
-    contentVersion: Option<&str>,
-    layerId: Option<&str>,
-    layerIds: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
-    source: Option<&str>,
-    updatedMax: Option<&str>,
-    updatedMin: Option<&str>,
-    volumeId: Option<&str>,
+    args: &BooksMylibraryAnnotationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Annotations>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = books_mylibrary_annotations_list_builder(
         client,
-        contentVersion,
-        layerId,
-        layerIds,
-        maxResults,
-        pageToken,
-        showDeleted,
-        source,
-        updatedMax,
-        updatedMin,
-        volumeId,
+        args.contentVersion.as_deref(),
+        args.layerId.as_deref(),
+        args.layerIds.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.showDeleted,
+        args.source.as_deref(),
+        args.updatedMax.as_deref(),
+        args.updatedMin.as_deref(),
+        args.volumeId.as_deref(),
     )?;
     books_mylibrary_annotations_list_execute(builder)
 }
@@ -3496,6 +3782,17 @@ pub fn books_mylibrary_annotations_summary_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_mylibrary_annotations_summary`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMylibraryAnnotationsSummaryArgs {
+    /// Path parameter: layerIds
+    pub layerIds: String,
+    /// Path parameter: volumeId
+    pub volumeId: String,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/mylibrary/annotations/summary
 /// Gets the summary of specified layers.
 ///
@@ -3508,16 +3805,19 @@ pub fn books_mylibrary_annotations_summary_execute(
 
 pub fn books_mylibrary_annotations_summary(
     client: &SimpleHttpClient,
-    layerIds: &str,
-    volumeId: &str,
-    source: Option<&str>,
+    args: &BooksMylibraryAnnotationsSummaryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnnotationsSummary>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = books_mylibrary_annotations_summary_builder(client, layerIds, volumeId, source)?;
+    let builder = books_mylibrary_annotations_summary_builder(
+        client,
+        &args.layerIds,
+        &args.volumeId,
+        args.source.as_deref(),
+    )?;
     books_mylibrary_annotations_summary_execute(builder)
 }
 
@@ -3626,6 +3926,17 @@ pub fn books_mylibrary_annotations_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_mylibrary_annotations_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMylibraryAnnotationsUpdateArgs {
+    /// Path parameter: annotationId
+    pub annotationId: String,
+    /// Query parameter: source
+    pub source: Option<String>,
+    /// Request body.
+    pub body: Annotation,
+}
+
 /// GET books/v1/mylibrary/annotations/{annotationId}
 /// Updates an existing annotation.
 ///
@@ -3638,14 +3949,17 @@ pub fn books_mylibrary_annotations_update_execute(
 
 pub fn books_mylibrary_annotations_update(
     client: &SimpleHttpClient,
-    annotationId: &str,
-    source: Option<&str>,
-    body: &Annotation,
+    args: &BooksMylibraryAnnotationsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Annotation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_mylibrary_annotations_update_builder(client, annotationId, source, body)?;
+    let builder = books_mylibrary_annotations_update_builder(
+        client,
+        &args.annotationId,
+        args.source.as_deref(),
+        &args.body,
+    )?;
     books_mylibrary_annotations_update_execute(builder)
 }
 
@@ -3756,6 +4070,19 @@ pub fn books_mylibrary_bookshelves_add_volume_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_mylibrary_bookshelves_add_volume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMylibraryBookshelvesAddVolumeArgs {
+    /// Path parameter: shelf
+    pub shelf: String,
+    /// Path parameter: volumeId
+    pub volumeId: String,
+    /// Query parameter: reason
+    pub reason: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/mylibrary/bookshelves/{shelf}/addVolume
 /// Adds a volume to a bookshelf.
 ///
@@ -3768,16 +4095,18 @@ pub fn books_mylibrary_bookshelves_add_volume_execute(
 
 pub fn books_mylibrary_bookshelves_add_volume(
     client: &SimpleHttpClient,
-    shelf: &str,
-    volumeId: &str,
-    reason: Option<&str>,
-    source: Option<&str>,
+    args: &BooksMylibraryBookshelvesAddVolumeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        books_mylibrary_bookshelves_add_volume_builder(client, shelf, volumeId, reason, source)?;
+    let builder = books_mylibrary_bookshelves_add_volume_builder(
+        client,
+        &args.shelf,
+        &args.volumeId,
+        args.reason.as_deref(),
+        args.source.as_deref(),
+    )?;
     books_mylibrary_bookshelves_add_volume_execute(builder)
 }
 
@@ -3883,6 +4212,15 @@ pub fn books_mylibrary_bookshelves_clear_volumes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_mylibrary_bookshelves_clear_volumes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMylibraryBookshelvesClearVolumesArgs {
+    /// Path parameter: shelf
+    pub shelf: String,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/mylibrary/bookshelves/{shelf}/clearVolumes
 /// Clears all volumes from a bookshelf.
 ///
@@ -3895,13 +4233,16 @@ pub fn books_mylibrary_bookshelves_clear_volumes_execute(
 
 pub fn books_mylibrary_bookshelves_clear_volumes(
     client: &SimpleHttpClient,
-    shelf: &str,
-    source: Option<&str>,
+    args: &BooksMylibraryBookshelvesClearVolumesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_mylibrary_bookshelves_clear_volumes_builder(client, shelf, source)?;
+    let builder = books_mylibrary_bookshelves_clear_volumes_builder(
+        client,
+        &args.shelf,
+        args.source.as_deref(),
+    )?;
     books_mylibrary_bookshelves_clear_volumes_execute(builder)
 }
 
@@ -4007,6 +4348,15 @@ pub fn books_mylibrary_bookshelves_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_mylibrary_bookshelves_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMylibraryBookshelvesGetArgs {
+    /// Path parameter: shelf
+    pub shelf: String,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/mylibrary/bookshelves/{shelf}
 /// Retrieves metadata for a specific bookshelf belonging to the authenticated user.
 ///
@@ -4019,13 +4369,13 @@ pub fn books_mylibrary_bookshelves_get_execute(
 
 pub fn books_mylibrary_bookshelves_get(
     client: &SimpleHttpClient,
-    shelf: &str,
-    source: Option<&str>,
+    args: &BooksMylibraryBookshelvesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Bookshelf>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_mylibrary_bookshelves_get_builder(client, shelf, source)?;
+    let builder =
+        books_mylibrary_bookshelves_get_builder(client, &args.shelf, args.source.as_deref())?;
     books_mylibrary_bookshelves_get_execute(builder)
 }
 
@@ -4127,6 +4477,13 @@ pub fn books_mylibrary_bookshelves_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_mylibrary_bookshelves_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMylibraryBookshelvesListArgs {
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/mylibrary/bookshelves
 /// Retrieves a list of bookshelves belonging to the authenticated user.
 ///
@@ -4139,12 +4496,12 @@ pub fn books_mylibrary_bookshelves_list_execute(
 
 pub fn books_mylibrary_bookshelves_list(
     client: &SimpleHttpClient,
-    source: Option<&str>,
+    args: &BooksMylibraryBookshelvesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Bookshelves>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_mylibrary_bookshelves_list_builder(client, source)?;
+    let builder = books_mylibrary_bookshelves_list_builder(client, args.source.as_deref())?;
     books_mylibrary_bookshelves_list_execute(builder)
 }
 
@@ -4252,6 +4609,19 @@ pub fn books_mylibrary_bookshelves_move_volume_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_mylibrary_bookshelves_move_volume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMylibraryBookshelvesMoveVolumeArgs {
+    /// Path parameter: shelf
+    pub shelf: String,
+    /// Path parameter: volumeId
+    pub volumeId: String,
+    /// Path parameter: volumePosition
+    pub volumePosition: String,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/mylibrary/bookshelves/{shelf}/moveVolume
 /// Moves a volume within a bookshelf.
 ///
@@ -4264,20 +4634,17 @@ pub fn books_mylibrary_bookshelves_move_volume_execute(
 
 pub fn books_mylibrary_bookshelves_move_volume(
     client: &SimpleHttpClient,
-    shelf: &str,
-    volumeId: &str,
-    volumePosition: &str,
-    source: Option<&str>,
+    args: &BooksMylibraryBookshelvesMoveVolumeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = books_mylibrary_bookshelves_move_volume_builder(
         client,
-        shelf,
-        volumeId,
-        volumePosition,
-        source,
+        &args.shelf,
+        &args.volumeId,
+        &args.volumePosition,
+        args.source.as_deref(),
     )?;
     books_mylibrary_bookshelves_move_volume_execute(builder)
 }
@@ -4389,6 +4756,19 @@ pub fn books_mylibrary_bookshelves_remove_volume_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_mylibrary_bookshelves_remove_volume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMylibraryBookshelvesRemoveVolumeArgs {
+    /// Path parameter: shelf
+    pub shelf: String,
+    /// Path parameter: volumeId
+    pub volumeId: String,
+    /// Query parameter: reason
+    pub reason: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/mylibrary/bookshelves/{shelf}/removeVolume
 /// Removes a volume from a bookshelf.
 ///
@@ -4401,16 +4781,18 @@ pub fn books_mylibrary_bookshelves_remove_volume_execute(
 
 pub fn books_mylibrary_bookshelves_remove_volume(
     client: &SimpleHttpClient,
-    shelf: &str,
-    volumeId: &str,
-    reason: Option<&str>,
-    source: Option<&str>,
+    args: &BooksMylibraryBookshelvesRemoveVolumeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        books_mylibrary_bookshelves_remove_volume_builder(client, shelf, volumeId, reason, source)?;
+    let builder = books_mylibrary_bookshelves_remove_volume_builder(
+        client,
+        &args.shelf,
+        &args.volumeId,
+        args.reason.as_deref(),
+        args.source.as_deref(),
+    )?;
     books_mylibrary_bookshelves_remove_volume_execute(builder)
 }
 
@@ -4540,6 +4922,27 @@ pub fn books_mylibrary_bookshelves_volumes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_mylibrary_bookshelves_volumes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMylibraryBookshelvesVolumesListArgs {
+    /// Path parameter: shelf
+    pub shelf: String,
+    /// Query parameter: country
+    pub country: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: q
+    pub q: Option<String>,
+    /// Query parameter: showPreorders
+    pub showPreorders: Option<bool>,
+    /// Query parameter: source
+    pub source: Option<String>,
+    /// Query parameter: startIndex
+    pub startIndex: Option<i32>,
+}
+
 /// GET books/v1/mylibrary/bookshelves/{shelf}/volumes
 /// Gets volume information for volumes on a bookshelf.
 ///
@@ -4552,28 +4955,21 @@ pub fn books_mylibrary_bookshelves_volumes_list_execute(
 
 pub fn books_mylibrary_bookshelves_volumes_list(
     client: &SimpleHttpClient,
-    shelf: &str,
-    country: Option<&str>,
-    maxResults: Option<i32>,
-    projection: Option<&str>,
-    q: Option<&str>,
-    showPreorders: Option<bool>,
-    source: Option<&str>,
-    startIndex: Option<i32>,
+    args: &BooksMylibraryBookshelvesVolumesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = books_mylibrary_bookshelves_volumes_list_builder(
         client,
-        shelf,
-        country,
-        maxResults,
-        projection,
-        q,
-        showPreorders,
-        source,
-        startIndex,
+        &args.shelf,
+        args.country.as_deref(),
+        args.maxResults,
+        args.projection.as_deref(),
+        args.q.as_deref(),
+        args.showPreorders,
+        args.source.as_deref(),
+        args.startIndex,
     )?;
     books_mylibrary_bookshelves_volumes_list_execute(builder)
 }
@@ -4686,6 +5082,17 @@ pub fn books_mylibrary_readingpositions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_mylibrary_readingpositions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMylibraryReadingpositionsGetArgs {
+    /// Path parameter: volumeId
+    pub volumeId: String,
+    /// Query parameter: contentVersion
+    pub contentVersion: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/mylibrary/readingpositions/{volumeId}
 /// Retrieves my reading position information for a volume.
 ///
@@ -4698,17 +5105,19 @@ pub fn books_mylibrary_readingpositions_get_execute(
 
 pub fn books_mylibrary_readingpositions_get(
     client: &SimpleHttpClient,
-    volumeId: &str,
-    contentVersion: Option<&str>,
-    source: Option<&str>,
+    args: &BooksMylibraryReadingpositionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReadingPosition>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        books_mylibrary_readingpositions_get_builder(client, volumeId, contentVersion, source)?;
+    let builder = books_mylibrary_readingpositions_get_builder(
+        client,
+        &args.volumeId,
+        args.contentVersion.as_deref(),
+        args.source.as_deref(),
+    )?;
     books_mylibrary_readingpositions_get_execute(builder)
 }
 
@@ -4828,6 +5237,25 @@ pub fn books_mylibrary_readingpositions_set_position_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_mylibrary_readingpositions_set_position`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksMylibraryReadingpositionsSetPositionArgs {
+    /// Path parameter: volumeId
+    pub volumeId: String,
+    /// Path parameter: position
+    pub position: String,
+    /// Path parameter: timestamp
+    pub timestamp: String,
+    /// Query parameter: action
+    pub action: Option<String>,
+    /// Query parameter: contentVersion
+    pub contentVersion: Option<String>,
+    /// Query parameter: deviceCookie
+    pub deviceCookie: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/mylibrary/readingpositions/{volumeId}/setPosition
 /// Sets my reading position information for a volume.
 ///
@@ -4840,26 +5268,20 @@ pub fn books_mylibrary_readingpositions_set_position_execute(
 
 pub fn books_mylibrary_readingpositions_set_position(
     client: &SimpleHttpClient,
-    volumeId: &str,
-    position: &str,
-    timestamp: &str,
-    action: Option<&str>,
-    contentVersion: Option<&str>,
-    deviceCookie: Option<&str>,
-    source: Option<&str>,
+    args: &BooksMylibraryReadingpositionsSetPositionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = books_mylibrary_readingpositions_set_position_builder(
         client,
-        volumeId,
-        position,
-        timestamp,
-        action,
-        contentVersion,
-        deviceCookie,
-        source,
+        &args.volumeId,
+        &args.position,
+        &args.timestamp,
+        args.action.as_deref(),
+        args.contentVersion.as_deref(),
+        args.deviceCookie.as_deref(),
+        args.source.as_deref(),
     )?;
     books_mylibrary_readingpositions_set_position_execute(builder)
 }
@@ -4972,6 +5394,17 @@ pub fn books_notification_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_notification_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksNotificationGetArgs {
+    /// Path parameter: notification_id
+    pub notification_id: String,
+    /// Query parameter: locale
+    pub locale: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/notification/get
 /// Returns notification details for a given notification id.
 ///
@@ -4984,16 +5417,19 @@ pub fn books_notification_get_execute(
 
 pub fn books_notification_get(
     client: &SimpleHttpClient,
-    notification_id: &str,
-    locale: Option<&str>,
-    source: Option<&str>,
+    args: &BooksNotificationGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Notification>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = books_notification_get_builder(client, notification_id, locale, source)?;
+    let builder = books_notification_get_builder(
+        client,
+        &args.notification_id,
+        args.locale.as_deref(),
+        args.source.as_deref(),
+    )?;
     books_notification_get_execute(builder)
 }
 
@@ -5095,6 +5531,13 @@ pub fn books_onboarding_list_categories_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_onboarding_list_categories`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksOnboardingListCategoriesArgs {
+    /// Query parameter: locale
+    pub locale: Option<String>,
+}
+
 /// GET books/v1/onboarding/listCategories
 /// List categories for onboarding experience.
 ///
@@ -5107,12 +5550,12 @@ pub fn books_onboarding_list_categories_execute(
 
 pub fn books_onboarding_list_categories(
     client: &SimpleHttpClient,
-    locale: Option<&str>,
+    args: &BooksOnboardingListCategoriesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Category>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_onboarding_list_categories_builder(client, locale)?;
+    let builder = books_onboarding_list_categories_builder(client, args.locale.as_deref())?;
     books_onboarding_list_categories_execute(builder)
 }
 
@@ -5230,6 +5673,21 @@ pub fn books_onboarding_list_category_volumes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_onboarding_list_category_volumes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksOnboardingListCategoryVolumesArgs {
+    /// Query parameter: categoryId
+    pub categoryId: Option<String>,
+    /// Query parameter: locale
+    pub locale: Option<String>,
+    /// Query parameter: maxAllowedMaturityRating
+    pub maxAllowedMaturityRating: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET books/v1/onboarding/listCategoryVolumes
 /// List available volumes under categories for onboarding experience.
 ///
@@ -5242,22 +5700,18 @@ pub fn books_onboarding_list_category_volumes_execute(
 
 pub fn books_onboarding_list_category_volumes(
     client: &SimpleHttpClient,
-    categoryId: Option<&str>,
-    locale: Option<&str>,
-    maxAllowedMaturityRating: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BooksOnboardingListCategoryVolumesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume2>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = books_onboarding_list_category_volumes_builder(
         client,
-        categoryId,
-        locale,
-        maxAllowedMaturityRating,
-        pageSize,
-        pageToken,
+        args.categoryId.as_deref(),
+        args.locale.as_deref(),
+        args.maxAllowedMaturityRating.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     books_onboarding_list_category_volumes_execute(builder)
 }
@@ -5370,6 +5824,17 @@ pub fn books_personalizedstream_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_personalizedstream_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksPersonalizedstreamGetArgs {
+    /// Query parameter: locale
+    pub locale: Option<String>,
+    /// Query parameter: maxAllowedMaturityRating
+    pub maxAllowedMaturityRating: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/personalizedstream/get
 /// Returns a stream of personalized book clusters
 ///
@@ -5382,17 +5847,19 @@ pub fn books_personalizedstream_get_execute(
 
 pub fn books_personalizedstream_get(
     client: &SimpleHttpClient,
-    locale: Option<&str>,
-    maxAllowedMaturityRating: Option<&str>,
-    source: Option<&str>,
+    args: &BooksPersonalizedstreamGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Discoveryclusters>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        books_personalizedstream_get_builder(client, locale, maxAllowedMaturityRating, source)?;
+    let builder = books_personalizedstream_get_builder(
+        client,
+        args.locale.as_deref(),
+        args.maxAllowedMaturityRating.as_deref(),
+        args.source.as_deref(),
+    )?;
     books_personalizedstream_get_execute(builder)
 }
 
@@ -5522,6 +5989,27 @@ pub fn books_promooffer_accept_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_promooffer_accept`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksPromoofferAcceptArgs {
+    /// Query parameter: androidId
+    pub androidId: Option<String>,
+    /// Query parameter: device
+    pub device: Option<String>,
+    /// Query parameter: manufacturer
+    pub manufacturer: Option<String>,
+    /// Query parameter: model
+    pub model: Option<String>,
+    /// Query parameter: offerId
+    pub offerId: Option<String>,
+    /// Query parameter: product
+    pub product: Option<String>,
+    /// Query parameter: serial
+    pub serial: Option<String>,
+    /// Query parameter: volumeId
+    pub volumeId: Option<String>,
+}
+
 /// GET books/v1/promooffer/accept
 /// Accepts the promo offer.
 ///
@@ -5534,28 +6022,21 @@ pub fn books_promooffer_accept_execute(
 
 pub fn books_promooffer_accept(
     client: &SimpleHttpClient,
-    androidId: Option<&str>,
-    device: Option<&str>,
-    manufacturer: Option<&str>,
-    model: Option<&str>,
-    offerId: Option<&str>,
-    product: Option<&str>,
-    serial: Option<&str>,
-    volumeId: Option<&str>,
+    args: &BooksPromoofferAcceptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = books_promooffer_accept_builder(
         client,
-        androidId,
-        device,
-        manufacturer,
-        model,
-        offerId,
-        product,
-        serial,
-        volumeId,
+        args.androidId.as_deref(),
+        args.device.as_deref(),
+        args.manufacturer.as_deref(),
+        args.model.as_deref(),
+        args.offerId.as_deref(),
+        args.product.as_deref(),
+        args.serial.as_deref(),
+        args.volumeId.as_deref(),
     )?;
     books_promooffer_accept_execute(builder)
 }
@@ -5682,6 +6163,25 @@ pub fn books_promooffer_dismiss_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_promooffer_dismiss`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksPromoofferDismissArgs {
+    /// Query parameter: androidId
+    pub androidId: Option<String>,
+    /// Query parameter: device
+    pub device: Option<String>,
+    /// Query parameter: manufacturer
+    pub manufacturer: Option<String>,
+    /// Query parameter: model
+    pub model: Option<String>,
+    /// Query parameter: offerId
+    pub offerId: Option<String>,
+    /// Query parameter: product
+    pub product: Option<String>,
+    /// Query parameter: serial
+    pub serial: Option<String>,
+}
+
 /// GET books/v1/promooffer/dismiss
 /// Marks the promo offer as dismissed.
 ///
@@ -5694,26 +6194,20 @@ pub fn books_promooffer_dismiss_execute(
 
 pub fn books_promooffer_dismiss(
     client: &SimpleHttpClient,
-    androidId: Option<&str>,
-    device: Option<&str>,
-    manufacturer: Option<&str>,
-    model: Option<&str>,
-    offerId: Option<&str>,
-    product: Option<&str>,
-    serial: Option<&str>,
+    args: &BooksPromoofferDismissArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = books_promooffer_dismiss_builder(
         client,
-        androidId,
-        device,
-        manufacturer,
-        model,
-        offerId,
-        product,
-        serial,
+        args.androidId.as_deref(),
+        args.device.as_deref(),
+        args.manufacturer.as_deref(),
+        args.model.as_deref(),
+        args.offerId.as_deref(),
+        args.product.as_deref(),
+        args.serial.as_deref(),
     )?;
     books_promooffer_dismiss_execute(builder)
 }
@@ -5836,6 +6330,23 @@ pub fn books_promooffer_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_promooffer_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksPromoofferGetArgs {
+    /// Query parameter: androidId
+    pub androidId: Option<String>,
+    /// Query parameter: device
+    pub device: Option<String>,
+    /// Query parameter: manufacturer
+    pub manufacturer: Option<String>,
+    /// Query parameter: model
+    pub model: Option<String>,
+    /// Query parameter: product
+    pub product: Option<String>,
+    /// Query parameter: serial
+    pub serial: Option<String>,
+}
+
 /// GET books/v1/promooffer/get
 /// Returns a list of promo offers available to the user
 ///
@@ -5848,24 +6359,19 @@ pub fn books_promooffer_get_execute(
 
 pub fn books_promooffer_get(
     client: &SimpleHttpClient,
-    androidId: Option<&str>,
-    device: Option<&str>,
-    manufacturer: Option<&str>,
-    model: Option<&str>,
-    product: Option<&str>,
-    serial: Option<&str>,
+    args: &BooksPromoofferGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Offers>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = books_promooffer_get_builder(
         client,
-        androidId,
-        device,
-        manufacturer,
-        model,
-        product,
-        serial,
+        args.androidId.as_deref(),
+        args.device.as_deref(),
+        args.manufacturer.as_deref(),
+        args.model.as_deref(),
+        args.product.as_deref(),
+        args.serial.as_deref(),
     )?;
     books_promooffer_get_execute(builder)
 }
@@ -5960,6 +6466,13 @@ pub fn books_series_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_series_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksSeriesGetArgs {
+    /// Path parameter: series_id
+    pub series_id: String,
+}
+
 /// GET books/v1/series/get
 /// Returns Series metadata for the given series ids.
 ///
@@ -5972,12 +6485,12 @@ pub fn books_series_get_execute(
 
 pub fn books_series_get(
     client: &SimpleHttpClient,
-    series_id: &str,
+    args: &BooksSeriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Series>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_series_get_builder(client, series_id)?;
+    let builder = books_series_get_builder(client, &args.series_id)?;
     books_series_get_execute(builder)
 }
 
@@ -6089,6 +6602,17 @@ pub fn books_series_membership_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_series_membership_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksSeriesMembershipGetArgs {
+    /// Path parameter: series_id
+    pub series_id: String,
+    /// Query parameter: page_size
+    pub page_size: Option<i32>,
+    /// Query parameter: page_token
+    pub page_token: Option<String>,
+}
+
 /// GET books/v1/series/membership/get
 /// Returns Series membership data given the series id.
 ///
@@ -6101,16 +6625,19 @@ pub fn books_series_membership_get_execute(
 
 pub fn books_series_membership_get(
     client: &SimpleHttpClient,
-    series_id: &str,
-    page_size: Option<i32>,
-    page_token: Option<&str>,
+    args: &BooksSeriesMembershipGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Seriesmembership>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = books_series_membership_get_builder(client, series_id, page_size, page_token)?;
+    let builder = books_series_membership_get_builder(
+        client,
+        &args.series_id,
+        args.page_size,
+        args.page_token.as_deref(),
+    )?;
     books_series_membership_get_execute(builder)
 }
 
@@ -6233,6 +6760,25 @@ pub fn books_volumes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_volumes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksVolumesGetArgs {
+    /// Path parameter: volumeId
+    pub volumeId: String,
+    /// Query parameter: country
+    pub country: Option<String>,
+    /// Query parameter: includeNonComicsSeries
+    pub includeNonComicsSeries: Option<bool>,
+    /// Query parameter: partner
+    pub partner: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+    /// Query parameter: user_library_consistent_read
+    pub user_library_consistent_read: Option<bool>,
+}
+
 /// GET books/v1/volumes/{volumeId}
 /// Gets volume information for a single volume.
 ///
@@ -6245,26 +6791,20 @@ pub fn books_volumes_get_execute(
 
 pub fn books_volumes_get(
     client: &SimpleHttpClient,
-    volumeId: &str,
-    country: Option<&str>,
-    includeNonComicsSeries: Option<bool>,
-    partner: Option<&str>,
-    projection: Option<&str>,
-    source: Option<&str>,
-    user_library_consistent_read: Option<bool>,
+    args: &BooksVolumesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = books_volumes_get_builder(
         client,
-        volumeId,
-        country,
-        includeNonComicsSeries,
-        partner,
-        projection,
-        source,
-        user_library_consistent_read,
+        &args.volumeId,
+        args.country.as_deref(),
+        args.includeNonComicsSeries,
+        args.partner.as_deref(),
+        args.projection.as_deref(),
+        args.source.as_deref(),
+        args.user_library_consistent_read,
     )?;
     books_volumes_get_execute(builder)
 }
@@ -6416,6 +6956,39 @@ pub fn books_volumes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_volumes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksVolumesListArgs {
+    /// Path parameter: q
+    pub q: String,
+    /// Query parameter: download
+    pub download: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: langRestrict
+    pub langRestrict: Option<String>,
+    /// Query parameter: libraryRestrict
+    pub libraryRestrict: Option<String>,
+    /// Query parameter: maxAllowedMaturityRating
+    pub maxAllowedMaturityRating: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: partner
+    pub partner: Option<String>,
+    /// Query parameter: printType
+    pub printType: Option<String>,
+    /// Query parameter: projection
+    pub projection: Option<String>,
+    /// Query parameter: showPreorders
+    pub showPreorders: Option<bool>,
+    /// Query parameter: source
+    pub source: Option<String>,
+    /// Query parameter: startIndex
+    pub startIndex: Option<i32>,
+}
+
 /// GET books/v1/volumes
 /// Performs a book search.
 ///
@@ -6428,40 +7001,27 @@ pub fn books_volumes_list_execute(
 
 pub fn books_volumes_list(
     client: &SimpleHttpClient,
-    q: &str,
-    download: Option<&str>,
-    filter: Option<&str>,
-    langRestrict: Option<&str>,
-    libraryRestrict: Option<&str>,
-    maxAllowedMaturityRating: Option<&str>,
-    maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    partner: Option<&str>,
-    printType: Option<&str>,
-    projection: Option<&str>,
-    showPreorders: Option<bool>,
-    source: Option<&str>,
-    startIndex: Option<i32>,
+    args: &BooksVolumesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = books_volumes_list_builder(
         client,
-        q,
-        download,
-        filter,
-        langRestrict,
-        libraryRestrict,
-        maxAllowedMaturityRating,
-        maxResults,
-        orderBy,
-        partner,
-        printType,
-        projection,
-        showPreorders,
-        source,
-        startIndex,
+        &args.q,
+        args.download.as_deref(),
+        args.filter.as_deref(),
+        args.langRestrict.as_deref(),
+        args.libraryRestrict.as_deref(),
+        args.maxAllowedMaturityRating.as_deref(),
+        args.maxResults,
+        args.orderBy.as_deref(),
+        args.partner.as_deref(),
+        args.printType.as_deref(),
+        args.projection.as_deref(),
+        args.showPreorders,
+        args.source.as_deref(),
+        args.startIndex,
     )?;
     books_volumes_list_execute(builder)
 }
@@ -6580,6 +7140,21 @@ pub fn books_volumes_associated_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_volumes_associated_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksVolumesAssociatedListArgs {
+    /// Path parameter: volumeId
+    pub volumeId: String,
+    /// Query parameter: association
+    pub association: Option<String>,
+    /// Query parameter: locale
+    pub locale: Option<String>,
+    /// Query parameter: maxAllowedMaturityRating
+    pub maxAllowedMaturityRating: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/volumes/{volumeId}/associated
 /// Return a list of associated books.
 ///
@@ -6592,22 +7167,18 @@ pub fn books_volumes_associated_list_execute(
 
 pub fn books_volumes_associated_list(
     client: &SimpleHttpClient,
-    volumeId: &str,
-    association: Option<&str>,
-    locale: Option<&str>,
-    maxAllowedMaturityRating: Option<&str>,
-    source: Option<&str>,
+    args: &BooksVolumesAssociatedListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = books_volumes_associated_list_builder(
         client,
-        volumeId,
-        association,
-        locale,
-        maxAllowedMaturityRating,
-        source,
+        &args.volumeId,
+        args.association.as_deref(),
+        args.locale.as_deref(),
+        args.maxAllowedMaturityRating.as_deref(),
+        args.source.as_deref(),
     )?;
     books_volumes_associated_list_execute(builder)
 }
@@ -6734,6 +7305,25 @@ pub fn books_volumes_mybooks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_volumes_mybooks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksVolumesMybooksListArgs {
+    /// Query parameter: acquireMethod
+    pub acquireMethod: Option<String>,
+    /// Query parameter: country
+    pub country: Option<String>,
+    /// Query parameter: locale
+    pub locale: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: processingState
+    pub processingState: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+    /// Query parameter: startIndex
+    pub startIndex: Option<i32>,
+}
+
 /// GET books/v1/volumes/mybooks
 /// Return a list of books in My Library.
 ///
@@ -6746,26 +7336,20 @@ pub fn books_volumes_mybooks_list_execute(
 
 pub fn books_volumes_mybooks_list(
     client: &SimpleHttpClient,
-    acquireMethod: Option<&str>,
-    country: Option<&str>,
-    locale: Option<&str>,
-    maxResults: Option<i32>,
-    processingState: Option<&str>,
-    source: Option<&str>,
-    startIndex: Option<i32>,
+    args: &BooksVolumesMybooksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = books_volumes_mybooks_list_builder(
         client,
-        acquireMethod,
-        country,
-        locale,
-        maxResults,
-        processingState,
-        source,
-        startIndex,
+        args.acquireMethod.as_deref(),
+        args.country.as_deref(),
+        args.locale.as_deref(),
+        args.maxResults,
+        args.processingState.as_deref(),
+        args.source.as_deref(),
+        args.startIndex,
     )?;
     books_volumes_mybooks_list_execute(builder)
 }
@@ -6876,6 +7460,17 @@ pub fn books_volumes_recommended_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_volumes_recommended_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksVolumesRecommendedListArgs {
+    /// Query parameter: locale
+    pub locale: Option<String>,
+    /// Query parameter: maxAllowedMaturityRating
+    pub maxAllowedMaturityRating: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/volumes/recommended
 /// Return a list of recommended books for the current user.
 ///
@@ -6888,15 +7483,17 @@ pub fn books_volumes_recommended_list_execute(
 
 pub fn books_volumes_recommended_list(
     client: &SimpleHttpClient,
-    locale: Option<&str>,
-    maxAllowedMaturityRating: Option<&str>,
-    source: Option<&str>,
+    args: &BooksVolumesRecommendedListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        books_volumes_recommended_list_builder(client, locale, maxAllowedMaturityRating, source)?;
+    let builder = books_volumes_recommended_list_builder(
+        client,
+        args.locale.as_deref(),
+        args.maxAllowedMaturityRating.as_deref(),
+        args.source.as_deref(),
+    )?;
     books_volumes_recommended_list_execute(builder)
 }
 
@@ -7011,6 +7608,19 @@ pub fn books_volumes_recommended_rate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_volumes_recommended_rate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksVolumesRecommendedRateArgs {
+    /// Path parameter: rating
+    pub rating: String,
+    /// Path parameter: volumeId
+    pub volumeId: String,
+    /// Query parameter: locale
+    pub locale: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+}
+
 /// GET books/v1/volumes/recommended/rate
 /// Rate a recommended book for the current user.
 ///
@@ -7023,10 +7633,7 @@ pub fn books_volumes_recommended_rate_execute(
 
 pub fn books_volumes_recommended_rate(
     client: &SimpleHttpClient,
-    rating: &str,
-    volumeId: &str,
-    locale: Option<&str>,
-    source: Option<&str>,
+    args: &BooksVolumesRecommendedRateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BooksVolumesRecommendedRateResponse>, ApiError>,
@@ -7035,7 +7642,13 @@ pub fn books_volumes_recommended_rate(
         + 'static,
     ApiError,
 > {
-    let builder = books_volumes_recommended_rate_builder(client, rating, volumeId, locale, source)?;
+    let builder = books_volumes_recommended_rate_builder(
+        client,
+        &args.rating,
+        &args.volumeId,
+        args.locale.as_deref(),
+        args.source.as_deref(),
+    )?;
     books_volumes_recommended_rate_execute(builder)
 }
 
@@ -7157,6 +7770,23 @@ pub fn books_volumes_useruploaded_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`books_volumes_useruploaded_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BooksVolumesUseruploadedListArgs {
+    /// Query parameter: locale
+    pub locale: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: processingState
+    pub processingState: Option<String>,
+    /// Query parameter: source
+    pub source: Option<String>,
+    /// Query parameter: startIndex
+    pub startIndex: Option<i32>,
+    /// Query parameter: volumeId
+    pub volumeId: Option<String>,
+}
+
 /// GET books/v1/volumes/useruploaded
 /// Return a list of books uploaded by the current user.
 ///
@@ -7169,24 +7799,19 @@ pub fn books_volumes_useruploaded_list_execute(
 
 pub fn books_volumes_useruploaded_list(
     client: &SimpleHttpClient,
-    locale: Option<&str>,
-    maxResults: Option<i32>,
-    processingState: Option<&str>,
-    source: Option<&str>,
-    startIndex: Option<i32>,
-    volumeId: Option<&str>,
+    args: &BooksVolumesUseruploadedListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = books_volumes_useruploaded_list_builder(
         client,
-        locale,
-        maxResults,
-        processingState,
-        source,
-        startIndex,
-        volumeId,
+        args.locale.as_deref(),
+        args.maxResults,
+        args.processingState.as_deref(),
+        args.source.as_deref(),
+        args.startIndex,
+        args.volumeId.as_deref(),
     )?;
     books_volumes_useruploaded_list_execute(builder)
 }

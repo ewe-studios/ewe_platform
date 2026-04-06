@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v4/projects/{projectsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
@@ -106,6 +108,13 @@ pub fn jobs_projects_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v4/projects/{projectsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -118,12 +127,12 @@ pub fn jobs_projects_operations_get_execute(
 
 pub fn jobs_projects_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &JobsProjectsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_operations_get_builder(client, name)?;
+    let builder = jobs_projects_operations_get_builder(client, &args.name)?;
     jobs_projects_operations_get_execute(builder)
 }
 
@@ -251,6 +260,25 @@ pub fn jobs_projects_tenants_complete_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_complete_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompleteQueryArgs {
+    /// Path parameter: tenant
+    pub tenant: String,
+    /// Query parameter: company
+    pub company: Option<String>,
+    /// Query parameter: languageCodes
+    pub languageCodes: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: scope
+    pub scope: Option<String>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}:completeQuery
 /// Completes the specified prefix with keyword suggestions. Intended for use by a job search auto-complete search box.
 ///
@@ -263,13 +291,7 @@ pub fn jobs_projects_tenants_complete_query_execute(
 
 pub fn jobs_projects_tenants_complete_query(
     client: &SimpleHttpClient,
-    tenant: &str,
-    company: Option<&str>,
-    languageCodes: Option<&str>,
-    pageSize: Option<i32>,
-    query: Option<&str>,
-    scope: Option<&str>,
-    type_rs: Option<&str>,
+    args: &JobsProjectsTenantsCompleteQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CompleteQueryResponse>, ApiError>, P = ApiPending>
         + Send
@@ -278,13 +300,13 @@ pub fn jobs_projects_tenants_complete_query(
 > {
     let builder = jobs_projects_tenants_complete_query_builder(
         client,
-        tenant,
-        company,
-        languageCodes,
-        pageSize,
-        query,
-        scope,
-        type_rs,
+        &args.tenant,
+        args.company.as_deref(),
+        args.languageCodes.as_deref(),
+        args.pageSize,
+        args.query.as_deref(),
+        args.scope.as_deref(),
+        args.type_rs.as_deref(),
     )?;
     jobs_projects_tenants_complete_query_execute(builder)
 }
@@ -379,6 +401,15 @@ pub fn jobs_projects_tenants_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Tenant,
+}
+
 /// GET v4/projects/{projectsId}/tenants
 /// Creates a new tenant entity.
 ///
@@ -391,13 +422,12 @@ pub fn jobs_projects_tenants_create_execute(
 
 pub fn jobs_projects_tenants_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Tenant,
+    args: &JobsProjectsTenantsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_create_builder(client, parent, body)?;
+    let builder = jobs_projects_tenants_create_builder(client, &args.parent, &args.body)?;
     jobs_projects_tenants_create_execute(builder)
 }
 
@@ -491,6 +521,13 @@ pub fn jobs_projects_tenants_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}
 /// Deletes specified tenant.
 ///
@@ -503,12 +540,12 @@ pub fn jobs_projects_tenants_delete_execute(
 
 pub fn jobs_projects_tenants_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &JobsProjectsTenantsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_delete_builder(client, name)?;
+    let builder = jobs_projects_tenants_delete_builder(client, &args.name)?;
     jobs_projects_tenants_delete_execute(builder)
 }
 
@@ -602,6 +639,13 @@ pub fn jobs_projects_tenants_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}
 /// Retrieves specified tenant.
 ///
@@ -614,12 +658,12 @@ pub fn jobs_projects_tenants_get_execute(
 
 pub fn jobs_projects_tenants_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &JobsProjectsTenantsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_get_builder(client, name)?;
+    let builder = jobs_projects_tenants_get_builder(client, &args.name)?;
     jobs_projects_tenants_get_execute(builder)
 }
 
@@ -728,6 +772,17 @@ pub fn jobs_projects_tenants_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/projects/{projectsId}/tenants
 /// Lists all tenants associated with the project.
 ///
@@ -740,16 +795,19 @@ pub fn jobs_projects_tenants_list_execute(
 
 pub fn jobs_projects_tenants_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &JobsProjectsTenantsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTenantsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = jobs_projects_tenants_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     jobs_projects_tenants_list_execute(builder)
 }
 
@@ -858,6 +916,17 @@ pub fn jobs_projects_tenants_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Tenant,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}
 /// Updates specified tenant.
 ///
@@ -870,14 +939,17 @@ pub fn jobs_projects_tenants_patch_execute(
 
 pub fn jobs_projects_tenants_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Tenant,
+    args: &JobsProjectsTenantsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_patch_builder(client, name, updateMask, body)?;
+    let builder = jobs_projects_tenants_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     jobs_projects_tenants_patch_execute(builder)
 }
 
@@ -974,6 +1046,15 @@ pub fn jobs_projects_tenants_client_events_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_client_events_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsClientEventsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ClientEvent,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/clientEvents
 /// Report events issued when end user interacts with customer's application that uses Cloud Talent Solution. You may inspect the created events in [self service tools](<https://console.cloud.google.`com/talent-solution/overview`>). [Learn more](<https://cloud.google.`com/talent-solution/docs/management-tools`>) about self service tools.
 ///
@@ -986,13 +1067,13 @@ pub fn jobs_projects_tenants_client_events_create_execute(
 
 pub fn jobs_projects_tenants_client_events_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ClientEvent,
+    args: &JobsProjectsTenantsClientEventsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ClientEvent>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_client_events_create_builder(client, parent, body)?;
+    let builder =
+        jobs_projects_tenants_client_events_create_builder(client, &args.parent, &args.body)?;
     jobs_projects_tenants_client_events_create_execute(builder)
 }
 
@@ -1089,6 +1170,15 @@ pub fn jobs_projects_tenants_companies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_companies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompaniesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Company,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/companies
 /// Creates a new company entity.
 ///
@@ -1101,13 +1191,12 @@ pub fn jobs_projects_tenants_companies_create_execute(
 
 pub fn jobs_projects_tenants_companies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Company,
+    args: &JobsProjectsTenantsCompaniesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Company>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_companies_create_builder(client, parent, body)?;
+    let builder = jobs_projects_tenants_companies_create_builder(client, &args.parent, &args.body)?;
     jobs_projects_tenants_companies_create_execute(builder)
 }
 
@@ -1201,6 +1290,13 @@ pub fn jobs_projects_tenants_companies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_companies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompaniesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/companies/{companiesId}
 /// Deletes specified company. Prerequisite: The company has no jobs associated with it.
 ///
@@ -1213,12 +1309,12 @@ pub fn jobs_projects_tenants_companies_delete_execute(
 
 pub fn jobs_projects_tenants_companies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &JobsProjectsTenantsCompaniesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_companies_delete_builder(client, name)?;
+    let builder = jobs_projects_tenants_companies_delete_builder(client, &args.name)?;
     jobs_projects_tenants_companies_delete_execute(builder)
 }
 
@@ -1312,6 +1408,13 @@ pub fn jobs_projects_tenants_companies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_companies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompaniesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/companies/{companiesId}
 /// Retrieves specified company.
 ///
@@ -1324,12 +1427,12 @@ pub fn jobs_projects_tenants_companies_get_execute(
 
 pub fn jobs_projects_tenants_companies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &JobsProjectsTenantsCompaniesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Company>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_companies_get_builder(client, name)?;
+    let builder = jobs_projects_tenants_companies_get_builder(client, &args.name)?;
     jobs_projects_tenants_companies_get_execute(builder)
 }
 
@@ -1445,6 +1548,19 @@ pub fn jobs_projects_tenants_companies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_companies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompaniesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: requireOpenJobs
+    pub requireOpenJobs: Option<bool>,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/companies
 /// Lists all companies associated with the project.
 ///
@@ -1457,10 +1573,7 @@ pub fn jobs_projects_tenants_companies_list_execute(
 
 pub fn jobs_projects_tenants_companies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    requireOpenJobs: Option<bool>,
+    args: &JobsProjectsTenantsCompaniesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCompaniesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1469,10 +1582,10 @@ pub fn jobs_projects_tenants_companies_list(
 > {
     let builder = jobs_projects_tenants_companies_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        requireOpenJobs,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.requireOpenJobs,
     )?;
     jobs_projects_tenants_companies_list_execute(builder)
 }
@@ -1582,6 +1695,17 @@ pub fn jobs_projects_tenants_companies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_companies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompaniesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Company,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/companies/{companiesId}
 /// Updates specified company.
 ///
@@ -1594,14 +1718,17 @@ pub fn jobs_projects_tenants_companies_patch_execute(
 
 pub fn jobs_projects_tenants_companies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Company,
+    args: &JobsProjectsTenantsCompaniesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Company>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_companies_patch_builder(client, name, updateMask, body)?;
+    let builder = jobs_projects_tenants_companies_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     jobs_projects_tenants_companies_patch_execute(builder)
 }
 
@@ -1698,6 +1825,15 @@ pub fn jobs_projects_tenants_jobs_batch_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_jobs_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsBatchCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchCreateJobsRequest,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs:batchCreate
 /// Begins executing a batch create jobs operation.
 ///
@@ -1710,13 +1846,13 @@ pub fn jobs_projects_tenants_jobs_batch_create_execute(
 
 pub fn jobs_projects_tenants_jobs_batch_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchCreateJobsRequest,
+    args: &JobsProjectsTenantsJobsBatchCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_jobs_batch_create_builder(client, parent, body)?;
+    let builder =
+        jobs_projects_tenants_jobs_batch_create_builder(client, &args.parent, &args.body)?;
     jobs_projects_tenants_jobs_batch_create_execute(builder)
 }
 
@@ -1813,6 +1949,15 @@ pub fn jobs_projects_tenants_jobs_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_jobs_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsBatchDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchDeleteJobsRequest,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs:batchDelete
 /// Begins executing a batch delete jobs operation.
 ///
@@ -1825,13 +1970,13 @@ pub fn jobs_projects_tenants_jobs_batch_delete_execute(
 
 pub fn jobs_projects_tenants_jobs_batch_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchDeleteJobsRequest,
+    args: &JobsProjectsTenantsJobsBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_jobs_batch_delete_builder(client, parent, body)?;
+    let builder =
+        jobs_projects_tenants_jobs_batch_delete_builder(client, &args.parent, &args.body)?;
     jobs_projects_tenants_jobs_batch_delete_execute(builder)
 }
 
@@ -1928,6 +2073,15 @@ pub fn jobs_projects_tenants_jobs_batch_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_jobs_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsBatchUpdateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchUpdateJobsRequest,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs:batchUpdate
 /// Begins executing a batch update jobs operation.
 ///
@@ -1940,13 +2094,13 @@ pub fn jobs_projects_tenants_jobs_batch_update_execute(
 
 pub fn jobs_projects_tenants_jobs_batch_update(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchUpdateJobsRequest,
+    args: &JobsProjectsTenantsJobsBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_jobs_batch_update_builder(client, parent, body)?;
+    let builder =
+        jobs_projects_tenants_jobs_batch_update_builder(client, &args.parent, &args.body)?;
     jobs_projects_tenants_jobs_batch_update_execute(builder)
 }
 
@@ -2043,6 +2197,15 @@ pub fn jobs_projects_tenants_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Job,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs
 /// Creates a new job. Typically, the job becomes searchable within 10 seconds, but it may take up to 5 minutes.
 ///
@@ -2055,13 +2218,12 @@ pub fn jobs_projects_tenants_jobs_create_execute(
 
 pub fn jobs_projects_tenants_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Job,
+    args: &JobsProjectsTenantsJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_jobs_create_builder(client, parent, body)?;
+    let builder = jobs_projects_tenants_jobs_create_builder(client, &args.parent, &args.body)?;
     jobs_projects_tenants_jobs_create_execute(builder)
 }
 
@@ -2155,6 +2317,13 @@ pub fn jobs_projects_tenants_jobs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
 /// Deletes the specified job. Typically, the job becomes unsearchable within 10 seconds, but it may take up to 5 minutes.
 ///
@@ -2167,12 +2336,12 @@ pub fn jobs_projects_tenants_jobs_delete_execute(
 
 pub fn jobs_projects_tenants_jobs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &JobsProjectsTenantsJobsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_jobs_delete_builder(client, name)?;
+    let builder = jobs_projects_tenants_jobs_delete_builder(client, &args.name)?;
     jobs_projects_tenants_jobs_delete_execute(builder)
 }
 
@@ -2266,6 +2435,13 @@ pub fn jobs_projects_tenants_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
 /// Retrieves the specified job, whose status is OPEN or recently EXPIRED within the last 90 days.
 ///
@@ -2278,12 +2454,12 @@ pub fn jobs_projects_tenants_jobs_get_execute(
 
 pub fn jobs_projects_tenants_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &JobsProjectsTenantsJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_jobs_get_builder(client, name)?;
+    let builder = jobs_projects_tenants_jobs_get_builder(client, &args.name)?;
     jobs_projects_tenants_jobs_get_execute(builder)
 }
 
@@ -2403,6 +2579,21 @@ pub fn jobs_projects_tenants_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: jobView
+    pub jobView: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs
 /// Lists jobs by filter.
 ///
@@ -2415,11 +2606,7 @@ pub fn jobs_projects_tenants_jobs_list_execute(
 
 pub fn jobs_projects_tenants_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    jobView: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &JobsProjectsTenantsJobsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2427,7 +2614,12 @@ pub fn jobs_projects_tenants_jobs_list(
     ApiError,
 > {
     let builder = jobs_projects_tenants_jobs_list_builder(
-        client, parent, filter, jobView, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.jobView.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     jobs_projects_tenants_jobs_list_execute(builder)
 }
@@ -2537,6 +2729,17 @@ pub fn jobs_projects_tenants_jobs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_jobs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Job,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
 /// Updates specified job. Typically, updated contents become visible in search results within 10 seconds, but it may take up to 5 minutes.
 ///
@@ -2549,14 +2752,17 @@ pub fn jobs_projects_tenants_jobs_patch_execute(
 
 pub fn jobs_projects_tenants_jobs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Job,
+    args: &JobsProjectsTenantsJobsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_jobs_patch_builder(client, name, updateMask, body)?;
+    let builder = jobs_projects_tenants_jobs_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     jobs_projects_tenants_jobs_patch_execute(builder)
 }
 
@@ -2655,6 +2861,15 @@ pub fn jobs_projects_tenants_jobs_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_jobs_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SearchJobsRequest,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs:search
 /// Searches for jobs using the provided SearchJobsRequest. This call constrains the visibility of jobs present in the database, and only returns jobs that the caller has permission to search against.
 ///
@@ -2667,15 +2882,14 @@ pub fn jobs_projects_tenants_jobs_search_execute(
 
 pub fn jobs_projects_tenants_jobs_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SearchJobsRequest,
+    args: &JobsProjectsTenantsJobsSearchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchJobsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_jobs_search_builder(client, parent, body)?;
+    let builder = jobs_projects_tenants_jobs_search_builder(client, &args.parent, &args.body)?;
     jobs_projects_tenants_jobs_search_execute(builder)
 }
 
@@ -2774,6 +2988,15 @@ pub fn jobs_projects_tenants_jobs_search_for_alert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`jobs_projects_tenants_jobs_search_for_alert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsSearchForAlertArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SearchJobsRequest,
+}
+
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs:searchForAlert
 /// Searches for jobs using the provided SearchJobsRequest. This API call is intended for the use case of targeting passive job seekers (for example, job seekers who have signed up to receive email alerts about potential job opportunities), it has different algorithmic adjustments that are designed to specifically target passive job seekers. This call constrains the visibility of jobs present in the database, and only returns jobs the caller has permission to search against.
 ///
@@ -2786,14 +3009,14 @@ pub fn jobs_projects_tenants_jobs_search_for_alert_execute(
 
 pub fn jobs_projects_tenants_jobs_search_for_alert(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SearchJobsRequest,
+    args: &JobsProjectsTenantsJobsSearchForAlertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchJobsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_jobs_search_for_alert_builder(client, parent, body)?;
+    let builder =
+        jobs_projects_tenants_jobs_search_for_alert_builder(client, &args.parent, &args.body)?;
     jobs_projects_tenants_jobs_search_for_alert_execute(builder)
 }

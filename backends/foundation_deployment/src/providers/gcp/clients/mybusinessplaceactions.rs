@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/locations/{locationsId}/placeActionLinks
 /// Creates a place action link associated with the specified location, and returns it. The request is considered duplicate if the parent, place_action_link.uri and place_action_link.place_action_type are the same as a previous request.
@@ -111,6 +113,15 @@ pub fn mybusinessplaceactions_locations_place_action_links_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessplaceactions_locations_place_action_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessplaceactionsLocationsPlaceActionLinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: PlaceActionLink,
+}
+
 /// GET v1/locations/{locationsId}/placeActionLinks
 /// Creates a place action link associated with the specified location, and returns it. The request is considered duplicate if the parent, place_action_link.uri and place_action_link.place_action_type are the same as a previous request.
 ///
@@ -123,16 +134,18 @@ pub fn mybusinessplaceactions_locations_place_action_links_create_execute(
 
 pub fn mybusinessplaceactions_locations_place_action_links_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &PlaceActionLink,
+    args: &MybusinessplaceactionsLocationsPlaceActionLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlaceActionLink>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinessplaceactions_locations_place_action_links_create_builder(client, parent, body)?;
+    let builder = mybusinessplaceactions_locations_place_action_links_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     mybusinessplaceactions_locations_place_action_links_create_execute(builder)
 }
 
@@ -226,6 +239,13 @@ pub fn mybusinessplaceactions_locations_place_action_links_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessplaceactions_locations_place_action_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessplaceactionsLocationsPlaceActionLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/locations/{locationsId}/placeActionLinks/{placeActionLinksId}
 /// Deletes a place action link from the specified location.
 ///
@@ -238,12 +258,13 @@ pub fn mybusinessplaceactions_locations_place_action_links_delete_execute(
 
 pub fn mybusinessplaceactions_locations_place_action_links_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MybusinessplaceactionsLocationsPlaceActionLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessplaceactions_locations_place_action_links_delete_builder(client, name)?;
+    let builder =
+        mybusinessplaceactions_locations_place_action_links_delete_builder(client, &args.name)?;
     mybusinessplaceactions_locations_place_action_links_delete_execute(builder)
 }
 
@@ -339,6 +360,13 @@ pub fn mybusinessplaceactions_locations_place_action_links_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessplaceactions_locations_place_action_links_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessplaceactionsLocationsPlaceActionLinksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/locations/{locationsId}/placeActionLinks/{placeActionLinksId}
 /// Gets the specified place action link.
 ///
@@ -351,14 +379,15 @@ pub fn mybusinessplaceactions_locations_place_action_links_get_execute(
 
 pub fn mybusinessplaceactions_locations_place_action_links_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MybusinessplaceactionsLocationsPlaceActionLinksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlaceActionLink>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = mybusinessplaceactions_locations_place_action_links_get_builder(client, name)?;
+    let builder =
+        mybusinessplaceactions_locations_place_action_links_get_builder(client, &args.name)?;
     mybusinessplaceactions_locations_place_action_links_get_execute(builder)
 }
 
@@ -476,6 +505,19 @@ pub fn mybusinessplaceactions_locations_place_action_links_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessplaceactions_locations_place_action_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessplaceactionsLocationsPlaceActionLinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/locations/{locationsId}/placeActionLinks
 /// Lists the place action links for the specified location.
 ///
@@ -488,10 +530,7 @@ pub fn mybusinessplaceactions_locations_place_action_links_list_execute(
 
 pub fn mybusinessplaceactions_locations_place_action_links_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MybusinessplaceactionsLocationsPlaceActionLinksListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPlaceActionLinksResponse>, ApiError>,
@@ -501,7 +540,11 @@ pub fn mybusinessplaceactions_locations_place_action_links_list(
     ApiError,
 > {
     let builder = mybusinessplaceactions_locations_place_action_links_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     mybusinessplaceactions_locations_place_action_links_list_execute(builder)
 }
@@ -613,6 +656,17 @@ pub fn mybusinessplaceactions_locations_place_action_links_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessplaceactions_locations_place_action_links_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessplaceactionsLocationsPlaceActionLinksPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: PlaceActionLink,
+}
+
 /// GET v1/locations/{locationsId}/placeActionLinks/{placeActionLinksId}
 /// Updates the specified place action link and returns it.
 ///
@@ -625,9 +679,7 @@ pub fn mybusinessplaceactions_locations_place_action_links_patch_execute(
 
 pub fn mybusinessplaceactions_locations_place_action_links_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &PlaceActionLink,
+    args: &MybusinessplaceactionsLocationsPlaceActionLinksPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlaceActionLink>, ApiError>, P = ApiPending>
         + Send
@@ -635,7 +687,10 @@ pub fn mybusinessplaceactions_locations_place_action_links_patch(
     ApiError,
 > {
     let builder = mybusinessplaceactions_locations_place_action_links_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     mybusinessplaceactions_locations_place_action_links_patch_execute(builder)
 }
@@ -754,6 +809,19 @@ pub fn mybusinessplaceactions_place_action_type_metadata_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessplaceactions_place_action_type_metadata_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessplaceactionsPlaceActionTypeMetadataListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/placeActionTypeMetadata
 /// Returns the list of available place action types for a location or country.
 ///
@@ -766,10 +834,7 @@ pub fn mybusinessplaceactions_place_action_type_metadata_list_execute(
 
 pub fn mybusinessplaceactions_place_action_type_metadata_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MybusinessplaceactionsPlaceActionTypeMetadataListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPlaceActionTypeMetadataResponse>, ApiError>,
@@ -780,10 +845,10 @@ pub fn mybusinessplaceactions_place_action_type_metadata_list(
 > {
     let builder = mybusinessplaceactions_place_action_type_metadata_list_builder(
         client,
-        filter,
-        languageCode,
-        pageSize,
-        pageToken,
+        args.filter.as_deref(),
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     mybusinessplaceactions_place_action_type_metadata_list_execute(builder)
 }

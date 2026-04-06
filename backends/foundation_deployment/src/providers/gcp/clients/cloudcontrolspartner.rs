@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/partner
 /// Get details of a Partner.
@@ -106,6 +108,13 @@ pub fn cloudcontrolspartner_organizations_locations_get_partner_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcontrolspartner_organizations_locations_get_partner`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcontrolspartnerOrganizationsLocationsGetPartnerArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/partner
 /// Get details of a Partner.
 ///
@@ -118,12 +127,13 @@ pub fn cloudcontrolspartner_organizations_locations_get_partner_execute(
 
 pub fn cloudcontrolspartner_organizations_locations_get_partner(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudcontrolspartnerOrganizationsLocationsGetPartnerArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Partner>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudcontrolspartner_organizations_locations_get_partner_builder(client, name)?;
+    let builder =
+        cloudcontrolspartner_organizations_locations_get_partner_builder(client, &args.name)?;
     cloudcontrolspartner_organizations_locations_get_partner_execute(builder)
 }
 
@@ -232,6 +242,17 @@ pub fn cloudcontrolspartner_organizations_locations_customers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcontrolspartner_organizations_locations_customers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcontrolspartnerOrganizationsLocationsCustomersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: customerId
+    pub customerId: Option<String>,
+    /// Request body.
+    pub body: Customer,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers
 /// Creates a new customer.
 ///
@@ -244,15 +265,16 @@ pub fn cloudcontrolspartner_organizations_locations_customers_create_execute(
 
 pub fn cloudcontrolspartner_organizations_locations_customers_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    customerId: Option<&str>,
-    body: &Customer,
+    args: &CloudcontrolspartnerOrganizationsLocationsCustomersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudcontrolspartner_organizations_locations_customers_create_builder(
-        client, parent, customerId, body,
+        client,
+        &args.parent,
+        args.customerId.as_deref(),
+        &args.body,
     )?;
     cloudcontrolspartner_organizations_locations_customers_create_execute(builder)
 }
@@ -347,6 +369,13 @@ pub fn cloudcontrolspartner_organizations_locations_customers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcontrolspartner_organizations_locations_customers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcontrolspartnerOrganizationsLocationsCustomersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}
 /// Delete details of a single customer
 ///
@@ -359,13 +388,13 @@ pub fn cloudcontrolspartner_organizations_locations_customers_delete_execute(
 
 pub fn cloudcontrolspartner_organizations_locations_customers_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudcontrolspartnerOrganizationsLocationsCustomersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        cloudcontrolspartner_organizations_locations_customers_delete_builder(client, name)?;
+        cloudcontrolspartner_organizations_locations_customers_delete_builder(client, &args.name)?;
     cloudcontrolspartner_organizations_locations_customers_delete_execute(builder)
 }
 
@@ -459,6 +488,13 @@ pub fn cloudcontrolspartner_organizations_locations_customers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcontrolspartner_organizations_locations_customers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcontrolspartnerOrganizationsLocationsCustomersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}
 /// Gets details of a single customer
 ///
@@ -471,12 +507,13 @@ pub fn cloudcontrolspartner_organizations_locations_customers_get_execute(
 
 pub fn cloudcontrolspartner_organizations_locations_customers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudcontrolspartnerOrganizationsLocationsCustomersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudcontrolspartner_organizations_locations_customers_get_builder(client, name)?;
+    let builder =
+        cloudcontrolspartner_organizations_locations_customers_get_builder(client, &args.name)?;
     cloudcontrolspartner_organizations_locations_customers_get_execute(builder)
 }
 
@@ -596,6 +633,21 @@ pub fn cloudcontrolspartner_organizations_locations_customers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcontrolspartner_organizations_locations_customers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcontrolspartnerOrganizationsLocationsCustomersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers
 /// Lists customers of a partner identified by its Google Cloud organization ID
 ///
@@ -608,11 +660,7 @@ pub fn cloudcontrolspartner_organizations_locations_customers_list_execute(
 
 pub fn cloudcontrolspartner_organizations_locations_customers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudcontrolspartnerOrganizationsLocationsCustomersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCustomersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -620,7 +668,12 @@ pub fn cloudcontrolspartner_organizations_locations_customers_list(
     ApiError,
 > {
     let builder = cloudcontrolspartner_organizations_locations_customers_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudcontrolspartner_organizations_locations_customers_list_execute(builder)
 }
@@ -730,6 +783,17 @@ pub fn cloudcontrolspartner_organizations_locations_customers_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcontrolspartner_organizations_locations_customers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcontrolspartnerOrganizationsLocationsCustomersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Customer,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}
 /// Update details of a single customer
 ///
@@ -742,15 +806,16 @@ pub fn cloudcontrolspartner_organizations_locations_customers_patch_execute(
 
 pub fn cloudcontrolspartner_organizations_locations_customers_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Customer,
+    args: &CloudcontrolspartnerOrganizationsLocationsCustomersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudcontrolspartner_organizations_locations_customers_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     cloudcontrolspartner_organizations_locations_customers_patch_execute(builder)
 }
@@ -845,6 +910,13 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcontrolspartner_organizations_locations_customers_workloads_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}
 /// Gets details of a single workload
 ///
@@ -857,13 +929,14 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_exec
 
 pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Workload>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudcontrolspartner_organizations_locations_customers_workloads_get_builder(client, name)?;
+    let builder = cloudcontrolspartner_organizations_locations_customers_workloads_get_builder(
+        client, &args.name,
+    )?;
     cloudcontrolspartner_organizations_locations_customers_workloads_get_execute(builder)
 }
 
@@ -959,6 +1032,13 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_ekm_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcontrolspartner_organizations_locations_customers_workloads_get_ekm_connections`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsGetEkmConnectionsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}/ekmConnections
 /// Gets the EKM connections associated with a workload
 ///
@@ -971,14 +1051,14 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_ekm_
 
 pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_ekm_connections(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsGetEkmConnectionsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EkmConnections>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudcontrolspartner_organizations_locations_customers_workloads_get_ekm_connections_builder(client, name)?;
+    let builder = cloudcontrolspartner_organizations_locations_customers_workloads_get_ekm_connections_builder(client, &args.name)?;
     cloudcontrolspartner_organizations_locations_customers_workloads_get_ekm_connections_execute(
         builder,
     )
@@ -1076,6 +1156,13 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_part
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcontrolspartner_organizations_locations_customers_workloads_get_partner_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsGetPartnerPermissionsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}/partnerPermissions
 /// Gets the partner permissions granted for a workload
 ///
@@ -1088,14 +1175,14 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_part
 
 pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_partner_permissions(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsGetPartnerPermissionsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PartnerPermissions>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudcontrolspartner_organizations_locations_customers_workloads_get_partner_permissions_builder(client, name)?;
+    let builder = cloudcontrolspartner_organizations_locations_customers_workloads_get_partner_permissions_builder(client, &args.name)?;
     cloudcontrolspartner_organizations_locations_customers_workloads_get_partner_permissions_execute(
         builder,
     )
@@ -1217,6 +1304,21 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_list_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcontrolspartner_organizations_locations_customers_workloads_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}/workloads
 /// Lists customer workloads for a given customer org id
 ///
@@ -1229,11 +1331,7 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_list_exe
 
 pub fn cloudcontrolspartner_organizations_locations_customers_workloads_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListWorkloadsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1241,7 +1339,12 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_list(
     ApiError,
 > {
     let builder = cloudcontrolspartner_organizations_locations_customers_workloads_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudcontrolspartner_organizations_locations_customers_workloads_list_execute(builder)
 }
@@ -1364,6 +1467,22 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_access_a
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcontrolspartner_organizations_locations_customers_workloads_access_approval_requests_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsAccessApprovalRequestsListArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}/accessApprovalRequests
 /// Deprecated: Only returns access approval requests directly associated with an assured workload folder.
 ///
@@ -1376,11 +1495,7 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_access_a
 
 pub fn cloudcontrolspartner_organizations_locations_customers_workloads_access_approval_requests_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsAccessApprovalRequestsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAccessApprovalRequestsResponse>, ApiError>,
@@ -1389,7 +1504,7 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_access_a
         + 'static,
     ApiError,
 > {
-    let builder = cloudcontrolspartner_organizations_locations_customers_workloads_access_approval_requests_list_builder(client, parent, filter, orderBy, pageSize, pageToken)?;
+    let builder = cloudcontrolspartner_organizations_locations_customers_workloads_access_approval_requests_list_builder(client, &args.parent, args.filter.as_deref(), args.orderBy.as_deref(), args.pageSize, args.pageToken.as_deref())?;
     cloudcontrolspartner_organizations_locations_customers_workloads_access_approval_requests_list_execute(builder)
 }
 
@@ -1483,6 +1598,13 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violatio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcontrolspartner_organizations_locations_customers_workloads_violations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsViolationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}/violations/{violationsId}
 /// Gets details of a single Violation.
 ///
@@ -1495,14 +1617,14 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violatio
 
 pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsViolationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Violation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         cloudcontrolspartner_organizations_locations_customers_workloads_violations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     cloudcontrolspartner_organizations_locations_customers_workloads_violations_get_execute(builder)
 }
@@ -1631,6 +1753,25 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violatio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcontrolspartner_organizations_locations_customers_workloads_violations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsViolationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: interval_endTime
+    pub interval_endTime: Option<String>,
+    /// Query parameter: interval_startTime
+    pub interval_startTime: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}/violations
 /// Lists Violations for a workload Callers may also choose to read across multiple Customers or for a single customer as per [AIP-159](<https://google.aip.`dev/159`>) by using '-' (the hyphen or dash character) as a wildcard character instead of {customer} & {workload}. Format: `organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}`
 ///
@@ -1643,13 +1784,7 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violatio
 
 pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    interval_endTime: Option<&str>,
-    interval_startTime: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsViolationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListViolationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1659,13 +1794,13 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violatio
     let builder =
         cloudcontrolspartner_organizations_locations_customers_workloads_violations_list_builder(
             client,
-            parent,
-            filter,
-            interval_endTime,
-            interval_startTime,
-            orderBy,
-            pageSize,
-            pageToken,
+            &args.parent,
+            args.filter.as_deref(),
+            args.interval_endTime.as_deref(),
+            args.interval_startTime.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     cloudcontrolspartner_organizations_locations_customers_workloads_violations_list_execute(
         builder,

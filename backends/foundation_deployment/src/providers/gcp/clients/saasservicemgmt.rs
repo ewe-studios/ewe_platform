@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -110,6 +112,13 @@ pub fn saasservicemgmt_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -122,7 +131,7 @@ pub fn saasservicemgmt_projects_locations_get_execute(
 
 pub fn saasservicemgmt_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SaasservicemgmtProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudLocationLocation>, ApiError>,
@@ -131,7 +140,7 @@ pub fn saasservicemgmt_projects_locations_get(
         + 'static,
     ApiError,
 > {
-    let builder = saasservicemgmt_projects_locations_get_builder(client, name)?;
+    let builder = saasservicemgmt_projects_locations_get_builder(client, &args.name)?;
     saasservicemgmt_projects_locations_get_execute(builder)
 }
 
@@ -251,6 +260,21 @@ pub fn saasservicemgmt_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -263,11 +287,7 @@ pub fn saasservicemgmt_projects_locations_list_execute(
 
 pub fn saasservicemgmt_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SaasservicemgmtProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -276,11 +296,11 @@ pub fn saasservicemgmt_projects_locations_list(
 > {
     let builder = saasservicemgmt_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     saasservicemgmt_projects_locations_list_execute(builder)
 }
@@ -398,6 +418,21 @@ pub fn saasservicemgmt_projects_locations_releases_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_releases_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsReleasesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: releaseId
+    pub releaseId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Release,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/releases
 /// Create a new release.
 ///
@@ -410,22 +445,18 @@ pub fn saasservicemgmt_projects_locations_releases_create_execute(
 
 pub fn saasservicemgmt_projects_locations_releases_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    releaseId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Release,
+    args: &SaasservicemgmtProjectsLocationsReleasesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_releases_create_builder(
         client,
-        parent,
-        releaseId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.releaseId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     saasservicemgmt_projects_locations_releases_create_execute(builder)
 }
@@ -540,6 +571,19 @@ pub fn saasservicemgmt_projects_locations_releases_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_releases_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsReleasesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
 /// Delete a single release.
 ///
@@ -552,20 +596,17 @@ pub fn saasservicemgmt_projects_locations_releases_delete_execute(
 
 pub fn saasservicemgmt_projects_locations_releases_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &SaasservicemgmtProjectsLocationsReleasesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_releases_delete_builder(
         client,
-        name,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     saasservicemgmt_projects_locations_releases_delete_execute(builder)
 }
@@ -660,6 +701,13 @@ pub fn saasservicemgmt_projects_locations_releases_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_releases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsReleasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
 /// Retrieve a single release.
 ///
@@ -672,12 +720,12 @@ pub fn saasservicemgmt_projects_locations_releases_get_execute(
 
 pub fn saasservicemgmt_projects_locations_releases_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SaasservicemgmtProjectsLocationsReleasesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = saasservicemgmt_projects_locations_releases_get_builder(client, name)?;
+    let builder = saasservicemgmt_projects_locations_releases_get_builder(client, &args.name)?;
     saasservicemgmt_projects_locations_releases_get_execute(builder)
 }
 
@@ -797,6 +845,21 @@ pub fn saasservicemgmt_projects_locations_releases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_releases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsReleasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/releases
 /// Retrieve a collection of releases.
 ///
@@ -809,11 +872,7 @@ pub fn saasservicemgmt_projects_locations_releases_list_execute(
 
 pub fn saasservicemgmt_projects_locations_releases_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SaasservicemgmtProjectsLocationsReleasesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListReleasesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -821,7 +880,12 @@ pub fn saasservicemgmt_projects_locations_releases_list(
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_releases_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     saasservicemgmt_projects_locations_releases_list_execute(builder)
 }
@@ -939,6 +1003,21 @@ pub fn saasservicemgmt_projects_locations_releases_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_releases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsReleasesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Release,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
 /// Update a single release.
 ///
@@ -951,22 +1030,18 @@ pub fn saasservicemgmt_projects_locations_releases_patch_execute(
 
 pub fn saasservicemgmt_projects_locations_releases_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Release,
+    args: &SaasservicemgmtProjectsLocationsReleasesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_releases_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     saasservicemgmt_projects_locations_releases_patch_execute(builder)
 }
@@ -1084,6 +1159,21 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_rollout_kinds_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutKindsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: rolloutKindId
+    pub rolloutKindId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: RolloutKind,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds
 /// Create a new rollout kind.
 ///
@@ -1096,22 +1186,18 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_create_execute(
 
 pub fn saasservicemgmt_projects_locations_rollout_kinds_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    rolloutKindId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &RolloutKind,
+    args: &SaasservicemgmtProjectsLocationsRolloutKindsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RolloutKind>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_rollout_kinds_create_builder(
         client,
-        parent,
-        requestId,
-        rolloutKindId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.rolloutKindId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     saasservicemgmt_projects_locations_rollout_kinds_create_execute(builder)
 }
@@ -1226,6 +1312,19 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_rollout_kinds_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutKindsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
 /// Delete a single rollout kind.
 ///
@@ -1238,20 +1337,17 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_delete_execute(
 
 pub fn saasservicemgmt_projects_locations_rollout_kinds_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &SaasservicemgmtProjectsLocationsRolloutKindsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_rollout_kinds_delete_builder(
         client,
-        name,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     saasservicemgmt_projects_locations_rollout_kinds_delete_execute(builder)
 }
@@ -1346,6 +1442,13 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_rollout_kinds_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutKindsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
 /// Retrieve a single rollout kind.
 ///
@@ -1358,12 +1461,12 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_get_execute(
 
 pub fn saasservicemgmt_projects_locations_rollout_kinds_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SaasservicemgmtProjectsLocationsRolloutKindsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RolloutKind>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = saasservicemgmt_projects_locations_rollout_kinds_get_builder(client, name)?;
+    let builder = saasservicemgmt_projects_locations_rollout_kinds_get_builder(client, &args.name)?;
     saasservicemgmt_projects_locations_rollout_kinds_get_execute(builder)
 }
 
@@ -1483,6 +1586,21 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_rollout_kinds_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutKindsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds
 /// Retrieve a collection of rollout kinds.
 ///
@@ -1495,11 +1613,7 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_list_execute(
 
 pub fn saasservicemgmt_projects_locations_rollout_kinds_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SaasservicemgmtProjectsLocationsRolloutKindsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRolloutKindsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1507,7 +1621,12 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_list(
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_rollout_kinds_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     saasservicemgmt_projects_locations_rollout_kinds_list_execute(builder)
 }
@@ -1625,6 +1744,21 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_rollout_kinds_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutKindsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: RolloutKind,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
 /// Update a single rollout kind.
 ///
@@ -1637,22 +1771,18 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_patch_execute(
 
 pub fn saasservicemgmt_projects_locations_rollout_kinds_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &RolloutKind,
+    args: &SaasservicemgmtProjectsLocationsRolloutKindsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RolloutKind>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_rollout_kinds_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     saasservicemgmt_projects_locations_rollout_kinds_patch_execute(builder)
 }
@@ -1770,6 +1900,21 @@ pub fn saasservicemgmt_projects_locations_rollouts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_rollouts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: rolloutId
+    pub rolloutId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Rollout,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/rollouts
 /// Create a new rollout.
 ///
@@ -1782,22 +1927,18 @@ pub fn saasservicemgmt_projects_locations_rollouts_create_execute(
 
 pub fn saasservicemgmt_projects_locations_rollouts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    rolloutId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Rollout,
+    args: &SaasservicemgmtProjectsLocationsRolloutsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Rollout>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_rollouts_create_builder(
         client,
-        parent,
-        requestId,
-        rolloutId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.rolloutId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     saasservicemgmt_projects_locations_rollouts_create_execute(builder)
 }
@@ -1912,6 +2053,19 @@ pub fn saasservicemgmt_projects_locations_rollouts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_rollouts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
 /// Delete a single rollout.
 ///
@@ -1924,20 +2078,17 @@ pub fn saasservicemgmt_projects_locations_rollouts_delete_execute(
 
 pub fn saasservicemgmt_projects_locations_rollouts_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &SaasservicemgmtProjectsLocationsRolloutsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_rollouts_delete_builder(
         client,
-        name,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     saasservicemgmt_projects_locations_rollouts_delete_execute(builder)
 }
@@ -2032,6 +2183,13 @@ pub fn saasservicemgmt_projects_locations_rollouts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_rollouts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
 /// Retrieve a single rollout.
 ///
@@ -2044,12 +2202,12 @@ pub fn saasservicemgmt_projects_locations_rollouts_get_execute(
 
 pub fn saasservicemgmt_projects_locations_rollouts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SaasservicemgmtProjectsLocationsRolloutsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Rollout>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = saasservicemgmt_projects_locations_rollouts_get_builder(client, name)?;
+    let builder = saasservicemgmt_projects_locations_rollouts_get_builder(client, &args.name)?;
     saasservicemgmt_projects_locations_rollouts_get_execute(builder)
 }
 
@@ -2169,6 +2327,21 @@ pub fn saasservicemgmt_projects_locations_rollouts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_rollouts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/rollouts
 /// Retrieve a collection of rollouts.
 ///
@@ -2181,11 +2354,7 @@ pub fn saasservicemgmt_projects_locations_rollouts_list_execute(
 
 pub fn saasservicemgmt_projects_locations_rollouts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SaasservicemgmtProjectsLocationsRolloutsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRolloutsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2193,7 +2362,12 @@ pub fn saasservicemgmt_projects_locations_rollouts_list(
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_rollouts_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     saasservicemgmt_projects_locations_rollouts_list_execute(builder)
 }
@@ -2311,6 +2485,21 @@ pub fn saasservicemgmt_projects_locations_rollouts_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_rollouts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsRolloutsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Rollout,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
 /// Update a single rollout.
 ///
@@ -2323,22 +2512,18 @@ pub fn saasservicemgmt_projects_locations_rollouts_patch_execute(
 
 pub fn saasservicemgmt_projects_locations_rollouts_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Rollout,
+    args: &SaasservicemgmtProjectsLocationsRolloutsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Rollout>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_rollouts_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     saasservicemgmt_projects_locations_rollouts_patch_execute(builder)
 }
@@ -2456,6 +2641,21 @@ pub fn saasservicemgmt_projects_locations_saas_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_saas_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsSaasCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: saasId
+    pub saasId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Saas,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/saas
 /// Create a new saas.
 ///
@@ -2468,22 +2668,18 @@ pub fn saasservicemgmt_projects_locations_saas_create_execute(
 
 pub fn saasservicemgmt_projects_locations_saas_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    saasId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Saas,
+    args: &SaasservicemgmtProjectsLocationsSaasCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Saas>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_saas_create_builder(
         client,
-        parent,
-        requestId,
-        saasId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.saasId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     saasservicemgmt_projects_locations_saas_create_execute(builder)
 }
@@ -2598,6 +2794,19 @@ pub fn saasservicemgmt_projects_locations_saas_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_saas_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsSaasDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
 /// Delete a single saas.
 ///
@@ -2610,20 +2819,17 @@ pub fn saasservicemgmt_projects_locations_saas_delete_execute(
 
 pub fn saasservicemgmt_projects_locations_saas_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &SaasservicemgmtProjectsLocationsSaasDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_saas_delete_builder(
         client,
-        name,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     saasservicemgmt_projects_locations_saas_delete_execute(builder)
 }
@@ -2718,6 +2924,13 @@ pub fn saasservicemgmt_projects_locations_saas_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_saas_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsSaasGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
 /// Retrieve a single saas.
 ///
@@ -2730,12 +2943,12 @@ pub fn saasservicemgmt_projects_locations_saas_get_execute(
 
 pub fn saasservicemgmt_projects_locations_saas_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SaasservicemgmtProjectsLocationsSaasGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Saas>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = saasservicemgmt_projects_locations_saas_get_builder(client, name)?;
+    let builder = saasservicemgmt_projects_locations_saas_get_builder(client, &args.name)?;
     saasservicemgmt_projects_locations_saas_get_execute(builder)
 }
 
@@ -2855,6 +3068,21 @@ pub fn saasservicemgmt_projects_locations_saas_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_saas_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsSaasListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/saas
 /// Retrieve a collection of saas.
 ///
@@ -2867,11 +3095,7 @@ pub fn saasservicemgmt_projects_locations_saas_list_execute(
 
 pub fn saasservicemgmt_projects_locations_saas_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SaasservicemgmtProjectsLocationsSaasListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSaasResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2879,7 +3103,12 @@ pub fn saasservicemgmt_projects_locations_saas_list(
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_saas_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     saasservicemgmt_projects_locations_saas_list_execute(builder)
 }
@@ -2997,6 +3226,21 @@ pub fn saasservicemgmt_projects_locations_saas_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_saas_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsSaasPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Saas,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
 /// Update a single saas.
 ///
@@ -3009,22 +3253,18 @@ pub fn saasservicemgmt_projects_locations_saas_patch_execute(
 
 pub fn saasservicemgmt_projects_locations_saas_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Saas,
+    args: &SaasservicemgmtProjectsLocationsSaasPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Saas>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_saas_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     saasservicemgmt_projects_locations_saas_patch_execute(builder)
 }
@@ -3142,6 +3382,21 @@ pub fn saasservicemgmt_projects_locations_tenants_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_tenants_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsTenantsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: tenantId
+    pub tenantId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Tenant,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tenants
 /// Create a new tenant.
 ///
@@ -3154,22 +3409,18 @@ pub fn saasservicemgmt_projects_locations_tenants_create_execute(
 
 pub fn saasservicemgmt_projects_locations_tenants_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    tenantId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Tenant,
+    args: &SaasservicemgmtProjectsLocationsTenantsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_tenants_create_builder(
         client,
-        parent,
-        requestId,
-        tenantId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.tenantId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     saasservicemgmt_projects_locations_tenants_create_execute(builder)
 }
@@ -3284,6 +3535,19 @@ pub fn saasservicemgmt_projects_locations_tenants_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_tenants_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsTenantsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
 /// Delete a single tenant.
 ///
@@ -3296,20 +3560,17 @@ pub fn saasservicemgmt_projects_locations_tenants_delete_execute(
 
 pub fn saasservicemgmt_projects_locations_tenants_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &SaasservicemgmtProjectsLocationsTenantsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_tenants_delete_builder(
         client,
-        name,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     saasservicemgmt_projects_locations_tenants_delete_execute(builder)
 }
@@ -3404,6 +3665,13 @@ pub fn saasservicemgmt_projects_locations_tenants_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_tenants_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsTenantsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
 /// Retrieve a single tenant.
 ///
@@ -3416,12 +3684,12 @@ pub fn saasservicemgmt_projects_locations_tenants_get_execute(
 
 pub fn saasservicemgmt_projects_locations_tenants_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SaasservicemgmtProjectsLocationsTenantsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = saasservicemgmt_projects_locations_tenants_get_builder(client, name)?;
+    let builder = saasservicemgmt_projects_locations_tenants_get_builder(client, &args.name)?;
     saasservicemgmt_projects_locations_tenants_get_execute(builder)
 }
 
@@ -3541,6 +3809,21 @@ pub fn saasservicemgmt_projects_locations_tenants_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_tenants_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsTenantsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tenants
 /// Retrieve a collection of tenants.
 ///
@@ -3553,11 +3836,7 @@ pub fn saasservicemgmt_projects_locations_tenants_list_execute(
 
 pub fn saasservicemgmt_projects_locations_tenants_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SaasservicemgmtProjectsLocationsTenantsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTenantsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3565,7 +3844,12 @@ pub fn saasservicemgmt_projects_locations_tenants_list(
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_tenants_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     saasservicemgmt_projects_locations_tenants_list_execute(builder)
 }
@@ -3683,6 +3967,21 @@ pub fn saasservicemgmt_projects_locations_tenants_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_tenants_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsTenantsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Tenant,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
 /// Update a single tenant.
 ///
@@ -3695,22 +3994,18 @@ pub fn saasservicemgmt_projects_locations_tenants_patch_execute(
 
 pub fn saasservicemgmt_projects_locations_tenants_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Tenant,
+    args: &SaasservicemgmtProjectsLocationsTenantsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_tenants_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     saasservicemgmt_projects_locations_tenants_patch_execute(builder)
 }
@@ -3828,6 +4123,21 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_unit_kinds_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitKindsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: unitKindId
+    pub unitKindId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: UnitKind,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/unitKinds
 /// Create a new unit kind.
 ///
@@ -3840,22 +4150,18 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_create_execute(
 
 pub fn saasservicemgmt_projects_locations_unit_kinds_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    unitKindId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &UnitKind,
+    args: &SaasservicemgmtProjectsLocationsUnitKindsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UnitKind>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_unit_kinds_create_builder(
         client,
-        parent,
-        requestId,
-        unitKindId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.unitKindId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     saasservicemgmt_projects_locations_unit_kinds_create_execute(builder)
 }
@@ -3970,6 +4276,19 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_unit_kinds_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitKindsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
 /// Delete a single unit kind.
 ///
@@ -3982,20 +4301,17 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_delete_execute(
 
 pub fn saasservicemgmt_projects_locations_unit_kinds_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &SaasservicemgmtProjectsLocationsUnitKindsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_unit_kinds_delete_builder(
         client,
-        name,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     saasservicemgmt_projects_locations_unit_kinds_delete_execute(builder)
 }
@@ -4090,6 +4406,13 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_unit_kinds_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitKindsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
 /// Retrieve a single unit kind.
 ///
@@ -4102,12 +4425,12 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_get_execute(
 
 pub fn saasservicemgmt_projects_locations_unit_kinds_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SaasservicemgmtProjectsLocationsUnitKindsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UnitKind>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = saasservicemgmt_projects_locations_unit_kinds_get_builder(client, name)?;
+    let builder = saasservicemgmt_projects_locations_unit_kinds_get_builder(client, &args.name)?;
     saasservicemgmt_projects_locations_unit_kinds_get_execute(builder)
 }
 
@@ -4227,6 +4550,21 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_unit_kinds_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitKindsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/unitKinds
 /// Retrieve a collection of unit kinds.
 ///
@@ -4239,11 +4577,7 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_list_execute(
 
 pub fn saasservicemgmt_projects_locations_unit_kinds_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SaasservicemgmtProjectsLocationsUnitKindsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListUnitKindsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4251,7 +4585,12 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_list(
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_unit_kinds_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     saasservicemgmt_projects_locations_unit_kinds_list_execute(builder)
 }
@@ -4369,6 +4708,21 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_unit_kinds_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitKindsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: UnitKind,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
 /// Update a single unit kind.
 ///
@@ -4381,22 +4735,18 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_patch_execute(
 
 pub fn saasservicemgmt_projects_locations_unit_kinds_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &UnitKind,
+    args: &SaasservicemgmtProjectsLocationsUnitKindsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UnitKind>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_unit_kinds_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     saasservicemgmt_projects_locations_unit_kinds_patch_execute(builder)
 }
@@ -4516,6 +4866,21 @@ pub fn saasservicemgmt_projects_locations_unit_operations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_unit_operations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitOperationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: unitOperationId
+    pub unitOperationId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: UnitOperation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/unitOperations
 /// Create a new unit operation.
 ///
@@ -4528,11 +4893,7 @@ pub fn saasservicemgmt_projects_locations_unit_operations_create_execute(
 
 pub fn saasservicemgmt_projects_locations_unit_operations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    unitOperationId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &UnitOperation,
+    args: &SaasservicemgmtProjectsLocationsUnitOperationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UnitOperation>, ApiError>, P = ApiPending>
         + Send
@@ -4541,11 +4902,11 @@ pub fn saasservicemgmt_projects_locations_unit_operations_create(
 > {
     let builder = saasservicemgmt_projects_locations_unit_operations_create_builder(
         client,
-        parent,
-        requestId,
-        unitOperationId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.unitOperationId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     saasservicemgmt_projects_locations_unit_operations_create_execute(builder)
 }
@@ -4660,6 +5021,19 @@ pub fn saasservicemgmt_projects_locations_unit_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_unit_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
 /// Delete a single unit operation.
 ///
@@ -4672,20 +5046,17 @@ pub fn saasservicemgmt_projects_locations_unit_operations_delete_execute(
 
 pub fn saasservicemgmt_projects_locations_unit_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &SaasservicemgmtProjectsLocationsUnitOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_unit_operations_delete_builder(
         client,
-        name,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     saasservicemgmt_projects_locations_unit_operations_delete_execute(builder)
 }
@@ -4782,6 +5153,13 @@ pub fn saasservicemgmt_projects_locations_unit_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_unit_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
 /// Retrieve a single unit operation.
 ///
@@ -4794,14 +5172,15 @@ pub fn saasservicemgmt_projects_locations_unit_operations_get_execute(
 
 pub fn saasservicemgmt_projects_locations_unit_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SaasservicemgmtProjectsLocationsUnitOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UnitOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = saasservicemgmt_projects_locations_unit_operations_get_builder(client, name)?;
+    let builder =
+        saasservicemgmt_projects_locations_unit_operations_get_builder(client, &args.name)?;
     saasservicemgmt_projects_locations_unit_operations_get_execute(builder)
 }
 
@@ -4923,6 +5302,21 @@ pub fn saasservicemgmt_projects_locations_unit_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_unit_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitOperationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/unitOperations
 /// Retrieve a collection of unit operations.
 ///
@@ -4935,11 +5329,7 @@ pub fn saasservicemgmt_projects_locations_unit_operations_list_execute(
 
 pub fn saasservicemgmt_projects_locations_unit_operations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SaasservicemgmtProjectsLocationsUnitOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListUnitOperationsResponse>, ApiError>,
@@ -4949,7 +5339,12 @@ pub fn saasservicemgmt_projects_locations_unit_operations_list(
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_unit_operations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     saasservicemgmt_projects_locations_unit_operations_list_execute(builder)
 }
@@ -5069,6 +5464,21 @@ pub fn saasservicemgmt_projects_locations_unit_operations_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_unit_operations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitOperationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: UnitOperation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
 /// Update a single unit operation.
 ///
@@ -5081,11 +5491,7 @@ pub fn saasservicemgmt_projects_locations_unit_operations_patch_execute(
 
 pub fn saasservicemgmt_projects_locations_unit_operations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &UnitOperation,
+    args: &SaasservicemgmtProjectsLocationsUnitOperationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UnitOperation>, ApiError>, P = ApiPending>
         + Send
@@ -5094,11 +5500,11 @@ pub fn saasservicemgmt_projects_locations_unit_operations_patch(
 > {
     let builder = saasservicemgmt_projects_locations_unit_operations_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     saasservicemgmt_projects_locations_unit_operations_patch_execute(builder)
 }
@@ -5216,6 +5622,21 @@ pub fn saasservicemgmt_projects_locations_units_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_units_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: unitId
+    pub unitId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Unit,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/units
 /// Create a new unit.
 ///
@@ -5228,22 +5649,18 @@ pub fn saasservicemgmt_projects_locations_units_create_execute(
 
 pub fn saasservicemgmt_projects_locations_units_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    unitId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Unit,
+    args: &SaasservicemgmtProjectsLocationsUnitsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Unit>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_units_create_builder(
         client,
-        parent,
-        requestId,
-        unitId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.unitId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     saasservicemgmt_projects_locations_units_create_execute(builder)
 }
@@ -5358,6 +5775,19 @@ pub fn saasservicemgmt_projects_locations_units_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_units_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}
 /// Delete a single unit.
 ///
@@ -5370,20 +5800,17 @@ pub fn saasservicemgmt_projects_locations_units_delete_execute(
 
 pub fn saasservicemgmt_projects_locations_units_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &SaasservicemgmtProjectsLocationsUnitsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_units_delete_builder(
         client,
-        name,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     saasservicemgmt_projects_locations_units_delete_execute(builder)
 }
@@ -5478,6 +5905,13 @@ pub fn saasservicemgmt_projects_locations_units_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_units_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}
 /// Retrieve a single unit.
 ///
@@ -5490,12 +5924,12 @@ pub fn saasservicemgmt_projects_locations_units_get_execute(
 
 pub fn saasservicemgmt_projects_locations_units_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SaasservicemgmtProjectsLocationsUnitsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Unit>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = saasservicemgmt_projects_locations_units_get_builder(client, name)?;
+    let builder = saasservicemgmt_projects_locations_units_get_builder(client, &args.name)?;
     saasservicemgmt_projects_locations_units_get_execute(builder)
 }
 
@@ -5615,6 +6049,21 @@ pub fn saasservicemgmt_projects_locations_units_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_units_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/units
 /// Retrieve a collection of units.
 ///
@@ -5627,11 +6076,7 @@ pub fn saasservicemgmt_projects_locations_units_list_execute(
 
 pub fn saasservicemgmt_projects_locations_units_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SaasservicemgmtProjectsLocationsUnitsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListUnitsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5639,7 +6084,12 @@ pub fn saasservicemgmt_projects_locations_units_list(
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_units_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     saasservicemgmt_projects_locations_units_list_execute(builder)
 }
@@ -5757,6 +6207,21 @@ pub fn saasservicemgmt_projects_locations_units_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`saasservicemgmt_projects_locations_units_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SaasservicemgmtProjectsLocationsUnitsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Unit,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}
 /// Update a single unit.
 ///
@@ -5769,22 +6234,18 @@ pub fn saasservicemgmt_projects_locations_units_patch_execute(
 
 pub fn saasservicemgmt_projects_locations_units_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Unit,
+    args: &SaasservicemgmtProjectsLocationsUnitsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Unit>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = saasservicemgmt_projects_locations_units_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     saasservicemgmt_projects_locations_units_patch_execute(builder)
 }

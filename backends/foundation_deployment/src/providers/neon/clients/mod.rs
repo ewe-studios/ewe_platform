@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET /api_keys
 /// List API keys
@@ -26,7 +28,7 @@ pub fn get_api_keys_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/api_keys",);
+    let url = format!("https://console.neon.tech/api/v2/api_keys",);
 
     // Build request
     let builder = client
@@ -70,9 +72,17 @@ pub fn get_api_keys_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -122,7 +132,7 @@ pub fn post_api_keys_builder(
     body: &ApiKeyCreateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/api_keys",);
+    let url = format!("https://console.neon.tech/api/v2/api_keys",);
 
     // Build request
     let builder = client
@@ -170,9 +180,17 @@ pub fn post_api_keys_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -194,6 +212,13 @@ pub fn post_api_keys_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_api_keys`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostApiKeysArgs {
+    /// Request body.
+    pub body: ApiKeyCreateRequest,
+}
+
 /// POST /api_keys
 /// Create API key
 ///
@@ -206,14 +231,14 @@ pub fn post_api_keys_execute(
 
 pub fn post_api_keys(
     client: &SimpleHttpClient,
-    body: &ApiKeyCreateRequest,
+    args: &PostApiKeysArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiKeyCreateResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_api_keys_builder(client, body)?;
+    let builder = post_api_keys_builder(client, &args.body)?;
     post_api_keys_execute(builder)
 }
 
@@ -228,7 +253,7 @@ pub fn delete_api_keys_key_id_builder(
     key_id: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/api_keys/{}", key_id,);
+    let url = format!("https://console.neon.tech/api/v2/api_keys/{}", key_id,);
 
     // Build request
     let builder = client
@@ -274,9 +299,17 @@ pub fn delete_api_keys_key_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -298,6 +331,13 @@ pub fn delete_api_keys_key_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_api_keys_key_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteApiKeysKeyIdArgs {
+    /// Path parameter: key_id
+    pub key_id: String,
+}
+
 /// DELETE /api_keys/{key_id}
 /// Revoke API key
 ///
@@ -310,14 +350,14 @@ pub fn delete_api_keys_key_id_execute(
 
 pub fn delete_api_keys_key_id(
     client: &SimpleHttpClient,
-    key_id: &str,
+    args: &DeleteApiKeysKeyIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiKeyRevokeResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = delete_api_keys_key_id_builder(client, key_id)?;
+    let builder = delete_api_keys_key_id_builder(client, &args.key_id)?;
     delete_api_keys_key_id_execute(builder)
 }
 
@@ -331,7 +371,7 @@ pub fn get_auth_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/auth",);
+    let url = format!("https://console.neon.tech/api/v2/auth",);
 
     // Build request
     let builder = client
@@ -377,9 +417,17 @@ pub fn get_auth_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -439,7 +487,7 @@ pub fn get_consumption_history_account_builder(
     metrics: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/consumption_history/account",);
+    let url = format!("https://console.neon.tech/api/v2/consumption_history/account",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -513,9 +561,17 @@ pub fn get_consumption_history_account_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -537,6 +593,23 @@ pub fn get_consumption_history_account_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_consumption_history_account`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetConsumptionHistoryAccountArgs {
+    /// Query parameter: from
+    pub from: Option<String>,
+    /// Query parameter: to
+    pub to: Option<String>,
+    /// Query parameter: granularity
+    pub granularity: Option<String>,
+    /// Query parameter: org_id
+    pub org_id: Option<String>,
+    /// Query parameter: include_v1_metrics
+    pub include_v1_metrics: Option<bool>,
+    /// Query parameter: metrics
+    pub metrics: Option<String>,
+}
+
 /// GET /consumption_history/account
 /// Retrieve account consumption metrics (legacy plans)
 ///
@@ -549,12 +622,7 @@ pub fn get_consumption_history_account_execute(
 
 pub fn get_consumption_history_account(
     client: &SimpleHttpClient,
-    from: Option<&str>,
-    to: Option<&str>,
-    granularity: Option<&str>,
-    org_id: Option<&str>,
-    include_v1_metrics: Option<bool>,
-    metrics: Option<&str>,
+    args: &GetConsumptionHistoryAccountArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ConsumptionHistoryPerAccountResponse>, ApiError>,
@@ -565,12 +633,12 @@ pub fn get_consumption_history_account(
 > {
     let builder = get_consumption_history_account_builder(
         client,
-        from,
-        to,
-        granularity,
-        org_id,
-        include_v1_metrics,
-        metrics,
+        args.from.as_deref(),
+        args.to.as_deref(),
+        args.granularity.as_deref(),
+        args.org_id.as_deref(),
+        args.include_v1_metrics,
+        args.metrics.as_deref(),
     )?;
     get_consumption_history_account_execute(builder)
 }
@@ -594,7 +662,7 @@ pub fn get_consumption_history_projects_builder(
     metrics: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/consumption_history/projects",);
+    let url = format!("https://console.neon.tech/api/v2/consumption_history/projects",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -673,9 +741,17 @@ pub fn get_consumption_history_projects_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -694,6 +770,29 @@ pub fn get_consumption_history_projects_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_consumption_history_projects`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetConsumptionHistoryProjectsArgs {
+    /// Query parameter: cursor
+    pub cursor: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<i32>,
+    /// Query parameter: project_ids
+    pub project_ids: Option<Vec<String>>,
+    /// Query parameter: from
+    pub from: Option<String>,
+    /// Query parameter: to
+    pub to: Option<String>,
+    /// Query parameter: granularity
+    pub granularity: Option<String>,
+    /// Query parameter: org_id
+    pub org_id: Option<String>,
+    /// Query parameter: include_v1_metrics
+    pub include_v1_metrics: Option<bool>,
+    /// Query parameter: metrics
+    pub metrics: Option<String>,
+}
+
 /// GET /consumption_history/projects
 /// Retrieve project consumption metrics (legacy plans)
 ///
@@ -706,30 +805,22 @@ pub fn get_consumption_history_projects_execute(
 
 pub fn get_consumption_history_projects(
     client: &SimpleHttpClient,
-    cursor: Option<&str>,
-    limit: Option<i32>,
-    project_ids: Option<Vec<String>>,
-    from: Option<&str>,
-    to: Option<&str>,
-    granularity: Option<&str>,
-    org_id: Option<&str>,
-    include_v1_metrics: Option<bool>,
-    metrics: Option<&str>,
+    args: &GetConsumptionHistoryProjectsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = get_consumption_history_projects_builder(
         client,
-        cursor,
-        limit,
-        project_ids,
-        from,
-        to,
-        granularity,
-        org_id,
-        include_v1_metrics,
-        metrics,
+        args.cursor.as_deref(),
+        args.limit,
+        args.project_ids,
+        args.from.as_deref(),
+        args.to.as_deref(),
+        args.granularity.as_deref(),
+        args.org_id.as_deref(),
+        args.include_v1_metrics,
+        args.metrics.as_deref(),
     )?;
     get_consumption_history_projects_execute(builder)
 }
@@ -752,7 +843,7 @@ pub fn get_consumption_history_v2_projects_builder(
     metrics: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/consumption_history/v2/projects",);
+    let url = format!("https://console.neon.tech/api/v2/consumption_history/v2/projects",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -828,9 +919,17 @@ pub fn get_consumption_history_v2_projects_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -849,6 +948,27 @@ pub fn get_consumption_history_v2_projects_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_consumption_history_v2_projects`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetConsumptionHistoryV2ProjectsArgs {
+    /// Query parameter: cursor
+    pub cursor: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<i32>,
+    /// Query parameter: project_ids
+    pub project_ids: Option<Vec<String>>,
+    /// Query parameter: from
+    pub from: Option<String>,
+    /// Query parameter: to
+    pub to: Option<String>,
+    /// Query parameter: granularity
+    pub granularity: Option<String>,
+    /// Query parameter: org_id
+    pub org_id: Option<String>,
+    /// Query parameter: metrics
+    pub metrics: Option<String>,
+}
+
 /// GET /consumption_history/v2/projects
 /// Retrieve project consumption metrics
 ///
@@ -861,28 +981,21 @@ pub fn get_consumption_history_v2_projects_execute(
 
 pub fn get_consumption_history_v2_projects(
     client: &SimpleHttpClient,
-    cursor: Option<&str>,
-    limit: Option<i32>,
-    project_ids: Option<Vec<String>>,
-    from: Option<&str>,
-    to: Option<&str>,
-    granularity: Option<&str>,
-    org_id: Option<&str>,
-    metrics: Option<&str>,
+    args: &GetConsumptionHistoryV2ProjectsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = get_consumption_history_v2_projects_builder(
         client,
-        cursor,
-        limit,
-        project_ids,
-        from,
-        to,
-        granularity,
-        org_id,
-        metrics,
+        args.cursor.as_deref(),
+        args.limit,
+        args.project_ids,
+        args.from.as_deref(),
+        args.to.as_deref(),
+        args.granularity.as_deref(),
+        args.org_id.as_deref(),
+        args.metrics.as_deref(),
     )?;
     get_consumption_history_v2_projects_execute(builder)
 }
@@ -897,7 +1010,7 @@ pub fn get_organizations_org_id_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/organizations/{org_id}",);
+    let url = format!("https://console.neon.tech/api/v2/organizations/{}",);
 
     // Build request
     let builder = client
@@ -943,9 +1056,17 @@ pub fn get_organizations_org_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -999,7 +1120,7 @@ pub fn get_organizations_org_id_api_keys_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/organizations/{org_id}/api_keys",);
+    let url = format!("https://console.neon.tech/api/v2/organizations/{}/api_keys",);
 
     // Build request
     let builder = client
@@ -1043,9 +1164,17 @@ pub fn get_organizations_org_id_api_keys_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1095,7 +1224,7 @@ pub fn post_organizations_org_id_api_keys_builder(
     body: &OrgApiKeyCreateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/organizations/{org_id}/api_keys",);
+    let url = format!("https://console.neon.tech/api/v2/organizations/{}/api_keys",);
 
     // Build request
     let builder = client
@@ -1143,9 +1272,17 @@ pub fn post_organizations_org_id_api_keys_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1167,6 +1304,13 @@ pub fn post_organizations_org_id_api_keys_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_organizations_org_id_api_keys`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostOrganizationsOrgIdApiKeysArgs {
+    /// Request body.
+    pub body: OrgApiKeyCreateRequest,
+}
+
 /// POST /organizations/{org_id}/api_keys
 /// Create organization API key
 ///
@@ -1179,14 +1323,14 @@ pub fn post_organizations_org_id_api_keys_execute(
 
 pub fn post_organizations_org_id_api_keys(
     client: &SimpleHttpClient,
-    body: &OrgApiKeyCreateRequest,
+    args: &PostOrganizationsOrgIdApiKeysArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OrgApiKeyCreateResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_organizations_org_id_api_keys_builder(client, body)?;
+    let builder = post_organizations_org_id_api_keys_builder(client, &args.body)?;
     post_organizations_org_id_api_keys_execute(builder)
 }
 
@@ -1202,7 +1346,7 @@ pub fn delete_organizations_org_id_api_keys_key_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/organizations/{org_id}/api_keys/{}",
+        "https://console.neon.tech/api/v2/organizations/{}/api_keys/{}",
         key_id,
     );
 
@@ -1250,9 +1394,17 @@ pub fn delete_organizations_org_id_api_keys_key_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1274,6 +1426,13 @@ pub fn delete_organizations_org_id_api_keys_key_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_organizations_org_id_api_keys_key_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteOrganizationsOrgIdApiKeysKeyIdArgs {
+    /// Path parameter: key_id
+    pub key_id: String,
+}
+
 /// DELETE /organizations/{org_id}/api_keys/{key_id}
 /// Revoke organization API key
 ///
@@ -1286,14 +1445,14 @@ pub fn delete_organizations_org_id_api_keys_key_id_execute(
 
 pub fn delete_organizations_org_id_api_keys_key_id(
     client: &SimpleHttpClient,
-    key_id: &str,
+    args: &DeleteOrganizationsOrgIdApiKeysKeyIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OrgApiKeyRevokeResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = delete_organizations_org_id_api_keys_key_id_builder(client, key_id)?;
+    let builder = delete_organizations_org_id_api_keys_key_id_builder(client, &args.key_id)?;
     delete_organizations_org_id_api_keys_key_id_execute(builder)
 }
 
@@ -1307,7 +1466,7 @@ pub fn get_organizations_org_id_invitations_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/organizations/{org_id}/invitations",);
+    let url = format!("https://console.neon.tech/api/v2/organizations/{}/invitations",);
 
     // Build request
     let builder = client
@@ -1355,9 +1514,17 @@ pub fn get_organizations_org_id_invitations_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1414,7 +1581,7 @@ pub fn post_organizations_org_id_invitations_builder(
     body: &OrganizationInvitesCreateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/organizations/{org_id}/invitations",);
+    let url = format!("https://console.neon.tech/api/v2/organizations/{}/invitations",);
 
     // Build request
     let builder = client
@@ -1464,9 +1631,17 @@ pub fn post_organizations_org_id_invitations_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1488,6 +1663,13 @@ pub fn post_organizations_org_id_invitations_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_organizations_org_id_invitations`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostOrganizationsOrgIdInvitationsArgs {
+    /// Request body.
+    pub body: OrganizationInvitesCreateRequest,
+}
+
 /// POST /organizations/{org_id}/invitations
 /// Create organization invitations
 ///
@@ -1500,7 +1682,7 @@ pub fn post_organizations_org_id_invitations_execute(
 
 pub fn post_organizations_org_id_invitations(
     client: &SimpleHttpClient,
-    body: &OrganizationInvitesCreateRequest,
+    args: &PostOrganizationsOrgIdInvitationsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<OrganizationInvitationsResponse>, ApiError>,
@@ -1509,7 +1691,7 @@ pub fn post_organizations_org_id_invitations(
         + 'static,
     ApiError,
 > {
-    let builder = post_organizations_org_id_invitations_builder(client, body)?;
+    let builder = post_organizations_org_id_invitations_builder(client, &args.body)?;
     post_organizations_org_id_invitations_execute(builder)
 }
 
@@ -1525,7 +1707,7 @@ pub fn get_organizations_org_id_members_builder(
     limit: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/organizations/{org_id}/members",);
+    let url = format!("https://console.neon.tech/api/v2/organizations/{}/members",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1583,9 +1765,17 @@ pub fn get_organizations_org_id_members_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1604,6 +1794,15 @@ pub fn get_organizations_org_id_members_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_organizations_org_id_members`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetOrganizationsOrgIdMembersArgs {
+    /// Query parameter: sort_by
+    pub sort_by: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<i32>,
+}
+
 /// GET /organizations/{org_id}/members
 /// Retrieve organization members details
 ///
@@ -1616,13 +1815,13 @@ pub fn get_organizations_org_id_members_execute(
 
 pub fn get_organizations_org_id_members(
     client: &SimpleHttpClient,
-    sort_by: Option<&str>,
-    limit: Option<i32>,
+    args: &GetOrganizationsOrgIdMembersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_organizations_org_id_members_builder(client, sort_by, limit)?;
+    let builder =
+        get_organizations_org_id_members_builder(client, args.sort_by.as_deref(), args.limit)?;
     get_organizations_org_id_members_execute(builder)
 }
 
@@ -1636,7 +1835,7 @@ pub fn get_organizations_org_id_members_member_id_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/organizations/{org_id}/members/{member_id}",);
+    let url = format!("https://console.neon.tech/api/v2/organizations/{}/members/{}",);
 
     // Build request
     let builder = client
@@ -1680,9 +1879,17 @@ pub fn get_organizations_org_id_members_member_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1735,7 +1942,7 @@ pub fn patch_organizations_org_id_members_member_id_builder(
     body: &OrganizationMemberUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/organizations/{org_id}/members/{member_id}",);
+    let url = format!("https://console.neon.tech/api/v2/organizations/{}/members/{}",);
 
     // Build request
     let builder = client
@@ -1781,9 +1988,17 @@ pub fn patch_organizations_org_id_members_member_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1805,6 +2020,13 @@ pub fn patch_organizations_org_id_members_member_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_organizations_org_id_members_member_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchOrganizationsOrgIdMembersMemberIdArgs {
+    /// Request body.
+    pub body: OrganizationMemberUpdateRequest,
+}
+
 /// PATCH /organizations/{org_id}/members/{member_id}
 /// Update role for organization member
 ///
@@ -1817,12 +2039,12 @@ pub fn patch_organizations_org_id_members_member_id_execute(
 
 pub fn patch_organizations_org_id_members_member_id(
     client: &SimpleHttpClient,
-    body: &OrganizationMemberUpdateRequest,
+    args: &PatchOrganizationsOrgIdMembersMemberIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Member>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_organizations_org_id_members_member_id_builder(client, body)?;
+    let builder = patch_organizations_org_id_members_member_id_builder(client, &args.body)?;
     patch_organizations_org_id_members_member_id_execute(builder)
 }
 
@@ -1836,7 +2058,7 @@ pub fn delete_organizations_org_id_members_member_id_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/organizations/{org_id}/members/{member_id}",);
+    let url = format!("https://console.neon.tech/api/v2/organizations/{}/members/{}",);
 
     // Build request
     let builder = client
@@ -1882,9 +2104,17 @@ pub fn delete_organizations_org_id_members_member_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1938,9 +2168,8 @@ pub fn get_organizations_org_id_vpc_region_region_id_vpc_endpoints_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints",
-    );
+    let url =
+        format!("https://console.neon.tech/api/v2/organizations/{}/vpc/region/{}/vpc_endpoints",);
 
     // Build request
     let builder = client
@@ -1986,9 +2215,17 @@ pub fn get_organizations_org_id_vpc_region_region_id_vpc_endpoints_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2043,7 +2280,7 @@ pub fn get_organizations_org_id_vpc_region_region_id_vpc_endpoints_vpc_endpoint_
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}",
+        "https://console.neon.tech/api/v2/organizations/{}/vpc/region/{}/vpc_endpoints/{}",
     );
 
     // Build request
@@ -2090,9 +2327,17 @@ pub fn get_organizations_org_id_vpc_region_region_id_vpc_endpoints_vpc_endpoint_
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2151,7 +2396,7 @@ pub fn post_organizations_org_id_vpc_region_region_id_vpc_endpoints_vpc_endpoint
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}",
+        "https://console.neon.tech/api/v2/organizations/{}/vpc/region/{}/vpc_endpoints/{}",
     );
 
     // Build request
@@ -2198,9 +2443,17 @@ pub fn post_organizations_org_id_vpc_region_region_id_vpc_endpoints_vpc_endpoint
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2219,6 +2472,13 @@ pub fn post_organizations_org_id_vpc_region_region_id_vpc_endpoints_vpc_endpoint
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_organizations_org_id_vpc_region_region_id_vpc_endpoints_vpc_endpoint_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostOrganizationsOrgIdVpcRegionRegionIdVpcEndpointsVpcEndpointIdArgs {
+    /// Request body.
+    pub body: VPCEndpointAssignment,
+}
+
 /// POST /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}
 /// Assign or update VPC endpoint
 ///
@@ -2231,14 +2491,14 @@ pub fn post_organizations_org_id_vpc_region_region_id_vpc_endpoints_vpc_endpoint
 
 pub fn post_organizations_org_id_vpc_region_region_id_vpc_endpoints_vpc_endpoint_id(
     client: &SimpleHttpClient,
-    body: &VPCEndpointAssignment,
+    args: &PostOrganizationsOrgIdVpcRegionRegionIdVpcEndpointsVpcEndpointIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         post_organizations_org_id_vpc_region_region_id_vpc_endpoints_vpc_endpoint_id_builder(
-            client, body,
+            client, &args.body,
         )?;
     post_organizations_org_id_vpc_region_region_id_vpc_endpoints_vpc_endpoint_id_execute(builder)
 }
@@ -2254,7 +2514,7 @@ pub fn delete_organizations_org_id_vpc_region_region_id_vpc_endpoints_vpc_endpoi
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}",
+        "https://console.neon.tech/api/v2/organizations/{}/vpc/region/{}/vpc_endpoints/{}",
     );
 
     // Build request
@@ -2299,9 +2559,17 @@ pub fn delete_organizations_org_id_vpc_region_region_id_vpc_endpoints_vpc_endpoi
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2353,7 +2621,7 @@ pub fn get_organizations_org_id_vpc_vpc_endpoints_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/organizations/{org_id}/vpc/vpc_endpoints",);
+    let url = format!("https://console.neon.tech/api/v2/organizations/{}/vpc/vpc_endpoints",);
 
     // Build request
     let builder = client
@@ -2401,9 +2669,17 @@ pub fn get_organizations_org_id_vpc_vpc_endpoints_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2460,7 +2736,7 @@ pub fn post_organizations_source_org_id_projects_transfer_builder(
     body: &TransferProjectsToOrganizationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/organizations/{source_org_id}/projects/transfer",);
+    let url = format!("https://console.neon.tech/api/v2/organizations/{}/projects/transfer",);
 
     // Build request
     let builder = client
@@ -2508,9 +2784,17 @@ pub fn post_organizations_source_org_id_projects_transfer_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2532,6 +2816,13 @@ pub fn post_organizations_source_org_id_projects_transfer_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_organizations_source_org_id_projects_transfer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostOrganizationsSourceOrgIdProjectsTransferArgs {
+    /// Request body.
+    pub body: TransferProjectsToOrganizationRequest,
+}
+
 /// POST /organizations/{source_org_id}/projects/transfer
 /// Transfer projects between organizations
 ///
@@ -2544,14 +2835,14 @@ pub fn post_organizations_source_org_id_projects_transfer_execute(
 
 pub fn post_organizations_source_org_id_projects_transfer(
     client: &SimpleHttpClient,
-    body: &TransferProjectsToOrganizationRequest,
+    args: &PostOrganizationsSourceOrgIdProjectsTransferArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EmptyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_organizations_source_org_id_projects_transfer_builder(client, body)?;
+    let builder = post_organizations_source_org_id_projects_transfer_builder(client, &args.body)?;
     post_organizations_source_org_id_projects_transfer_execute(builder)
 }
 
@@ -2570,7 +2861,7 @@ pub fn get_projects_builder(
     recoverable: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects",);
+    let url = format!("https://console.neon.tech/api/v2/projects",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2637,9 +2928,17 @@ pub fn get_projects_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2658,6 +2957,21 @@ pub fn get_projects_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_projects`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectsArgs {
+    /// Query parameter: cursor
+    pub cursor: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<i32>,
+    /// Query parameter: search
+    pub search: Option<String>,
+    /// Query parameter: org_id
+    pub org_id: Option<String>,
+    /// Query parameter: recoverable
+    pub recoverable: Option<bool>,
+}
+
 /// GET /projects
 /// List projects
 ///
@@ -2670,16 +2984,19 @@ pub fn get_projects_execute(
 
 pub fn get_projects(
     client: &SimpleHttpClient,
-    cursor: Option<&str>,
-    limit: Option<i32>,
-    search: Option<&str>,
-    org_id: Option<&str>,
-    recoverable: Option<bool>,
+    args: &GetProjectsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_projects_builder(client, cursor, limit, search, org_id, recoverable)?;
+    let builder = get_projects_builder(
+        client,
+        args.cursor.as_deref(),
+        args.limit,
+        args.search.as_deref(),
+        args.org_id.as_deref(),
+        args.recoverable,
+    )?;
     get_projects_execute(builder)
 }
 
@@ -2694,7 +3011,7 @@ pub fn post_projects_builder(
     body: &ProjectCreateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects",);
+    let url = format!("https://console.neon.tech/api/v2/projects",);
 
     // Build request
     let builder = client
@@ -2740,9 +3057,17 @@ pub fn post_projects_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2761,6 +3086,13 @@ pub fn post_projects_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsArgs {
+    /// Request body.
+    pub body: ProjectCreateRequest,
+}
+
 /// POST /projects
 /// Create project
 ///
@@ -2773,12 +3105,12 @@ pub fn post_projects_execute(
 
 pub fn post_projects(
     client: &SimpleHttpClient,
-    body: &ProjectCreateRequest,
+    args: &PostProjectsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_projects_builder(client, body)?;
+    let builder = post_projects_builder(client, &args.body)?;
     post_projects_execute(builder)
 }
 
@@ -2793,7 +3125,7 @@ pub fn post_projects_auth_create_builder(
     body: &NeonAuthCreateIntegrationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/auth/create",);
+    let url = format!("https://console.neon.tech/api/v2/projects/auth/create",);
 
     // Build request
     let builder = client
@@ -2843,9 +3175,17 @@ pub fn post_projects_auth_create_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2867,6 +3207,13 @@ pub fn post_projects_auth_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_auth_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsAuthCreateArgs {
+    /// Request body.
+    pub body: NeonAuthCreateIntegrationRequest,
+}
+
 /// POST /projects/auth/create
 /// Create Neon Auth integration
 ///
@@ -2879,7 +3226,7 @@ pub fn post_projects_auth_create_execute(
 
 pub fn post_projects_auth_create(
     client: &SimpleHttpClient,
-    body: &NeonAuthCreateIntegrationRequest,
+    args: &PostProjectsAuthCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NeonAuthCreateIntegrationResponse>, ApiError>,
@@ -2888,7 +3235,7 @@ pub fn post_projects_auth_create(
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_auth_create_builder(client, body)?;
+    let builder = post_projects_auth_create_builder(client, &args.body)?;
     post_projects_auth_create_execute(builder)
 }
 
@@ -2903,7 +3250,7 @@ pub fn post_projects_auth_keys_builder(
     body: &NeonAuthCreateAuthProviderSDKKeysRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/auth/keys",);
+    let url = format!("https://console.neon.tech/api/v2/projects/auth/keys",);
 
     // Build request
     let builder = client
@@ -2953,9 +3300,17 @@ pub fn post_projects_auth_keys_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2977,6 +3332,13 @@ pub fn post_projects_auth_keys_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_auth_keys`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsAuthKeysArgs {
+    /// Request body.
+    pub body: NeonAuthCreateAuthProviderSDKKeysRequest,
+}
+
 /// POST /projects/auth/keys
 /// Create Auth Provider SDK keys
 ///
@@ -2989,7 +3351,7 @@ pub fn post_projects_auth_keys_execute(
 
 pub fn post_projects_auth_keys(
     client: &SimpleHttpClient,
-    body: &NeonAuthCreateAuthProviderSDKKeysRequest,
+    args: &PostProjectsAuthKeysArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NeonAuthCreateIntegrationResponse>, ApiError>,
@@ -2998,7 +3360,7 @@ pub fn post_projects_auth_keys(
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_auth_keys_builder(client, body)?;
+    let builder = post_projects_auth_keys_builder(client, &args.body)?;
     post_projects_auth_keys_execute(builder)
 }
 
@@ -3013,7 +3375,7 @@ pub fn post_projects_auth_transfer_ownership_builder(
     body: &NeonAuthTransferAuthProviderProjectRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/auth/transfer_ownership",);
+    let url = format!("https://console.neon.tech/api/v2/projects/auth/transfer_ownership",);
 
     // Build request
     let builder = client
@@ -3063,9 +3425,17 @@ pub fn post_projects_auth_transfer_ownership_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3088,6 +3458,13 @@ pub fn post_projects_auth_transfer_ownership_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_auth_transfer_ownership`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsAuthTransferOwnershipArgs {
+    /// Request body.
+    pub body: NeonAuthTransferAuthProviderProjectRequest,
+}
+
 /// POST /projects/auth/transfer_ownership
 /// Transfer Neon-managed auth project to your own account
 ///
@@ -3100,7 +3477,7 @@ pub fn post_projects_auth_transfer_ownership_execute(
 
 pub fn post_projects_auth_transfer_ownership(
     client: &SimpleHttpClient,
-    body: &NeonAuthTransferAuthProviderProjectRequest,
+    args: &PostProjectsAuthTransferOwnershipArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NeonAuthTransferAuthProviderProjectResponse>, ApiError>,
@@ -3109,7 +3486,7 @@ pub fn post_projects_auth_transfer_ownership(
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_auth_transfer_ownership_builder(client, body)?;
+    let builder = post_projects_auth_transfer_ownership_builder(client, &args.body)?;
     post_projects_auth_transfer_ownership_execute(builder)
 }
 
@@ -3124,7 +3501,7 @@ pub fn post_projects_auth_user_builder(
     body: &NeonAuthCreateNewUserRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/auth/user",);
+    let url = format!("https://console.neon.tech/api/v2/projects/auth/user",);
 
     // Build request
     let builder = client
@@ -3174,9 +3551,17 @@ pub fn post_projects_auth_user_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3198,6 +3583,13 @@ pub fn post_projects_auth_user_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_auth_user`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsAuthUserArgs {
+    /// Request body.
+    pub body: NeonAuthCreateNewUserRequest,
+}
+
 /// POST /projects/auth/user
 /// Create new auth user
 ///
@@ -3210,7 +3602,7 @@ pub fn post_projects_auth_user_execute(
 
 pub fn post_projects_auth_user(
     client: &SimpleHttpClient,
-    body: &NeonAuthCreateNewUserRequest,
+    args: &PostProjectsAuthUserArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NeonAuthCreateNewUserResponse>, ApiError>,
@@ -3219,7 +3611,7 @@ pub fn post_projects_auth_user(
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_auth_user_builder(client, body)?;
+    let builder = post_projects_auth_user_builder(client, &args.body)?;
     post_projects_auth_user_execute(builder)
 }
 
@@ -3236,7 +3628,7 @@ pub fn get_projects_shared_builder(
     search: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/shared",);
+    let url = format!("https://console.neon.tech/api/v2/projects/shared",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3297,9 +3689,17 @@ pub fn get_projects_shared_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3318,6 +3718,17 @@ pub fn get_projects_shared_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_projects_shared`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectsSharedArgs {
+    /// Query parameter: cursor
+    pub cursor: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<i32>,
+    /// Query parameter: search
+    pub search: Option<String>,
+}
+
 /// GET /projects/shared
 /// List shared projects
 ///
@@ -3330,14 +3741,17 @@ pub fn get_projects_shared_execute(
 
 pub fn get_projects_shared(
     client: &SimpleHttpClient,
-    cursor: Option<&str>,
-    limit: Option<i32>,
-    search: Option<&str>,
+    args: &GetProjectsSharedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_projects_shared_builder(client, cursor, limit, search)?;
+    let builder = get_projects_shared_builder(
+        client,
+        args.cursor.as_deref(),
+        args.limit,
+        args.search.as_deref(),
+    )?;
     get_projects_shared_execute(builder)
 }
 
@@ -3351,7 +3765,7 @@ pub fn get_projects_project_id_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}",);
 
     // Build request
     let builder = client
@@ -3397,9 +3811,17 @@ pub fn get_projects_project_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3454,7 +3876,7 @@ pub fn patch_projects_project_id_builder(
     body: &ProjectUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}",);
 
     // Build request
     let builder = client
@@ -3500,9 +3922,17 @@ pub fn patch_projects_project_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3521,6 +3951,13 @@ pub fn patch_projects_project_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_projects_project_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchProjectsProjectIdArgs {
+    /// Request body.
+    pub body: ProjectUpdateRequest,
+}
+
 /// PATCH /projects/{project_id}
 /// Update project
 ///
@@ -3533,12 +3970,12 @@ pub fn patch_projects_project_id_execute(
 
 pub fn patch_projects_project_id(
     client: &SimpleHttpClient,
-    body: &ProjectUpdateRequest,
+    args: &PatchProjectsProjectIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_projects_project_id_builder(client, body)?;
+    let builder = patch_projects_project_id_builder(client, &args.body)?;
     patch_projects_project_id_execute(builder)
 }
 
@@ -3552,7 +3989,7 @@ pub fn delete_projects_project_id_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}",);
 
     // Build request
     let builder = client
@@ -3598,9 +4035,17 @@ pub fn delete_projects_project_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3658,7 +4103,7 @@ pub fn get_projects_project_id_advisors_builder(
     min_severity: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/advisors",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/advisors",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3722,9 +4167,17 @@ pub fn get_projects_project_id_advisors_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3743,6 +4196,19 @@ pub fn get_projects_project_id_advisors_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_projects_project_id_advisors`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectsProjectIdAdvisorsArgs {
+    /// Query parameter: branch_id
+    pub branch_id: Option<String>,
+    /// Query parameter: database_name
+    pub database_name: Option<String>,
+    /// Query parameter: category
+    pub category: Option<String>,
+    /// Query parameter: min_severity
+    pub min_severity: Option<String>,
+}
+
 /// GET /projects/{project_id}/advisors
 /// Get advisor issues
 ///
@@ -3755,20 +4221,17 @@ pub fn get_projects_project_id_advisors_execute(
 
 pub fn get_projects_project_id_advisors(
     client: &SimpleHttpClient,
-    branch_id: Option<&str>,
-    database_name: Option<&str>,
-    category: Option<&str>,
-    min_severity: Option<&str>,
+    args: &GetProjectsProjectIdAdvisorsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = get_projects_project_id_advisors_builder(
         client,
-        branch_id,
-        database_name,
-        category,
-        min_severity,
+        args.branch_id.as_deref(),
+        args.database_name.as_deref(),
+        args.category.as_deref(),
+        args.min_severity.as_deref(),
     )?;
     get_projects_project_id_advisors_execute(builder)
 }
@@ -3783,7 +4246,7 @@ pub fn get_projects_project_id_auth_domains_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/auth/domains",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/auth/domains",);
 
     // Build request
     let builder = client
@@ -3831,9 +4294,17 @@ pub fn get_projects_project_id_auth_domains_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3890,7 +4361,7 @@ pub fn post_projects_project_id_auth_domains_builder(
     body: &NeonAuthAddDomainToRedirectURIWhitelistRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/auth/domains",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/auth/domains",);
 
     // Build request
     let builder = client
@@ -3936,9 +4407,17 @@ pub fn post_projects_project_id_auth_domains_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3957,6 +4436,13 @@ pub fn post_projects_project_id_auth_domains_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_auth_domains`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdAuthDomainsArgs {
+    /// Request body.
+    pub body: NeonAuthAddDomainToRedirectURIWhitelistRequest,
+}
+
 /// POST /projects/{project_id}/auth/domains
 /// Add domain to redirect_uri whitelist
 ///
@@ -3969,12 +4455,12 @@ pub fn post_projects_project_id_auth_domains_execute(
 
 pub fn post_projects_project_id_auth_domains(
     client: &SimpleHttpClient,
-    body: &NeonAuthAddDomainToRedirectURIWhitelistRequest,
+    args: &PostProjectsProjectIdAuthDomainsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_projects_project_id_auth_domains_builder(client, body)?;
+    let builder = post_projects_project_id_auth_domains_builder(client, &args.body)?;
     post_projects_project_id_auth_domains_execute(builder)
 }
 
@@ -3989,7 +4475,7 @@ pub fn delete_projects_project_id_auth_domains_builder(
     body: &NeonAuthDeleteDomainFromRedirectURIWhitelistRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/auth/domains",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/auth/domains",);
 
     // Build request
     let builder = client
@@ -4035,9 +4521,17 @@ pub fn delete_projects_project_id_auth_domains_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4056,6 +4550,13 @@ pub fn delete_projects_project_id_auth_domains_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_projects_project_id_auth_domains`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteProjectsProjectIdAuthDomainsArgs {
+    /// Request body.
+    pub body: NeonAuthDeleteDomainFromRedirectURIWhitelistRequest,
+}
+
 /// DELETE /projects/{project_id}/auth/domains
 /// Delete domain from redirect_uri whitelist
 ///
@@ -4068,12 +4569,12 @@ pub fn delete_projects_project_id_auth_domains_execute(
 
 pub fn delete_projects_project_id_auth_domains(
     client: &SimpleHttpClient,
-    body: &NeonAuthDeleteDomainFromRedirectURIWhitelistRequest,
+    args: &DeleteProjectsProjectIdAuthDomainsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_projects_project_id_auth_domains_builder(client, body)?;
+    let builder = delete_projects_project_id_auth_domains_builder(client, &args.body)?;
     delete_projects_project_id_auth_domains_execute(builder)
 }
 
@@ -4087,7 +4588,7 @@ pub fn get_projects_project_id_auth_email_server_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/auth/email_server",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/auth/email_server",);
 
     // Build request
     let builder = client
@@ -4133,9 +4634,17 @@ pub fn get_projects_project_id_auth_email_server_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4190,7 +4699,7 @@ pub fn patch_projects_project_id_auth_email_server_builder(
     body: &NeonAuthEmailServerConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/auth/email_server",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/auth/email_server",);
 
     // Build request
     let builder = client
@@ -4238,9 +4747,17 @@ pub fn patch_projects_project_id_auth_email_server_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4262,6 +4779,13 @@ pub fn patch_projects_project_id_auth_email_server_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_projects_project_id_auth_email_server`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchProjectsProjectIdAuthEmailServerArgs {
+    /// Request body.
+    pub body: NeonAuthEmailServerConfig,
+}
+
 /// PATCH /projects/{project_id}/auth/email_server
 /// Update email server configuration
 ///
@@ -4274,14 +4798,14 @@ pub fn patch_projects_project_id_auth_email_server_execute(
 
 pub fn patch_projects_project_id_auth_email_server(
     client: &SimpleHttpClient,
-    body: &NeonAuthEmailServerConfig,
+    args: &PatchProjectsProjectIdAuthEmailServerArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NeonAuthEmailServerConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = patch_projects_project_id_auth_email_server_builder(client, body)?;
+    let builder = patch_projects_project_id_auth_email_server_builder(client, &args.body)?;
     patch_projects_project_id_auth_email_server_execute(builder)
 }
 
@@ -4298,7 +4822,7 @@ pub fn delete_projects_project_id_auth_integration_auth_provider_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/projects/{}/auth/integration/{}",
+        "https://console.neon.tech/api/v2/projects/{}/auth/integration/{}",
         project_id, auth_provider,
     );
 
@@ -4344,9 +4868,17 @@ pub fn delete_projects_project_id_auth_integration_auth_provider_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4365,6 +4897,15 @@ pub fn delete_projects_project_id_auth_integration_auth_provider_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_projects_project_id_auth_integration_auth_provider`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteProjectsProjectIdAuthIntegrationAuthProviderArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: auth_provider
+    pub auth_provider: String,
+}
+
 /// DELETE /projects/{project_id}/auth/integration/{auth_provider}
 /// Delete integration with auth provider
 ///
@@ -4377,16 +4918,15 @@ pub fn delete_projects_project_id_auth_integration_auth_provider_execute(
 
 pub fn delete_projects_project_id_auth_integration_auth_provider(
     client: &SimpleHttpClient,
-    project_id: &str,
-    auth_provider: &str,
+    args: &DeleteProjectsProjectIdAuthIntegrationAuthProviderArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = delete_projects_project_id_auth_integration_auth_provider_builder(
         client,
-        project_id,
-        auth_provider,
+        &args.project_id,
+        &args.auth_provider,
     )?;
     delete_projects_project_id_auth_integration_auth_provider_execute(builder)
 }
@@ -4403,7 +4943,7 @@ pub fn get_projects_project_id_auth_integrations_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/projects/{}/auth/integrations",
+        "https://console.neon.tech/api/v2/projects/{}/auth/integrations",
         project_id,
     );
 
@@ -4453,9 +4993,17 @@ pub fn get_projects_project_id_auth_integrations_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4477,6 +5025,13 @@ pub fn get_projects_project_id_auth_integrations_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_projects_project_id_auth_integrations`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectsProjectIdAuthIntegrationsArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+}
+
 /// GET /projects/{project_id}/auth/integrations
 /// Lists active integrations with auth providers
 ///
@@ -4489,7 +5044,7 @@ pub fn get_projects_project_id_auth_integrations_execute(
 
 pub fn get_projects_project_id_auth_integrations(
     client: &SimpleHttpClient,
-    project_id: &str,
+    args: &GetProjectsProjectIdAuthIntegrationsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListNeonAuthIntegrationsResponse>, ApiError>,
@@ -4498,7 +5053,7 @@ pub fn get_projects_project_id_auth_integrations(
         + 'static,
     ApiError,
 > {
-    let builder = get_projects_project_id_auth_integrations_builder(client, project_id)?;
+    let builder = get_projects_project_id_auth_integrations_builder(client, &args.project_id)?;
     get_projects_project_id_auth_integrations_execute(builder)
 }
 
@@ -4512,7 +5067,7 @@ pub fn get_projects_project_id_auth_oauth_providers_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/auth/oauth_providers",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/auth/oauth_providers",);
 
     // Build request
     let builder = client
@@ -4560,9 +5115,17 @@ pub fn get_projects_project_id_auth_oauth_providers_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4619,7 +5182,7 @@ pub fn post_projects_project_id_auth_oauth_providers_builder(
     body: &NeonAuthAddOAuthProviderRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/auth/oauth_providers",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/auth/oauth_providers",);
 
     // Build request
     let builder = client
@@ -4667,9 +5230,17 @@ pub fn post_projects_project_id_auth_oauth_providers_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4691,6 +5262,13 @@ pub fn post_projects_project_id_auth_oauth_providers_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_auth_oauth_providers`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdAuthOauthProvidersArgs {
+    /// Request body.
+    pub body: NeonAuthAddOAuthProviderRequest,
+}
+
 /// POST /projects/{project_id}/auth/oauth_providers
 /// Add a OAuth provider
 ///
@@ -4703,14 +5281,14 @@ pub fn post_projects_project_id_auth_oauth_providers_execute(
 
 pub fn post_projects_project_id_auth_oauth_providers(
     client: &SimpleHttpClient,
-    body: &NeonAuthAddOAuthProviderRequest,
+    args: &PostProjectsProjectIdAuthOauthProvidersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NeonAuthOauthProvider>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_project_id_auth_oauth_providers_builder(client, body)?;
+    let builder = post_projects_project_id_auth_oauth_providers_builder(client, &args.body)?;
     post_projects_project_id_auth_oauth_providers_execute(builder)
 }
 
@@ -4725,9 +5303,7 @@ pub fn patch_projects_project_id_auth_oauth_providers_oauth_provider_id_builder(
     body: &NeonAuthUpdateOAuthProviderRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/auth/oauth_providers/{oauth_provider_id}",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/auth/oauth_providers/{}",);
 
     // Build request
     let builder = client
@@ -4775,9 +5351,17 @@ pub fn patch_projects_project_id_auth_oauth_providers_oauth_provider_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4799,6 +5383,13 @@ pub fn patch_projects_project_id_auth_oauth_providers_oauth_provider_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_projects_project_id_auth_oauth_providers_oauth_provider_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchProjectsProjectIdAuthOauthProvidersOauthProviderIdArgs {
+    /// Request body.
+    pub body: NeonAuthUpdateOAuthProviderRequest,
+}
+
 /// PATCH /projects/{project_id}/auth/oauth_providers/{oauth_provider_id}
 /// Update OAuth provider
 ///
@@ -4811,15 +5402,16 @@ pub fn patch_projects_project_id_auth_oauth_providers_oauth_provider_id_execute(
 
 pub fn patch_projects_project_id_auth_oauth_providers_oauth_provider_id(
     client: &SimpleHttpClient,
-    body: &NeonAuthUpdateOAuthProviderRequest,
+    args: &PatchProjectsProjectIdAuthOauthProvidersOauthProviderIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NeonAuthOauthProvider>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        patch_projects_project_id_auth_oauth_providers_oauth_provider_id_builder(client, body)?;
+    let builder = patch_projects_project_id_auth_oauth_providers_oauth_provider_id_builder(
+        client, &args.body,
+    )?;
     patch_projects_project_id_auth_oauth_providers_oauth_provider_id_execute(builder)
 }
 
@@ -4833,9 +5425,7 @@ pub fn delete_projects_project_id_auth_oauth_providers_oauth_provider_id_builder
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/auth/oauth_providers/{oauth_provider_id}",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/auth/oauth_providers/{}",);
 
     // Build request
     let builder = client
@@ -4879,9 +5469,17 @@ pub fn delete_projects_project_id_auth_oauth_providers_oauth_provider_id_execute
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4934,7 +5532,7 @@ pub fn delete_projects_project_id_auth_users_auth_user_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/projects/{}/auth/users/{}",
+        "https://console.neon.tech/api/v2/projects/{}/auth/users/{}",
         project_id, auth_user_id,
     );
 
@@ -4980,9 +5578,17 @@ pub fn delete_projects_project_id_auth_users_auth_user_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5001,6 +5607,15 @@ pub fn delete_projects_project_id_auth_users_auth_user_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_projects_project_id_auth_users_auth_user_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteProjectsProjectIdAuthUsersAuthUserIdArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: auth_user_id
+    pub auth_user_id: String,
+}
+
 /// DELETE /projects/{project_id}/auth/users/{auth_user_id}
 /// Delete auth user
 ///
@@ -5013,16 +5628,15 @@ pub fn delete_projects_project_id_auth_users_auth_user_id_execute(
 
 pub fn delete_projects_project_id_auth_users_auth_user_id(
     client: &SimpleHttpClient,
-    project_id: &str,
-    auth_user_id: &str,
+    args: &DeleteProjectsProjectIdAuthUsersAuthUserIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = delete_projects_project_id_auth_users_auth_user_id_builder(
         client,
-        project_id,
-        auth_user_id,
+        &args.project_id,
+        &args.auth_user_id,
     )?;
     delete_projects_project_id_auth_users_auth_user_id_execute(builder)
 }
@@ -5039,7 +5653,7 @@ pub fn get_projects_project_id_available_preload_libraries_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/projects/{}/available_preload_libraries",
+        "https://console.neon.tech/api/v2/projects/{}/available_preload_libraries",
         project_id,
     );
 
@@ -5087,9 +5701,17 @@ pub fn get_projects_project_id_available_preload_libraries_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5111,6 +5733,13 @@ pub fn get_projects_project_id_available_preload_libraries_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_projects_project_id_available_preload_libraries`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectsProjectIdAvailablePreloadLibrariesArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+}
+
 /// GET /projects/{project_id}/available_preload_libraries
 /// Return available shared preload libraries
 ///
@@ -5123,14 +5752,15 @@ pub fn get_projects_project_id_available_preload_libraries_execute(
 
 pub fn get_projects_project_id_available_preload_libraries(
     client: &SimpleHttpClient,
-    project_id: &str,
+    args: &GetProjectsProjectIdAvailablePreloadLibrariesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AvailablePreloadLibraries>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_projects_project_id_available_preload_libraries_builder(client, project_id)?;
+    let builder =
+        get_projects_project_id_available_preload_libraries_builder(client, &args.project_id)?;
     get_projects_project_id_available_preload_libraries_execute(builder)
 }
 
@@ -5145,7 +5775,7 @@ pub fn post_projects_project_id_branch_anonymized_builder(
     body: &BranchAnonymizedCreateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/branch_anonymized",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branch_anonymized",);
 
     // Build request
     let builder = client
@@ -5191,9 +5821,17 @@ pub fn post_projects_project_id_branch_anonymized_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5212,6 +5850,13 @@ pub fn post_projects_project_id_branch_anonymized_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_branch_anonymized`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdBranchAnonymizedArgs {
+    /// Request body.
+    pub body: BranchAnonymizedCreateRequest,
+}
+
 /// POST /projects/{project_id}/branch_anonymized
 /// Create anonymized branch
 ///
@@ -5224,12 +5869,12 @@ pub fn post_projects_project_id_branch_anonymized_execute(
 
 pub fn post_projects_project_id_branch_anonymized(
     client: &SimpleHttpClient,
-    body: &BranchAnonymizedCreateRequest,
+    args: &PostProjectsProjectIdBranchAnonymizedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_projects_project_id_branch_anonymized_builder(client, body)?;
+    let builder = post_projects_project_id_branch_anonymized_builder(client, &args.body)?;
     post_projects_project_id_branch_anonymized_execute(builder)
 }
 
@@ -5245,7 +5890,7 @@ pub fn get_projects_project_id_branches_builder(
     sort_by: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/branches",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -5303,9 +5948,17 @@ pub fn get_projects_project_id_branches_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5324,6 +5977,15 @@ pub fn get_projects_project_id_branches_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_projects_project_id_branches`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectsProjectIdBranchesArgs {
+    /// Query parameter: search
+    pub search: Option<String>,
+    /// Query parameter: sort_by
+    pub sort_by: Option<String>,
+}
+
 /// GET /projects/{project_id}/branches
 /// List branches
 ///
@@ -5336,13 +5998,16 @@ pub fn get_projects_project_id_branches_execute(
 
 pub fn get_projects_project_id_branches(
     client: &SimpleHttpClient,
-    search: Option<&str>,
-    sort_by: Option<&str>,
+    args: &GetProjectsProjectIdBranchesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_projects_project_id_branches_builder(client, search, sort_by)?;
+    let builder = get_projects_project_id_branches_builder(
+        client,
+        args.search.as_deref(),
+        args.sort_by.as_deref(),
+    )?;
     get_projects_project_id_branches_execute(builder)
 }
 
@@ -5356,7 +6021,7 @@ pub fn post_projects_project_id_branches_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/branches",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches",);
 
     // Build request
     let builder = client
@@ -5400,9 +6065,17 @@ pub fn post_projects_project_id_branches_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5452,7 +6125,7 @@ pub fn get_projects_project_id_branches_count_builder(
     search: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/branches/count",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/count",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -5507,9 +6180,17 @@ pub fn get_projects_project_id_branches_count_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5528,6 +6209,13 @@ pub fn get_projects_project_id_branches_count_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_projects_project_id_branches_count`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectsProjectIdBranchesCountArgs {
+    /// Query parameter: search
+    pub search: Option<String>,
+}
+
 /// GET /projects/{project_id}/branches/count
 /// Retrieve number of branches
 ///
@@ -5540,12 +6228,12 @@ pub fn get_projects_project_id_branches_count_execute(
 
 pub fn get_projects_project_id_branches_count(
     client: &SimpleHttpClient,
-    search: Option<&str>,
+    args: &GetProjectsProjectIdBranchesCountArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_projects_project_id_branches_count_builder(client, search)?;
+    let builder = get_projects_project_id_branches_count_builder(client, args.search.as_deref())?;
     get_projects_project_id_branches_count_execute(builder)
 }
 
@@ -5559,7 +6247,7 @@ pub fn get_projects_project_id_branches_branch_id_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/branches/{branch_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}",);
 
     // Build request
     let builder = client
@@ -5603,9 +6291,17 @@ pub fn get_projects_project_id_branches_branch_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5655,7 +6351,7 @@ pub fn patch_projects_project_id_branches_branch_id_builder(
     body: &BranchUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/branches/{branch_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}",);
 
     // Build request
     let builder = client
@@ -5703,9 +6399,17 @@ pub fn patch_projects_project_id_branches_branch_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5727,6 +6431,13 @@ pub fn patch_projects_project_id_branches_branch_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_projects_project_id_branches_branch_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchProjectsProjectIdBranchesBranchIdArgs {
+    /// Request body.
+    pub body: BranchUpdateRequest,
+}
+
 /// PATCH /projects/{project_id}/branches/{branch_id}
 /// Update branch
 ///
@@ -5739,14 +6450,14 @@ pub fn patch_projects_project_id_branches_branch_id_execute(
 
 pub fn patch_projects_project_id_branches_branch_id(
     client: &SimpleHttpClient,
-    body: &BranchUpdateRequest,
+    args: &PatchProjectsProjectIdBranchesBranchIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BranchOperations>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = patch_projects_project_id_branches_branch_id_builder(client, body)?;
+    let builder = patch_projects_project_id_branches_branch_id_builder(client, &args.body)?;
     patch_projects_project_id_branches_branch_id_execute(builder)
 }
 
@@ -5760,7 +6471,7 @@ pub fn delete_projects_project_id_branches_branch_id_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/branches/{branch_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}",);
 
     // Build request
     let builder = client
@@ -5806,9 +6517,17 @@ pub fn delete_projects_project_id_branches_branch_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5862,8 +6581,7 @@ pub fn post_projects_project_id_branches_branch_id_anonymize_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
-        format!("https://api.example.com/projects/{project_id}/branches/{branch_id}/anonymize",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/anonymize",);
 
     // Build request
     let builder = client
@@ -5911,9 +6629,17 @@ pub fn post_projects_project_id_branches_branch_id_anonymize_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5969,9 +6695,8 @@ pub fn get_projects_project_id_branches_branch_id_anonymized_status_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/anonymized_status",
-    );
+    let url =
+        format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/anonymized_status",);
 
     // Build request
     let builder = client
@@ -6019,9 +6744,17 @@ pub fn get_projects_project_id_branches_branch_id_anonymized_status_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6077,7 +6810,7 @@ pub fn get_projects_project_id_branches_branch_id_auth_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/branches/{branch_id}/auth",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth",);
 
     // Build request
     let builder = client
@@ -6123,9 +6856,17 @@ pub fn get_projects_project_id_branches_branch_id_auth_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6180,7 +6921,7 @@ pub fn post_projects_project_id_branches_branch_id_auth_builder(
     body: &EnableNeonAuthIntegrationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/branches/{branch_id}/auth",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth",);
 
     // Build request
     let builder = client
@@ -6230,9 +6971,17 @@ pub fn post_projects_project_id_branches_branch_id_auth_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6254,6 +7003,13 @@ pub fn post_projects_project_id_branches_branch_id_auth_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_branches_branch_id_auth`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdBranchesBranchIdAuthArgs {
+    /// Request body.
+    pub body: EnableNeonAuthIntegrationRequest,
+}
+
 /// POST /projects/{project_id}/branches/{branch_id}/auth
 /// Enable Neon Auth for the branch
 ///
@@ -6266,7 +7022,7 @@ pub fn post_projects_project_id_branches_branch_id_auth_execute(
 
 pub fn post_projects_project_id_branches_branch_id_auth(
     client: &SimpleHttpClient,
-    body: &EnableNeonAuthIntegrationRequest,
+    args: &PostProjectsProjectIdBranchesBranchIdAuthArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NeonAuthCreateIntegrationResponse>, ApiError>,
@@ -6275,7 +7031,7 @@ pub fn post_projects_project_id_branches_branch_id_auth(
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_project_id_branches_branch_id_auth_builder(client, body)?;
+    let builder = post_projects_project_id_branches_branch_id_auth_builder(client, &args.body)?;
     post_projects_project_id_branches_branch_id_auth_execute(builder)
 }
 
@@ -6289,7 +7045,7 @@ pub fn delete_projects_project_id_branches_branch_id_auth_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/branches/{branch_id}/auth",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth",);
 
     // Build request
     let builder = client
@@ -6333,9 +7089,17 @@ pub fn delete_projects_project_id_branches_branch_id_auth_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6384,9 +7148,8 @@ pub fn get_projects_project_id_branches_branch_id_auth_allow_localhost_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/allow_localhost",
-    );
+    let url =
+        format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/allow_localhost",);
 
     // Build request
     let builder = client
@@ -6434,9 +7197,17 @@ pub fn get_projects_project_id_branches_branch_id_auth_allow_localhost_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6493,9 +7264,8 @@ pub fn patch_projects_project_id_branches_branch_id_auth_allow_localhost_builder
     body: &UpdateNeonAuthAllowLocalhostRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/allow_localhost",
-    );
+    let url =
+        format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/allow_localhost",);
 
     // Build request
     let builder = client
@@ -6545,9 +7315,17 @@ pub fn patch_projects_project_id_branches_branch_id_auth_allow_localhost_execute
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6569,6 +7347,13 @@ pub fn patch_projects_project_id_branches_branch_id_auth_allow_localhost_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_projects_project_id_branches_branch_id_auth_allow_localhost`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchProjectsProjectIdBranchesBranchIdAuthAllowLocalhostArgs {
+    /// Request body.
+    pub body: UpdateNeonAuthAllowLocalhostRequest,
+}
+
 /// PATCH /projects/{project_id}/branches/{branch_id}/auth/allow_localhost
 /// Update allow localhost
 ///
@@ -6581,7 +7366,7 @@ pub fn patch_projects_project_id_branches_branch_id_auth_allow_localhost_execute
 
 pub fn patch_projects_project_id_branches_branch_id_auth_allow_localhost(
     client: &SimpleHttpClient,
-    body: &UpdateNeonAuthAllowLocalhostRequest,
+    args: &PatchProjectsProjectIdBranchesBranchIdAuthAllowLocalhostArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NeonAuthAllowLocalhostResponse>, ApiError>,
@@ -6590,8 +7375,9 @@ pub fn patch_projects_project_id_branches_branch_id_auth_allow_localhost(
         + 'static,
     ApiError,
 > {
-    let builder =
-        patch_projects_project_id_branches_branch_id_auth_allow_localhost_builder(client, body)?;
+    let builder = patch_projects_project_id_branches_branch_id_auth_allow_localhost_builder(
+        client, &args.body,
+    )?;
     patch_projects_project_id_branches_branch_id_auth_allow_localhost_execute(builder)
 }
 
@@ -6605,8 +7391,7 @@ pub fn get_projects_project_id_branches_branch_id_auth_domains_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
-        format!("https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/domains",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/domains",);
 
     // Build request
     let builder = client
@@ -6654,9 +7439,17 @@ pub fn get_projects_project_id_branches_branch_id_auth_domains_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6713,8 +7506,7 @@ pub fn post_projects_project_id_branches_branch_id_auth_domains_builder(
     body: &NeonAuthAddDomainToRedirectURIWhitelistRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
-        format!("https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/domains",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/domains",);
 
     // Build request
     let builder = client
@@ -6760,9 +7552,17 @@ pub fn post_projects_project_id_branches_branch_id_auth_domains_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6781,6 +7581,13 @@ pub fn post_projects_project_id_branches_branch_id_auth_domains_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_branches_branch_id_auth_domains`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdBranchesBranchIdAuthDomainsArgs {
+    /// Request body.
+    pub body: NeonAuthAddDomainToRedirectURIWhitelistRequest,
+}
+
 /// POST /projects/{project_id}/branches/{branch_id}/auth/domains
 /// Add domain to redirect_uri whitelist
 ///
@@ -6793,12 +7600,13 @@ pub fn post_projects_project_id_branches_branch_id_auth_domains_execute(
 
 pub fn post_projects_project_id_branches_branch_id_auth_domains(
     client: &SimpleHttpClient,
-    body: &NeonAuthAddDomainToRedirectURIWhitelistRequest,
+    args: &PostProjectsProjectIdBranchesBranchIdAuthDomainsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_projects_project_id_branches_branch_id_auth_domains_builder(client, body)?;
+    let builder =
+        post_projects_project_id_branches_branch_id_auth_domains_builder(client, &args.body)?;
     post_projects_project_id_branches_branch_id_auth_domains_execute(builder)
 }
 
@@ -6813,8 +7621,7 @@ pub fn delete_projects_project_id_branches_branch_id_auth_domains_builder(
     body: &NeonAuthDeleteDomainFromRedirectURIWhitelistRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
-        format!("https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/domains",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/domains",);
 
     // Build request
     let builder = client
@@ -6860,9 +7667,17 @@ pub fn delete_projects_project_id_branches_branch_id_auth_domains_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6881,6 +7696,13 @@ pub fn delete_projects_project_id_branches_branch_id_auth_domains_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_projects_project_id_branches_branch_id_auth_domains`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteProjectsProjectIdBranchesBranchIdAuthDomainsArgs {
+    /// Request body.
+    pub body: NeonAuthDeleteDomainFromRedirectURIWhitelistRequest,
+}
+
 /// DELETE /projects/{project_id}/branches/{branch_id}/auth/domains
 /// Delete domain from redirect_uri whitelist
 ///
@@ -6893,12 +7715,13 @@ pub fn delete_projects_project_id_branches_branch_id_auth_domains_execute(
 
 pub fn delete_projects_project_id_branches_branch_id_auth_domains(
     client: &SimpleHttpClient,
-    body: &NeonAuthDeleteDomainFromRedirectURIWhitelistRequest,
+    args: &DeleteProjectsProjectIdBranchesBranchIdAuthDomainsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_projects_project_id_branches_branch_id_auth_domains_builder(client, body)?;
+    let builder =
+        delete_projects_project_id_branches_branch_id_auth_domains_builder(client, &args.body)?;
     delete_projects_project_id_branches_branch_id_auth_domains_execute(builder)
 }
 
@@ -6913,7 +7736,7 @@ pub fn get_projects_project_id_branches_branch_id_auth_email_and_password_builde
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/email_and_password",
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/email_and_password",
     );
 
     // Build request
@@ -6962,9 +7785,17 @@ pub fn get_projects_project_id_branches_branch_id_auth_email_and_password_execut
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7023,7 +7854,7 @@ pub fn patch_projects_project_id_branches_branch_id_auth_email_and_password_buil
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/email_and_password",
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/email_and_password",
     );
 
     // Build request
@@ -7074,9 +7905,17 @@ pub fn patch_projects_project_id_branches_branch_id_auth_email_and_password_exec
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7098,6 +7937,13 @@ pub fn patch_projects_project_id_branches_branch_id_auth_email_and_password_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_projects_project_id_branches_branch_id_auth_email_and_password`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchProjectsProjectIdBranchesBranchIdAuthEmailAndPasswordArgs {
+    /// Request body.
+    pub body: NeonAuthEmailAndPasswordConfigUpdate,
+}
+
 /// PATCH /projects/{project_id}/branches/{branch_id}/auth/email_and_password
 /// Update email and password configuration
 ///
@@ -7110,7 +7956,7 @@ pub fn patch_projects_project_id_branches_branch_id_auth_email_and_password_exec
 
 pub fn patch_projects_project_id_branches_branch_id_auth_email_and_password(
     client: &SimpleHttpClient,
-    body: &NeonAuthEmailAndPasswordConfigUpdate,
+    args: &PatchProjectsProjectIdBranchesBranchIdAuthEmailAndPasswordArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NeonAuthEmailAndPasswordConfig>, ApiError>,
@@ -7119,8 +7965,9 @@ pub fn patch_projects_project_id_branches_branch_id_auth_email_and_password(
         + 'static,
     ApiError,
 > {
-    let builder =
-        patch_projects_project_id_branches_branch_id_auth_email_and_password_builder(client, body)?;
+    let builder = patch_projects_project_id_branches_branch_id_auth_email_and_password_builder(
+        client, &args.body,
+    )?;
     patch_projects_project_id_branches_branch_id_auth_email_and_password_execute(builder)
 }
 
@@ -7134,9 +7981,8 @@ pub fn get_projects_project_id_branches_branch_id_auth_email_provider_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/email_provider",
-    );
+    let url =
+        format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/email_provider",);
 
     // Build request
     let builder = client
@@ -7182,9 +8028,17 @@ pub fn get_projects_project_id_branches_branch_id_auth_email_provider_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7239,9 +8093,8 @@ pub fn patch_projects_project_id_branches_branch_id_auth_email_provider_builder(
     body: &NeonAuthEmailServerConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/email_provider",
-    );
+    let url =
+        format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/email_provider",);
 
     // Build request
     let builder = client
@@ -7289,9 +8142,17 @@ pub fn patch_projects_project_id_branches_branch_id_auth_email_provider_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7313,6 +8174,13 @@ pub fn patch_projects_project_id_branches_branch_id_auth_email_provider_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_projects_project_id_branches_branch_id_auth_email_provider`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchProjectsProjectIdBranchesBranchIdAuthEmailProviderArgs {
+    /// Request body.
+    pub body: NeonAuthEmailServerConfig,
+}
+
 /// PATCH /projects/{project_id}/branches/{branch_id}/auth/email_provider
 /// Update email provider configuration
 ///
@@ -7325,15 +8193,16 @@ pub fn patch_projects_project_id_branches_branch_id_auth_email_provider_execute(
 
 pub fn patch_projects_project_id_branches_branch_id_auth_email_provider(
     client: &SimpleHttpClient,
-    body: &NeonAuthEmailServerConfig,
+    args: &PatchProjectsProjectIdBranchesBranchIdAuthEmailProviderArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NeonAuthEmailServerConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        patch_projects_project_id_branches_branch_id_auth_email_provider_builder(client, body)?;
+    let builder = patch_projects_project_id_branches_branch_id_auth_email_provider_builder(
+        client, &args.body,
+    )?;
     patch_projects_project_id_branches_branch_id_auth_email_provider_execute(builder)
 }
 
@@ -7347,9 +8216,8 @@ pub fn get_projects_project_id_branches_branch_id_auth_oauth_providers_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/oauth_providers",
-    );
+    let url =
+        format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/oauth_providers",);
 
     // Build request
     let builder = client
@@ -7397,9 +8265,17 @@ pub fn get_projects_project_id_branches_branch_id_auth_oauth_providers_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7456,9 +8332,8 @@ pub fn post_projects_project_id_branches_branch_id_auth_oauth_providers_builder(
     body: &NeonAuthAddOAuthProviderRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/oauth_providers",
-    );
+    let url =
+        format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/oauth_providers",);
 
     // Build request
     let builder = client
@@ -7506,9 +8381,17 @@ pub fn post_projects_project_id_branches_branch_id_auth_oauth_providers_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7530,6 +8413,13 @@ pub fn post_projects_project_id_branches_branch_id_auth_oauth_providers_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_branches_branch_id_auth_oauth_providers`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdBranchesBranchIdAuthOauthProvidersArgs {
+    /// Request body.
+    pub body: NeonAuthAddOAuthProviderRequest,
+}
+
 /// POST /projects/{project_id}/branches/{branch_id}/auth/oauth_providers
 /// Add a OAuth provider
 ///
@@ -7542,15 +8432,16 @@ pub fn post_projects_project_id_branches_branch_id_auth_oauth_providers_execute(
 
 pub fn post_projects_project_id_branches_branch_id_auth_oauth_providers(
     client: &SimpleHttpClient,
-    body: &NeonAuthAddOAuthProviderRequest,
+    args: &PostProjectsProjectIdBranchesBranchIdAuthOauthProvidersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NeonAuthOauthProvider>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_projects_project_id_branches_branch_id_auth_oauth_providers_builder(client, body)?;
+    let builder = post_projects_project_id_branches_branch_id_auth_oauth_providers_builder(
+        client, &args.body,
+    )?;
     post_projects_project_id_branches_branch_id_auth_oauth_providers_execute(builder)
 }
 
@@ -7566,7 +8457,7 @@ pub fn patch_projects_project_id_branches_branch_id_auth_oauth_providers_oauth_p
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/oauth_providers/{oauth_provider_id}",
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/oauth_providers/{}",
     );
 
     // Build request
@@ -7615,9 +8506,17 @@ pub fn patch_projects_project_id_branches_branch_id_auth_oauth_providers_oauth_p
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7639,6 +8538,13 @@ pub fn patch_projects_project_id_branches_branch_id_auth_oauth_providers_oauth_p
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_projects_project_id_branches_branch_id_auth_oauth_providers_oauth_provider_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchProjectsProjectIdBranchesBranchIdAuthOauthProvidersOauthProviderIdArgs {
+    /// Request body.
+    pub body: NeonAuthUpdateOAuthProviderRequest,
+}
+
 /// PATCH /projects/{project_id}/branches/{branch_id}/auth/oauth_providers/{oauth_provider_id}
 /// Update OAuth provider
 ///
@@ -7651,14 +8557,14 @@ pub fn patch_projects_project_id_branches_branch_id_auth_oauth_providers_oauth_p
 
 pub fn patch_projects_project_id_branches_branch_id_auth_oauth_providers_oauth_provider_id(
     client: &SimpleHttpClient,
-    body: &NeonAuthUpdateOAuthProviderRequest,
+    args: &PatchProjectsProjectIdBranchesBranchIdAuthOauthProvidersOauthProviderIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NeonAuthOauthProvider>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = patch_projects_project_id_branches_branch_id_auth_oauth_providers_oauth_provider_id_builder(client, body)?;
+    let builder = patch_projects_project_id_branches_branch_id_auth_oauth_providers_oauth_provider_id_builder(client, &args.body)?;
     patch_projects_project_id_branches_branch_id_auth_oauth_providers_oauth_provider_id_execute(
         builder,
     )
@@ -7675,7 +8581,7 @@ pub fn delete_projects_project_id_branches_branch_id_auth_oauth_providers_oauth_
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/oauth_providers/{oauth_provider_id}",
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/oauth_providers/{}",
     );
 
     // Build request
@@ -7720,9 +8626,17 @@ pub fn delete_projects_project_id_branches_branch_id_auth_oauth_providers_oauth_
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7773,8 +8687,7 @@ pub fn get_projects_project_id_branches_branch_id_auth_plugins_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
-        format!("https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/plugins",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/plugins",);
 
     // Build request
     let builder = client
@@ -7820,9 +8733,17 @@ pub fn get_projects_project_id_branches_branch_id_auth_plugins_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7878,7 +8799,7 @@ pub fn patch_projects_project_id_branches_branch_id_auth_plugins_organization_bu
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/plugins/organization",
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/plugins/organization",
     );
 
     // Build request
@@ -7929,9 +8850,17 @@ pub fn patch_projects_project_id_branches_branch_id_auth_plugins_organization_ex
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7953,6 +8882,13 @@ pub fn patch_projects_project_id_branches_branch_id_auth_plugins_organization_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_projects_project_id_branches_branch_id_auth_plugins_organization`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchProjectsProjectIdBranchesBranchIdAuthPluginsOrganizationArgs {
+    /// Request body.
+    pub body: NeonAuthOrganizationConfigUpdate,
+}
+
 /// PATCH /projects/{project_id}/branches/{branch_id}/auth/plugins/organization
 /// Update organization plugin configuration
 ///
@@ -7965,7 +8901,7 @@ pub fn patch_projects_project_id_branches_branch_id_auth_plugins_organization_ex
 
 pub fn patch_projects_project_id_branches_branch_id_auth_plugins_organization(
     client: &SimpleHttpClient,
-    body: &NeonAuthOrganizationConfigUpdate,
+    args: &PatchProjectsProjectIdBranchesBranchIdAuthPluginsOrganizationArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NeonAuthOrganizationConfig>, ApiError>,
@@ -7975,7 +8911,7 @@ pub fn patch_projects_project_id_branches_branch_id_auth_plugins_organization(
     ApiError,
 > {
     let builder = patch_projects_project_id_branches_branch_id_auth_plugins_organization_builder(
-        client, body,
+        client, &args.body,
     )?;
     patch_projects_project_id_branches_branch_id_auth_plugins_organization_execute(builder)
 }
@@ -7991,9 +8927,8 @@ pub fn post_projects_project_id_branches_branch_id_auth_send_test_email_builder(
     body: &SendNeonAuthTestEmailRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/send_test_email",
-    );
+    let url =
+        format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/send_test_email",);
 
     // Build request
     let builder = client
@@ -8043,9 +8978,17 @@ pub fn post_projects_project_id_branches_branch_id_auth_send_test_email_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8067,6 +9010,13 @@ pub fn post_projects_project_id_branches_branch_id_auth_send_test_email_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_branches_branch_id_auth_send_test_email`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdBranchesBranchIdAuthSendTestEmailArgs {
+    /// Request body.
+    pub body: SendNeonAuthTestEmailRequest,
+}
+
 /// POST /projects/{project_id}/branches/{branch_id}/auth/send_test_email
 /// Send test email
 ///
@@ -8079,7 +9029,7 @@ pub fn post_projects_project_id_branches_branch_id_auth_send_test_email_execute(
 
 pub fn post_projects_project_id_branches_branch_id_auth_send_test_email(
     client: &SimpleHttpClient,
-    body: &SendNeonAuthTestEmailRequest,
+    args: &PostProjectsProjectIdBranchesBranchIdAuthSendTestEmailArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SendNeonAuthTestEmailResponse>, ApiError>,
@@ -8088,8 +9038,9 @@ pub fn post_projects_project_id_branches_branch_id_auth_send_test_email(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_projects_project_id_branches_branch_id_auth_send_test_email_builder(client, body)?;
+    let builder = post_projects_project_id_branches_branch_id_auth_send_test_email_builder(
+        client, &args.body,
+    )?;
     post_projects_project_id_branches_branch_id_auth_send_test_email_execute(builder)
 }
 
@@ -8104,8 +9055,7 @@ pub fn post_projects_project_id_branches_branch_id_auth_users_builder(
     body: &CreateBranchNeonAuthNewUserRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
-        format!("https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/users",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/users",);
 
     // Build request
     let builder = client
@@ -8155,9 +9105,17 @@ pub fn post_projects_project_id_branches_branch_id_auth_users_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8179,6 +9137,13 @@ pub fn post_projects_project_id_branches_branch_id_auth_users_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_branches_branch_id_auth_users`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdBranchesBranchIdAuthUsersArgs {
+    /// Request body.
+    pub body: CreateBranchNeonAuthNewUserRequest,
+}
+
 /// POST /projects/{project_id}/branches/{branch_id}/auth/users
 /// Create new auth user
 ///
@@ -8191,7 +9156,7 @@ pub fn post_projects_project_id_branches_branch_id_auth_users_execute(
 
 pub fn post_projects_project_id_branches_branch_id_auth_users(
     client: &SimpleHttpClient,
-    body: &CreateBranchNeonAuthNewUserRequest,
+    args: &PostProjectsProjectIdBranchesBranchIdAuthUsersArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NeonAuthCreateNewUserResponse>, ApiError>,
@@ -8200,7 +9165,8 @@ pub fn post_projects_project_id_branches_branch_id_auth_users(
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_project_id_branches_branch_id_auth_users_builder(client, body)?;
+    let builder =
+        post_projects_project_id_branches_branch_id_auth_users_builder(client, &args.body)?;
     post_projects_project_id_branches_branch_id_auth_users_execute(builder)
 }
 
@@ -8214,9 +9180,7 @@ pub fn delete_projects_project_id_branches_branch_id_auth_users_auth_user_id_bui
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/users/{auth_user_id}",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/users/{}",);
 
     // Build request
     let builder = client
@@ -8260,9 +9224,17 @@ pub fn delete_projects_project_id_branches_branch_id_auth_users_auth_user_id_exe
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8313,9 +9285,8 @@ pub fn put_projects_project_id_branches_branch_id_auth_users_auth_user_id_role_b
     body: &UpdateNeonAuthUserRoleRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/users/{auth_user_id}/role",
-    );
+    let url =
+        format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/users/{}/role",);
 
     // Build request
     let builder = client
@@ -8365,9 +9336,17 @@ pub fn put_projects_project_id_branches_branch_id_auth_users_auth_user_id_role_e
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8389,6 +9368,13 @@ pub fn put_projects_project_id_branches_branch_id_auth_users_auth_user_id_role_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`put_projects_project_id_branches_branch_id_auth_users_auth_user_id_role`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PutProjectsProjectIdBranchesBranchIdAuthUsersAuthUserIdRoleArgs {
+    /// Request body.
+    pub body: UpdateNeonAuthUserRoleRequest,
+}
+
 /// PUT /projects/{project_id}/branches/{branch_id}/auth/users/{auth_user_id}/role
 /// Update auth user role
 ///
@@ -8401,7 +9387,7 @@ pub fn put_projects_project_id_branches_branch_id_auth_users_auth_user_id_role_e
 
 pub fn put_projects_project_id_branches_branch_id_auth_users_auth_user_id_role(
     client: &SimpleHttpClient,
-    body: &UpdateNeonAuthUserRoleRequest,
+    args: &PutProjectsProjectIdBranchesBranchIdAuthUsersAuthUserIdRoleArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UpdateNeonAuthUserRoleResponse>, ApiError>,
@@ -8411,7 +9397,7 @@ pub fn put_projects_project_id_branches_branch_id_auth_users_auth_user_id_role(
     ApiError,
 > {
     let builder = put_projects_project_id_branches_branch_id_auth_users_auth_user_id_role_builder(
-        client, body,
+        client, &args.body,
     )?;
     put_projects_project_id_branches_branch_id_auth_users_auth_user_id_role_execute(builder)
 }
@@ -8426,9 +9412,7 @@ pub fn get_projects_project_id_branches_branch_id_auth_webhooks_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/webhooks",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/webhooks",);
 
     // Build request
     let builder = client
@@ -8474,9 +9458,17 @@ pub fn get_projects_project_id_branches_branch_id_auth_webhooks_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8531,9 +9523,7 @@ pub fn put_projects_project_id_branches_branch_id_auth_webhooks_builder(
     body: &NeonAuthWebhookConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/auth/webhooks",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/auth/webhooks",);
 
     // Build request
     let builder = client
@@ -8581,9 +9571,17 @@ pub fn put_projects_project_id_branches_branch_id_auth_webhooks_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8605,6 +9603,13 @@ pub fn put_projects_project_id_branches_branch_id_auth_webhooks_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`put_projects_project_id_branches_branch_id_auth_webhooks`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PutProjectsProjectIdBranchesBranchIdAuthWebhooksArgs {
+    /// Request body.
+    pub body: NeonAuthWebhookConfig,
+}
+
 /// PUT /projects/{project_id}/branches/{branch_id}/auth/webhooks
 /// Update webhook configuration for Neon Auth
 ///
@@ -8617,14 +9622,15 @@ pub fn put_projects_project_id_branches_branch_id_auth_webhooks_execute(
 
 pub fn put_projects_project_id_branches_branch_id_auth_webhooks(
     client: &SimpleHttpClient,
-    body: &NeonAuthWebhookConfig,
+    args: &PutProjectsProjectIdBranchesBranchIdAuthWebhooksArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NeonAuthWebhookConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = put_projects_project_id_branches_branch_id_auth_webhooks_builder(client, body)?;
+    let builder =
+        put_projects_project_id_branches_branch_id_auth_webhooks_builder(client, &args.body)?;
     put_projects_project_id_branches_branch_id_auth_webhooks_execute(builder)
 }
 
@@ -8638,9 +9644,7 @@ pub fn get_projects_project_id_branches_branch_id_backup_schedule_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/backup_schedule",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/backup_schedule",);
 
     // Build request
     let builder = client
@@ -8684,9 +9688,17 @@ pub fn get_projects_project_id_branches_branch_id_backup_schedule_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8736,9 +9748,7 @@ pub fn put_projects_project_id_branches_branch_id_backup_schedule_builder(
     body: &BackupSchedule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/backup_schedule",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/backup_schedule",);
 
     // Build request
     let builder = client
@@ -8784,9 +9794,17 @@ pub fn put_projects_project_id_branches_branch_id_backup_schedule_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8805,6 +9823,13 @@ pub fn put_projects_project_id_branches_branch_id_backup_schedule_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`put_projects_project_id_branches_branch_id_backup_schedule`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PutProjectsProjectIdBranchesBranchIdBackupScheduleArgs {
+    /// Request body.
+    pub body: BackupSchedule,
+}
+
 /// PUT /projects/{project_id}/branches/{branch_id}/backup_schedule
 /// Update backup schedule
 ///
@@ -8817,12 +9842,13 @@ pub fn put_projects_project_id_branches_branch_id_backup_schedule_execute(
 
 pub fn put_projects_project_id_branches_branch_id_backup_schedule(
     client: &SimpleHttpClient,
-    body: &BackupSchedule,
+    args: &PutProjectsProjectIdBranchesBranchIdBackupScheduleArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = put_projects_project_id_branches_branch_id_backup_schedule_builder(client, body)?;
+    let builder =
+        put_projects_project_id_branches_branch_id_backup_schedule_builder(client, &args.body)?;
     put_projects_project_id_branches_branch_id_backup_schedule_execute(builder)
 }
 
@@ -8845,7 +9871,7 @@ pub fn get_projects_project_id_branches_branch_id_compare_schema_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/projects/{}/branches/{}/compare_schema",
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/compare_schema",
         project_id, branch_id,
     );
 
@@ -8921,9 +9947,17 @@ pub fn get_projects_project_id_branches_branch_id_compare_schema_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8945,6 +9979,27 @@ pub fn get_projects_project_id_branches_branch_id_compare_schema_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_projects_project_id_branches_branch_id_compare_schema`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectsProjectIdBranchesBranchIdCompareSchemaArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Query parameter: base_branch_id
+    pub base_branch_id: Option<String>,
+    /// Query parameter: db_name
+    pub db_name: Option<String>,
+    /// Query parameter: lsn
+    pub lsn: Option<String>,
+    /// Query parameter: timestamp
+    pub timestamp: Option<String>,
+    /// Query parameter: base_lsn
+    pub base_lsn: Option<String>,
+    /// Query parameter: base_timestamp
+    pub base_timestamp: Option<String>,
+}
+
 /// GET /projects/{project_id}/branches/{branch_id}/compare_schema
 /// Compare database schema
 ///
@@ -8957,14 +10012,7 @@ pub fn get_projects_project_id_branches_branch_id_compare_schema_execute(
 
 pub fn get_projects_project_id_branches_branch_id_compare_schema(
     client: &SimpleHttpClient,
-    project_id: &str,
-    branch_id: &str,
-    base_branch_id: Option<&str>,
-    db_name: Option<&str>,
-    lsn: Option<&str>,
-    timestamp: Option<&str>,
-    base_lsn: Option<&str>,
-    base_timestamp: Option<&str>,
+    args: &GetProjectsProjectIdBranchesBranchIdCompareSchemaArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BranchSchemaCompareResponse>, ApiError>,
@@ -8975,14 +10023,14 @@ pub fn get_projects_project_id_branches_branch_id_compare_schema(
 > {
     let builder = get_projects_project_id_branches_branch_id_compare_schema_builder(
         client,
-        project_id,
-        branch_id,
-        base_branch_id,
-        db_name,
-        lsn,
-        timestamp,
-        base_lsn,
-        base_timestamp,
+        &args.project_id,
+        &args.branch_id,
+        args.base_branch_id.as_deref(),
+        args.db_name.as_deref(),
+        args.lsn.as_deref(),
+        args.timestamp.as_deref(),
+        args.base_lsn.as_deref(),
+        args.base_timestamp.as_deref(),
     )?;
     get_projects_project_id_branches_branch_id_compare_schema_execute(builder)
 }
@@ -8997,9 +10045,7 @@ pub fn get_projects_project_id_branches_branch_id_data_api_database_name_builder
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/data-api/{database_name}",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/data-api/{}",);
 
     // Build request
     let builder = client
@@ -9045,9 +10091,17 @@ pub fn get_projects_project_id_branches_branch_id_data_api_database_name_execute
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9103,9 +10157,7 @@ pub fn post_projects_project_id_branches_branch_id_data_api_database_name_builde
     body: &DataAPICreateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/data-api/{database_name}",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/data-api/{}",);
 
     // Build request
     let builder = client
@@ -9153,9 +10205,17 @@ pub fn post_projects_project_id_branches_branch_id_data_api_database_name_execut
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9177,6 +10237,13 @@ pub fn post_projects_project_id_branches_branch_id_data_api_database_name_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_branches_branch_id_data_api_database_name`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdBranchesBranchIdDataApiDatabaseNameArgs {
+    /// Request body.
+    pub body: DataAPICreateRequest,
+}
+
 /// POST /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
 /// Create Neon Data API
 ///
@@ -9189,15 +10256,16 @@ pub fn post_projects_project_id_branches_branch_id_data_api_database_name_execut
 
 pub fn post_projects_project_id_branches_branch_id_data_api_database_name(
     client: &SimpleHttpClient,
-    body: &DataAPICreateRequest,
+    args: &PostProjectsProjectIdBranchesBranchIdDataApiDatabaseNameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DataAPICreateResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_projects_project_id_branches_branch_id_data_api_database_name_builder(client, body)?;
+    let builder = post_projects_project_id_branches_branch_id_data_api_database_name_builder(
+        client, &args.body,
+    )?;
     post_projects_project_id_branches_branch_id_data_api_database_name_execute(builder)
 }
 
@@ -9212,9 +10280,7 @@ pub fn patch_projects_project_id_branches_branch_id_data_api_database_name_build
     body: &DataAPIUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/data-api/{database_name}",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/data-api/{}",);
 
     // Build request
     let builder = client
@@ -9262,9 +10328,17 @@ pub fn patch_projects_project_id_branches_branch_id_data_api_database_name_execu
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9286,6 +10360,13 @@ pub fn patch_projects_project_id_branches_branch_id_data_api_database_name_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_projects_project_id_branches_branch_id_data_api_database_name`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchProjectsProjectIdBranchesBranchIdDataApiDatabaseNameArgs {
+    /// Request body.
+    pub body: DataAPIUpdateRequest,
+}
+
 /// PATCH /projects/{project_id}/branches/{branch_id}/data-api/{database_name}
 /// Update Neon Data API
 ///
@@ -9298,15 +10379,16 @@ pub fn patch_projects_project_id_branches_branch_id_data_api_database_name_execu
 
 pub fn patch_projects_project_id_branches_branch_id_data_api_database_name(
     client: &SimpleHttpClient,
-    body: &DataAPIUpdateRequest,
+    args: &PatchProjectsProjectIdBranchesBranchIdDataApiDatabaseNameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EmptyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        patch_projects_project_id_branches_branch_id_data_api_database_name_builder(client, body)?;
+    let builder = patch_projects_project_id_branches_branch_id_data_api_database_name_builder(
+        client, &args.body,
+    )?;
     patch_projects_project_id_branches_branch_id_data_api_database_name_execute(builder)
 }
 
@@ -9320,9 +10402,7 @@ pub fn delete_projects_project_id_branches_branch_id_data_api_database_name_buil
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/data-api/{database_name}",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/data-api/{}",);
 
     // Build request
     let builder = client
@@ -9368,9 +10448,17 @@ pub fn delete_projects_project_id_branches_branch_id_data_api_database_name_exec
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9425,8 +10513,7 @@ pub fn get_projects_project_id_branches_branch_id_databases_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
-        format!("https://api.example.com/projects/{project_id}/branches/{branch_id}/databases",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/databases",);
 
     // Build request
     let builder = client
@@ -9472,9 +10559,17 @@ pub fn get_projects_project_id_branches_branch_id_databases_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9529,8 +10624,7 @@ pub fn post_projects_project_id_branches_branch_id_databases_builder(
     body: &DatabaseCreateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
-        format!("https://api.example.com/projects/{project_id}/branches/{branch_id}/databases",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/databases",);
 
     // Build request
     let builder = client
@@ -9578,9 +10672,17 @@ pub fn post_projects_project_id_branches_branch_id_databases_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9602,6 +10704,13 @@ pub fn post_projects_project_id_branches_branch_id_databases_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_branches_branch_id_databases`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdBranchesBranchIdDatabasesArgs {
+    /// Request body.
+    pub body: DatabaseCreateRequest,
+}
+
 /// POST /projects/{project_id}/branches/{branch_id}/databases
 /// Create database
 ///
@@ -9614,14 +10723,15 @@ pub fn post_projects_project_id_branches_branch_id_databases_execute(
 
 pub fn post_projects_project_id_branches_branch_id_databases(
     client: &SimpleHttpClient,
-    body: &DatabaseCreateRequest,
+    args: &PostProjectsProjectIdBranchesBranchIdDatabasesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatabaseOperations>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_project_id_branches_branch_id_databases_builder(client, body)?;
+    let builder =
+        post_projects_project_id_branches_branch_id_databases_builder(client, &args.body)?;
     post_projects_project_id_branches_branch_id_databases_execute(builder)
 }
 
@@ -9635,9 +10745,7 @@ pub fn get_projects_project_id_branches_branch_id_databases_database_name_builde
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/databases/{database_name}",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/databases/{}",);
 
     // Build request
     let builder = client
@@ -9683,9 +10791,17 @@ pub fn get_projects_project_id_branches_branch_id_databases_database_name_execut
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9741,9 +10857,7 @@ pub fn patch_projects_project_id_branches_branch_id_databases_database_name_buil
     body: &DatabaseUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/databases/{database_name}",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/databases/{}",);
 
     // Build request
     let builder = client
@@ -9791,9 +10905,17 @@ pub fn patch_projects_project_id_branches_branch_id_databases_database_name_exec
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9815,6 +10937,13 @@ pub fn patch_projects_project_id_branches_branch_id_databases_database_name_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_projects_project_id_branches_branch_id_databases_database_name`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchProjectsProjectIdBranchesBranchIdDatabasesDatabaseNameArgs {
+    /// Request body.
+    pub body: DatabaseUpdateRequest,
+}
+
 /// PATCH /projects/{project_id}/branches/{branch_id}/databases/{database_name}
 /// Update database
 ///
@@ -9827,15 +10956,16 @@ pub fn patch_projects_project_id_branches_branch_id_databases_database_name_exec
 
 pub fn patch_projects_project_id_branches_branch_id_databases_database_name(
     client: &SimpleHttpClient,
-    body: &DatabaseUpdateRequest,
+    args: &PatchProjectsProjectIdBranchesBranchIdDatabasesDatabaseNameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatabaseOperations>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        patch_projects_project_id_branches_branch_id_databases_database_name_builder(client, body)?;
+    let builder = patch_projects_project_id_branches_branch_id_databases_database_name_builder(
+        client, &args.body,
+    )?;
     patch_projects_project_id_branches_branch_id_databases_database_name_execute(builder)
 }
 
@@ -9849,9 +10979,7 @@ pub fn delete_projects_project_id_branches_branch_id_databases_database_name_bui
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/databases/{database_name}",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/databases/{}",);
 
     // Build request
     let builder = client
@@ -9897,9 +11025,17 @@ pub fn delete_projects_project_id_branches_branch_id_databases_database_name_exe
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9954,8 +11090,7 @@ pub fn get_projects_project_id_branches_branch_id_endpoints_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
-        format!("https://api.example.com/projects/{project_id}/branches/{branch_id}/endpoints",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/endpoints",);
 
     // Build request
     let builder = client
@@ -10001,9 +11136,17 @@ pub fn get_projects_project_id_branches_branch_id_endpoints_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10057,9 +11200,7 @@ pub fn post_projects_project_id_branches_branch_id_finalize_restore_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/finalize_restore",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/finalize_restore",);
 
     // Build request
     let builder = client
@@ -10105,9 +11246,17 @@ pub fn post_projects_project_id_branches_branch_id_finalize_restore_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10161,9 +11310,7 @@ pub fn get_projects_project_id_branches_branch_id_masking_rules_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/masking_rules",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/masking_rules",);
 
     // Build request
     let builder = client
@@ -10209,9 +11356,17 @@ pub fn get_projects_project_id_branches_branch_id_masking_rules_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10266,9 +11421,7 @@ pub fn patch_projects_project_id_branches_branch_id_masking_rules_builder(
     body: &MaskingRulesUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/masking_rules",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/masking_rules",);
 
     // Build request
     let builder = client
@@ -10316,9 +11469,17 @@ pub fn patch_projects_project_id_branches_branch_id_masking_rules_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10340,6 +11501,13 @@ pub fn patch_projects_project_id_branches_branch_id_masking_rules_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_projects_project_id_branches_branch_id_masking_rules`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchProjectsProjectIdBranchesBranchIdMaskingRulesArgs {
+    /// Request body.
+    pub body: MaskingRulesUpdateRequest,
+}
+
 /// PATCH /projects/{project_id}/branches/{branch_id}/masking_rules
 /// Update masking rules
 ///
@@ -10352,14 +11520,15 @@ pub fn patch_projects_project_id_branches_branch_id_masking_rules_execute(
 
 pub fn patch_projects_project_id_branches_branch_id_masking_rules(
     client: &SimpleHttpClient,
-    body: &MaskingRulesUpdateRequest,
+    args: &PatchProjectsProjectIdBranchesBranchIdMaskingRulesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MaskingRulesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = patch_projects_project_id_branches_branch_id_masking_rules_builder(client, body)?;
+    let builder =
+        patch_projects_project_id_branches_branch_id_masking_rules_builder(client, &args.body)?;
     patch_projects_project_id_branches_branch_id_masking_rules_execute(builder)
 }
 
@@ -10377,7 +11546,7 @@ pub fn post_projects_project_id_branches_branch_id_restore_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/projects/{}/branches/{}/restore",
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/restore",
         project_id, branch_id,
     );
 
@@ -10427,9 +11596,17 @@ pub fn post_projects_project_id_branches_branch_id_restore_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10451,6 +11628,17 @@ pub fn post_projects_project_id_branches_branch_id_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_branches_branch_id_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdBranchesBranchIdRestoreArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Request body.
+    pub body: BranchRestoreRequest,
+}
+
 /// POST /projects/{project_id}/branches/{branch_id}/restore
 /// Restore branch
 ///
@@ -10463,9 +11651,7 @@ pub fn post_projects_project_id_branches_branch_id_restore_execute(
 
 pub fn post_projects_project_id_branches_branch_id_restore(
     client: &SimpleHttpClient,
-    project_id: &str,
-    branch_id: &str,
-    body: &BranchRestoreRequest,
+    args: &PostProjectsProjectIdBranchesBranchIdRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BranchOperations>, ApiError>, P = ApiPending>
         + Send
@@ -10473,7 +11659,10 @@ pub fn post_projects_project_id_branches_branch_id_restore(
     ApiError,
 > {
     let builder = post_projects_project_id_branches_branch_id_restore_builder(
-        client, project_id, branch_id, body,
+        client,
+        &args.project_id,
+        &args.branch_id,
+        &args.body,
     )?;
     post_projects_project_id_branches_branch_id_restore_execute(builder)
 }
@@ -10488,7 +11677,7 @@ pub fn get_projects_project_id_branches_branch_id_roles_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/branches/{branch_id}/roles",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/roles",);
 
     // Build request
     let builder = client
@@ -10534,9 +11723,17 @@ pub fn get_projects_project_id_branches_branch_id_roles_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10591,7 +11788,7 @@ pub fn post_projects_project_id_branches_branch_id_roles_builder(
     body: &RoleCreateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/branches/{branch_id}/roles",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/roles",);
 
     // Build request
     let builder = client
@@ -10639,9 +11836,17 @@ pub fn post_projects_project_id_branches_branch_id_roles_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10663,6 +11868,13 @@ pub fn post_projects_project_id_branches_branch_id_roles_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_branches_branch_id_roles`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdBranchesBranchIdRolesArgs {
+    /// Request body.
+    pub body: RoleCreateRequest,
+}
+
 /// POST /projects/{project_id}/branches/{branch_id}/roles
 /// Create role
 ///
@@ -10675,14 +11887,14 @@ pub fn post_projects_project_id_branches_branch_id_roles_execute(
 
 pub fn post_projects_project_id_branches_branch_id_roles(
     client: &SimpleHttpClient,
-    body: &RoleCreateRequest,
+    args: &PostProjectsProjectIdBranchesBranchIdRolesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RoleOperations>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_project_id_branches_branch_id_roles_builder(client, body)?;
+    let builder = post_projects_project_id_branches_branch_id_roles_builder(client, &args.body)?;
     post_projects_project_id_branches_branch_id_roles_execute(builder)
 }
 
@@ -10696,9 +11908,7 @@ pub fn get_projects_project_id_branches_branch_id_roles_role_name_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/roles/{role_name}",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/roles/{}",);
 
     // Build request
     let builder = client
@@ -10744,9 +11954,17 @@ pub fn get_projects_project_id_branches_branch_id_roles_role_name_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10800,9 +12018,7 @@ pub fn delete_projects_project_id_branches_branch_id_roles_role_name_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/roles/{role_name}",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/roles/{}",);
 
     // Build request
     let builder = client
@@ -10848,9 +12064,17 @@ pub fn delete_projects_project_id_branches_branch_id_roles_role_name_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10905,7 +12129,7 @@ pub fn post_projects_project_id_branches_branch_id_roles_role_name_reset_passwor
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/roles/{role_name}/reset_password",
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/roles/{}/reset_password",
     );
 
     // Build request
@@ -10952,9 +12176,17 @@ pub fn post_projects_project_id_branches_branch_id_roles_role_name_reset_passwor
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11010,7 +12242,7 @@ pub fn get_projects_project_id_branches_branch_id_roles_role_name_reveal_passwor
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/roles/{role_name}/reveal_password",
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/roles/{}/reveal_password",
     );
 
     // Build request
@@ -11057,9 +12289,17 @@ pub fn get_projects_project_id_branches_branch_id_roles_role_name_reveal_passwor
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11121,7 +12361,7 @@ pub fn get_projects_project_id_branches_branch_id_schema_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/projects/{}/branches/{}/schema",
+        "https://console.neon.tech/api/v2/projects/{}/branches/{}/schema",
         project_id, branch_id,
     );
 
@@ -11189,9 +12429,17 @@ pub fn get_projects_project_id_branches_branch_id_schema_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11213,6 +12461,23 @@ pub fn get_projects_project_id_branches_branch_id_schema_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_projects_project_id_branches_branch_id_schema`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectsProjectIdBranchesBranchIdSchemaArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: branch_id
+    pub branch_id: String,
+    /// Query parameter: db_name
+    pub db_name: Option<String>,
+    /// Query parameter: lsn
+    pub lsn: Option<String>,
+    /// Query parameter: timestamp
+    pub timestamp: Option<String>,
+    /// Query parameter: format
+    pub format: Option<String>,
+}
+
 /// GET /projects/{project_id}/branches/{branch_id}/schema
 /// Retrieve database schema
 ///
@@ -11225,12 +12490,7 @@ pub fn get_projects_project_id_branches_branch_id_schema_execute(
 
 pub fn get_projects_project_id_branches_branch_id_schema(
     client: &SimpleHttpClient,
-    project_id: &str,
-    branch_id: &str,
-    db_name: Option<&str>,
-    lsn: Option<&str>,
-    timestamp: Option<&str>,
-    format: Option<&str>,
+    args: &GetProjectsProjectIdBranchesBranchIdSchemaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BranchSchemaResponse>, ApiError>, P = ApiPending>
         + Send
@@ -11238,7 +12498,13 @@ pub fn get_projects_project_id_branches_branch_id_schema(
     ApiError,
 > {
     let builder = get_projects_project_id_branches_branch_id_schema_builder(
-        client, project_id, branch_id, db_name, lsn, timestamp, format,
+        client,
+        &args.project_id,
+        &args.branch_id,
+        args.db_name.as_deref(),
+        args.lsn.as_deref(),
+        args.timestamp.as_deref(),
+        args.format.as_deref(),
     )?;
     get_projects_project_id_branches_branch_id_schema_execute(builder)
 }
@@ -11253,9 +12519,7 @@ pub fn post_projects_project_id_branches_branch_id_set_as_default_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://api.example.com/projects/{project_id}/branches/{branch_id}/set_as_default",
-    );
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/set_as_default",);
 
     // Build request
     let builder = client
@@ -11301,9 +12565,17 @@ pub fn post_projects_project_id_branches_branch_id_set_as_default_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11361,8 +12633,7 @@ pub fn post_projects_project_id_branches_branch_id_snapshot_builder(
     expires_at: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
-        format!("https://api.example.com/projects/{project_id}/branches/{branch_id}/snapshot",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/branches/{}/snapshot",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -11426,9 +12697,17 @@ pub fn post_projects_project_id_branches_branch_id_snapshot_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11447,6 +12726,19 @@ pub fn post_projects_project_id_branches_branch_id_snapshot_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_branches_branch_id_snapshot`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdBranchesBranchIdSnapshotArgs {
+    /// Query parameter: lsn
+    pub lsn: Option<String>,
+    /// Query parameter: timestamp
+    pub timestamp: Option<String>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: expires_at
+    pub expires_at: Option<String>,
+}
+
 /// POST /projects/{project_id}/branches/{branch_id}/snapshot
 /// Create snapshot
 ///
@@ -11459,16 +12751,17 @@ pub fn post_projects_project_id_branches_branch_id_snapshot_execute(
 
 pub fn post_projects_project_id_branches_branch_id_snapshot(
     client: &SimpleHttpClient,
-    lsn: Option<&str>,
-    timestamp: Option<&str>,
-    name: Option<&str>,
-    expires_at: Option<&str>,
+    args: &PostProjectsProjectIdBranchesBranchIdSnapshotArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = post_projects_project_id_branches_branch_id_snapshot_builder(
-        client, lsn, timestamp, name, expires_at,
+        client,
+        args.lsn.as_deref(),
+        args.timestamp.as_deref(),
+        args.name.as_deref(),
+        args.expires_at.as_deref(),
     )?;
     post_projects_project_id_branches_branch_id_snapshot_execute(builder)
 }
@@ -11490,7 +12783,7 @@ pub fn get_projects_project_id_connection_uri_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/projects/{}/connection_uri",
+        "https://console.neon.tech/api/v2/projects/{}/connection_uri",
         project_id,
     );
 
@@ -11561,9 +12854,17 @@ pub fn get_projects_project_id_connection_uri_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11585,6 +12886,23 @@ pub fn get_projects_project_id_connection_uri_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_projects_project_id_connection_uri`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectsProjectIdConnectionUriArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Query parameter: branch_id
+    pub branch_id: Option<String>,
+    /// Query parameter: endpoint_id
+    pub endpoint_id: Option<String>,
+    /// Query parameter: database_name
+    pub database_name: Option<String>,
+    /// Query parameter: role_name
+    pub role_name: Option<String>,
+    /// Query parameter: pooled
+    pub pooled: Option<bool>,
+}
+
 /// GET /projects/{project_id}/connection_uri
 /// Retrieve connection URI
 ///
@@ -11597,12 +12915,7 @@ pub fn get_projects_project_id_connection_uri_execute(
 
 pub fn get_projects_project_id_connection_uri(
     client: &SimpleHttpClient,
-    project_id: &str,
-    branch_id: Option<&str>,
-    endpoint_id: Option<&str>,
-    database_name: Option<&str>,
-    role_name: Option<&str>,
-    pooled: Option<bool>,
+    args: &GetProjectsProjectIdConnectionUriArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConnectionURIResponse>, ApiError>, P = ApiPending>
         + Send
@@ -11611,12 +12924,12 @@ pub fn get_projects_project_id_connection_uri(
 > {
     let builder = get_projects_project_id_connection_uri_builder(
         client,
-        project_id,
-        branch_id,
-        endpoint_id,
-        database_name,
-        role_name,
-        pooled,
+        &args.project_id,
+        args.branch_id.as_deref(),
+        args.endpoint_id.as_deref(),
+        args.database_name.as_deref(),
+        args.role_name.as_deref(),
+        args.pooled,
     )?;
     get_projects_project_id_connection_uri_execute(builder)
 }
@@ -11631,7 +12944,7 @@ pub fn get_projects_project_id_endpoints_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/endpoints",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/endpoints",);
 
     // Build request
     let builder = client
@@ -11677,9 +12990,17 @@ pub fn get_projects_project_id_endpoints_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11734,7 +13055,7 @@ pub fn post_projects_project_id_endpoints_builder(
     body: &EndpointCreateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/endpoints",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/endpoints",);
 
     // Build request
     let builder = client
@@ -11782,9 +13103,17 @@ pub fn post_projects_project_id_endpoints_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11806,6 +13135,13 @@ pub fn post_projects_project_id_endpoints_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_endpoints`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdEndpointsArgs {
+    /// Request body.
+    pub body: EndpointCreateRequest,
+}
+
 /// POST /projects/{project_id}/endpoints
 /// Create compute endpoint
 ///
@@ -11818,14 +13154,14 @@ pub fn post_projects_project_id_endpoints_execute(
 
 pub fn post_projects_project_id_endpoints(
     client: &SimpleHttpClient,
-    body: &EndpointCreateRequest,
+    args: &PostProjectsProjectIdEndpointsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EndpointOperations>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_project_id_endpoints_builder(client, body)?;
+    let builder = post_projects_project_id_endpoints_builder(client, &args.body)?;
     post_projects_project_id_endpoints_execute(builder)
 }
 
@@ -11839,7 +13175,7 @@ pub fn get_projects_project_id_endpoints_endpoint_id_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/endpoints/{endpoint_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/endpoints/{}",);
 
     // Build request
     let builder = client
@@ -11885,9 +13221,17 @@ pub fn get_projects_project_id_endpoints_endpoint_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11942,7 +13286,7 @@ pub fn patch_projects_project_id_endpoints_endpoint_id_builder(
     body: &EndpointUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/endpoints/{endpoint_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/endpoints/{}",);
 
     // Build request
     let builder = client
@@ -11990,9 +13334,17 @@ pub fn patch_projects_project_id_endpoints_endpoint_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12014,6 +13366,13 @@ pub fn patch_projects_project_id_endpoints_endpoint_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_projects_project_id_endpoints_endpoint_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchProjectsProjectIdEndpointsEndpointIdArgs {
+    /// Request body.
+    pub body: EndpointUpdateRequest,
+}
+
 /// PATCH /projects/{project_id}/endpoints/{endpoint_id}
 /// Update compute endpoint
 ///
@@ -12026,14 +13385,14 @@ pub fn patch_projects_project_id_endpoints_endpoint_id_execute(
 
 pub fn patch_projects_project_id_endpoints_endpoint_id(
     client: &SimpleHttpClient,
-    body: &EndpointUpdateRequest,
+    args: &PatchProjectsProjectIdEndpointsEndpointIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EndpointOperations>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = patch_projects_project_id_endpoints_endpoint_id_builder(client, body)?;
+    let builder = patch_projects_project_id_endpoints_endpoint_id_builder(client, &args.body)?;
     patch_projects_project_id_endpoints_endpoint_id_execute(builder)
 }
 
@@ -12047,7 +13406,7 @@ pub fn delete_projects_project_id_endpoints_endpoint_id_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/endpoints/{endpoint_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/endpoints/{}",);
 
     // Build request
     let builder = client
@@ -12093,9 +13452,17 @@ pub fn delete_projects_project_id_endpoints_endpoint_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12149,8 +13516,7 @@ pub fn post_projects_project_id_endpoints_endpoint_id_restart_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
-        format!("https://api.example.com/projects/{project_id}/endpoints/{endpoint_id}/restart",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/endpoints/{}/restart",);
 
     // Build request
     let builder = client
@@ -12196,9 +13562,17 @@ pub fn post_projects_project_id_endpoints_endpoint_id_restart_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12255,7 +13629,7 @@ pub fn post_projects_project_id_endpoints_endpoint_id_start_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/projects/{}/endpoints/{}/start",
+        "https://console.neon.tech/api/v2/projects/{}/endpoints/{}/start",
         project_id, endpoint_id,
     );
 
@@ -12303,9 +13677,17 @@ pub fn post_projects_project_id_endpoints_endpoint_id_start_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12327,6 +13709,15 @@ pub fn post_projects_project_id_endpoints_endpoint_id_start_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_endpoints_endpoint_id_start`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdEndpointsEndpointIdStartArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Path parameter: endpoint_id
+    pub endpoint_id: String,
+}
+
 /// POST /projects/{project_id}/endpoints/{endpoint_id}/start
 /// Start compute endpoint
 ///
@@ -12339,8 +13730,7 @@ pub fn post_projects_project_id_endpoints_endpoint_id_start_execute(
 
 pub fn post_projects_project_id_endpoints_endpoint_id_start(
     client: &SimpleHttpClient,
-    project_id: &str,
-    endpoint_id: &str,
+    args: &PostProjectsProjectIdEndpointsEndpointIdStartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EndpointOperations>, ApiError>, P = ApiPending>
         + Send
@@ -12349,8 +13739,8 @@ pub fn post_projects_project_id_endpoints_endpoint_id_start(
 > {
     let builder = post_projects_project_id_endpoints_endpoint_id_start_builder(
         client,
-        project_id,
-        endpoint_id,
+        &args.project_id,
+        &args.endpoint_id,
     )?;
     post_projects_project_id_endpoints_endpoint_id_start_execute(builder)
 }
@@ -12365,8 +13755,7 @@ pub fn post_projects_project_id_endpoints_endpoint_id_suspend_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
-        format!("https://api.example.com/projects/{project_id}/endpoints/{endpoint_id}/suspend",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/endpoints/{}/suspend",);
 
     // Build request
     let builder = client
@@ -12412,9 +13801,17 @@ pub fn post_projects_project_id_endpoints_endpoint_id_suspend_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12468,7 +13865,7 @@ pub fn get_projects_project_id_jwks_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/jwks",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/jwks",);
 
     // Build request
     let builder = client
@@ -12514,9 +13911,17 @@ pub fn get_projects_project_id_jwks_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12571,7 +13976,7 @@ pub fn post_projects_project_id_jwks_builder(
     body: &AddProjectJWKSRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/jwks",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/jwks",);
 
     // Build request
     let builder = client
@@ -12619,9 +14024,17 @@ pub fn post_projects_project_id_jwks_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12643,6 +14056,13 @@ pub fn post_projects_project_id_jwks_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_jwks`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdJwksArgs {
+    /// Request body.
+    pub body: AddProjectJWKSRequest,
+}
+
 /// POST /projects/{project_id}/jwks
 /// Add JWKS URL
 ///
@@ -12655,14 +14075,14 @@ pub fn post_projects_project_id_jwks_execute(
 
 pub fn post_projects_project_id_jwks(
     client: &SimpleHttpClient,
-    body: &AddProjectJWKSRequest,
+    args: &PostProjectsProjectIdJwksArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<JWKSCreationOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_project_id_jwks_builder(client, body)?;
+    let builder = post_projects_project_id_jwks_builder(client, &args.body)?;
     post_projects_project_id_jwks_execute(builder)
 }
 
@@ -12676,7 +14096,7 @@ pub fn delete_projects_project_id_jwks_jwks_id_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/jwks/{jwks_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/jwks/{}",);
 
     // Build request
     let builder = client
@@ -12720,9 +14140,17 @@ pub fn delete_projects_project_id_jwks_jwks_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12777,7 +14205,10 @@ pub fn get_projects_project_id_operations_builder(
     limit: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{}/operations", project_id,);
+    let url = format!(
+        "https://console.neon.tech/api/v2/projects/{}/operations",
+        project_id,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -12835,9 +14266,17 @@ pub fn get_projects_project_id_operations_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12856,6 +14295,17 @@ pub fn get_projects_project_id_operations_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_projects_project_id_operations`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetProjectsProjectIdOperationsArgs {
+    /// Path parameter: project_id
+    pub project_id: String,
+    /// Query parameter: cursor
+    pub cursor: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<i32>,
+}
+
 /// GET /projects/{project_id}/operations
 /// List operations
 ///
@@ -12868,14 +14318,17 @@ pub fn get_projects_project_id_operations_execute(
 
 pub fn get_projects_project_id_operations(
     client: &SimpleHttpClient,
-    project_id: &str,
-    cursor: Option<&str>,
-    limit: Option<i32>,
+    args: &GetProjectsProjectIdOperationsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_projects_project_id_operations_builder(client, project_id, cursor, limit)?;
+    let builder = get_projects_project_id_operations_builder(
+        client,
+        &args.project_id,
+        args.cursor.as_deref(),
+        args.limit,
+    )?;
     get_projects_project_id_operations_execute(builder)
 }
 
@@ -12889,7 +14342,7 @@ pub fn get_projects_project_id_operations_operation_id_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/operations/{operation_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/operations/{}",);
 
     // Build request
     let builder = client
@@ -12935,9 +14388,17 @@ pub fn get_projects_project_id_operations_operation_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12991,7 +14452,7 @@ pub fn get_projects_project_id_permissions_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/permissions",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/permissions",);
 
     // Build request
     let builder = client
@@ -13037,9 +14498,17 @@ pub fn get_projects_project_id_permissions_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13094,7 +14563,7 @@ pub fn post_projects_project_id_permissions_builder(
     body: &GrantPermissionToProjectRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/permissions",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/permissions",);
 
     // Build request
     let builder = client
@@ -13142,9 +14611,17 @@ pub fn post_projects_project_id_permissions_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13166,6 +14643,13 @@ pub fn post_projects_project_id_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdPermissionsArgs {
+    /// Request body.
+    pub body: GrantPermissionToProjectRequest,
+}
+
 /// POST /projects/{project_id}/permissions
 /// Grant project access
 ///
@@ -13178,14 +14662,14 @@ pub fn post_projects_project_id_permissions_execute(
 
 pub fn post_projects_project_id_permissions(
     client: &SimpleHttpClient,
-    body: &GrantPermissionToProjectRequest,
+    args: &PostProjectsProjectIdPermissionsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProjectPermission>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_projects_project_id_permissions_builder(client, body)?;
+    let builder = post_projects_project_id_permissions_builder(client, &args.body)?;
     post_projects_project_id_permissions_execute(builder)
 }
 
@@ -13199,7 +14683,7 @@ pub fn delete_projects_project_id_permissions_permission_id_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/permissions/{permission_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/permissions/{}",);
 
     // Build request
     let builder = client
@@ -13245,9 +14729,17 @@ pub fn delete_projects_project_id_permissions_permission_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13301,7 +14793,7 @@ pub fn post_projects_project_id_recover_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/recover",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/recover",);
 
     // Build request
     let builder = client
@@ -13347,9 +14839,17 @@ pub fn post_projects_project_id_recover_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13403,7 +14903,7 @@ pub fn post_projects_project_id_restore_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/restore",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/restore",);
 
     // Build request
     let builder = client
@@ -13449,9 +14949,17 @@ pub fn post_projects_project_id_restore_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13505,7 +15013,7 @@ pub fn get_projects_project_id_snapshots_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/snapshots",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/snapshots",);
 
     // Build request
     let builder = client
@@ -13549,9 +15057,17 @@ pub fn get_projects_project_id_snapshots_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13601,7 +15117,7 @@ pub fn patch_projects_project_id_snapshots_snapshot_id_builder(
     body: &SnapshotUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/snapshots/{snapshot_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/snapshots/{}",);
 
     // Build request
     let builder = client
@@ -13647,9 +15163,17 @@ pub fn patch_projects_project_id_snapshots_snapshot_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13668,6 +15192,13 @@ pub fn patch_projects_project_id_snapshots_snapshot_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_projects_project_id_snapshots_snapshot_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchProjectsProjectIdSnapshotsSnapshotIdArgs {
+    /// Request body.
+    pub body: SnapshotUpdateRequest,
+}
+
 /// PATCH /projects/{project_id}/snapshots/{snapshot_id}
 /// Update snapshot
 ///
@@ -13680,12 +15211,12 @@ pub fn patch_projects_project_id_snapshots_snapshot_id_execute(
 
 pub fn patch_projects_project_id_snapshots_snapshot_id(
     client: &SimpleHttpClient,
-    body: &SnapshotUpdateRequest,
+    args: &PatchProjectsProjectIdSnapshotsSnapshotIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_projects_project_id_snapshots_snapshot_id_builder(client, body)?;
+    let builder = patch_projects_project_id_snapshots_snapshot_id_builder(client, &args.body)?;
     patch_projects_project_id_snapshots_snapshot_id_execute(builder)
 }
 
@@ -13699,7 +15230,7 @@ pub fn delete_projects_project_id_snapshots_snapshot_id_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/snapshots/{snapshot_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/snapshots/{}",);
 
     // Build request
     let builder = client
@@ -13745,9 +15276,17 @@ pub fn delete_projects_project_id_snapshots_snapshot_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13802,8 +15341,7 @@ pub fn post_projects_project_id_snapshots_snapshot_id_restore_builder(
     name: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
-        format!("https://api.example.com/projects/{project_id}/snapshots/{snapshot_id}/restore",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/snapshots/{}/restore",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -13858,9 +15396,17 @@ pub fn post_projects_project_id_snapshots_snapshot_id_restore_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13879,6 +15425,13 @@ pub fn post_projects_project_id_snapshots_snapshot_id_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_snapshots_snapshot_id_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdSnapshotsSnapshotIdRestoreArgs {
+    /// Query parameter: name
+    pub name: Option<String>,
+}
+
 /// POST /projects/{project_id}/snapshots/{snapshot_id}/restore
 /// Restore snapshot
 ///
@@ -13891,12 +15444,15 @@ pub fn post_projects_project_id_snapshots_snapshot_id_restore_execute(
 
 pub fn post_projects_project_id_snapshots_snapshot_id_restore(
     client: &SimpleHttpClient,
-    name: Option<&str>,
+    args: &PostProjectsProjectIdSnapshotsSnapshotIdRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_projects_project_id_snapshots_snapshot_id_restore_builder(client, name)?;
+    let builder = post_projects_project_id_snapshots_snapshot_id_restore_builder(
+        client,
+        args.name.as_deref(),
+    )?;
     post_projects_project_id_snapshots_snapshot_id_restore_execute(builder)
 }
 
@@ -13910,7 +15466,7 @@ pub fn post_projects_project_id_transfer_requests_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/transfer_requests",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/transfer_requests",);
 
     // Build request
     let builder = client
@@ -13958,9 +15514,17 @@ pub fn post_projects_project_id_transfer_requests_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14016,8 +15580,7 @@ pub fn put_projects_project_id_transfer_requests_request_id_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
-        format!("https://api.example.com/projects/{project_id}/transfer_requests/{request_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/transfer_requests/{}",);
 
     // Build request
     let builder = client
@@ -14061,9 +15624,17 @@ pub fn put_projects_project_id_transfer_requests_request_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14112,7 +15683,7 @@ pub fn get_projects_project_id_vpc_endpoints_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/projects/{project_id}/vpc_endpoints",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/vpc_endpoints",);
 
     // Build request
     let builder = client
@@ -14158,9 +15729,17 @@ pub fn get_projects_project_id_vpc_endpoints_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14215,8 +15794,7 @@ pub fn post_projects_project_id_vpc_endpoints_vpc_endpoint_id_builder(
     body: &VPCEndpointAssignment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
-        format!("https://api.example.com/projects/{project_id}/vpc_endpoints/{vpc_endpoint_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/vpc_endpoints/{}",);
 
     // Build request
     let builder = client
@@ -14262,9 +15840,17 @@ pub fn post_projects_project_id_vpc_endpoints_vpc_endpoint_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14283,6 +15869,13 @@ pub fn post_projects_project_id_vpc_endpoints_vpc_endpoint_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_projects_project_id_vpc_endpoints_vpc_endpoint_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostProjectsProjectIdVpcEndpointsVpcEndpointIdArgs {
+    /// Request body.
+    pub body: VPCEndpointAssignment,
+}
+
 /// POST /projects/{project_id}/vpc_endpoints/{vpc_endpoint_id}
 /// Set VPC endpoint restriction
 ///
@@ -14295,12 +15888,13 @@ pub fn post_projects_project_id_vpc_endpoints_vpc_endpoint_id_execute(
 
 pub fn post_projects_project_id_vpc_endpoints_vpc_endpoint_id(
     client: &SimpleHttpClient,
-    body: &VPCEndpointAssignment,
+    args: &PostProjectsProjectIdVpcEndpointsVpcEndpointIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_projects_project_id_vpc_endpoints_vpc_endpoint_id_builder(client, body)?;
+    let builder =
+        post_projects_project_id_vpc_endpoints_vpc_endpoint_id_builder(client, &args.body)?;
     post_projects_project_id_vpc_endpoints_vpc_endpoint_id_execute(builder)
 }
 
@@ -14314,8 +15908,7 @@ pub fn delete_projects_project_id_vpc_endpoints_vpc_endpoint_id_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
-        format!("https://api.example.com/projects/{project_id}/vpc_endpoints/{vpc_endpoint_id}",);
+    let url = format!("https://console.neon.tech/api/v2/projects/{}/vpc_endpoints/{}",);
 
     // Build request
     let builder = client
@@ -14359,9 +15952,17 @@ pub fn delete_projects_project_id_vpc_endpoints_vpc_endpoint_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14411,7 +16012,7 @@ pub fn get_regions_builder(
     org_id: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/regions",);
+    let url = format!("https://console.neon.tech/api/v2/regions",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -14468,9 +16069,17 @@ pub fn get_regions_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14492,6 +16101,13 @@ pub fn get_regions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_regions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetRegionsArgs {
+    /// Query parameter: org_id
+    pub org_id: Option<String>,
+}
+
 /// GET /regions
 /// List supported regions
 ///
@@ -14504,14 +16120,14 @@ pub fn get_regions_execute(
 
 pub fn get_regions(
     client: &SimpleHttpClient,
-    org_id: Option<&str>,
+    args: &GetRegionsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ActiveRegionsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_regions_builder(client, org_id)?;
+    let builder = get_regions_builder(client, args.org_id.as_deref())?;
     get_regions_execute(builder)
 }
 
@@ -14525,7 +16141,7 @@ pub fn get_users_me_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/users/me",);
+    let url = format!("https://console.neon.tech/api/v2/users/me",);
 
     // Build request
     let builder = client
@@ -14571,9 +16187,17 @@ pub fn get_users_me_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14627,7 +16251,7 @@ pub fn get_users_me_organizations_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/users/me/organizations",);
+    let url = format!("https://console.neon.tech/api/v2/users/me/organizations",);
 
     // Build request
     let builder = client
@@ -14673,9 +16297,17 @@ pub fn get_users_me_organizations_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14730,7 +16362,7 @@ pub fn post_users_me_projects_transfer_builder(
     body: &TransferProjectsToOrganizationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/users/me/projects/transfer",);
+    let url = format!("https://console.neon.tech/api/v2/users/me/projects/transfer",);
 
     // Build request
     let builder = client
@@ -14778,9 +16410,17 @@ pub fn post_users_me_projects_transfer_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14802,6 +16442,13 @@ pub fn post_users_me_projects_transfer_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_users_me_projects_transfer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostUsersMeProjectsTransferArgs {
+    /// Request body.
+    pub body: TransferProjectsToOrganizationRequest,
+}
+
 /// POST /users/me/projects/transfer
 /// Transfer projects from personal account to organization
 ///
@@ -14814,13 +16461,13 @@ pub fn post_users_me_projects_transfer_execute(
 
 pub fn post_users_me_projects_transfer(
     client: &SimpleHttpClient,
-    body: &TransferProjectsToOrganizationRequest,
+    args: &PostUsersMeProjectsTransferArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EmptyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_users_me_projects_transfer_builder(client, body)?;
+    let builder = post_users_me_projects_transfer_builder(client, &args.body)?;
     post_users_me_projects_transfer_execute(builder)
 }

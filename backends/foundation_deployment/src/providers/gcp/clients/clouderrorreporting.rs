@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1beta1/projects/{projectsId}/events
 /// Deletes all error events of a given project.
@@ -108,6 +110,13 @@ pub fn clouderrorreporting_projects_delete_events_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouderrorreporting_projects_delete_events`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsDeleteEventsArgs {
+    /// Path parameter: projectName
+    pub projectName: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/events
 /// Deletes all error events of a given project.
 ///
@@ -120,14 +129,14 @@ pub fn clouderrorreporting_projects_delete_events_execute(
 
 pub fn clouderrorreporting_projects_delete_events(
     client: &SimpleHttpClient,
-    projectName: &str,
+    args: &ClouderrorreportingProjectsDeleteEventsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeleteEventsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = clouderrorreporting_projects_delete_events_builder(client, projectName)?;
+    let builder = clouderrorreporting_projects_delete_events_builder(client, &args.projectName)?;
     clouderrorreporting_projects_delete_events_execute(builder)
 }
 
@@ -259,6 +268,27 @@ pub fn clouderrorreporting_projects_events_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouderrorreporting_projects_events_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsEventsListArgs {
+    /// Path parameter: projectName
+    pub projectName: String,
+    /// Query parameter: groupId
+    pub groupId: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: serviceFilter_resourceType
+    pub serviceFilter_resourceType: Option<String>,
+    /// Query parameter: serviceFilter_service
+    pub serviceFilter_service: Option<String>,
+    /// Query parameter: serviceFilter_version
+    pub serviceFilter_version: Option<String>,
+    /// Query parameter: timeRange_period
+    pub timeRange_period: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/events
 /// Lists the specified events.
 ///
@@ -271,14 +301,7 @@ pub fn clouderrorreporting_projects_events_list_execute(
 
 pub fn clouderrorreporting_projects_events_list(
     client: &SimpleHttpClient,
-    projectName: &str,
-    groupId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    serviceFilter_resourceType: Option<&str>,
-    serviceFilter_service: Option<&str>,
-    serviceFilter_version: Option<&str>,
-    timeRange_period: Option<&str>,
+    args: &ClouderrorreportingProjectsEventsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListEventsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -287,14 +310,14 @@ pub fn clouderrorreporting_projects_events_list(
 > {
     let builder = clouderrorreporting_projects_events_list_builder(
         client,
-        projectName,
-        groupId,
-        pageSize,
-        pageToken,
-        serviceFilter_resourceType,
-        serviceFilter_service,
-        serviceFilter_version,
-        timeRange_period,
+        &args.projectName,
+        args.groupId.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.serviceFilter_resourceType.as_deref(),
+        args.serviceFilter_service.as_deref(),
+        args.serviceFilter_version.as_deref(),
+        args.timeRange_period.as_deref(),
     )?;
     clouderrorreporting_projects_events_list_execute(builder)
 }
@@ -394,6 +417,15 @@ pub fn clouderrorreporting_projects_events_report_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouderrorreporting_projects_events_report`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsEventsReportArgs {
+    /// Path parameter: projectName
+    pub projectName: String,
+    /// Request body.
+    pub body: ReportedErrorEvent,
+}
+
 /// GET v1beta1/projects/{projectsId}/events:report
 /// Report an individual error event and record the event to a log. This endpoint accepts **either** an OAuth token, **or** an [API key](<https://support.google.`com/cloud/answer/6158862`>) for authentication. To use an API key, append it to the URL as the value of a key parameter. For example: POST <https://clouderrorreporting.googleapis.`com/v1beta1/{`projectName`}/events`:report?key=123ABC456> **Note:** [Error Reporting] (<https://cloud.google.`com/error-reporting`>) is a service built on Cloud Logging and can analyze log entries when all of the following are `true`: * Customer-managed encryption keys (CMEK) are disabled on the log bucket. * The log bucket satisfies one of the following: * The log bucket is stored in the same project where the logs originated. * The logs were routed to a project, and then that project stored those logs in a log bucket that it owns.
 ///
@@ -406,15 +438,15 @@ pub fn clouderrorreporting_projects_events_report_execute(
 
 pub fn clouderrorreporting_projects_events_report(
     client: &SimpleHttpClient,
-    projectName: &str,
-    body: &ReportedErrorEvent,
+    args: &ClouderrorreportingProjectsEventsReportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReportErrorEventResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = clouderrorreporting_projects_events_report_builder(client, projectName, body)?;
+    let builder =
+        clouderrorreporting_projects_events_report_builder(client, &args.projectName, &args.body)?;
     clouderrorreporting_projects_events_report_execute(builder)
 }
 
@@ -562,6 +594,35 @@ pub fn clouderrorreporting_projects_group_stats_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouderrorreporting_projects_group_stats_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsGroupStatsListArgs {
+    /// Path parameter: projectName
+    pub projectName: String,
+    /// Query parameter: alignment
+    pub alignment: Option<String>,
+    /// Query parameter: alignmentTime
+    pub alignmentTime: Option<String>,
+    /// Query parameter: groupId
+    pub groupId: Option<String>,
+    /// Query parameter: order
+    pub order: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: serviceFilter_resourceType
+    pub serviceFilter_resourceType: Option<String>,
+    /// Query parameter: serviceFilter_service
+    pub serviceFilter_service: Option<String>,
+    /// Query parameter: serviceFilter_version
+    pub serviceFilter_version: Option<String>,
+    /// Query parameter: timeRange_period
+    pub timeRange_period: Option<String>,
+    /// Query parameter: timedCountDuration
+    pub timedCountDuration: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/groupStats
 /// Lists the specified groups.
 ///
@@ -574,18 +635,7 @@ pub fn clouderrorreporting_projects_group_stats_list_execute(
 
 pub fn clouderrorreporting_projects_group_stats_list(
     client: &SimpleHttpClient,
-    projectName: &str,
-    alignment: Option<&str>,
-    alignmentTime: Option<&str>,
-    groupId: Option<&str>,
-    order: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    serviceFilter_resourceType: Option<&str>,
-    serviceFilter_service: Option<&str>,
-    serviceFilter_version: Option<&str>,
-    timeRange_period: Option<&str>,
-    timedCountDuration: Option<&str>,
+    args: &ClouderrorreportingProjectsGroupStatsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGroupStatsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -594,18 +644,18 @@ pub fn clouderrorreporting_projects_group_stats_list(
 > {
     let builder = clouderrorreporting_projects_group_stats_list_builder(
         client,
-        projectName,
-        alignment,
-        alignmentTime,
-        groupId,
-        order,
-        pageSize,
-        pageToken,
-        serviceFilter_resourceType,
-        serviceFilter_service,
-        serviceFilter_version,
-        timeRange_period,
-        timedCountDuration,
+        &args.projectName,
+        args.alignment.as_deref(),
+        args.alignmentTime.as_deref(),
+        args.groupId.as_deref(),
+        args.order.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.serviceFilter_resourceType.as_deref(),
+        args.serviceFilter_service.as_deref(),
+        args.serviceFilter_version.as_deref(),
+        args.timeRange_period.as_deref(),
+        args.timedCountDuration.as_deref(),
     )?;
     clouderrorreporting_projects_group_stats_list_execute(builder)
 }
@@ -700,6 +750,13 @@ pub fn clouderrorreporting_projects_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouderrorreporting_projects_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsGroupsGetArgs {
+    /// Path parameter: groupName
+    pub groupName: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/groups/{groupsId}
 /// Get the specified group.
 ///
@@ -712,12 +769,12 @@ pub fn clouderrorreporting_projects_groups_get_execute(
 
 pub fn clouderrorreporting_projects_groups_get(
     client: &SimpleHttpClient,
-    groupName: &str,
+    args: &ClouderrorreportingProjectsGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ErrorGroup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = clouderrorreporting_projects_groups_get_builder(client, groupName)?;
+    let builder = clouderrorreporting_projects_groups_get_builder(client, &args.groupName)?;
     clouderrorreporting_projects_groups_get_execute(builder)
 }
 
@@ -814,6 +871,15 @@ pub fn clouderrorreporting_projects_groups_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouderrorreporting_projects_groups_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsGroupsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ErrorGroup,
+}
+
 /// GET v1beta1/projects/{projectsId}/groups/{groupsId}
 /// Replace the data for the specified group. Fails if the group does not exist.
 ///
@@ -826,13 +892,13 @@ pub fn clouderrorreporting_projects_groups_update_execute(
 
 pub fn clouderrorreporting_projects_groups_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ErrorGroup,
+    args: &ClouderrorreportingProjectsGroupsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ErrorGroup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = clouderrorreporting_projects_groups_update_builder(client, name, body)?;
+    let builder =
+        clouderrorreporting_projects_groups_update_builder(client, &args.name, &args.body)?;
     clouderrorreporting_projects_groups_update_execute(builder)
 }
 
@@ -928,6 +994,13 @@ pub fn clouderrorreporting_projects_locations_delete_events_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouderrorreporting_projects_locations_delete_events`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsLocationsDeleteEventsArgs {
+    /// Path parameter: projectName
+    pub projectName: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/events
 /// Deletes all error events of a given project.
 ///
@@ -940,7 +1013,7 @@ pub fn clouderrorreporting_projects_locations_delete_events_execute(
 
 pub fn clouderrorreporting_projects_locations_delete_events(
     client: &SimpleHttpClient,
-    projectName: &str,
+    args: &ClouderrorreportingProjectsLocationsDeleteEventsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeleteEventsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -948,7 +1021,7 @@ pub fn clouderrorreporting_projects_locations_delete_events(
     ApiError,
 > {
     let builder =
-        clouderrorreporting_projects_locations_delete_events_builder(client, projectName)?;
+        clouderrorreporting_projects_locations_delete_events_builder(client, &args.projectName)?;
     clouderrorreporting_projects_locations_delete_events_execute(builder)
 }
 
@@ -1080,6 +1153,27 @@ pub fn clouderrorreporting_projects_locations_events_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouderrorreporting_projects_locations_events_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsLocationsEventsListArgs {
+    /// Path parameter: projectName
+    pub projectName: String,
+    /// Query parameter: groupId
+    pub groupId: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: serviceFilter_resourceType
+    pub serviceFilter_resourceType: Option<String>,
+    /// Query parameter: serviceFilter_service
+    pub serviceFilter_service: Option<String>,
+    /// Query parameter: serviceFilter_version
+    pub serviceFilter_version: Option<String>,
+    /// Query parameter: timeRange_period
+    pub timeRange_period: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/events
 /// Lists the specified events.
 ///
@@ -1092,14 +1186,7 @@ pub fn clouderrorreporting_projects_locations_events_list_execute(
 
 pub fn clouderrorreporting_projects_locations_events_list(
     client: &SimpleHttpClient,
-    projectName: &str,
-    groupId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    serviceFilter_resourceType: Option<&str>,
-    serviceFilter_service: Option<&str>,
-    serviceFilter_version: Option<&str>,
-    timeRange_period: Option<&str>,
+    args: &ClouderrorreportingProjectsLocationsEventsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListEventsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1108,14 +1195,14 @@ pub fn clouderrorreporting_projects_locations_events_list(
 > {
     let builder = clouderrorreporting_projects_locations_events_list_builder(
         client,
-        projectName,
-        groupId,
-        pageSize,
-        pageToken,
-        serviceFilter_resourceType,
-        serviceFilter_service,
-        serviceFilter_version,
-        timeRange_period,
+        &args.projectName,
+        args.groupId.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.serviceFilter_resourceType.as_deref(),
+        args.serviceFilter_service.as_deref(),
+        args.serviceFilter_version.as_deref(),
+        args.timeRange_period.as_deref(),
     )?;
     clouderrorreporting_projects_locations_events_list_execute(builder)
 }
@@ -1264,6 +1351,35 @@ pub fn clouderrorreporting_projects_locations_group_stats_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouderrorreporting_projects_locations_group_stats_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsLocationsGroupStatsListArgs {
+    /// Path parameter: projectName
+    pub projectName: String,
+    /// Query parameter: alignment
+    pub alignment: Option<String>,
+    /// Query parameter: alignmentTime
+    pub alignmentTime: Option<String>,
+    /// Query parameter: groupId
+    pub groupId: Option<String>,
+    /// Query parameter: order
+    pub order: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: serviceFilter_resourceType
+    pub serviceFilter_resourceType: Option<String>,
+    /// Query parameter: serviceFilter_service
+    pub serviceFilter_service: Option<String>,
+    /// Query parameter: serviceFilter_version
+    pub serviceFilter_version: Option<String>,
+    /// Query parameter: timeRange_period
+    pub timeRange_period: Option<String>,
+    /// Query parameter: timedCountDuration
+    pub timedCountDuration: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/groupStats
 /// Lists the specified groups.
 ///
@@ -1276,18 +1392,7 @@ pub fn clouderrorreporting_projects_locations_group_stats_list_execute(
 
 pub fn clouderrorreporting_projects_locations_group_stats_list(
     client: &SimpleHttpClient,
-    projectName: &str,
-    alignment: Option<&str>,
-    alignmentTime: Option<&str>,
-    groupId: Option<&str>,
-    order: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    serviceFilter_resourceType: Option<&str>,
-    serviceFilter_service: Option<&str>,
-    serviceFilter_version: Option<&str>,
-    timeRange_period: Option<&str>,
-    timedCountDuration: Option<&str>,
+    args: &ClouderrorreportingProjectsLocationsGroupStatsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGroupStatsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1296,18 +1401,18 @@ pub fn clouderrorreporting_projects_locations_group_stats_list(
 > {
     let builder = clouderrorreporting_projects_locations_group_stats_list_builder(
         client,
-        projectName,
-        alignment,
-        alignmentTime,
-        groupId,
-        order,
-        pageSize,
-        pageToken,
-        serviceFilter_resourceType,
-        serviceFilter_service,
-        serviceFilter_version,
-        timeRange_period,
-        timedCountDuration,
+        &args.projectName,
+        args.alignment.as_deref(),
+        args.alignmentTime.as_deref(),
+        args.groupId.as_deref(),
+        args.order.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.serviceFilter_resourceType.as_deref(),
+        args.serviceFilter_service.as_deref(),
+        args.serviceFilter_version.as_deref(),
+        args.timeRange_period.as_deref(),
+        args.timedCountDuration.as_deref(),
     )?;
     clouderrorreporting_projects_locations_group_stats_list_execute(builder)
 }
@@ -1402,6 +1507,13 @@ pub fn clouderrorreporting_projects_locations_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouderrorreporting_projects_locations_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsLocationsGroupsGetArgs {
+    /// Path parameter: groupName
+    pub groupName: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
 /// Get the specified group.
 ///
@@ -1414,12 +1526,13 @@ pub fn clouderrorreporting_projects_locations_groups_get_execute(
 
 pub fn clouderrorreporting_projects_locations_groups_get(
     client: &SimpleHttpClient,
-    groupName: &str,
+    args: &ClouderrorreportingProjectsLocationsGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ErrorGroup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = clouderrorreporting_projects_locations_groups_get_builder(client, groupName)?;
+    let builder =
+        clouderrorreporting_projects_locations_groups_get_builder(client, &args.groupName)?;
     clouderrorreporting_projects_locations_groups_get_execute(builder)
 }
 
@@ -1516,6 +1629,15 @@ pub fn clouderrorreporting_projects_locations_groups_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouderrorreporting_projects_locations_groups_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouderrorreportingProjectsLocationsGroupsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ErrorGroup,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
 /// Replace the data for the specified group. Fails if the group does not exist.
 ///
@@ -1528,12 +1650,13 @@ pub fn clouderrorreporting_projects_locations_groups_update_execute(
 
 pub fn clouderrorreporting_projects_locations_groups_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ErrorGroup,
+    args: &ClouderrorreportingProjectsLocationsGroupsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ErrorGroup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = clouderrorreporting_projects_locations_groups_update_builder(client, name, body)?;
+    let builder = clouderrorreporting_projects_locations_groups_update_builder(
+        client, &args.name, &args.body,
+    )?;
     clouderrorreporting_projects_locations_groups_update_execute(builder)
 }

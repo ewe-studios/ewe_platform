@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn vmwareengine_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn vmwareengine_projects_locations_get_execute(
 
 pub fn vmwareengine_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vmwareengine_projects_locations_get_builder(client, name)?;
+    let builder = vmwareengine_projects_locations_get_builder(client, &args.name)?;
     vmwareengine_projects_locations_get_execute(builder)
 }
 
@@ -219,6 +228,13 @@ pub fn vmwareengine_projects_locations_get_dns_bind_permission_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_get_dns_bind_permission`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsGetDnsBindPermissionArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dnsBindPermission
 /// Gets all the principals having bind permission on the intranet VPC associated with the consumer project granted by the Grant API. DnsBindPermission is a global resource and location can only be global.
 ///
@@ -231,14 +247,15 @@ pub fn vmwareengine_projects_locations_get_dns_bind_permission_execute(
 
 pub fn vmwareengine_projects_locations_get_dns_bind_permission(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsGetDnsBindPermissionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DnsBindPermission>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vmwareengine_projects_locations_get_dns_bind_permission_builder(client, name)?;
+    let builder =
+        vmwareengine_projects_locations_get_dns_bind_permission_builder(client, &args.name)?;
     vmwareengine_projects_locations_get_dns_bind_permission_execute(builder)
 }
 
@@ -358,6 +375,21 @@ pub fn vmwareengine_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -370,11 +402,7 @@ pub fn vmwareengine_projects_locations_list_execute(
 
 pub fn vmwareengine_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -383,11 +411,11 @@ pub fn vmwareengine_projects_locations_list(
 > {
     let builder = vmwareengine_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_list_execute(builder)
 }
@@ -484,6 +512,13 @@ pub fn vmwareengine_projects_locations_announcements_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_announcements_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsAnnouncementsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/announcements/{announcementsId}
 /// Retrieves a Announcement by its resource name.
 ///
@@ -496,14 +531,14 @@ pub fn vmwareengine_projects_locations_announcements_get_execute(
 
 pub fn vmwareengine_projects_locations_announcements_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsAnnouncementsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Announcement>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vmwareengine_projects_locations_announcements_get_builder(client, name)?;
+    let builder = vmwareengine_projects_locations_announcements_get_builder(client, &args.name)?;
     vmwareengine_projects_locations_announcements_get_execute(builder)
 }
 
@@ -623,6 +658,21 @@ pub fn vmwareengine_projects_locations_announcements_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_announcements_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsAnnouncementsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/announcements
 /// Lists Announcements for a given region and project
 ///
@@ -635,11 +685,7 @@ pub fn vmwareengine_projects_locations_announcements_list_execute(
 
 pub fn vmwareengine_projects_locations_announcements_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsAnnouncementsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAnnouncementsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -647,7 +693,12 @@ pub fn vmwareengine_projects_locations_announcements_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_announcements_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_announcements_list_execute(builder)
 }
@@ -761,6 +812,19 @@ pub fn vmwareengine_projects_locations_datastores_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_datastores_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsDatastoresCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: datastoreId
+    pub datastoreId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Datastore,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datastores
 /// Creates a new Datastore resource in a given project and location.
 ///
@@ -773,20 +837,17 @@ pub fn vmwareengine_projects_locations_datastores_create_execute(
 
 pub fn vmwareengine_projects_locations_datastores_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    datastoreId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Datastore,
+    args: &VmwareengineProjectsLocationsDatastoresCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_datastores_create_builder(
         client,
-        parent,
-        datastoreId,
-        requestId,
-        body,
+        &args.parent,
+        args.datastoreId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     vmwareengine_projects_locations_datastores_create_execute(builder)
 }
@@ -897,6 +958,17 @@ pub fn vmwareengine_projects_locations_datastores_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_datastores_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsDatastoresDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
 /// Deletes a Datastore resource. You can only delete a Datastore after all resources that refer to it are deleted. For example, multiple clusters of the same private cloud or different private clouds can refer to the same datastore.
 ///
@@ -909,15 +981,17 @@ pub fn vmwareengine_projects_locations_datastores_delete_execute(
 
 pub fn vmwareengine_projects_locations_datastores_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
+    args: &VmwareengineProjectsLocationsDatastoresDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vmwareengine_projects_locations_datastores_delete_builder(client, name, etag, requestId)?;
+    let builder = vmwareengine_projects_locations_datastores_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+    )?;
     vmwareengine_projects_locations_datastores_delete_execute(builder)
 }
 
@@ -1011,6 +1085,13 @@ pub fn vmwareengine_projects_locations_datastores_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_datastores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsDatastoresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
 /// Retrieves a Datastore resource by its resource name. The resource contains details of the Datastore, such as its description, subnets, type, and more.
 ///
@@ -1023,12 +1104,12 @@ pub fn vmwareengine_projects_locations_datastores_get_execute(
 
 pub fn vmwareengine_projects_locations_datastores_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsDatastoresGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Datastore>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vmwareengine_projects_locations_datastores_get_builder(client, name)?;
+    let builder = vmwareengine_projects_locations_datastores_get_builder(client, &args.name)?;
     vmwareengine_projects_locations_datastores_get_execute(builder)
 }
 
@@ -1152,6 +1233,23 @@ pub fn vmwareengine_projects_locations_datastores_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_datastores_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsDatastoresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datastores
 /// Lists Datastore resources in a given project and location.
 ///
@@ -1164,12 +1262,7 @@ pub fn vmwareengine_projects_locations_datastores_list_execute(
 
 pub fn vmwareengine_projects_locations_datastores_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    requestId: Option<&str>,
+    args: &VmwareengineProjectsLocationsDatastoresListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDatastoresResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1177,7 +1270,13 @@ pub fn vmwareengine_projects_locations_datastores_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_datastores_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, requestId,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.requestId.as_deref(),
     )?;
     vmwareengine_projects_locations_datastores_list_execute(builder)
 }
@@ -1291,6 +1390,19 @@ pub fn vmwareengine_projects_locations_datastores_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_datastores_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsDatastoresPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Datastore,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
 /// Modifies a Datastore resource. Only fields specified in `updateMask` are applied.
 ///
@@ -1303,16 +1415,17 @@ pub fn vmwareengine_projects_locations_datastores_patch_execute(
 
 pub fn vmwareengine_projects_locations_datastores_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Datastore,
+    args: &VmwareengineProjectsLocationsDatastoresPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_datastores_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     vmwareengine_projects_locations_datastores_patch_execute(builder)
 }
@@ -1410,6 +1523,15 @@ pub fn vmwareengine_projects_locations_dns_bind_permission_grant_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_dns_bind_permission_grant`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsDnsBindPermissionGrantArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GrantDnsBindPermissionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dnsBindPermission:grant
 /// Grants the bind permission to the customer provided principal(user / service account) to bind their DNS zone with the intranet VPC associated with the project. DnsBindPermission is a global resource and location can only be global.
 ///
@@ -1422,14 +1544,14 @@ pub fn vmwareengine_projects_locations_dns_bind_permission_grant_execute(
 
 pub fn vmwareengine_projects_locations_dns_bind_permission_grant(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GrantDnsBindPermissionRequest,
+    args: &VmwareengineProjectsLocationsDnsBindPermissionGrantArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vmwareengine_projects_locations_dns_bind_permission_grant_builder(client, name, body)?;
+    let builder = vmwareengine_projects_locations_dns_bind_permission_grant_builder(
+        client, &args.name, &args.body,
+    )?;
     vmwareengine_projects_locations_dns_bind_permission_grant_execute(builder)
 }
 
@@ -1526,6 +1648,15 @@ pub fn vmwareengine_projects_locations_dns_bind_permission_revoke_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_dns_bind_permission_revoke`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsDnsBindPermissionRevokeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RevokeDnsBindPermissionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dnsBindPermission:revoke
 /// Revokes the bind permission from the customer provided principal(user / service account) on the intranet VPC associated with the consumer project. DnsBindPermission is a global resource and location can only be global.
 ///
@@ -1538,14 +1669,14 @@ pub fn vmwareengine_projects_locations_dns_bind_permission_revoke_execute(
 
 pub fn vmwareengine_projects_locations_dns_bind_permission_revoke(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RevokeDnsBindPermissionRequest,
+    args: &VmwareengineProjectsLocationsDnsBindPermissionRevokeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vmwareengine_projects_locations_dns_bind_permission_revoke_builder(client, name, body)?;
+    let builder = vmwareengine_projects_locations_dns_bind_permission_revoke_builder(
+        client, &args.name, &args.body,
+    )?;
     vmwareengine_projects_locations_dns_bind_permission_revoke_execute(builder)
 }
 
@@ -1662,6 +1793,21 @@ pub fn vmwareengine_projects_locations_network_peerings_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_peerings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPeeringsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: networkPeeringId
+    pub networkPeeringId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: NetworkPeering,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings
 /// Creates a new network peering between the peer network and VMware Engine network provided in a NetworkPeering resource. NetworkPeering is a global resource and location can only be global.
 ///
@@ -1674,22 +1820,18 @@ pub fn vmwareengine_projects_locations_network_peerings_create_execute(
 
 pub fn vmwareengine_projects_locations_network_peerings_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    networkPeeringId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &NetworkPeering,
+    args: &VmwareengineProjectsLocationsNetworkPeeringsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_network_peerings_create_builder(
         client,
-        parent,
-        networkPeeringId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.networkPeeringId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     vmwareengine_projects_locations_network_peerings_create_execute(builder)
 }
@@ -1796,6 +1938,15 @@ pub fn vmwareengine_projects_locations_network_peerings_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_peerings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPeeringsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
 /// Deletes a NetworkPeering resource. When a network peering is deleted for a VMware Engine network, the peer network becomes inaccessible to that VMware Engine network. NetworkPeering is a global resource and location can only be global.
 ///
@@ -1808,14 +1959,16 @@ pub fn vmwareengine_projects_locations_network_peerings_delete_execute(
 
 pub fn vmwareengine_projects_locations_network_peerings_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &VmwareengineProjectsLocationsNetworkPeeringsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vmwareengine_projects_locations_network_peerings_delete_builder(client, name, requestId)?;
+    let builder = vmwareengine_projects_locations_network_peerings_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     vmwareengine_projects_locations_network_peerings_delete_execute(builder)
 }
 
@@ -1911,6 +2064,13 @@ pub fn vmwareengine_projects_locations_network_peerings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_peerings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPeeringsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
 /// Retrieves a NetworkPeering resource by its resource name. The resource contains details of the network peering, such as peered networks, import and export custom route configurations, and peering state. NetworkPeering is a global resource and location can only be global.
 ///
@@ -1923,14 +2083,14 @@ pub fn vmwareengine_projects_locations_network_peerings_get_execute(
 
 pub fn vmwareengine_projects_locations_network_peerings_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsNetworkPeeringsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NetworkPeering>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vmwareengine_projects_locations_network_peerings_get_builder(client, name)?;
+    let builder = vmwareengine_projects_locations_network_peerings_get_builder(client, &args.name)?;
     vmwareengine_projects_locations_network_peerings_get_execute(builder)
 }
 
@@ -2052,6 +2212,21 @@ pub fn vmwareengine_projects_locations_network_peerings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_peerings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPeeringsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings
 /// Lists NetworkPeering resources in a given project. NetworkPeering is a global resource and location can only be global.
 ///
@@ -2064,11 +2239,7 @@ pub fn vmwareengine_projects_locations_network_peerings_list_execute(
 
 pub fn vmwareengine_projects_locations_network_peerings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsNetworkPeeringsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListNetworkPeeringsResponse>, ApiError>,
@@ -2078,7 +2249,12 @@ pub fn vmwareengine_projects_locations_network_peerings_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_network_peerings_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_network_peerings_list_execute(builder)
 }
@@ -2196,6 +2372,21 @@ pub fn vmwareengine_projects_locations_network_peerings_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_peerings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPeeringsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: NetworkPeering,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
 /// Modifies a NetworkPeering resource. Only the description field can be updated. Only fields specified in `updateMask` are applied. NetworkPeering is a global resource and location can only be global.
 ///
@@ -2208,22 +2399,18 @@ pub fn vmwareengine_projects_locations_network_peerings_patch_execute(
 
 pub fn vmwareengine_projects_locations_network_peerings_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &NetworkPeering,
+    args: &VmwareengineProjectsLocationsNetworkPeeringsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_network_peerings_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     vmwareengine_projects_locations_network_peerings_patch_execute(builder)
 }
@@ -2340,6 +2527,19 @@ pub fn vmwareengine_projects_locations_network_peerings_peering_routes_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_peerings_peering_routes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPeeringsPeeringRoutesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}/peeringRoutes
 /// Lists the network peering routes exchanged over a peering connection. NetworkPeering is a global resource and location can only be global.
 ///
@@ -2352,10 +2552,7 @@ pub fn vmwareengine_projects_locations_network_peerings_peering_routes_list_exec
 
 pub fn vmwareengine_projects_locations_network_peerings_peering_routes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsNetworkPeeringsPeeringRoutesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPeeringRoutesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2363,7 +2560,11 @@ pub fn vmwareengine_projects_locations_network_peerings_peering_routes_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_network_peerings_peering_routes_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_network_peerings_peering_routes_list_execute(builder)
 }
@@ -2481,6 +2682,21 @@ pub fn vmwareengine_projects_locations_network_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: networkPolicyId
+    pub networkPolicyId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: NetworkPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies
 /// Creates a new network policy in a given VMware Engine network of a project and location (region). A new network policy cannot be created if another network policy already exists in the same scope.
 ///
@@ -2493,22 +2709,18 @@ pub fn vmwareengine_projects_locations_network_policies_create_execute(
 
 pub fn vmwareengine_projects_locations_network_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    networkPolicyId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &NetworkPolicy,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_network_policies_create_builder(
         client,
-        parent,
-        networkPolicyId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.networkPolicyId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     vmwareengine_projects_locations_network_policies_create_execute(builder)
 }
@@ -2615,6 +2827,15 @@ pub fn vmwareengine_projects_locations_network_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
 /// Deletes a NetworkPolicy resource. A network policy cannot be deleted when NetworkService.state is set to RECONCILING for either its external IP or internet access service.
 ///
@@ -2627,14 +2848,16 @@ pub fn vmwareengine_projects_locations_network_policies_delete_execute(
 
 pub fn vmwareengine_projects_locations_network_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vmwareengine_projects_locations_network_policies_delete_builder(client, name, requestId)?;
+    let builder = vmwareengine_projects_locations_network_policies_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     vmwareengine_projects_locations_network_policies_delete_execute(builder)
 }
 
@@ -2749,6 +2972,17 @@ pub fn vmwareengine_projects_locations_network_policies_fetch_external_addresses
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_policies_fetch_external_addresses`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesFetchExternalAddressesArgs {
+    /// Path parameter: networkPolicy
+    pub networkPolicy: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}:fetchExternalAddresses
 /// Lists external IP addresses assigned to VMware workload VMs within the scope of the given network policy.
 ///
@@ -2761,9 +2995,7 @@ pub fn vmwareengine_projects_locations_network_policies_fetch_external_addresses
 
 pub fn vmwareengine_projects_locations_network_policies_fetch_external_addresses(
     client: &SimpleHttpClient,
-    networkPolicy: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesFetchExternalAddressesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchNetworkPolicyExternalAddressesResponse>, ApiError>,
@@ -2775,9 +3007,9 @@ pub fn vmwareengine_projects_locations_network_policies_fetch_external_addresses
     let builder =
         vmwareengine_projects_locations_network_policies_fetch_external_addresses_builder(
             client,
-            networkPolicy,
-            pageSize,
-            pageToken,
+            &args.networkPolicy,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     vmwareengine_projects_locations_network_policies_fetch_external_addresses_execute(builder)
 }
@@ -2874,6 +3106,13 @@ pub fn vmwareengine_projects_locations_network_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
 /// Retrieves a NetworkPolicy resource by its resource name.
 ///
@@ -2886,14 +3125,14 @@ pub fn vmwareengine_projects_locations_network_policies_get_execute(
 
 pub fn vmwareengine_projects_locations_network_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NetworkPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vmwareengine_projects_locations_network_policies_get_builder(client, name)?;
+    let builder = vmwareengine_projects_locations_network_policies_get_builder(client, &args.name)?;
     vmwareengine_projects_locations_network_policies_get_execute(builder)
 }
 
@@ -3015,6 +3254,21 @@ pub fn vmwareengine_projects_locations_network_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies
 /// Lists NetworkPolicy resources in a specified project and location.
 ///
@@ -3027,11 +3281,7 @@ pub fn vmwareengine_projects_locations_network_policies_list_execute(
 
 pub fn vmwareengine_projects_locations_network_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListNetworkPoliciesResponse>, ApiError>,
@@ -3041,7 +3291,12 @@ pub fn vmwareengine_projects_locations_network_policies_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_network_policies_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_network_policies_list_execute(builder)
 }
@@ -3159,6 +3414,21 @@ pub fn vmwareengine_projects_locations_network_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: NetworkPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
 /// Modifies a NetworkPolicy resource. Only the following fields can be updated: internet_access, external_ip, edge_services_cidr. Only fields specified in `updateMask` are applied. When updating a network policy, the external IP network service can only be disabled if there are no external IP addresses present in the scope of the policy. Also, a NetworkService cannot be updated when NetworkService.state is set to RECONCILING. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
 ///
@@ -3171,22 +3441,18 @@ pub fn vmwareengine_projects_locations_network_policies_patch_execute(
 
 pub fn vmwareengine_projects_locations_network_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &NetworkPolicy,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_network_policies_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     vmwareengine_projects_locations_network_policies_patch_execute(builder)
 }
@@ -3304,6 +3570,21 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_cr
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_policies_external_access_rules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: externalAccessRuleId
+    pub externalAccessRuleId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: ExternalAccessRule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules
 /// Creates a new external access rule in a given network policy.
 ///
@@ -3316,11 +3597,7 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_cr
 
 pub fn vmwareengine_projects_locations_network_policies_external_access_rules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    externalAccessRuleId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &ExternalAccessRule,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -3328,11 +3605,11 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_cr
     let builder =
         vmwareengine_projects_locations_network_policies_external_access_rules_create_builder(
             client,
-            parent,
-            externalAccessRuleId,
-            requestId,
-            validateOnly,
-            body,
+            &args.parent,
+            args.externalAccessRuleId.as_deref(),
+            args.requestId.as_deref(),
+            args.validateOnly,
+            &args.body,
         )?;
     vmwareengine_projects_locations_network_policies_external_access_rules_create_execute(builder)
 }
@@ -3439,6 +3716,15 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_de
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_policies_external_access_rules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
 /// Deletes a single external access rule.
 ///
@@ -3451,15 +3737,16 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_de
 
 pub fn vmwareengine_projects_locations_network_policies_external_access_rules_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         vmwareengine_projects_locations_network_policies_external_access_rules_delete_builder(
-            client, name, requestId,
+            client,
+            &args.name,
+            args.requestId.as_deref(),
         )?;
     vmwareengine_projects_locations_network_policies_external_access_rules_delete_execute(builder)
 }
@@ -3556,6 +3843,13 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_ge
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_policies_external_access_rules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
 /// Gets details of a single external access rule.
 ///
@@ -3568,7 +3862,7 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_ge
 
 pub fn vmwareengine_projects_locations_network_policies_external_access_rules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExternalAccessRule>, ApiError>, P = ApiPending>
         + Send
@@ -3577,7 +3871,7 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_ge
 > {
     let builder =
         vmwareengine_projects_locations_network_policies_external_access_rules_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     vmwareengine_projects_locations_network_policies_external_access_rules_get_execute(builder)
 }
@@ -3700,6 +3994,21 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_li
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_policies_external_access_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules
 /// Lists ExternalAccessRule resources in the specified network policy.
 ///
@@ -3712,11 +4021,7 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_li
 
 pub fn vmwareengine_projects_locations_network_policies_external_access_rules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListExternalAccessRulesResponse>, ApiError>,
@@ -3727,7 +4032,12 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_li
 > {
     let builder =
         vmwareengine_projects_locations_network_policies_external_access_rules_list_builder(
-            client, parent, filter, orderBy, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     vmwareengine_projects_locations_network_policies_external_access_rules_list_execute(builder)
 }
@@ -3845,6 +4155,21 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_pa
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_network_policies_external_access_rules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: ExternalAccessRule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
 /// Updates the parameters of a single external access rule. Only fields specified in update_mask are applied.
 ///
@@ -3857,11 +4182,7 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_pa
 
 pub fn vmwareengine_projects_locations_network_policies_external_access_rules_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &ExternalAccessRule,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -3869,11 +4190,11 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_pa
     let builder =
         vmwareengine_projects_locations_network_policies_external_access_rules_patch_builder(
             client,
-            name,
-            requestId,
-            updateMask,
-            validateOnly,
-            body,
+            &args.name,
+            args.requestId.as_deref(),
+            args.updateMask.as_deref(),
+            args.validateOnly,
+            &args.body,
         )?;
     vmwareengine_projects_locations_network_policies_external_access_rules_patch_execute(builder)
 }
@@ -3968,6 +4289,13 @@ pub fn vmwareengine_projects_locations_node_types_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_node_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNodeTypesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/nodeTypes/{nodeTypesId}
 /// Gets details of a single NodeType.
 ///
@@ -3980,12 +4308,12 @@ pub fn vmwareengine_projects_locations_node_types_get_execute(
 
 pub fn vmwareengine_projects_locations_node_types_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsNodeTypesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NodeType>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vmwareengine_projects_locations_node_types_get_builder(client, name)?;
+    let builder = vmwareengine_projects_locations_node_types_get_builder(client, &args.name)?;
     vmwareengine_projects_locations_node_types_get_execute(builder)
 }
 
@@ -4101,6 +4429,19 @@ pub fn vmwareengine_projects_locations_node_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_node_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNodeTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/nodeTypes
 /// Lists node types
 ///
@@ -4113,10 +4454,7 @@ pub fn vmwareengine_projects_locations_node_types_list_execute(
 
 pub fn vmwareengine_projects_locations_node_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsNodeTypesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListNodeTypesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4124,7 +4462,11 @@ pub fn vmwareengine_projects_locations_node_types_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_node_types_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_node_types_list_execute(builder)
 }
@@ -4219,6 +4561,13 @@ pub fn vmwareengine_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -4231,12 +4580,12 @@ pub fn vmwareengine_projects_locations_operations_delete_execute(
 
 pub fn vmwareengine_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vmwareengine_projects_locations_operations_delete_builder(client, name)?;
+    let builder = vmwareengine_projects_locations_operations_delete_builder(client, &args.name)?;
     vmwareengine_projects_locations_operations_delete_execute(builder)
 }
 
@@ -4330,6 +4679,13 @@ pub fn vmwareengine_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -4342,12 +4698,12 @@ pub fn vmwareengine_projects_locations_operations_get_execute(
 
 pub fn vmwareengine_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vmwareengine_projects_locations_operations_get_builder(client, name)?;
+    let builder = vmwareengine_projects_locations_operations_get_builder(client, &args.name)?;
     vmwareengine_projects_locations_operations_get_execute(builder)
 }
 
@@ -4467,6 +4823,21 @@ pub fn vmwareengine_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -4479,11 +4850,7 @@ pub fn vmwareengine_projects_locations_operations_list_execute(
 
 pub fn vmwareengine_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &VmwareengineProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4492,11 +4859,11 @@ pub fn vmwareengine_projects_locations_operations_list(
 > {
     let builder = vmwareengine_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     vmwareengine_projects_locations_operations_list_execute(builder)
 }
@@ -4614,6 +4981,21 @@ pub fn vmwareengine_projects_locations_private_clouds_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: privateCloudId
+    pub privateCloudId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: PrivateCloud,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds
 /// Creates a new PrivateCloud resource in a given project and location. Private clouds of type STANDARD and TIME_LIMITED are zonal resources, STRETCHED private clouds are regional. Creating a private cloud also creates a [management cluster](<https://cloud.google.`com/vmware-engine/docs/concepts-vmware-components`>) for that private cloud.
 ///
@@ -4626,22 +5008,18 @@ pub fn vmwareengine_projects_locations_private_clouds_create_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    privateCloudId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &PrivateCloud,
+    args: &VmwareengineProjectsLocationsPrivateCloudsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_create_builder(
         client,
-        parent,
-        privateCloudId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.privateCloudId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_create_execute(builder)
 }
@@ -4756,6 +5134,19 @@ pub fn vmwareengine_projects_locations_private_clouds_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: delayHours
+    pub delayHours: Option<i32>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
 /// Schedules a PrivateCloud resource for deletion. A PrivateCloud resource scheduled for deletion has PrivateCloud.state set to DELETED and `expireTime` set to the time when deletion is final and can no longer be reversed. The delete operation is marked as done as soon as the PrivateCloud is successfully scheduled for deletion (this also applies when `delayHours` is set to zero), and the operation is not kept in pending state until PrivateCloud is purged. PrivateCloud can be restored using UndeletePrivateCloud method before the `expireTime` elapses. When `expireTime` is reached, deletion is final and all private cloud resources are irreversibly removed and billing stops. During the final removal process, PrivateCloud.state is set to PURGING. PrivateCloud can be polled using standard GET method for the whole period of deletion and purging. It will not be returned only when it is completely purged.
 ///
@@ -4768,16 +5159,17 @@ pub fn vmwareengine_projects_locations_private_clouds_delete_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    delayHours: Option<i32>,
-    force: Option<bool>,
-    requestId: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_delete_builder(
-        client, name, delayHours, force, requestId,
+        client,
+        &args.name,
+        args.delayHours,
+        args.force,
+        args.requestId.as_deref(),
     )?;
     vmwareengine_projects_locations_private_clouds_delete_execute(builder)
 }
@@ -4874,6 +5266,13 @@ pub fn vmwareengine_projects_locations_private_clouds_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
 /// Retrieves a PrivateCloud resource by its resource name.
 ///
@@ -4886,14 +5285,14 @@ pub fn vmwareengine_projects_locations_private_clouds_get_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsPrivateCloudsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PrivateCloud>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vmwareengine_projects_locations_private_clouds_get_builder(client, name)?;
+    let builder = vmwareengine_projects_locations_private_clouds_get_builder(client, &args.name)?;
     vmwareengine_projects_locations_private_clouds_get_execute(builder)
 }
 
@@ -4989,6 +5388,13 @@ pub fn vmwareengine_projects_locations_private_clouds_get_dns_forwarding_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_get_dns_forwarding`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsGetDnsForwardingArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/dnsForwarding
 /// Gets details of the DnsForwarding config.
 ///
@@ -5001,15 +5407,16 @@ pub fn vmwareengine_projects_locations_private_clouds_get_dns_forwarding_execute
 
 pub fn vmwareengine_projects_locations_private_clouds_get_dns_forwarding(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsPrivateCloudsGetDnsForwardingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DnsForwarding>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        vmwareengine_projects_locations_private_clouds_get_dns_forwarding_builder(client, name)?;
+    let builder = vmwareengine_projects_locations_private_clouds_get_dns_forwarding_builder(
+        client, &args.name,
+    )?;
     vmwareengine_projects_locations_private_clouds_get_dns_forwarding_execute(builder)
 }
 
@@ -5115,6 +5522,15 @@ pub fn vmwareengine_projects_locations_private_clouds_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -5127,16 +5543,15 @@ pub fn vmwareengine_projects_locations_private_clouds_get_iam_policy_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     vmwareengine_projects_locations_private_clouds_get_iam_policy_execute(builder)
 }
@@ -5257,6 +5672,21 @@ pub fn vmwareengine_projects_locations_private_clouds_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds
 /// Lists PrivateCloud resources in a given project and location.
 ///
@@ -5269,11 +5699,7 @@ pub fn vmwareengine_projects_locations_private_clouds_list_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPrivateCloudsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5281,7 +5707,12 @@ pub fn vmwareengine_projects_locations_private_clouds_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_private_clouds_list_execute(builder)
 }
@@ -5399,6 +5830,21 @@ pub fn vmwareengine_projects_locations_private_clouds_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: PrivateCloud,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
 /// Modifies a PrivateCloud resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
 ///
@@ -5411,22 +5857,18 @@ pub fn vmwareengine_projects_locations_private_clouds_patch_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &PrivateCloud,
+    args: &VmwareengineProjectsLocationsPrivateCloudsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_patch_execute(builder)
 }
@@ -5524,6 +5966,15 @@ pub fn vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsPrivateCloudDeletionNowArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AcceleratePrivateCloudDeletionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:privateCloudDeletionNow
 /// Accelerates the deletion of a private cloud that is currently in soft deletion A PrivateCloud resource in soft deletion has PrivateCloud.state set to SOFT_DELETED and PrivateCloud.`expireTime` set to the time when deletion can no longer be reversed.
 ///
@@ -5536,15 +5987,14 @@ pub fn vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now
 
 pub fn vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AcceleratePrivateCloudDeletionRequest,
+    args: &VmwareengineProjectsLocationsPrivateCloudsPrivateCloudDeletionNowArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_execute(builder)
 }
@@ -5642,6 +6092,15 @@ pub fn vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_reset_nsx_credentials`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsResetNsxCredentialsArgs {
+    /// Path parameter: privateCloud
+    pub privateCloud: String,
+    /// Request body.
+    pub body: ResetNsxCredentialsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:resetNsxCredentials
 /// Resets credentials of the NSX appliance.
 ///
@@ -5654,16 +6113,15 @@ pub fn vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_exec
 
 pub fn vmwareengine_projects_locations_private_clouds_reset_nsx_credentials(
     client: &SimpleHttpClient,
-    privateCloud: &str,
-    body: &ResetNsxCredentialsRequest,
+    args: &VmwareengineProjectsLocationsPrivateCloudsResetNsxCredentialsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_builder(
         client,
-        privateCloud,
-        body,
+        &args.privateCloud,
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_execute(builder)
 }
@@ -5761,6 +6219,15 @@ pub fn vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsResetVcenterCredentialsArgs {
+    /// Path parameter: privateCloud
+    pub privateCloud: String,
+    /// Request body.
+    pub body: ResetVcenterCredentialsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:resetVcenterCredentials
 /// Resets credentials of the Vcenter appliance.
 ///
@@ -5773,16 +6240,15 @@ pub fn vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_
 
 pub fn vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials(
     client: &SimpleHttpClient,
-    privateCloud: &str,
-    body: &ResetVcenterCredentialsRequest,
+    args: &VmwareengineProjectsLocationsPrivateCloudsResetVcenterCredentialsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_builder(
         client,
-        privateCloud,
-        body,
+        &args.privateCloud,
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_execute(builder)
 }
@@ -5880,6 +6346,15 @@ pub fn vmwareengine_projects_locations_private_clouds_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -5892,14 +6367,15 @@ pub fn vmwareengine_projects_locations_private_clouds_set_iam_policy_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &VmwareengineProjectsLocationsPrivateCloudsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_set_iam_policy_execute(builder)
 }
@@ -5994,6 +6470,13 @@ pub fn vmwareengine_projects_locations_private_clouds_show_nsx_credentials_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_show_nsx_credentials`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsShowNsxCredentialsArgs {
+    /// Path parameter: privateCloud
+    pub privateCloud: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:showNsxCredentials
 /// Gets details of credentials for NSX appliance.
 ///
@@ -6006,14 +6489,14 @@ pub fn vmwareengine_projects_locations_private_clouds_show_nsx_credentials_execu
 
 pub fn vmwareengine_projects_locations_private_clouds_show_nsx_credentials(
     client: &SimpleHttpClient,
-    privateCloud: &str,
+    args: &VmwareengineProjectsLocationsPrivateCloudsShowNsxCredentialsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Credentials>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_show_nsx_credentials_builder(
         client,
-        privateCloud,
+        &args.privateCloud,
     )?;
     vmwareengine_projects_locations_private_clouds_show_nsx_credentials_execute(builder)
 }
@@ -6120,6 +6603,15 @@ pub fn vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_show_vcenter_credentials`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsShowVcenterCredentialsArgs {
+    /// Path parameter: privateCloud
+    pub privateCloud: String,
+    /// Query parameter: username
+    pub username: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:showVcenterCredentials
 /// Gets details of credentials for Vcenter appliance.
 ///
@@ -6132,16 +6624,15 @@ pub fn vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_e
 
 pub fn vmwareengine_projects_locations_private_clouds_show_vcenter_credentials(
     client: &SimpleHttpClient,
-    privateCloud: &str,
-    username: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsShowVcenterCredentialsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Credentials>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_builder(
         client,
-        privateCloud,
-        username,
+        &args.privateCloud,
+        args.username.as_deref(),
     )?;
     vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_execute(builder)
 }
@@ -6243,6 +6734,15 @@ pub fn vmwareengine_projects_locations_private_clouds_test_iam_permissions_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -6255,8 +6755,7 @@ pub fn vmwareengine_projects_locations_private_clouds_test_iam_permissions_execu
 
 pub fn vmwareengine_projects_locations_private_clouds_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &VmwareengineProjectsLocationsPrivateCloudsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -6266,7 +6765,9 @@ pub fn vmwareengine_projects_locations_private_clouds_test_iam_permissions(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_test_iam_permissions_execute(builder)
 }
@@ -6364,6 +6865,15 @@ pub fn vmwareengine_projects_locations_private_clouds_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsUndeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UndeletePrivateCloudRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:undelete
 /// Restores a private cloud that was previously scheduled for deletion by DeletePrivateCloud. A PrivateCloud resource scheduled for deletion has PrivateCloud.state set to DELETED and PrivateCloud.`expireTime` set to the time when deletion can no longer be reversed.
 ///
@@ -6376,14 +6886,14 @@ pub fn vmwareengine_projects_locations_private_clouds_undelete_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_undelete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UndeletePrivateCloudRequest,
+    args: &VmwareengineProjectsLocationsPrivateCloudsUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vmwareengine_projects_locations_private_clouds_undelete_builder(client, name, body)?;
+    let builder = vmwareengine_projects_locations_private_clouds_undelete_builder(
+        client, &args.name, &args.body,
+    )?;
     vmwareengine_projects_locations_private_clouds_undelete_execute(builder)
 }
 
@@ -6496,6 +7006,19 @@ pub fn vmwareengine_projects_locations_private_clouds_update_dns_forwarding_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_update_dns_forwarding`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsUpdateDnsForwardingArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: DnsForwarding,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/dnsForwarding
 /// Updates the parameters of the DnsForwarding config, like associated domains. Only fields specified in update_mask are applied.
 ///
@@ -6508,16 +7031,17 @@ pub fn vmwareengine_projects_locations_private_clouds_update_dns_forwarding_exec
 
 pub fn vmwareengine_projects_locations_private_clouds_update_dns_forwarding(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &DnsForwarding,
+    args: &VmwareengineProjectsLocationsPrivateCloudsUpdateDnsForwardingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_update_dns_forwarding_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_update_dns_forwarding_execute(builder)
 }
@@ -6635,6 +7159,21 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: clusterId
+    pub clusterId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Cluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters
 /// Creates a new cluster in a given private cloud. Creating a new cluster provides additional nodes for use in the parent private cloud and requires sufficient [node quota](<https://cloud.google.`com/vmware-engine/quotas`>).
 ///
@@ -6647,22 +7186,18 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_create_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_clusters_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    clusterId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Cluster,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_clusters_create_builder(
         client,
-        parent,
-        clusterId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.clusterId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_clusters_create_execute(builder)
 }
@@ -6769,6 +7304,15 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
 /// Deletes a Cluster resource. To avoid unintended data loss, migrate or gracefully shut down any workloads running on the cluster before deletion. You cannot delete the management cluster of a private cloud using this method.
 ///
@@ -6781,14 +7325,15 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_delete_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_clusters_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_clusters_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     vmwareengine_projects_locations_private_clouds_clusters_delete_execute(builder)
 }
@@ -6883,6 +7428,13 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
 /// Retrieves a Cluster resource by its resource name.
 ///
@@ -6895,13 +7447,13 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_get_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_clusters_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        vmwareengine_projects_locations_private_clouds_clusters_get_builder(client, name)?;
+        vmwareengine_projects_locations_private_clouds_clusters_get_builder(client, &args.name)?;
     vmwareengine_projects_locations_private_clouds_clusters_get_execute(builder)
 }
 
@@ -7007,6 +7559,15 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -7019,16 +7580,15 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_ex
 
 pub fn vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_execute(builder)
 }
@@ -7149,6 +7709,21 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters
 /// Lists Cluster resources in a given private cloud.
 ///
@@ -7161,11 +7736,7 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_list_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_clusters_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7173,7 +7744,12 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_clusters_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_private_clouds_clusters_list_execute(builder)
 }
@@ -7271,6 +7847,15 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_mount_datastore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersMountDatastoreArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MountDatastoreRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:mountDatastore
 /// Mounts a Datastore on a cluster resource
 ///
@@ -7283,14 +7868,13 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_e
 
 pub fn vmwareengine_projects_locations_private_clouds_clusters_mount_datastore(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MountDatastoreRequest,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersMountDatastoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_execute(builder)
 }
@@ -7408,6 +7992,21 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Cluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
 /// Modifies a Cluster resource. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
 ///
@@ -7420,22 +8019,18 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_patch_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_clusters_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Cluster,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_clusters_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_clusters_patch_execute(builder)
 }
@@ -7533,6 +8128,15 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -7545,14 +8149,15 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_ex
 
 pub fn vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_execute(builder)
 }
@@ -7654,6 +8259,15 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -7666,8 +8280,7 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissi
 
 pub fn vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -7678,7 +8291,9 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissi
 > {
     let builder =
         vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_execute(builder)
 }
@@ -7776,6 +8391,15 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersUnmountDatastoreArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UnmountDatastoreRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:unmountDatastore
 /// Unmounts a Datastore on a cluster resource
 ///
@@ -7788,15 +8412,14 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore
 
 pub fn vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UnmountDatastoreRequest,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersUnmountDatastoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_execute(builder)
 }
@@ -7891,6 +8514,13 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_nodes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersNodesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}/nodes/{nodesId}
 /// Gets details of a single node.
 ///
@@ -7903,13 +8533,14 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_get_execute
 
 pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersNodesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Node>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vmwareengine_projects_locations_private_clouds_clusters_nodes_get_builder(client, name)?;
+    let builder = vmwareengine_projects_locations_private_clouds_clusters_nodes_get_builder(
+        client, &args.name,
+    )?;
     vmwareengine_projects_locations_private_clouds_clusters_nodes_get_execute(builder)
 }
 
@@ -8021,6 +8652,17 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_nodes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersNodesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}/nodes
 /// Lists nodes in a given cluster.
 ///
@@ -8033,9 +8675,7 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_list_execut
 
 pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersNodesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListNodesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8043,7 +8683,10 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_clusters_nodes_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_private_clouds_clusters_nodes_list_execute(builder)
 }
@@ -8161,6 +8804,21 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_create_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_external_addresses_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsExternalAddressesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: externalAddressId
+    pub externalAddressId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: ExternalAddress,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses
 /// Creates a new ExternalAddress resource in a given private cloud. The network policy that corresponds to the private cloud must have the external IP address network service enabled (NetworkPolicy.external_ip).
 ///
@@ -8173,22 +8831,18 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_create_
 
 pub fn vmwareengine_projects_locations_private_clouds_external_addresses_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    externalAddressId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &ExternalAddress,
+    args: &VmwareengineProjectsLocationsPrivateCloudsExternalAddressesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_external_addresses_create_builder(
         client,
-        parent,
-        externalAddressId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.externalAddressId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_external_addresses_create_execute(builder)
 }
@@ -8295,6 +8949,15 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_delete_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_external_addresses_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsExternalAddressesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
 /// Deletes a single external IP address. When you delete an external IP address, connectivity between the external IP address and the corresponding internal IP address is lost.
 ///
@@ -8307,14 +8970,15 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_delete_
 
 pub fn vmwareengine_projects_locations_private_clouds_external_addresses_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsExternalAddressesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_external_addresses_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     vmwareengine_projects_locations_private_clouds_external_addresses_delete_execute(builder)
 }
@@ -8411,6 +9075,13 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_external_addresses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsExternalAddressesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
 /// Gets details of a single external IP address.
 ///
@@ -8423,7 +9094,7 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_get_exe
 
 pub fn vmwareengine_projects_locations_private_clouds_external_addresses_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsPrivateCloudsExternalAddressesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExternalAddress>, ApiError>, P = ApiPending>
         + Send
@@ -8431,7 +9102,7 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_get(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_external_addresses_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     vmwareengine_projects_locations_private_clouds_external_addresses_get_execute(builder)
 }
@@ -8554,6 +9225,21 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_external_addresses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsExternalAddressesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses
 /// Lists external IP addresses assigned to VMware workload VMs in a given private cloud.
 ///
@@ -8566,11 +9252,7 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_list_ex
 
 pub fn vmwareengine_projects_locations_private_clouds_external_addresses_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsExternalAddressesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListExternalAddressesResponse>, ApiError>,
@@ -8580,7 +9262,12 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_external_addresses_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_private_clouds_external_addresses_list_execute(builder)
 }
@@ -8698,6 +9385,21 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_patch_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_external_addresses_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsExternalAddressesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: ExternalAddress,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
 /// Updates the parameters of a single external IP address. Only fields specified in update_mask are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
 ///
@@ -8710,22 +9412,18 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_patch_e
 
 pub fn vmwareengine_projects_locations_private_clouds_external_addresses_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &ExternalAddress,
+    args: &VmwareengineProjectsLocationsPrivateCloudsExternalAddressesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_external_addresses_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_external_addresses_patch_execute(builder)
 }
@@ -8839,6 +9537,19 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: hcxActivationKeyId
+    pub hcxActivationKeyId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: HcxActivationKey,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys
 /// Creates a new HCX activation key in a given private cloud.
 ///
@@ -8851,10 +9562,7 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create
 
 pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    hcxActivationKeyId: Option<&str>,
-    requestId: Option<&str>,
-    body: &HcxActivationKey,
+    args: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -8862,10 +9570,10 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create
     let builder =
         vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_builder(
             client,
-            parent,
-            hcxActivationKeyId,
-            requestId,
-            body,
+            &args.parent,
+            args.hcxActivationKeyId.as_deref(),
+            args.requestId.as_deref(),
+            &args.body,
         )?;
     vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_execute(builder)
 }
@@ -8962,6 +9670,13 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}
 /// Retrieves a HcxActivationKey resource by its resource name.
 ///
@@ -8974,7 +9689,7 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_ex
 
 pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HcxActivationKey>, ApiError>, P = ApiPending>
         + Send
@@ -8982,7 +9697,7 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_execute(builder)
 }
@@ -9089,6 +9804,15 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_ia
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -9101,8 +9825,7 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_ia
 
 pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -9110,8 +9833,8 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_ia
     let builder =
         vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_builder(
             client,
-            resource,
-            options_requestedPolicyVersion,
+            &args.resource,
+            args.options_requestedPolicyVersion,
         )?;
     vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_execute(
         builder,
@@ -9228,6 +9951,17 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys
 /// Lists HcxActivationKey resources in a given private cloud.
 ///
@@ -9240,9 +9974,7 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_e
 
 pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListHcxActivationKeysResponse>, ApiError>,
@@ -9252,7 +9984,10 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_execute(builder)
 }
@@ -9350,6 +10085,15 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_ia
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -9362,15 +10106,16 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_ia
 
 pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_execute(
         builder,
@@ -9474,6 +10219,15 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_i
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -9486,8 +10240,7 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_i
 
 pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -9496,7 +10249,7 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_i
         + 'static,
     ApiError,
 > {
-    let builder = vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_builder(client, resource, body)?;
+    let builder = vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_execute(
         builder,
     )
@@ -9611,6 +10364,19 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_create_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_logging_servers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsLoggingServersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: loggingServerId
+    pub loggingServerId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: LoggingServer,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers
 /// Create a new logging server for a given private cloud.
 ///
@@ -9623,20 +10389,17 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_create_exe
 
 pub fn vmwareengine_projects_locations_private_clouds_logging_servers_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    loggingServerId: Option<&str>,
-    requestId: Option<&str>,
-    body: &LoggingServer,
+    args: &VmwareengineProjectsLocationsPrivateCloudsLoggingServersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_logging_servers_create_builder(
         client,
-        parent,
-        loggingServerId,
-        requestId,
-        body,
+        &args.parent,
+        args.loggingServerId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_logging_servers_create_execute(builder)
 }
@@ -9743,6 +10506,15 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_delete_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_logging_servers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsLoggingServersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
 /// Deletes a single logging server.
 ///
@@ -9755,14 +10527,15 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_delete_exe
 
 pub fn vmwareengine_projects_locations_private_clouds_logging_servers_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsLoggingServersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_logging_servers_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     vmwareengine_projects_locations_private_clouds_logging_servers_delete_execute(builder)
 }
@@ -9859,6 +10632,13 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_logging_servers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsLoggingServersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
 /// Gets details of a logging server.
 ///
@@ -9871,15 +10651,16 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_get_execut
 
 pub fn vmwareengine_projects_locations_private_clouds_logging_servers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsPrivateCloudsLoggingServersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LoggingServer>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        vmwareengine_projects_locations_private_clouds_logging_servers_get_builder(client, name)?;
+    let builder = vmwareengine_projects_locations_private_clouds_logging_servers_get_builder(
+        client, &args.name,
+    )?;
     vmwareengine_projects_locations_private_clouds_logging_servers_get_execute(builder)
 }
 
@@ -10001,6 +10782,21 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_logging_servers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsLoggingServersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers
 /// Lists logging servers configured for a given private cloud.
 ///
@@ -10013,11 +10809,7 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_list_execu
 
 pub fn vmwareengine_projects_locations_private_clouds_logging_servers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsLoggingServersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListLoggingServersResponse>, ApiError>,
@@ -10027,7 +10819,12 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_logging_servers_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_private_clouds_logging_servers_list_execute(builder)
 }
@@ -10141,6 +10938,19 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_patch_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_logging_servers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsLoggingServersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LoggingServer,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
 /// Updates the parameters of a single logging server. Only fields specified in update_mask are applied.
 ///
@@ -10153,16 +10963,17 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_patch_exec
 
 pub fn vmwareengine_projects_locations_private_clouds_logging_servers_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &LoggingServer,
+    args: &VmwareengineProjectsLocationsPrivateCloudsLoggingServersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_logging_servers_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_logging_servers_patch_execute(builder)
 }
@@ -10276,6 +11087,19 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: managementDnsZoneBindingId
+    pub managementDnsZoneBindingId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: ManagementDnsZoneBinding,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings
 /// Creates a new ManagementDnsZoneBinding resource in a private cloud. This RPC creates the DNS binding and the resource that represents the DNS binding of the consumer VPC network to the management DNS zone. A management DNS zone is the Cloud DNS cross-project binding zone that VMware Engine creates for each private cloud. It contains FQDNs and corresponding IP addresses for the private cloud's ESXi hosts and management VM appliances like vCenter and NSX Manager.
 ///
@@ -10288,10 +11112,7 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 
 pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    managementDnsZoneBindingId: Option<&str>,
-    requestId: Option<&str>,
-    body: &ManagementDnsZoneBinding,
+    args: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -10299,10 +11120,10 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
     let builder =
         vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_builder(
             client,
-            parent,
-            managementDnsZoneBindingId,
-            requestId,
-            body,
+            &args.parent,
+            args.managementDnsZoneBindingId.as_deref(),
+            args.requestId.as_deref(),
+            &args.body,
         )?;
     vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_execute(
         builder,
@@ -10411,6 +11232,15 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
 /// Deletes a ManagementDnsZoneBinding resource. When a management DNS zone binding is deleted, the corresponding consumer VPC network is no longer bound to the management DNS zone.
 ///
@@ -10423,15 +11253,16 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 
 pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_builder(
-            client, name, requestId,
+            client,
+            &args.name,
+            args.requestId.as_deref(),
         )?;
     vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_execute(
         builder,
@@ -10530,6 +11361,13 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
 /// Retrieves a 'ManagementDnsZoneBinding' resource by its resource name.
 ///
@@ -10542,7 +11380,7 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 
 pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ManagementDnsZoneBinding>, ApiError>, P = ApiPending>
         + Send
@@ -10551,7 +11389,7 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 > {
     let builder =
         vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_execute(builder)
 }
@@ -10674,6 +11512,21 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings
 /// Lists Consumer VPCs bound to Management DNS Zone of a given private cloud.
 ///
@@ -10686,11 +11539,7 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 
 pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListManagementDnsZoneBindingsResponse>, ApiError>,
@@ -10701,7 +11550,12 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 > {
     let builder =
         vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_builder(
-            client, parent, filter, orderBy, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_execute(
         builder,
@@ -10817,6 +11671,19 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ManagementDnsZoneBinding,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
 /// Updates a ManagementDnsZoneBinding resource. Only fields specified in update_mask are applied.
 ///
@@ -10829,17 +11696,18 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 
 pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &ManagementDnsZoneBinding,
+    args: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_builder(
-            client, name, requestId, updateMask, body,
+            client,
+            &args.name,
+            args.requestId.as_deref(),
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_execute(
         builder,
@@ -10939,6 +11807,15 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsRepairArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RepairManagementDnsZoneBindingRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}:repair
 /// Retries to create a ManagementDnsZoneBinding resource that is in failed state.
 ///
@@ -10951,15 +11828,14 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 
 pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RepairManagementDnsZoneBindingRequest,
+    args: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsRepairArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_execute(
         builder,
@@ -11056,6 +11932,13 @@ pub fn vmwareengine_projects_locations_private_clouds_subnets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_subnets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsSubnetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets/{subnetsId}
 /// Gets details of a single subnet.
 ///
@@ -11068,12 +11951,13 @@ pub fn vmwareengine_projects_locations_private_clouds_subnets_get_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_subnets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsPrivateCloudsSubnetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subnet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vmwareengine_projects_locations_private_clouds_subnets_get_builder(client, name)?;
+    let builder =
+        vmwareengine_projects_locations_private_clouds_subnets_get_builder(client, &args.name)?;
     vmwareengine_projects_locations_private_clouds_subnets_get_execute(builder)
 }
 
@@ -11185,6 +12069,17 @@ pub fn vmwareengine_projects_locations_private_clouds_subnets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_subnets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsSubnetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets
 /// Lists subnets in a given private cloud.
 ///
@@ -11197,9 +12092,7 @@ pub fn vmwareengine_projects_locations_private_clouds_subnets_list_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_subnets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsSubnetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSubnetsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -11207,7 +12100,10 @@ pub fn vmwareengine_projects_locations_private_clouds_subnets_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_subnets_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_private_clouds_subnets_list_execute(builder)
 }
@@ -11317,6 +12213,17 @@ pub fn vmwareengine_projects_locations_private_clouds_subnets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_subnets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsSubnetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Subnet,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets/{subnetsId}
 /// Updates the parameters of a single subnet. Only fields specified in update_mask are applied. *Note*: This API is synchronous and always returns a successful google.longrunning.Operation (LRO). The returned LRO will only have done and response fields.
 ///
@@ -11329,15 +12236,16 @@ pub fn vmwareengine_projects_locations_private_clouds_subnets_patch_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_subnets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Subnet,
+    args: &VmwareengineProjectsLocationsPrivateCloudsSubnetsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_subnets_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_subnets_patch_execute(builder)
 }
@@ -11432,6 +12340,13 @@ pub fn vmwareengine_projects_locations_private_clouds_upgrades_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_upgrades_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsUpgradesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades/{upgradesId}
 /// Retrieves a private cloud Upgrade resource by its resource name.
 ///
@@ -11444,13 +12359,13 @@ pub fn vmwareengine_projects_locations_private_clouds_upgrades_get_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_upgrades_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsPrivateCloudsUpgradesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Upgrade>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        vmwareengine_projects_locations_private_clouds_upgrades_get_builder(client, name)?;
+        vmwareengine_projects_locations_private_clouds_upgrades_get_builder(client, &args.name)?;
     vmwareengine_projects_locations_private_clouds_upgrades_get_execute(builder)
 }
 
@@ -11570,6 +12485,21 @@ pub fn vmwareengine_projects_locations_private_clouds_upgrades_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_upgrades_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsUpgradesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades
 /// Lists past, ongoing and upcoming Upgrades for the given private cloud.
 ///
@@ -11582,11 +12512,7 @@ pub fn vmwareengine_projects_locations_private_clouds_upgrades_list_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_upgrades_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateCloudsUpgradesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListUpgradesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -11594,7 +12520,12 @@ pub fn vmwareengine_projects_locations_private_clouds_upgrades_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_upgrades_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_private_clouds_upgrades_list_execute(builder)
 }
@@ -11708,6 +12639,19 @@ pub fn vmwareengine_projects_locations_private_clouds_upgrades_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_upgrades_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsUpgradesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Upgrade,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades/{upgradesId}
 /// Update the private cloud Upgrade resource. Only schedule field can updated. The schedule can only be updated when the upgrade has not started and schedule edit window is open. Only fields specified in update_mask are considered.
 ///
@@ -11720,16 +12664,17 @@ pub fn vmwareengine_projects_locations_private_clouds_upgrades_patch_execute(
 
 pub fn vmwareengine_projects_locations_private_clouds_upgrades_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Upgrade,
+    args: &VmwareengineProjectsLocationsPrivateCloudsUpgradesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_clouds_upgrades_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_clouds_upgrades_patch_execute(builder)
 }
@@ -11847,6 +12792,21 @@ pub fn vmwareengine_projects_locations_private_connections_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_connections_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateConnectionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: privateConnectionId
+    pub privateConnectionId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: PrivateConnection,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections
 /// Creates a new private connection that can be used for accessing private Clouds.
 ///
@@ -11859,22 +12819,18 @@ pub fn vmwareengine_projects_locations_private_connections_create_execute(
 
 pub fn vmwareengine_projects_locations_private_connections_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    privateConnectionId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &PrivateConnection,
+    args: &VmwareengineProjectsLocationsPrivateConnectionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_connections_create_builder(
         client,
-        parent,
-        privateConnectionId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.privateConnectionId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_connections_create_execute(builder)
 }
@@ -11981,6 +12937,15 @@ pub fn vmwareengine_projects_locations_private_connections_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_connections_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateConnectionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
 /// Deletes a PrivateConnection resource. When a private connection is deleted for a VMware Engine network, the connected network becomes inaccessible to that VMware Engine network.
 ///
@@ -11993,14 +12958,15 @@ pub fn vmwareengine_projects_locations_private_connections_delete_execute(
 
 pub fn vmwareengine_projects_locations_private_connections_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateConnectionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_connections_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     vmwareengine_projects_locations_private_connections_delete_execute(builder)
 }
@@ -12097,6 +13063,13 @@ pub fn vmwareengine_projects_locations_private_connections_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_connections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateConnectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
 /// Retrieves a PrivateConnection resource by its resource name. The resource contains details of the private connection, such as connected network, routing mode and state.
 ///
@@ -12109,14 +13082,15 @@ pub fn vmwareengine_projects_locations_private_connections_get_execute(
 
 pub fn vmwareengine_projects_locations_private_connections_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsPrivateConnectionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PrivateConnection>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vmwareengine_projects_locations_private_connections_get_builder(client, name)?;
+    let builder =
+        vmwareengine_projects_locations_private_connections_get_builder(client, &args.name)?;
     vmwareengine_projects_locations_private_connections_get_execute(builder)
 }
 
@@ -12238,6 +13212,21 @@ pub fn vmwareengine_projects_locations_private_connections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateConnectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections
 /// Lists PrivateConnection resources in a given project and location.
 ///
@@ -12250,11 +13239,7 @@ pub fn vmwareengine_projects_locations_private_connections_list_execute(
 
 pub fn vmwareengine_projects_locations_private_connections_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateConnectionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPrivateConnectionsResponse>, ApiError>,
@@ -12264,7 +13249,12 @@ pub fn vmwareengine_projects_locations_private_connections_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_connections_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_private_connections_list_execute(builder)
 }
@@ -12382,6 +13372,21 @@ pub fn vmwareengine_projects_locations_private_connections_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_connections_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateConnectionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: PrivateConnection,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
 /// Modifies a PrivateConnection resource. Only description and routing_mode fields can be updated. Only fields specified in `updateMask` are applied.
 ///
@@ -12394,22 +13399,18 @@ pub fn vmwareengine_projects_locations_private_connections_patch_execute(
 
 pub fn vmwareengine_projects_locations_private_connections_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &PrivateConnection,
+    args: &VmwareengineProjectsLocationsPrivateConnectionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_connections_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     vmwareengine_projects_locations_private_connections_patch_execute(builder)
 }
@@ -12525,6 +13526,17 @@ pub fn vmwareengine_projects_locations_private_connections_peering_routes_list_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_private_connections_peering_routes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateConnectionsPeeringRoutesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}/peeringRoutes
 /// Lists the private connection routes exchanged over a peering connection.
 ///
@@ -12537,9 +13549,7 @@ pub fn vmwareengine_projects_locations_private_connections_peering_routes_list_e
 
 pub fn vmwareengine_projects_locations_private_connections_peering_routes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsPrivateConnectionsPeeringRoutesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPrivateConnectionPeeringRoutesResponse>, ApiError>,
@@ -12549,7 +13559,10 @@ pub fn vmwareengine_projects_locations_private_connections_peering_routes_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_private_connections_peering_routes_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_private_connections_peering_routes_list_execute(builder)
 }
@@ -12667,6 +13680,21 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_vmware_engine_networks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsVmwareEngineNetworksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Query parameter: vmwareEngineNetworkId
+    pub vmwareEngineNetworkId: Option<String>,
+    /// Request body.
+    pub body: VmwareEngineNetwork,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks
 /// Creates a new VMware Engine network that can be used by a private cloud.
 ///
@@ -12679,22 +13707,18 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_create_execute(
 
 pub fn vmwareengine_projects_locations_vmware_engine_networks_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    vmwareEngineNetworkId: Option<&str>,
-    body: &VmwareEngineNetwork,
+    args: &VmwareengineProjectsLocationsVmwareEngineNetworksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_vmware_engine_networks_create_builder(
         client,
-        parent,
-        requestId,
-        validateOnly,
-        vmwareEngineNetworkId,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.validateOnly,
+        args.vmwareEngineNetworkId.as_deref(),
+        &args.body,
     )?;
     vmwareengine_projects_locations_vmware_engine_networks_create_execute(builder)
 }
@@ -12805,6 +13829,17 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_vmware_engine_networks_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsVmwareEngineNetworksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}
 /// Deletes a VmwareEngineNetwork resource. You can only delete a VMware Engine network after all resources that refer to it are deleted. For example, a private cloud, a network peering, and a network policy can all refer to the same VMware Engine network.
 ///
@@ -12817,15 +13852,16 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_delete_execute(
 
 pub fn vmwareengine_projects_locations_vmware_engine_networks_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
+    args: &VmwareengineProjectsLocationsVmwareEngineNetworksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_vmware_engine_networks_delete_builder(
-        client, name, etag, requestId,
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
     )?;
     vmwareengine_projects_locations_vmware_engine_networks_delete_execute(builder)
 }
@@ -12922,6 +13958,13 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_vmware_engine_networks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsVmwareEngineNetworksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}
 /// Retrieves a VmwareEngineNetwork resource by its resource name. The resource contains details of the VMware Engine network, such as its VMware Engine network type, peered networks in a service project, and state (for example, CREATING, `ACTIVE`, DELETING).
 ///
@@ -12934,14 +13977,15 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_get_execute(
 
 pub fn vmwareengine_projects_locations_vmware_engine_networks_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmwareengineProjectsLocationsVmwareEngineNetworksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VmwareEngineNetwork>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vmwareengine_projects_locations_vmware_engine_networks_get_builder(client, name)?;
+    let builder =
+        vmwareengine_projects_locations_vmware_engine_networks_get_builder(client, &args.name)?;
     vmwareengine_projects_locations_vmware_engine_networks_get_execute(builder)
 }
 
@@ -13063,6 +14107,21 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_vmware_engine_networks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsVmwareEngineNetworksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks
 /// Lists VmwareEngineNetwork resources in a given project and location.
 ///
@@ -13075,11 +14134,7 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_list_execute(
 
 pub fn vmwareengine_projects_locations_vmware_engine_networks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmwareengineProjectsLocationsVmwareEngineNetworksListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListVmwareEngineNetworksResponse>, ApiError>,
@@ -13089,7 +14144,12 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_list(
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_vmware_engine_networks_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmwareengine_projects_locations_vmware_engine_networks_list_execute(builder)
 }
@@ -13207,6 +14267,21 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmwareengine_projects_locations_vmware_engine_networks_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsVmwareEngineNetworksPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: VmwareEngineNetwork,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}
 /// Modifies a VMware Engine network resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied.
 ///
@@ -13219,22 +14294,18 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_patch_execute(
 
 pub fn vmwareengine_projects_locations_vmware_engine_networks_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &VmwareEngineNetwork,
+    args: &VmwareengineProjectsLocationsVmwareEngineNetworksPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmwareengine_projects_locations_vmware_engine_networks_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     vmwareengine_projects_locations_vmware_engine_networks_patch_execute(builder)
 }

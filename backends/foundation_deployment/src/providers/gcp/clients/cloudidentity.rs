@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}:cancel
 /// Cancels a UserInvitation that was already sent.
@@ -109,6 +111,15 @@ pub fn cloudidentity_customers_userinvitations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_customers_userinvitations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityCustomersUserinvitationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelUserInvitationRequest,
+}
+
 /// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}:cancel
 /// Cancels a UserInvitation that was already sent.
 ///
@@ -121,13 +132,13 @@ pub fn cloudidentity_customers_userinvitations_cancel_execute(
 
 pub fn cloudidentity_customers_userinvitations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelUserInvitationRequest,
+    args: &CloudidentityCustomersUserinvitationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_customers_userinvitations_cancel_builder(client, name, body)?;
+    let builder =
+        cloudidentity_customers_userinvitations_cancel_builder(client, &args.name, &args.body)?;
     cloudidentity_customers_userinvitations_cancel_execute(builder)
 }
 
@@ -223,6 +234,13 @@ pub fn cloudidentity_customers_userinvitations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_customers_userinvitations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityCustomersUserinvitationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}
 /// Retrieves a UserInvitation resource. **Note:** New consumer accounts with the customer's verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
 ///
@@ -235,14 +253,14 @@ pub fn cloudidentity_customers_userinvitations_get_execute(
 
 pub fn cloudidentity_customers_userinvitations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudidentityCustomersUserinvitationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserInvitation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_customers_userinvitations_get_builder(client, name)?;
+    let builder = cloudidentity_customers_userinvitations_get_builder(client, &args.name)?;
     cloudidentity_customers_userinvitations_get_execute(builder)
 }
 
@@ -338,6 +356,13 @@ pub fn cloudidentity_customers_userinvitations_is_invitable_user_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_customers_userinvitations_is_invitable_user`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityCustomersUserinvitationsIsInvitableUserArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}:isInvitableUser
 /// Verifies whether a user account is eligible to receive a UserInvitation (is an unmanaged account). Eligibility is based on the following criteria: * the email address is a consumer account and it's the primary email address of the account, and * the domain of the email address matches an existing verified Google Workspace or Cloud Identity domain If both conditions are met, the user is eligible. **Note:** This method is not supported for Workspace Essentials customers.
 ///
@@ -350,14 +375,15 @@ pub fn cloudidentity_customers_userinvitations_is_invitable_user_execute(
 
 pub fn cloudidentity_customers_userinvitations_is_invitable_user(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudidentityCustomersUserinvitationsIsInvitableUserArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IsInvitableUserResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_customers_userinvitations_is_invitable_user_builder(client, name)?;
+    let builder =
+        cloudidentity_customers_userinvitations_is_invitable_user_builder(client, &args.name)?;
     cloudidentity_customers_userinvitations_is_invitable_user_execute(builder)
 }
 
@@ -479,6 +505,21 @@ pub fn cloudidentity_customers_userinvitations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_customers_userinvitations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityCustomersUserinvitationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/userinvitations
 /// Retrieves a list of UserInvitation resources. **Note:** New consumer accounts with the customer's verified domain created within the previous 48 hours will not appear in the result. This delay also applies to newly-verified domains.
 ///
@@ -491,11 +532,7 @@ pub fn cloudidentity_customers_userinvitations_list_execute(
 
 pub fn cloudidentity_customers_userinvitations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudidentityCustomersUserinvitationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListUserInvitationsResponse>, ApiError>,
@@ -505,7 +542,12 @@ pub fn cloudidentity_customers_userinvitations_list(
     ApiError,
 > {
     let builder = cloudidentity_customers_userinvitations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudidentity_customers_userinvitations_list_execute(builder)
 }
@@ -603,6 +645,15 @@ pub fn cloudidentity_customers_userinvitations_send_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_customers_userinvitations_send`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityCustomersUserinvitationsSendArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SendUserInvitationRequest,
+}
+
 /// GET v1/customers/{customersId}/userinvitations/{userinvitationsId}:send
 /// Sends a UserInvitation to email. If the UserInvitation does not exist for this request and it is a valid request, the request creates a UserInvitation. **Note:** The get and list methods have a 48-hour delay where newly-created consumer accounts will not appear in the results. You can still send a UserInvitation to those accounts if you know the unmanaged email address and IsInvitableUser==True.
 ///
@@ -615,13 +666,13 @@ pub fn cloudidentity_customers_userinvitations_send_execute(
 
 pub fn cloudidentity_customers_userinvitations_send(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SendUserInvitationRequest,
+    args: &CloudidentityCustomersUserinvitationsSendArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_customers_userinvitations_send_builder(client, name, body)?;
+    let builder =
+        cloudidentity_customers_userinvitations_send_builder(client, &args.name, &args.body)?;
     cloudidentity_customers_userinvitations_send_execute(builder)
 }
 
@@ -718,6 +769,15 @@ pub fn cloudidentity_devices_cancel_wipe_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_cancel_wipe`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesCancelWipeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleAppsCloudidentityDevicesV1CancelWipeDeviceRequest,
+}
+
 /// GET v1/devices/{devicesId}:cancelWipe
 /// Cancels an unfinished device wipe. This operation can be used to cancel device wipe in the gap between the wipe operation returning success and the device being wiped. This operation is possible when the device is in a "pending wipe" state. The device enters the "pending wipe" state when a wipe device command is issued, but has not yet been sent to the device. The cancel wipe will fail if the wipe command has already been issued to the device.
 ///
@@ -730,13 +790,12 @@ pub fn cloudidentity_devices_cancel_wipe_execute(
 
 pub fn cloudidentity_devices_cancel_wipe(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleAppsCloudidentityDevicesV1CancelWipeDeviceRequest,
+    args: &CloudidentityDevicesCancelWipeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_cancel_wipe_builder(client, name, body)?;
+    let builder = cloudidentity_devices_cancel_wipe_builder(client, &args.name, &args.body)?;
     cloudidentity_devices_cancel_wipe_execute(builder)
 }
 
@@ -841,6 +900,15 @@ pub fn cloudidentity_devices_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesCreateArgs {
+    /// Query parameter: customer
+    pub customer: Option<String>,
+    /// Request body.
+    pub body: GoogleAppsCloudidentityDevicesV1Device,
+}
+
 /// GET v1/devices
 /// Creates a device. Only company-owned device may be created. **Note**: This method is available only to customers who have one of the following SKUs: Enterprise Standard, Enterprise Plus, Enterprise for Education, and Cloud Identity Premium
 ///
@@ -853,13 +921,13 @@ pub fn cloudidentity_devices_create_execute(
 
 pub fn cloudidentity_devices_create(
     client: &SimpleHttpClient,
-    customer: Option<&str>,
-    body: &GoogleAppsCloudidentityDevicesV1Device,
+    args: &CloudidentityDevicesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_create_builder(client, customer, body)?;
+    let builder =
+        cloudidentity_devices_create_builder(client, args.customer.as_deref(), &args.body)?;
     cloudidentity_devices_create_execute(builder)
 }
 
@@ -962,6 +1030,15 @@ pub fn cloudidentity_devices_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: customer
+    pub customer: Option<String>,
+}
+
 /// GET v1/devices/{devicesId}
 /// Deletes the specified device.
 ///
@@ -974,13 +1051,13 @@ pub fn cloudidentity_devices_delete_execute(
 
 pub fn cloudidentity_devices_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    customer: Option<&str>,
+    args: &CloudidentityDevicesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_delete_builder(client, name, customer)?;
+    let builder =
+        cloudidentity_devices_delete_builder(client, &args.name, args.customer.as_deref())?;
     cloudidentity_devices_delete_execute(builder)
 }
 
@@ -1087,6 +1164,15 @@ pub fn cloudidentity_devices_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: customer
+    pub customer: Option<String>,
+}
+
 /// GET v1/devices/{devicesId}
 /// Retrieves the specified device.
 ///
@@ -1099,8 +1185,7 @@ pub fn cloudidentity_devices_get_execute(
 
 pub fn cloudidentity_devices_get(
     client: &SimpleHttpClient,
-    name: &str,
-    customer: Option<&str>,
+    args: &CloudidentityDevicesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsCloudidentityDevicesV1Device>, ApiError>,
@@ -1109,7 +1194,7 @@ pub fn cloudidentity_devices_get(
         + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_get_builder(client, name, customer)?;
+    let builder = cloudidentity_devices_get_builder(client, &args.name, args.customer.as_deref())?;
     cloudidentity_devices_get_execute(builder)
 }
 
@@ -1236,6 +1321,23 @@ pub fn cloudidentity_devices_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesListArgs {
+    /// Query parameter: customer
+    pub customer: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/devices
 /// L`ists/Searches` devices.
 ///
@@ -1248,12 +1350,7 @@ pub fn cloudidentity_devices_list_execute(
 
 pub fn cloudidentity_devices_list(
     client: &SimpleHttpClient,
-    customer: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &CloudidentityDevicesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsCloudidentityDevicesV1ListDevicesResponse>, ApiError>,
@@ -1263,7 +1360,13 @@ pub fn cloudidentity_devices_list(
     ApiError,
 > {
     let builder = cloudidentity_devices_list_builder(
-        client, customer, filter, orderBy, pageSize, pageToken, view,
+        client,
+        args.customer.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     cloudidentity_devices_list_execute(builder)
 }
@@ -1361,6 +1464,15 @@ pub fn cloudidentity_devices_wipe_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_wipe`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesWipeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleAppsCloudidentityDevicesV1WipeDeviceRequest,
+}
+
 /// GET v1/devices/{devicesId}:wipe
 /// Wipes all data on the specified device.
 ///
@@ -1373,13 +1485,12 @@ pub fn cloudidentity_devices_wipe_execute(
 
 pub fn cloudidentity_devices_wipe(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleAppsCloudidentityDevicesV1WipeDeviceRequest,
+    args: &CloudidentityDevicesWipeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_wipe_builder(client, name, body)?;
+    let builder = cloudidentity_devices_wipe_builder(client, &args.name, &args.body)?;
     cloudidentity_devices_wipe_execute(builder)
 }
 
@@ -1476,6 +1587,15 @@ pub fn cloudidentity_devices_device_users_approve_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_device_users_approve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersApproveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleAppsCloudidentityDevicesV1ApproveDeviceUserRequest,
+}
+
 /// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:approve
 /// Approves device to access user data.
 ///
@@ -1488,13 +1608,13 @@ pub fn cloudidentity_devices_device_users_approve_execute(
 
 pub fn cloudidentity_devices_device_users_approve(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleAppsCloudidentityDevicesV1ApproveDeviceUserRequest,
+    args: &CloudidentityDevicesDeviceUsersApproveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_device_users_approve_builder(client, name, body)?;
+    let builder =
+        cloudidentity_devices_device_users_approve_builder(client, &args.name, &args.body)?;
     cloudidentity_devices_device_users_approve_execute(builder)
 }
 
@@ -1591,6 +1711,15 @@ pub fn cloudidentity_devices_device_users_block_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_device_users_block`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersBlockArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleAppsCloudidentityDevicesV1BlockDeviceUserRequest,
+}
+
 /// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:block
 /// Blocks device from accessing user data
 ///
@@ -1603,13 +1732,12 @@ pub fn cloudidentity_devices_device_users_block_execute(
 
 pub fn cloudidentity_devices_device_users_block(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleAppsCloudidentityDevicesV1BlockDeviceUserRequest,
+    args: &CloudidentityDevicesDeviceUsersBlockArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_device_users_block_builder(client, name, body)?;
+    let builder = cloudidentity_devices_device_users_block_builder(client, &args.name, &args.body)?;
     cloudidentity_devices_device_users_block_execute(builder)
 }
 
@@ -1706,6 +1834,15 @@ pub fn cloudidentity_devices_device_users_cancel_wipe_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_device_users_cancel_wipe`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersCancelWipeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleAppsCloudidentityDevicesV1CancelWipeDeviceUserRequest,
+}
+
 /// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:cancelWipe
 /// Cancels an unfinished user account wipe. This operation can be used to cancel device wipe in the gap between the wipe operation returning success and the device being wiped.
 ///
@@ -1718,13 +1855,13 @@ pub fn cloudidentity_devices_device_users_cancel_wipe_execute(
 
 pub fn cloudidentity_devices_device_users_cancel_wipe(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleAppsCloudidentityDevicesV1CancelWipeDeviceUserRequest,
+    args: &CloudidentityDevicesDeviceUsersCancelWipeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_device_users_cancel_wipe_builder(client, name, body)?;
+    let builder =
+        cloudidentity_devices_device_users_cancel_wipe_builder(client, &args.name, &args.body)?;
     cloudidentity_devices_device_users_cancel_wipe_execute(builder)
 }
 
@@ -1830,6 +1967,15 @@ pub fn cloudidentity_devices_device_users_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_device_users_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: customer
+    pub customer: Option<String>,
+}
+
 /// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}
 /// Deletes the specified DeviceUser. This also revokes the user's access to device data.
 ///
@@ -1842,13 +1988,16 @@ pub fn cloudidentity_devices_device_users_delete_execute(
 
 pub fn cloudidentity_devices_device_users_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    customer: Option<&str>,
+    args: &CloudidentityDevicesDeviceUsersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_device_users_delete_builder(client, name, customer)?;
+    let builder = cloudidentity_devices_device_users_delete_builder(
+        client,
+        &args.name,
+        args.customer.as_deref(),
+    )?;
     cloudidentity_devices_device_users_delete_execute(builder)
 }
 
@@ -1959,6 +2108,15 @@ pub fn cloudidentity_devices_device_users_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_device_users_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: customer
+    pub customer: Option<String>,
+}
+
 /// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}
 /// Retrieves the specified DeviceUser
 ///
@@ -1971,8 +2129,7 @@ pub fn cloudidentity_devices_device_users_get_execute(
 
 pub fn cloudidentity_devices_device_users_get(
     client: &SimpleHttpClient,
-    name: &str,
-    customer: Option<&str>,
+    args: &CloudidentityDevicesDeviceUsersGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsCloudidentityDevicesV1DeviceUser>, ApiError>,
@@ -1981,7 +2138,11 @@ pub fn cloudidentity_devices_device_users_get(
         + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_device_users_get_builder(client, name, customer)?;
+    let builder = cloudidentity_devices_device_users_get_builder(
+        client,
+        &args.name,
+        args.customer.as_deref(),
+    )?;
     cloudidentity_devices_device_users_get_execute(builder)
 }
 
@@ -2111,6 +2272,23 @@ pub fn cloudidentity_devices_device_users_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_device_users_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: customer
+    pub customer: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/devices/{devicesId}/deviceUsers
 /// L`ists/Searches` DeviceUsers.
 ///
@@ -2123,12 +2301,7 @@ pub fn cloudidentity_devices_device_users_list_execute(
 
 pub fn cloudidentity_devices_device_users_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    customer: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudidentityDevicesDeviceUsersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2141,7 +2314,13 @@ pub fn cloudidentity_devices_device_users_list(
     ApiError,
 > {
     let builder = cloudidentity_devices_device_users_list_builder(
-        client, parent, customer, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.customer.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudidentity_devices_device_users_list_execute(builder)
 }
@@ -2280,6 +2459,27 @@ pub fn cloudidentity_devices_device_users_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_device_users_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersLookupArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: androidId
+    pub androidId: Option<String>,
+    /// Query parameter: iosDeviceId
+    pub iosDeviceId: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: partner
+    pub partner: Option<String>,
+    /// Query parameter: rawResourceId
+    pub rawResourceId: Option<String>,
+    /// Query parameter: userId
+    pub userId: Option<String>,
+}
+
 /// GET v1/devices/{devicesId}/deviceUsers:lookup
 /// Looks up resource names of the DeviceUsers associated with the caller's credentials, as well as the properties provided in the request. This method must be called with end-user credentials with the scope: <https://www.googleapis.`com/auth/cloud-identity`.devices.lookup> If multiple properties are provided, only DeviceUsers having all of these properties are considered as matches - i.e. the query behaves like an AND. Different platforms require different amounts of information from the caller to ensure that the DeviceUser is uniquely identified. - iOS: If either the partner or ios_device_id field is provided, then both fields are required. - Android: Specifying the android_id field is required. - Desktop: Specifying the raw_resource_id field is required.
 ///
@@ -2292,14 +2492,7 @@ pub fn cloudidentity_devices_device_users_lookup_execute(
 
 pub fn cloudidentity_devices_device_users_lookup(
     client: &SimpleHttpClient,
-    parent: &str,
-    androidId: Option<&str>,
-    iosDeviceId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partner: Option<&str>,
-    rawResourceId: Option<&str>,
-    userId: Option<&str>,
+    args: &CloudidentityDevicesDeviceUsersLookupArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2313,14 +2506,14 @@ pub fn cloudidentity_devices_device_users_lookup(
 > {
     let builder = cloudidentity_devices_device_users_lookup_builder(
         client,
-        parent,
-        androidId,
-        iosDeviceId,
-        pageSize,
-        pageToken,
-        partner,
-        rawResourceId,
-        userId,
+        &args.parent,
+        args.androidId.as_deref(),
+        args.iosDeviceId.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.partner.as_deref(),
+        args.rawResourceId.as_deref(),
+        args.userId.as_deref(),
     )?;
     cloudidentity_devices_device_users_lookup_execute(builder)
 }
@@ -2418,6 +2611,15 @@ pub fn cloudidentity_devices_device_users_wipe_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_device_users_wipe`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersWipeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleAppsCloudidentityDevicesV1WipeDeviceUserRequest,
+}
+
 /// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}:wipe
 /// Wipes the user's account on a device. Other data on the device that is not associated with the user's work account is not affected. For example, if a Gmail app is installed on a device that is used for personal and work purposes, and the user is logged in to the Gmail app with their personal account as well as their work account, wiping the "`deviceUser`" by their work administrator will not affect their personal account within Gmail or other apps such as Photos.
 ///
@@ -2430,13 +2632,12 @@ pub fn cloudidentity_devices_device_users_wipe_execute(
 
 pub fn cloudidentity_devices_device_users_wipe(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleAppsCloudidentityDevicesV1WipeDeviceUserRequest,
+    args: &CloudidentityDevicesDeviceUsersWipeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_device_users_wipe_builder(client, name, body)?;
+    let builder = cloudidentity_devices_device_users_wipe_builder(client, &args.name, &args.body)?;
     cloudidentity_devices_device_users_wipe_execute(builder)
 }
 
@@ -2547,6 +2748,15 @@ pub fn cloudidentity_devices_device_users_client_states_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_device_users_client_states_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersClientStatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: customer
+    pub customer: Option<String>,
+}
+
 /// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates/{clientStatesId}
 /// Gets the client state for the device user
 ///
@@ -2559,8 +2769,7 @@ pub fn cloudidentity_devices_device_users_client_states_get_execute(
 
 pub fn cloudidentity_devices_device_users_client_states_get(
     client: &SimpleHttpClient,
-    name: &str,
-    customer: Option<&str>,
+    args: &CloudidentityDevicesDeviceUsersClientStatesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsCloudidentityDevicesV1ClientState>, ApiError>,
@@ -2569,8 +2778,11 @@ pub fn cloudidentity_devices_device_users_client_states_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_devices_device_users_client_states_get_builder(client, name, customer)?;
+    let builder = cloudidentity_devices_device_users_client_states_get_builder(
+        client,
+        &args.name,
+        args.customer.as_deref(),
+    )?;
     cloudidentity_devices_device_users_client_states_get_execute(builder)
 }
 
@@ -2696,6 +2908,21 @@ pub fn cloudidentity_devices_device_users_client_states_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_device_users_client_states_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersClientStatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: customer
+    pub customer: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates
 /// Lists the client states for the given search query.
 ///
@@ -2708,11 +2935,7 @@ pub fn cloudidentity_devices_device_users_client_states_list_execute(
 
 pub fn cloudidentity_devices_device_users_client_states_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    customer: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
+    args: &CloudidentityDevicesDeviceUsersClientStatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2725,7 +2948,12 @@ pub fn cloudidentity_devices_device_users_client_states_list(
     ApiError,
 > {
     let builder = cloudidentity_devices_device_users_client_states_list_builder(
-        client, parent, customer, filter, orderBy, pageToken,
+        client,
+        &args.parent,
+        args.customer.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageToken.as_deref(),
     )?;
     cloudidentity_devices_device_users_client_states_list_execute(builder)
 }
@@ -2839,6 +3067,19 @@ pub fn cloudidentity_devices_device_users_client_states_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_devices_device_users_client_states_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityDevicesDeviceUsersClientStatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: customer
+    pub customer: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleAppsCloudidentityDevicesV1ClientState,
+}
+
 /// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates/{clientStatesId}
 /// Updates the client state for the device user **Note**: This method is available only to customers who have one of the following SKUs: Enterprise Standard, Enterprise Plus, Enterprise for Education, and Cloud Identity Premium
 ///
@@ -2851,16 +3092,17 @@ pub fn cloudidentity_devices_device_users_client_states_patch_execute(
 
 pub fn cloudidentity_devices_device_users_client_states_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    customer: Option<&str>,
-    updateMask: Option<&str>,
-    body: &GoogleAppsCloudidentityDevicesV1ClientState,
+    args: &CloudidentityDevicesDeviceUsersClientStatesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudidentity_devices_device_users_client_states_patch_builder(
-        client, name, customer, updateMask, body,
+        client,
+        &args.name,
+        args.customer.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     cloudidentity_devices_device_users_client_states_patch_execute(builder)
 }
@@ -2966,6 +3208,15 @@ pub fn cloudidentity_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsCreateArgs {
+    /// Query parameter: initialGroupConfig
+    pub initialGroupConfig: Option<String>,
+    /// Request body.
+    pub body: Group,
+}
+
 /// GET v1/groups
 /// Creates a Group.
 ///
@@ -2978,13 +3229,16 @@ pub fn cloudidentity_groups_create_execute(
 
 pub fn cloudidentity_groups_create(
     client: &SimpleHttpClient,
-    initialGroupConfig: Option<&str>,
-    body: &Group,
+    args: &CloudidentityGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_groups_create_builder(client, initialGroupConfig, body)?;
+    let builder = cloudidentity_groups_create_builder(
+        client,
+        args.initialGroupConfig.as_deref(),
+        &args.body,
+    )?;
     cloudidentity_groups_create_execute(builder)
 }
 
@@ -3075,6 +3329,13 @@ pub fn cloudidentity_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/groups/{groupsId}
 /// Deletes a Group.
 ///
@@ -3087,12 +3348,12 @@ pub fn cloudidentity_groups_delete_execute(
 
 pub fn cloudidentity_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudidentityGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_groups_delete_builder(client, name)?;
+    let builder = cloudidentity_groups_delete_builder(client, &args.name)?;
     cloudidentity_groups_delete_execute(builder)
 }
 
@@ -3183,6 +3444,13 @@ pub fn cloudidentity_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/groups/{groupsId}
 /// Retrieves a Group.
 ///
@@ -3195,12 +3463,12 @@ pub fn cloudidentity_groups_get_execute(
 
 pub fn cloudidentity_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudidentityGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_groups_get_builder(client, name)?;
+    let builder = cloudidentity_groups_get_builder(client, &args.name)?;
     cloudidentity_groups_get_execute(builder)
 }
 
@@ -3308,6 +3576,15 @@ pub fn cloudidentity_groups_get_security_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_get_security_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsGetSecuritySettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/groups/{groupsId}/securitySettings
 /// Get Security Settings
 ///
@@ -3320,15 +3597,18 @@ pub fn cloudidentity_groups_get_security_settings_execute(
 
 pub fn cloudidentity_groups_get_security_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    readMask: Option<&str>,
+    args: &CloudidentityGroupsGetSecuritySettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecuritySettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_groups_get_security_settings_builder(client, name, readMask)?;
+    let builder = cloudidentity_groups_get_security_settings_builder(
+        client,
+        &args.name,
+        args.readMask.as_deref(),
+    )?;
     cloudidentity_groups_get_security_settings_execute(builder)
 }
 
@@ -3444,6 +3724,19 @@ pub fn cloudidentity_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/groups
 /// Lists the Group resources under a customer or namespace.
 ///
@@ -3456,17 +3749,20 @@ pub fn cloudidentity_groups_list_execute(
 
 pub fn cloudidentity_groups_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
-    view: Option<&str>,
+    args: &CloudidentityGroupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGroupsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_groups_list_builder(client, pageSize, pageToken, parent, view)?;
+    let builder = cloudidentity_groups_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
+        args.view.as_deref(),
+    )?;
     cloudidentity_groups_list_execute(builder)
 }
 
@@ -3574,6 +3870,15 @@ pub fn cloudidentity_groups_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsLookupArgs {
+    /// Query parameter: groupKey_id
+    pub groupKey_id: Option<String>,
+    /// Query parameter: groupKey_namespace
+    pub groupKey_namespace: Option<String>,
+}
+
 /// GET v1/groups:lookup
 /// Looks up the [resource name](<https://cloud.google.`com/apis/design/resource_names`>) of a Group by its EntityKey.
 ///
@@ -3586,15 +3891,18 @@ pub fn cloudidentity_groups_lookup_execute(
 
 pub fn cloudidentity_groups_lookup(
     client: &SimpleHttpClient,
-    groupKey_id: Option<&str>,
-    groupKey_namespace: Option<&str>,
+    args: &CloudidentityGroupsLookupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LookupGroupNameResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_groups_lookup_builder(client, groupKey_id, groupKey_namespace)?;
+    let builder = cloudidentity_groups_lookup_builder(
+        client,
+        args.groupKey_id.as_deref(),
+        args.groupKey_namespace.as_deref(),
+    )?;
     cloudidentity_groups_lookup_execute(builder)
 }
 
@@ -3700,6 +4008,17 @@ pub fn cloudidentity_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Group,
+}
+
 /// GET v1/groups/{groupsId}
 /// Updates a Group.
 ///
@@ -3712,14 +4031,17 @@ pub fn cloudidentity_groups_patch_execute(
 
 pub fn cloudidentity_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Group,
+    args: &CloudidentityGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_groups_patch_builder(client, name, updateMask, body)?;
+    let builder = cloudidentity_groups_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudidentity_groups_patch_execute(builder)
 }
 
@@ -3835,6 +4157,19 @@ pub fn cloudidentity_groups_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsSearchArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/groups:search
 /// Searches for Group resources matching a specified query.
 ///
@@ -3847,17 +4182,20 @@ pub fn cloudidentity_groups_search_execute(
 
 pub fn cloudidentity_groups_search(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
-    view: Option<&str>,
+    args: &CloudidentityGroupsSearchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchGroupsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_groups_search_builder(client, pageSize, pageToken, query, view)?;
+    let builder = cloudidentity_groups_search_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
+        args.view.as_deref(),
+    )?;
     cloudidentity_groups_search_execute(builder)
 }
 
@@ -3966,6 +4304,17 @@ pub fn cloudidentity_groups_update_security_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_update_security_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsUpdateSecuritySettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SecuritySettings,
+}
+
 /// GET v1/groups/{groupsId}/securitySettings
 /// Update Security Settings
 ///
@@ -3978,15 +4327,17 @@ pub fn cloudidentity_groups_update_security_settings_execute(
 
 pub fn cloudidentity_groups_update_security_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SecuritySettings,
+    args: &CloudidentityGroupsUpdateSecuritySettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_groups_update_security_settings_builder(client, name, updateMask, body)?;
+    let builder = cloudidentity_groups_update_security_settings_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudidentity_groups_update_security_settings_execute(builder)
 }
 
@@ -4096,6 +4447,15 @@ pub fn cloudidentity_groups_memberships_check_transitive_membership_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_memberships_check_transitive_membership`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsMembershipsCheckTransitiveMembershipArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v1/groups/{groupsId}/memberships:checkTransitiveMembership
 /// Check a potential member for membership in a group. **Note:** This feature is only available to Google Workspace Enterprise Standard, Enterprise Plus, and Enterprise for Education; and Cloud Identity Premium accounts. If the account of the member is not one of these, a 403 (PERMISSION_DENIED) HTTP status code will be returned. A member has membership to a group as long as there is a single viewable transitive membership between the group and the member. The actor must have view permissions to at least one transitive membership between the member and group.
 ///
@@ -4108,8 +4468,7 @@ pub fn cloudidentity_groups_memberships_check_transitive_membership_execute(
 
 pub fn cloudidentity_groups_memberships_check_transitive_membership(
     client: &SimpleHttpClient,
-    parent: &str,
-    query: Option<&str>,
+    args: &CloudidentityGroupsMembershipsCheckTransitiveMembershipArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CheckTransitiveMembershipResponse>, ApiError>,
@@ -4119,7 +4478,9 @@ pub fn cloudidentity_groups_memberships_check_transitive_membership(
     ApiError,
 > {
     let builder = cloudidentity_groups_memberships_check_transitive_membership_builder(
-        client, parent, query,
+        client,
+        &args.parent,
+        args.query.as_deref(),
     )?;
     cloudidentity_groups_memberships_check_transitive_membership_execute(builder)
 }
@@ -4217,6 +4578,15 @@ pub fn cloudidentity_groups_memberships_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_memberships_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsMembershipsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Membership,
+}
+
 /// GET v1/groups/{groupsId}/memberships
 /// Creates a Membership.
 ///
@@ -4229,13 +4599,13 @@ pub fn cloudidentity_groups_memberships_create_execute(
 
 pub fn cloudidentity_groups_memberships_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Membership,
+    args: &CloudidentityGroupsMembershipsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_groups_memberships_create_builder(client, parent, body)?;
+    let builder =
+        cloudidentity_groups_memberships_create_builder(client, &args.parent, &args.body)?;
     cloudidentity_groups_memberships_create_execute(builder)
 }
 
@@ -4329,6 +4699,13 @@ pub fn cloudidentity_groups_memberships_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_memberships_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsMembershipsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/groups/{groupsId}/memberships/{membershipsId}
 /// Deletes a Membership.
 ///
@@ -4341,12 +4718,12 @@ pub fn cloudidentity_groups_memberships_delete_execute(
 
 pub fn cloudidentity_groups_memberships_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudidentityGroupsMembershipsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_groups_memberships_delete_builder(client, name)?;
+    let builder = cloudidentity_groups_memberships_delete_builder(client, &args.name)?;
     cloudidentity_groups_memberships_delete_execute(builder)
 }
 
@@ -4440,6 +4817,13 @@ pub fn cloudidentity_groups_memberships_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_memberships_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsMembershipsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/groups/{groupsId}/memberships/{membershipsId}
 /// Retrieves a Membership.
 ///
@@ -4452,12 +4836,12 @@ pub fn cloudidentity_groups_memberships_get_execute(
 
 pub fn cloudidentity_groups_memberships_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudidentityGroupsMembershipsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Membership>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_groups_memberships_get_builder(client, name)?;
+    let builder = cloudidentity_groups_memberships_get_builder(client, &args.name)?;
     cloudidentity_groups_memberships_get_execute(builder)
 }
 
@@ -4563,6 +4947,15 @@ pub fn cloudidentity_groups_memberships_get_membership_graph_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_memberships_get_membership_graph`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsMembershipsGetMembershipGraphArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v1/groups/{groupsId}/memberships:getMembershipGraph
 /// Get a membership graph of just a member or both a member and a group. **Note:** This feature is only available to Google Workspace Enterprise Standard, Enterprise Plus, and Enterprise for Education; and Cloud Identity Premium accounts. If the account of the member is not one of these, a 403 (PERMISSION_DENIED) HTTP status code will be returned. Given a member, the response will contain all membership paths from the member. Given both a group and a member, the response will contain all membership paths between the group and the member.
 ///
@@ -4575,14 +4968,16 @@ pub fn cloudidentity_groups_memberships_get_membership_graph_execute(
 
 pub fn cloudidentity_groups_memberships_get_membership_graph(
     client: &SimpleHttpClient,
-    parent: &str,
-    query: Option<&str>,
+    args: &CloudidentityGroupsMembershipsGetMembershipGraphArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_groups_memberships_get_membership_graph_builder(client, parent, query)?;
+    let builder = cloudidentity_groups_memberships_get_membership_graph_builder(
+        client,
+        &args.parent,
+        args.query.as_deref(),
+    )?;
     cloudidentity_groups_memberships_get_membership_graph_execute(builder)
 }
 
@@ -4698,6 +5093,19 @@ pub fn cloudidentity_groups_memberships_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_memberships_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsMembershipsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/groups/{groupsId}/memberships
 /// Lists the Memberships within a Group.
 ///
@@ -4710,18 +5118,20 @@ pub fn cloudidentity_groups_memberships_list_execute(
 
 pub fn cloudidentity_groups_memberships_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &CloudidentityGroupsMembershipsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListMembershipsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_groups_memberships_list_builder(client, parent, pageSize, pageToken, view)?;
+    let builder = cloudidentity_groups_memberships_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
+    )?;
     cloudidentity_groups_memberships_list_execute(builder)
 }
 
@@ -4835,6 +5245,17 @@ pub fn cloudidentity_groups_memberships_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_memberships_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsMembershipsLookupArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: memberKey_id
+    pub memberKey_id: Option<String>,
+    /// Query parameter: memberKey_namespace
+    pub memberKey_namespace: Option<String>,
+}
+
 /// GET v1/groups/{groupsId}/memberships:lookup
 /// Looks up the [resource name](<https://cloud.google.`com/apis/design/resource_names`>) of a Membership by its EntityKey.
 ///
@@ -4847,9 +5268,7 @@ pub fn cloudidentity_groups_memberships_lookup_execute(
 
 pub fn cloudidentity_groups_memberships_lookup(
     client: &SimpleHttpClient,
-    parent: &str,
-    memberKey_id: Option<&str>,
-    memberKey_namespace: Option<&str>,
+    args: &CloudidentityGroupsMembershipsLookupArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LookupMembershipNameResponse>, ApiError>,
@@ -4860,9 +5279,9 @@ pub fn cloudidentity_groups_memberships_lookup(
 > {
     let builder = cloudidentity_groups_memberships_lookup_builder(
         client,
-        parent,
-        memberKey_id,
-        memberKey_namespace,
+        &args.parent,
+        args.memberKey_id.as_deref(),
+        args.memberKey_namespace.as_deref(),
     )?;
     cloudidentity_groups_memberships_lookup_execute(builder)
 }
@@ -4964,6 +5383,15 @@ pub fn cloudidentity_groups_memberships_modify_membership_roles_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_memberships_modify_membership_roles`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsMembershipsModifyMembershipRolesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ModifyMembershipRolesRequest,
+}
+
 /// GET v1/groups/{groupsId}/memberships/{membershipsId}:modifyMembershipRoles
 /// Modifies the MembershipRoles of a Membership.
 ///
@@ -4976,8 +5404,7 @@ pub fn cloudidentity_groups_memberships_modify_membership_roles_execute(
 
 pub fn cloudidentity_groups_memberships_modify_membership_roles(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ModifyMembershipRolesRequest,
+    args: &CloudidentityGroupsMembershipsModifyMembershipRolesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ModifyMembershipRolesResponse>, ApiError>,
@@ -4986,8 +5413,9 @@ pub fn cloudidentity_groups_memberships_modify_membership_roles(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_groups_memberships_modify_membership_roles_builder(client, name, body)?;
+    let builder = cloudidentity_groups_memberships_modify_membership_roles_builder(
+        client, &args.name, &args.body,
+    )?;
     cloudidentity_groups_memberships_modify_membership_roles_execute(builder)
 }
 
@@ -5109,6 +5537,21 @@ pub fn cloudidentity_groups_memberships_search_direct_groups_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_memberships_search_direct_groups`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsMembershipsSearchDirectGroupsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v1/groups/{groupsId}/memberships:searchDirectGroups
 /// Searches direct groups of a member.
 ///
@@ -5121,11 +5564,7 @@ pub fn cloudidentity_groups_memberships_search_direct_groups_execute(
 
 pub fn cloudidentity_groups_memberships_search_direct_groups(
     client: &SimpleHttpClient,
-    parent: &str,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    args: &CloudidentityGroupsMembershipsSearchDirectGroupsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchDirectGroupsResponse>, ApiError>,
@@ -5135,7 +5574,12 @@ pub fn cloudidentity_groups_memberships_search_direct_groups(
     ApiError,
 > {
     let builder = cloudidentity_groups_memberships_search_direct_groups_builder(
-        client, parent, orderBy, pageSize, pageToken, query,
+        client,
+        &args.parent,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
     )?;
     cloudidentity_groups_memberships_search_direct_groups_execute(builder)
 }
@@ -5254,6 +5698,19 @@ pub fn cloudidentity_groups_memberships_search_transitive_groups_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_memberships_search_transitive_groups`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsMembershipsSearchTransitiveGroupsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v1/groups/{groupsId}/memberships:searchTransitiveGroups
 /// Search transitive groups of a member. **Note:** This feature is only available to Google Workspace Enterprise Standard, Enterprise Plus, and Enterprise for Education; and Cloud Identity Premium accounts. If the account of the member is not one of these, a 403 (PERMISSION_DENIED) HTTP status code will be returned. A transitive group is any group that has a direct or indirect membership to the member. Actor must have view permissions all transitive groups.
 ///
@@ -5266,10 +5723,7 @@ pub fn cloudidentity_groups_memberships_search_transitive_groups_execute(
 
 pub fn cloudidentity_groups_memberships_search_transitive_groups(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    args: &CloudidentityGroupsMembershipsSearchTransitiveGroupsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchTransitiveGroupsResponse>, ApiError>,
@@ -5279,7 +5733,11 @@ pub fn cloudidentity_groups_memberships_search_transitive_groups(
     ApiError,
 > {
     let builder = cloudidentity_groups_memberships_search_transitive_groups_builder(
-        client, parent, pageSize, pageToken, query,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
     )?;
     cloudidentity_groups_memberships_search_transitive_groups_execute(builder)
 }
@@ -5394,6 +5852,17 @@ pub fn cloudidentity_groups_memberships_search_transitive_memberships_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_groups_memberships_search_transitive_memberships`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityGroupsMembershipsSearchTransitiveMembershipsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/groups/{groupsId}/memberships:searchTransitiveMemberships
 /// Search transitive memberships of a group. **Note:** This feature is only available to Google Workspace Enterprise Standard, Enterprise Plus, and Enterprise for Education; and Cloud Identity Premium accounts. If the account of the group is not one of these, a 403 (PERMISSION_DENIED) HTTP status code will be returned. A transitive membership is any direct or indirect membership of a group. Actor must have view permissions to all transitive memberships.
 ///
@@ -5406,9 +5875,7 @@ pub fn cloudidentity_groups_memberships_search_transitive_memberships_execute(
 
 pub fn cloudidentity_groups_memberships_search_transitive_memberships(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudidentityGroupsMembershipsSearchTransitiveMembershipsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchTransitiveMembershipsResponse>, ApiError>,
@@ -5418,7 +5885,10 @@ pub fn cloudidentity_groups_memberships_search_transitive_memberships(
     ApiError,
 > {
     let builder = cloudidentity_groups_memberships_search_transitive_memberships_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudidentity_groups_memberships_search_transitive_memberships_execute(builder)
 }
@@ -5512,6 +5982,13 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_oidc_sso_profiles_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundOidcSsoProfilesCreateArgs {
+    /// Request body.
+    pub body: InboundOidcSsoProfile,
+}
+
 /// GET v1/inboundOidcSsoProfiles
 /// Creates an InboundOidcSsoProfile for a customer. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
@@ -5524,12 +6001,12 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_create_execute(
 
 pub fn cloudidentity_inbound_oidc_sso_profiles_create(
     client: &SimpleHttpClient,
-    body: &InboundOidcSsoProfile,
+    args: &CloudidentityInboundOidcSsoProfilesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_inbound_oidc_sso_profiles_create_builder(client, body)?;
+    let builder = cloudidentity_inbound_oidc_sso_profiles_create_builder(client, &args.body)?;
     cloudidentity_inbound_oidc_sso_profiles_create_execute(builder)
 }
 
@@ -5623,6 +6100,13 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_oidc_sso_profiles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundOidcSsoProfilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
 /// Deletes an InboundOidcSsoProfile.
 ///
@@ -5635,12 +6119,12 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_delete_execute(
 
 pub fn cloudidentity_inbound_oidc_sso_profiles_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudidentityInboundOidcSsoProfilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_inbound_oidc_sso_profiles_delete_builder(client, name)?;
+    let builder = cloudidentity_inbound_oidc_sso_profiles_delete_builder(client, &args.name)?;
     cloudidentity_inbound_oidc_sso_profiles_delete_execute(builder)
 }
 
@@ -5736,6 +6220,13 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_oidc_sso_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundOidcSsoProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
 /// Gets an InboundOidcSsoProfile.
 ///
@@ -5748,14 +6239,14 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_get_execute(
 
 pub fn cloudidentity_inbound_oidc_sso_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudidentityInboundOidcSsoProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InboundOidcSsoProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_inbound_oidc_sso_profiles_get_builder(client, name)?;
+    let builder = cloudidentity_inbound_oidc_sso_profiles_get_builder(client, &args.name)?;
     cloudidentity_inbound_oidc_sso_profiles_get_execute(builder)
 }
 
@@ -5869,6 +6360,17 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_oidc_sso_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundOidcSsoProfilesListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/inboundOidcSsoProfiles
 /// Lists InboundOidcSsoProfile objects for a Google enterprise customer.
 ///
@@ -5881,9 +6383,7 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_list_execute(
 
 pub fn cloudidentity_inbound_oidc_sso_profiles_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudidentityInboundOidcSsoProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInboundOidcSsoProfilesResponse>, ApiError>,
@@ -5892,8 +6392,12 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_inbound_oidc_sso_profiles_list_builder(client, filter, pageSize, pageToken)?;
+    let builder = cloudidentity_inbound_oidc_sso_profiles_list_builder(
+        client,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     cloudidentity_inbound_oidc_sso_profiles_list_execute(builder)
 }
 
@@ -6002,6 +6506,17 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_oidc_sso_profiles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundOidcSsoProfilesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: InboundOidcSsoProfile,
+}
+
 /// GET v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
 /// Updates an InboundOidcSsoProfile. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
@@ -6014,15 +6529,17 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_patch_execute(
 
 pub fn cloudidentity_inbound_oidc_sso_profiles_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &InboundOidcSsoProfile,
+    args: &CloudidentityInboundOidcSsoProfilesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_inbound_oidc_sso_profiles_patch_builder(client, name, updateMask, body)?;
+    let builder = cloudidentity_inbound_oidc_sso_profiles_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudidentity_inbound_oidc_sso_profiles_patch_execute(builder)
 }
 
@@ -6115,6 +6632,13 @@ pub fn cloudidentity_inbound_saml_sso_profiles_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_saml_sso_profiles_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSamlSsoProfilesCreateArgs {
+    /// Request body.
+    pub body: InboundSamlSsoProfile,
+}
+
 /// GET v1/inboundSamlSsoProfiles
 /// Creates an InboundSamlSsoProfile for a customer. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
@@ -6127,12 +6651,12 @@ pub fn cloudidentity_inbound_saml_sso_profiles_create_execute(
 
 pub fn cloudidentity_inbound_saml_sso_profiles_create(
     client: &SimpleHttpClient,
-    body: &InboundSamlSsoProfile,
+    args: &CloudidentityInboundSamlSsoProfilesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_inbound_saml_sso_profiles_create_builder(client, body)?;
+    let builder = cloudidentity_inbound_saml_sso_profiles_create_builder(client, &args.body)?;
     cloudidentity_inbound_saml_sso_profiles_create_execute(builder)
 }
 
@@ -6226,6 +6750,13 @@ pub fn cloudidentity_inbound_saml_sso_profiles_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_saml_sso_profiles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSamlSsoProfilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
 /// Deletes an InboundSamlSsoProfile.
 ///
@@ -6238,12 +6769,12 @@ pub fn cloudidentity_inbound_saml_sso_profiles_delete_execute(
 
 pub fn cloudidentity_inbound_saml_sso_profiles_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudidentityInboundSamlSsoProfilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_inbound_saml_sso_profiles_delete_builder(client, name)?;
+    let builder = cloudidentity_inbound_saml_sso_profiles_delete_builder(client, &args.name)?;
     cloudidentity_inbound_saml_sso_profiles_delete_execute(builder)
 }
 
@@ -6339,6 +6870,13 @@ pub fn cloudidentity_inbound_saml_sso_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_saml_sso_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSamlSsoProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
 /// Gets an InboundSamlSsoProfile.
 ///
@@ -6351,14 +6889,14 @@ pub fn cloudidentity_inbound_saml_sso_profiles_get_execute(
 
 pub fn cloudidentity_inbound_saml_sso_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudidentityInboundSamlSsoProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InboundSamlSsoProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_inbound_saml_sso_profiles_get_builder(client, name)?;
+    let builder = cloudidentity_inbound_saml_sso_profiles_get_builder(client, &args.name)?;
     cloudidentity_inbound_saml_sso_profiles_get_execute(builder)
 }
 
@@ -6472,6 +7010,17 @@ pub fn cloudidentity_inbound_saml_sso_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_saml_sso_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSamlSsoProfilesListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/inboundSamlSsoProfiles
 /// Lists InboundSamlSsoProfiles for a customer.
 ///
@@ -6484,9 +7033,7 @@ pub fn cloudidentity_inbound_saml_sso_profiles_list_execute(
 
 pub fn cloudidentity_inbound_saml_sso_profiles_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudidentityInboundSamlSsoProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInboundSamlSsoProfilesResponse>, ApiError>,
@@ -6495,8 +7042,12 @@ pub fn cloudidentity_inbound_saml_sso_profiles_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_inbound_saml_sso_profiles_list_builder(client, filter, pageSize, pageToken)?;
+    let builder = cloudidentity_inbound_saml_sso_profiles_list_builder(
+        client,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     cloudidentity_inbound_saml_sso_profiles_list_execute(builder)
 }
 
@@ -6605,6 +7156,17 @@ pub fn cloudidentity_inbound_saml_sso_profiles_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_saml_sso_profiles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSamlSsoProfilesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: InboundSamlSsoProfile,
+}
+
 /// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
 /// Updates an InboundSamlSsoProfile. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
@@ -6617,15 +7179,17 @@ pub fn cloudidentity_inbound_saml_sso_profiles_patch_execute(
 
 pub fn cloudidentity_inbound_saml_sso_profiles_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &InboundSamlSsoProfile,
+    args: &CloudidentityInboundSamlSsoProfilesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_inbound_saml_sso_profiles_patch_builder(client, name, updateMask, body)?;
+    let builder = cloudidentity_inbound_saml_sso_profiles_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudidentity_inbound_saml_sso_profiles_patch_execute(builder)
 }
 
@@ -6722,6 +7286,15 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_saml_sso_profiles_idp_credentials_add`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSamlSsoProfilesIdpCredentialsAddArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AddIdpCredentialRequest,
+}
+
 /// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials:add
 /// Adds an IdpCredential. Up to 2 credentials are allowed. When the target customer has enabled [Multi-party approval for sensitive actions](<https://support.google.`com/a/answer/13790448`>), the Operation in the response will have "done": `false`, it will not have a response, and the metadata will have "state": "awaiting-multi-party-approval".
 ///
@@ -6734,14 +7307,16 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_execute(
 
 pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_add(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AddIdpCredentialRequest,
+    args: &CloudidentityInboundSamlSsoProfilesIdpCredentialsAddArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_builder(client, parent, body)?;
+    let builder = cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_execute(builder)
 }
 
@@ -6835,6 +7410,13 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSamlSsoProfilesIdpCredentialsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials/{idpCredentialsId}
 /// Deletes an IdpCredential.
 ///
@@ -6847,13 +7429,13 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_execute(
 
 pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudidentityInboundSamlSsoProfilesIdpCredentialsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_builder(client, name)?;
+        cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_builder(client, &args.name)?;
     cloudidentity_inbound_saml_sso_profiles_idp_credentials_delete_execute(builder)
 }
 
@@ -6949,6 +7531,13 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_saml_sso_profiles_idp_credentials_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSamlSsoProfilesIdpCredentialsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials/{idpCredentialsId}
 /// Gets an IdpCredential.
 ///
@@ -6961,7 +7550,7 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_execute(
 
 pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudidentityInboundSamlSsoProfilesIdpCredentialsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IdpCredential>, ApiError>, P = ApiPending>
         + Send
@@ -6969,7 +7558,7 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_get(
     ApiError,
 > {
     let builder =
-        cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_builder(client, name)?;
+        cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_builder(client, &args.name)?;
     cloudidentity_inbound_saml_sso_profiles_idp_credentials_get_execute(builder)
 }
 
@@ -7083,6 +7672,17 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_saml_sso_profiles_idp_credentials_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSamlSsoProfilesIdpCredentialsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials
 /// Returns a list of IdpCredentials in an InboundSamlSsoProfile.
 ///
@@ -7095,9 +7695,7 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_list_execute(
 
 pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudidentityInboundSamlSsoProfilesIdpCredentialsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListIdpCredentialsResponse>, ApiError>,
@@ -7107,7 +7705,10 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_list(
     ApiError,
 > {
     let builder = cloudidentity_inbound_saml_sso_profiles_idp_credentials_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudidentity_inbound_saml_sso_profiles_idp_credentials_list_execute(builder)
 }
@@ -7201,6 +7802,13 @@ pub fn cloudidentity_inbound_sso_assignments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_sso_assignments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSsoAssignmentsCreateArgs {
+    /// Request body.
+    pub body: InboundSsoAssignment,
+}
+
 /// GET v1/inboundSsoAssignments
 /// Creates an InboundSsoAssignment for users and devices in a Customer under a given Group or OrgUnit.
 ///
@@ -7213,12 +7821,12 @@ pub fn cloudidentity_inbound_sso_assignments_create_execute(
 
 pub fn cloudidentity_inbound_sso_assignments_create(
     client: &SimpleHttpClient,
-    body: &InboundSsoAssignment,
+    args: &CloudidentityInboundSsoAssignmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_inbound_sso_assignments_create_builder(client, body)?;
+    let builder = cloudidentity_inbound_sso_assignments_create_builder(client, &args.body)?;
     cloudidentity_inbound_sso_assignments_create_execute(builder)
 }
 
@@ -7312,6 +7920,13 @@ pub fn cloudidentity_inbound_sso_assignments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_sso_assignments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSsoAssignmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
 /// Deletes an InboundSsoAssignment. To disable SSO, Create (or Update) an assignment that has sso_mode == SSO_OFF.
 ///
@@ -7324,12 +7939,12 @@ pub fn cloudidentity_inbound_sso_assignments_delete_execute(
 
 pub fn cloudidentity_inbound_sso_assignments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudidentityInboundSsoAssignmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_inbound_sso_assignments_delete_builder(client, name)?;
+    let builder = cloudidentity_inbound_sso_assignments_delete_builder(client, &args.name)?;
     cloudidentity_inbound_sso_assignments_delete_execute(builder)
 }
 
@@ -7425,6 +8040,13 @@ pub fn cloudidentity_inbound_sso_assignments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_sso_assignments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSsoAssignmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
 /// Gets an InboundSsoAssignment.
 ///
@@ -7437,14 +8059,14 @@ pub fn cloudidentity_inbound_sso_assignments_get_execute(
 
 pub fn cloudidentity_inbound_sso_assignments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudidentityInboundSsoAssignmentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InboundSsoAssignment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_inbound_sso_assignments_get_builder(client, name)?;
+    let builder = cloudidentity_inbound_sso_assignments_get_builder(client, &args.name)?;
     cloudidentity_inbound_sso_assignments_get_execute(builder)
 }
 
@@ -7558,6 +8180,17 @@ pub fn cloudidentity_inbound_sso_assignments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_sso_assignments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSsoAssignmentsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/inboundSsoAssignments
 /// Lists the InboundSsoAssignments for a Customer.
 ///
@@ -7570,9 +8203,7 @@ pub fn cloudidentity_inbound_sso_assignments_list_execute(
 
 pub fn cloudidentity_inbound_sso_assignments_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudidentityInboundSsoAssignmentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInboundSsoAssignmentsResponse>, ApiError>,
@@ -7581,8 +8212,12 @@ pub fn cloudidentity_inbound_sso_assignments_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_inbound_sso_assignments_list_builder(client, filter, pageSize, pageToken)?;
+    let builder = cloudidentity_inbound_sso_assignments_list_builder(
+        client,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     cloudidentity_inbound_sso_assignments_list_execute(builder)
 }
 
@@ -7691,6 +8326,17 @@ pub fn cloudidentity_inbound_sso_assignments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_inbound_sso_assignments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityInboundSsoAssignmentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: InboundSsoAssignment,
+}
+
 /// GET v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
 /// Updates an InboundSsoAssignment. The body of this request is the inbound_sso_assignment field and the update_mask is relative to that. For example: a PATCH to /v1/`inboundSsoA``ssignments/0abcdefg1234567`&update_mask=rank with a body of { "rank": 1 } moves that (presumably group-targeted) SSO assignment to the highest priority and shifts any other group-targeted assignments down in priority.
 ///
@@ -7703,15 +8349,17 @@ pub fn cloudidentity_inbound_sso_assignments_patch_execute(
 
 pub fn cloudidentity_inbound_sso_assignments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &InboundSsoAssignment,
+    args: &CloudidentityInboundSsoAssignmentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_inbound_sso_assignments_patch_builder(client, name, updateMask, body)?;
+    let builder = cloudidentity_inbound_sso_assignments_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudidentity_inbound_sso_assignments_patch_execute(builder)
 }
 
@@ -7802,6 +8450,13 @@ pub fn cloudidentity_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/policies/{policiesId}
 /// Get a policy.
 ///
@@ -7814,12 +8469,12 @@ pub fn cloudidentity_policies_get_execute(
 
 pub fn cloudidentity_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudidentityPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_policies_get_builder(client, name)?;
+    let builder = cloudidentity_policies_get_builder(client, &args.name)?;
     cloudidentity_policies_get_execute(builder)
 }
 
@@ -7931,6 +8586,17 @@ pub fn cloudidentity_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudidentity_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudidentityPoliciesListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/policies
 /// List policies.
 ///
@@ -7943,15 +8609,18 @@ pub fn cloudidentity_policies_list_execute(
 
 pub fn cloudidentity_policies_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudidentityPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPoliciesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_policies_list_builder(client, filter, pageSize, pageToken)?;
+    let builder = cloudidentity_policies_list_builder(
+        client,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     cloudidentity_policies_list_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/billingAccounts
 /// This method creates [billing subaccounts](<https://cloud.google.`com/billing/docs/concepts`#subaccounts>). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.`customers/create`>) and [accounts.customers.entitlements.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.customers.`entitlements/create`>). When creating a subaccount, the current authenticated user must have the billing.accounts.update IAM permission on the parent account, which is typically given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). This method will return an error if the parent account has not been provisioned for subaccounts.
@@ -119,6 +121,15 @@ pub fn cloudbilling_billing_accounts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_billing_accounts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingBillingAccountsCreateArgs {
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Request body.
+    pub body: BillingAccount,
+}
+
 /// GET v1/billingAccounts
 /// This method creates [billing subaccounts](<https://cloud.google.`com/billing/docs/concepts`#subaccounts>). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.`customers/create`>) and [accounts.customers.entitlements.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.customers.`entitlements/create`>). When creating a subaccount, the current authenticated user must have the billing.accounts.update IAM permission on the parent account, which is typically given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). This method will return an error if the parent account has not been provisioned for subaccounts.
 ///
@@ -131,15 +142,15 @@ pub fn cloudbilling_billing_accounts_create_execute(
 
 pub fn cloudbilling_billing_accounts_create(
     client: &SimpleHttpClient,
-    parent: Option<&str>,
-    body: &BillingAccount,
+    args: &CloudbillingBillingAccountsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BillingAccount>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_billing_accounts_create_builder(client, parent, body)?;
+    let builder =
+        cloudbilling_billing_accounts_create_builder(client, args.parent.as_deref(), &args.body)?;
     cloudbilling_billing_accounts_create_execute(builder)
 }
 
@@ -235,6 +246,13 @@ pub fn cloudbilling_billing_accounts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_billing_accounts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingBillingAccountsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}
 /// Gets information about a billing account. The current authenticated user must be a [viewer of the billing account](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
 ///
@@ -247,14 +265,14 @@ pub fn cloudbilling_billing_accounts_get_execute(
 
 pub fn cloudbilling_billing_accounts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudbillingBillingAccountsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BillingAccount>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_billing_accounts_get_builder(client, name)?;
+    let builder = cloudbilling_billing_accounts_get_builder(client, &args.name)?;
     cloudbilling_billing_accounts_get_execute(builder)
 }
 
@@ -360,6 +378,15 @@ pub fn cloudbilling_billing_accounts_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_billing_accounts_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingBillingAccountsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}:getIamPolicy
 /// Gets the access control policy for a billing account. The caller must have the billing.accounts.`getIamPolicy` permission on the account, which is often given to billing account [viewers](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
 ///
@@ -372,16 +399,15 @@ pub fn cloudbilling_billing_accounts_get_iam_policy_execute(
 
 pub fn cloudbilling_billing_accounts_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &CloudbillingBillingAccountsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudbilling_billing_accounts_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     cloudbilling_billing_accounts_get_iam_policy_execute(builder)
 }
@@ -500,6 +526,19 @@ pub fn cloudbilling_billing_accounts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_billing_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingBillingAccountsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/billingAccounts
 /// Lists the billing accounts that the current authenticated user has permission to [view](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
 ///
@@ -512,10 +551,7 @@ pub fn cloudbilling_billing_accounts_list_execute(
 
 pub fn cloudbilling_billing_accounts_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
+    args: &CloudbillingBillingAccountsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBillingAccountsResponse>, ApiError>,
@@ -524,8 +560,13 @@ pub fn cloudbilling_billing_accounts_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudbilling_billing_accounts_list_builder(client, filter, pageSize, pageToken, parent)?;
+    let builder = cloudbilling_billing_accounts_list_builder(
+        client,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
+    )?;
     cloudbilling_billing_accounts_list_execute(builder)
 }
 
@@ -624,6 +665,15 @@ pub fn cloudbilling_billing_accounts_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_billing_accounts_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingBillingAccountsMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MoveBillingAccountRequest,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}:move
 /// Changes which parent organization a billing account belongs to.
 ///
@@ -636,15 +686,14 @@ pub fn cloudbilling_billing_accounts_move_execute(
 
 pub fn cloudbilling_billing_accounts_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MoveBillingAccountRequest,
+    args: &CloudbillingBillingAccountsMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BillingAccount>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_billing_accounts_move_builder(client, name, body)?;
+    let builder = cloudbilling_billing_accounts_move_builder(client, &args.name, &args.body)?;
     cloudbilling_billing_accounts_move_execute(builder)
 }
 
@@ -755,6 +804,17 @@ pub fn cloudbilling_billing_accounts_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_billing_accounts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingBillingAccountsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: BillingAccount,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}
 /// Updates a billing account's fields. Currently the only field that can be edited is display_name. The current authenticated user must have the billing.accounts.update IAM permission, which is typically given to the [administrator](<https://cloud.google.`com/billing/docs/how-to/billing-access`>) of the billing account.
 ///
@@ -767,16 +827,19 @@ pub fn cloudbilling_billing_accounts_patch_execute(
 
 pub fn cloudbilling_billing_accounts_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &BillingAccount,
+    args: &CloudbillingBillingAccountsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BillingAccount>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_billing_accounts_patch_builder(client, name, updateMask, body)?;
+    let builder = cloudbilling_billing_accounts_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudbilling_billing_accounts_patch_execute(builder)
 }
 
@@ -873,6 +936,15 @@ pub fn cloudbilling_billing_accounts_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_billing_accounts_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingBillingAccountsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}:setIamPolicy
 /// Sets the access control policy for a billing account. Replaces any existing policy. The caller must have the billing.accounts.`setIamPolicy` permission on the account, which is often given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
 ///
@@ -885,13 +957,13 @@ pub fn cloudbilling_billing_accounts_set_iam_policy_execute(
 
 pub fn cloudbilling_billing_accounts_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &CloudbillingBillingAccountsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_billing_accounts_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        cloudbilling_billing_accounts_set_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudbilling_billing_accounts_set_iam_policy_execute(builder)
 }
 
@@ -992,6 +1064,15 @@ pub fn cloudbilling_billing_accounts_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_billing_accounts_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingBillingAccountsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}:testIamPermissions
 /// Tests the access control policy for a billing account. This method takes the resource and a set of permissions as input and returns the subset of the input permissions that the caller is allowed for that resource.
 ///
@@ -1004,8 +1085,7 @@ pub fn cloudbilling_billing_accounts_test_iam_permissions_execute(
 
 pub fn cloudbilling_billing_accounts_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &CloudbillingBillingAccountsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1014,8 +1094,11 @@ pub fn cloudbilling_billing_accounts_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudbilling_billing_accounts_test_iam_permissions_builder(client, resource, body)?;
+    let builder = cloudbilling_billing_accounts_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudbilling_billing_accounts_test_iam_permissions_execute(builder)
 }
 
@@ -1129,6 +1212,17 @@ pub fn cloudbilling_billing_accounts_projects_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_billing_accounts_projects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingBillingAccountsProjectsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/projects
 /// Lists the projects associated with a billing account. The current authenticated user must have the billing.`resourceAssociations`.list IAM permission, which is often given to billing account [viewers](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
 ///
@@ -1141,9 +1235,7 @@ pub fn cloudbilling_billing_accounts_projects_list_execute(
 
 pub fn cloudbilling_billing_accounts_projects_list(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudbillingBillingAccountsProjectsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListProjectBillingInfoResponse>, ApiError>,
@@ -1152,8 +1244,12 @@ pub fn cloudbilling_billing_accounts_projects_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudbilling_billing_accounts_projects_list_builder(client, name, pageSize, pageToken)?;
+    let builder = cloudbilling_billing_accounts_projects_list_builder(
+        client,
+        &args.name,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     cloudbilling_billing_accounts_projects_list_execute(builder)
 }
 
@@ -1252,6 +1348,15 @@ pub fn cloudbilling_billing_accounts_sub_accounts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_billing_accounts_sub_accounts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingBillingAccountsSubAccountsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BillingAccount,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/subAccounts
 /// This method creates [billing subaccounts](<https://cloud.google.`com/billing/docs/concepts`#subaccounts>). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.`customers/create`>) and [accounts.customers.entitlements.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.customers.`entitlements/create`>). When creating a subaccount, the current authenticated user must have the billing.accounts.update IAM permission on the parent account, which is typically given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). This method will return an error if the parent account has not been provisioned for subaccounts.
 ///
@@ -1264,15 +1369,18 @@ pub fn cloudbilling_billing_accounts_sub_accounts_create_execute(
 
 pub fn cloudbilling_billing_accounts_sub_accounts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BillingAccount,
+    args: &CloudbillingBillingAccountsSubAccountsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BillingAccount>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_billing_accounts_sub_accounts_create_builder(client, parent, body)?;
+    let builder = cloudbilling_billing_accounts_sub_accounts_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     cloudbilling_billing_accounts_sub_accounts_create_execute(builder)
 }
 
@@ -1390,6 +1498,19 @@ pub fn cloudbilling_billing_accounts_sub_accounts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_billing_accounts_sub_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingBillingAccountsSubAccountsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/subAccounts
 /// Lists the billing accounts that the current authenticated user has permission to [view](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
 ///
@@ -1402,10 +1523,7 @@ pub fn cloudbilling_billing_accounts_sub_accounts_list_execute(
 
 pub fn cloudbilling_billing_accounts_sub_accounts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudbillingBillingAccountsSubAccountsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBillingAccountsResponse>, ApiError>,
@@ -1415,7 +1533,11 @@ pub fn cloudbilling_billing_accounts_sub_accounts_list(
     ApiError,
 > {
     let builder = cloudbilling_billing_accounts_sub_accounts_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudbilling_billing_accounts_sub_accounts_list_execute(builder)
 }
@@ -1515,6 +1637,15 @@ pub fn cloudbilling_organizations_billing_accounts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_organizations_billing_accounts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingOrganizationsBillingAccountsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BillingAccount,
+}
+
 /// GET v1/organizations/{organizationsId}/billingAccounts
 /// This method creates [billing subaccounts](<https://cloud.google.`com/billing/docs/concepts`#subaccounts>). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.`customers/create`>) and [accounts.customers.entitlements.create](<https://cloud.google.`com/channel/docs/reference/rest/v1/accounts`.customers.`entitlements/create`>). When creating a subaccount, the current authenticated user must have the billing.accounts.update IAM permission on the parent account, which is typically given to billing account [administrators](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). This method will return an error if the parent account has not been provisioned for subaccounts.
 ///
@@ -1527,15 +1658,18 @@ pub fn cloudbilling_organizations_billing_accounts_create_execute(
 
 pub fn cloudbilling_organizations_billing_accounts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BillingAccount,
+    args: &CloudbillingOrganizationsBillingAccountsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BillingAccount>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_organizations_billing_accounts_create_builder(client, parent, body)?;
+    let builder = cloudbilling_organizations_billing_accounts_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     cloudbilling_organizations_billing_accounts_create_execute(builder)
 }
 
@@ -1653,6 +1787,19 @@ pub fn cloudbilling_organizations_billing_accounts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_organizations_billing_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingOrganizationsBillingAccountsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/billingAccounts
 /// Lists the billing accounts that the current authenticated user has permission to [view](<https://cloud.google.`com/billing/docs/how-to/billing-access`>).
 ///
@@ -1665,10 +1812,7 @@ pub fn cloudbilling_organizations_billing_accounts_list_execute(
 
 pub fn cloudbilling_organizations_billing_accounts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudbillingOrganizationsBillingAccountsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBillingAccountsResponse>, ApiError>,
@@ -1678,7 +1822,11 @@ pub fn cloudbilling_organizations_billing_accounts_list(
     ApiError,
 > {
     let builder = cloudbilling_organizations_billing_accounts_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudbilling_organizations_billing_accounts_list_execute(builder)
 }
@@ -1776,6 +1924,15 @@ pub fn cloudbilling_organizations_billing_accounts_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_organizations_billing_accounts_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingOrganizationsBillingAccountsMoveArgs {
+    /// Path parameter: destinationParent
+    pub destinationParent: String,
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/billingAccounts/{billingAccountsId}:move
 /// Changes which parent organization a billing account belongs to.
 ///
@@ -1788,16 +1945,18 @@ pub fn cloudbilling_organizations_billing_accounts_move_execute(
 
 pub fn cloudbilling_organizations_billing_accounts_move(
     client: &SimpleHttpClient,
-    destinationParent: &str,
-    name: &str,
+    args: &CloudbillingOrganizationsBillingAccountsMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BillingAccount>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudbilling_organizations_billing_accounts_move_builder(client, destinationParent, name)?;
+    let builder = cloudbilling_organizations_billing_accounts_move_builder(
+        client,
+        &args.destinationParent,
+        &args.name,
+    )?;
     cloudbilling_organizations_billing_accounts_move_execute(builder)
 }
 
@@ -1893,6 +2052,13 @@ pub fn cloudbilling_projects_get_billing_info_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_projects_get_billing_info`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingProjectsGetBillingInfoArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/billingInfo
 /// Gets the billing information for a project. The current authenticated user must have the resourcemanager.projects.get permission for the project, which can be granted by assigning the [Project Viewer](<https://cloud.google.`com/iam/docs/understanding-roles`#predefined_roles>) role.
 ///
@@ -1905,14 +2071,14 @@ pub fn cloudbilling_projects_get_billing_info_execute(
 
 pub fn cloudbilling_projects_get_billing_info(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudbillingProjectsGetBillingInfoArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProjectBillingInfo>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_projects_get_billing_info_builder(client, name)?;
+    let builder = cloudbilling_projects_get_billing_info_builder(client, &args.name)?;
     cloudbilling_projects_get_billing_info_execute(builder)
 }
 
@@ -2011,6 +2177,15 @@ pub fn cloudbilling_projects_update_billing_info_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_projects_update_billing_info`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingProjectsUpdateBillingInfoArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ProjectBillingInfo,
+}
+
 /// GET v1/projects/{projectsId}/billingInfo
 /// Sets or updates the billing account associated with a project. You specify the new billing account by setting the billing_account_name in the ProjectBillingInfo resource to the resource name of a billing account. Associating a project with an open billing account enables billing on the project and allows charges for resource usage. If the project already had a billing account, this method changes the billing account used for resource usage charges. *Note:* Incurred charges that have not yet been reported in the transaction history of the Google Cloud Console might be billed to the new billing account, even if the charge occurred before the new billing account was assigned to the project. The current authenticated user must have ownership privileges for both the [project](<https://cloud.google.`com/docs/permissions-overview`#h.bgs0oxofvnoo> ) and the [billing account](<https://cloud.google.`com/billing/docs/how-to/billing-access`>). You can disable billing on the project by setting the billing_account_name field to empty. This action disassociates the current billing account from the project. Any billable activity of your in-use services will stop, and your application could stop functioning as expected. Any unbilled charges to date will be billed to the previously associated account. The current authenticated user must be either an owner of the project or an owner of the billing account for the project. Note that associating a project with a *closed* billing account will have much the same effect as disabling billing on the project: any paid resources used by the project will be shut down. Thus, unless you wish to disable billing, you should always call this method with the name of an *open* billing account.
 ///
@@ -2023,15 +2198,15 @@ pub fn cloudbilling_projects_update_billing_info_execute(
 
 pub fn cloudbilling_projects_update_billing_info(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ProjectBillingInfo,
+    args: &CloudbillingProjectsUpdateBillingInfoArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProjectBillingInfo>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_projects_update_billing_info_builder(client, name, body)?;
+    let builder =
+        cloudbilling_projects_update_billing_info_builder(client, &args.name, &args.body)?;
     cloudbilling_projects_update_billing_info_execute(builder)
 }
 
@@ -2139,6 +2314,15 @@ pub fn cloudbilling_services_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingServicesListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/services
 /// Lists all public cloud services.
 ///
@@ -2151,15 +2335,15 @@ pub fn cloudbilling_services_list_execute(
 
 pub fn cloudbilling_services_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudbillingServicesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_services_list_builder(client, pageSize, pageToken)?;
+    let builder =
+        cloudbilling_services_list_builder(client, args.pageSize, args.pageToken.as_deref())?;
     cloudbilling_services_list_execute(builder)
 }
 
@@ -2283,6 +2467,23 @@ pub fn cloudbilling_services_skus_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudbilling_services_skus_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudbillingServicesSkusListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: currencyCode
+    pub currencyCode: Option<String>,
+    /// Query parameter: endTime
+    pub endTime: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: startTime
+    pub startTime: Option<String>,
+}
+
 /// GET v1/services/{servicesId}/skus
 /// Lists all publicly available SKUs for a given cloud service.
 ///
@@ -2295,12 +2496,7 @@ pub fn cloudbilling_services_skus_list_execute(
 
 pub fn cloudbilling_services_skus_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    currencyCode: Option<&str>,
-    endTime: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    startTime: Option<&str>,
+    args: &CloudbillingServicesSkusListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSkusResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2309,12 +2505,12 @@ pub fn cloudbilling_services_skus_list(
 > {
     let builder = cloudbilling_services_skus_list_builder(
         client,
-        parent,
-        currencyCode,
-        endTime,
-        pageSize,
-        pageToken,
-        startTime,
+        &args.parent,
+        args.currencyCode.as_deref(),
+        args.endTime.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.startTime.as_deref(),
     )?;
     cloudbilling_services_skus_list_execute(builder)
 }

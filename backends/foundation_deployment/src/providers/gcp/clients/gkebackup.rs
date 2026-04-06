@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn gkebackup_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn gkebackup_projects_locations_get_execute(
 
 pub fn gkebackup_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkebackupProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_get_builder(client, name)?;
+    let builder = gkebackup_projects_locations_get_builder(client, &args.name)?;
     gkebackup_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn gkebackup_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn gkebackup_projects_locations_list_execute(
 
 pub fn gkebackup_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GkebackupProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn gkebackup_projects_locations_list(
 > {
     let builder = gkebackup_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     gkebackup_projects_locations_list_execute(builder)
 }
@@ -386,6 +406,17 @@ pub fn gkebackup_projects_locations_backup_channels_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_channels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupChannelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupChannelId
+    pub backupChannelId: Option<String>,
+    /// Request body.
+    pub body: BackupChannel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels
 /// Creates a new BackupChannel in a given location.
 ///
@@ -398,9 +429,7 @@ pub fn gkebackup_projects_locations_backup_channels_create_execute(
 
 pub fn gkebackup_projects_locations_backup_channels_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backupChannelId: Option<&str>,
-    body: &BackupChannel,
+    args: &GkebackupProjectsLocationsBackupChannelsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -411,9 +440,9 @@ pub fn gkebackup_projects_locations_backup_channels_create(
 > {
     let builder = gkebackup_projects_locations_backup_channels_create_builder(
         client,
-        parent,
-        backupChannelId,
-        body,
+        &args.parent,
+        args.backupChannelId.as_deref(),
+        &args.body,
     )?;
     gkebackup_projects_locations_backup_channels_create_execute(builder)
 }
@@ -528,6 +557,17 @@ pub fn gkebackup_projects_locations_backup_channels_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_channels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupChannelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
 /// Deletes an existing BackupChannel.
 ///
@@ -540,9 +580,7 @@ pub fn gkebackup_projects_locations_backup_channels_delete_execute(
 
 pub fn gkebackup_projects_locations_backup_channels_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    force: Option<bool>,
+    args: &GkebackupProjectsLocationsBackupChannelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -551,8 +589,12 @@ pub fn gkebackup_projects_locations_backup_channels_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        gkebackup_projects_locations_backup_channels_delete_builder(client, name, etag, force)?;
+    let builder = gkebackup_projects_locations_backup_channels_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.force,
+    )?;
     gkebackup_projects_locations_backup_channels_delete_execute(builder)
 }
 
@@ -648,6 +690,13 @@ pub fn gkebackup_projects_locations_backup_channels_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_channels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupChannelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
 /// Retrieve the details of a single BackupChannel.
 ///
@@ -660,14 +709,14 @@ pub fn gkebackup_projects_locations_backup_channels_get_execute(
 
 pub fn gkebackup_projects_locations_backup_channels_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkebackupProjectsLocationsBackupChannelsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BackupChannel>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_backup_channels_get_builder(client, name)?;
+    let builder = gkebackup_projects_locations_backup_channels_get_builder(client, &args.name)?;
     gkebackup_projects_locations_backup_channels_get_execute(builder)
 }
 
@@ -789,6 +838,21 @@ pub fn gkebackup_projects_locations_backup_channels_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_channels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupChannelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels
 /// Lists BackupChannels in a given location.
 ///
@@ -801,11 +865,7 @@ pub fn gkebackup_projects_locations_backup_channels_list_execute(
 
 pub fn gkebackup_projects_locations_backup_channels_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GkebackupProjectsLocationsBackupChannelsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBackupChannelsResponse>, ApiError>,
@@ -815,7 +875,12 @@ pub fn gkebackup_projects_locations_backup_channels_list(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_backup_channels_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     gkebackup_projects_locations_backup_channels_list_execute(builder)
 }
@@ -929,6 +994,17 @@ pub fn gkebackup_projects_locations_backup_channels_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_channels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupChannelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: BackupChannel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
 /// Update a BackupChannel.
 ///
@@ -941,9 +1017,7 @@ pub fn gkebackup_projects_locations_backup_channels_patch_execute(
 
 pub fn gkebackup_projects_locations_backup_channels_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &BackupChannel,
+    args: &GkebackupProjectsLocationsBackupChannelsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -952,8 +1026,12 @@ pub fn gkebackup_projects_locations_backup_channels_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        gkebackup_projects_locations_backup_channels_patch_builder(client, name, updateMask, body)?;
+    let builder = gkebackup_projects_locations_backup_channels_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     gkebackup_projects_locations_backup_channels_patch_execute(builder)
 }
 
@@ -1049,6 +1127,13 @@ pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_channels_backup_plan_bindings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}/backupPlanBindings/{backupPlanBindingsId}
 /// Retrieve the details of a single BackupPlanBinding.
 ///
@@ -1061,7 +1146,7 @@ pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_exe
 
 pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BackupPlanBinding>, ApiError>, P = ApiPending>
         + Send
@@ -1069,7 +1154,7 @@ pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_get(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_execute(builder)
 }
@@ -1192,6 +1277,21 @@ pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_channels_backup_plan_bindings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}/backupPlanBindings
 /// Lists BackupPlanBindings in a given location.
 ///
@@ -1204,11 +1304,7 @@ pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_ex
 
 pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBackupPlanBindingsResponse>, ApiError>,
@@ -1218,7 +1314,12 @@ pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_list(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_execute(builder)
 }
@@ -1332,6 +1433,17 @@ pub fn gkebackup_projects_locations_backup_plans_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupPlanId
+    pub backupPlanId: Option<String>,
+    /// Request body.
+    pub body: BackupPlan,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans
 /// Creates a new BackupPlan in a given location.
 ///
@@ -1344,9 +1456,7 @@ pub fn gkebackup_projects_locations_backup_plans_create_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backupPlanId: Option<&str>,
-    body: &BackupPlan,
+    args: &GkebackupProjectsLocationsBackupPlansCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1357,9 +1467,9 @@ pub fn gkebackup_projects_locations_backup_plans_create(
 > {
     let builder = gkebackup_projects_locations_backup_plans_create_builder(
         client,
-        parent,
-        backupPlanId,
-        body,
+        &args.parent,
+        args.backupPlanId.as_deref(),
+        &args.body,
     )?;
     gkebackup_projects_locations_backup_plans_create_execute(builder)
 }
@@ -1470,6 +1580,15 @@ pub fn gkebackup_projects_locations_backup_plans_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
 /// Deletes an existing BackupPlan.
 ///
@@ -1482,8 +1601,7 @@ pub fn gkebackup_projects_locations_backup_plans_delete_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &GkebackupProjectsLocationsBackupPlansDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1492,7 +1610,11 @@ pub fn gkebackup_projects_locations_backup_plans_delete(
         + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_backup_plans_delete_builder(client, name, etag)?;
+    let builder = gkebackup_projects_locations_backup_plans_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     gkebackup_projects_locations_backup_plans_delete_execute(builder)
 }
 
@@ -1586,6 +1708,13 @@ pub fn gkebackup_projects_locations_backup_plans_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
 /// Retrieve the details of a single BackupPlan.
 ///
@@ -1598,12 +1727,12 @@ pub fn gkebackup_projects_locations_backup_plans_get_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkebackupProjectsLocationsBackupPlansGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BackupPlan>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_backup_plans_get_builder(client, name)?;
+    let builder = gkebackup_projects_locations_backup_plans_get_builder(client, &args.name)?;
     gkebackup_projects_locations_backup_plans_get_execute(builder)
 }
 
@@ -1709,6 +1838,15 @@ pub fn gkebackup_projects_locations_backup_plans_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1721,16 +1859,15 @@ pub fn gkebackup_projects_locations_backup_plans_get_iam_policy_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &GkebackupProjectsLocationsBackupPlansGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkebackup_projects_locations_backup_plans_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     gkebackup_projects_locations_backup_plans_get_iam_policy_execute(builder)
 }
@@ -1827,6 +1964,13 @@ pub fn gkebackup_projects_locations_backup_plans_get_tags_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_get_tags`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansGetTagsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:getTags
 /// Returns tags directly bound to a GCP resource.
 ///
@@ -1839,14 +1983,14 @@ pub fn gkebackup_projects_locations_backup_plans_get_tags_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_get_tags(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkebackupProjectsLocationsBackupPlansGetTagsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GetTagsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_backup_plans_get_tags_builder(client, name)?;
+    let builder = gkebackup_projects_locations_backup_plans_get_tags_builder(client, &args.name)?;
     gkebackup_projects_locations_backup_plans_get_tags_execute(builder)
 }
 
@@ -1966,6 +2110,21 @@ pub fn gkebackup_projects_locations_backup_plans_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans
 /// Lists BackupPlans in a given location.
 ///
@@ -1978,11 +2137,7 @@ pub fn gkebackup_projects_locations_backup_plans_list_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GkebackupProjectsLocationsBackupPlansListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackupPlansResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1990,7 +2145,12 @@ pub fn gkebackup_projects_locations_backup_plans_list(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_backup_plans_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     gkebackup_projects_locations_backup_plans_list_execute(builder)
 }
@@ -2104,6 +2264,17 @@ pub fn gkebackup_projects_locations_backup_plans_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: BackupPlan,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
 /// Update a BackupPlan.
 ///
@@ -2116,9 +2287,7 @@ pub fn gkebackup_projects_locations_backup_plans_patch_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &BackupPlan,
+    args: &GkebackupProjectsLocationsBackupPlansPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2127,8 +2296,12 @@ pub fn gkebackup_projects_locations_backup_plans_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        gkebackup_projects_locations_backup_plans_patch_builder(client, name, updateMask, body)?;
+    let builder = gkebackup_projects_locations_backup_plans_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     gkebackup_projects_locations_backup_plans_patch_execute(builder)
 }
 
@@ -2225,6 +2398,15 @@ pub fn gkebackup_projects_locations_backup_plans_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -2237,14 +2419,16 @@ pub fn gkebackup_projects_locations_backup_plans_set_iam_policy_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &GkebackupProjectsLocationsBackupPlansSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gkebackup_projects_locations_backup_plans_set_iam_policy_builder(client, resource, body)?;
+    let builder = gkebackup_projects_locations_backup_plans_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     gkebackup_projects_locations_backup_plans_set_iam_policy_execute(builder)
 }
 
@@ -2343,6 +2527,15 @@ pub fn gkebackup_projects_locations_backup_plans_set_tags_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_set_tags`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansSetTagsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SetTagsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:setTags
 /// Updates tags directly bound to a GCP resource.
 ///
@@ -2355,15 +2548,15 @@ pub fn gkebackup_projects_locations_backup_plans_set_tags_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_set_tags(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SetTagsRequest,
+    args: &GkebackupProjectsLocationsBackupPlansSetTagsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SetTagsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_backup_plans_set_tags_builder(client, name, body)?;
+    let builder =
+        gkebackup_projects_locations_backup_plans_set_tags_builder(client, &args.name, &args.body)?;
     gkebackup_projects_locations_backup_plans_set_tags_execute(builder)
 }
 
@@ -2464,6 +2657,15 @@ pub fn gkebackup_projects_locations_backup_plans_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2476,8 +2678,7 @@ pub fn gkebackup_projects_locations_backup_plans_test_iam_permissions_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &GkebackupProjectsLocationsBackupPlansTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2487,7 +2688,9 @@ pub fn gkebackup_projects_locations_backup_plans_test_iam_permissions(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_backup_plans_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     gkebackup_projects_locations_backup_plans_test_iam_permissions_execute(builder)
 }
@@ -2601,6 +2804,17 @@ pub fn gkebackup_projects_locations_backup_plans_backups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupId
+    pub backupId: Option<String>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups
 /// Creates a Backup for the given BackupPlan.
 ///
@@ -2613,9 +2827,7 @@ pub fn gkebackup_projects_locations_backup_plans_backups_create_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_backups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backupId: Option<&str>,
-    body: &Backup,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2625,7 +2837,10 @@ pub fn gkebackup_projects_locations_backup_plans_backups_create(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_backup_plans_backups_create_builder(
-        client, parent, backupId, body,
+        client,
+        &args.parent,
+        args.backupId.as_deref(),
+        &args.body,
     )?;
     gkebackup_projects_locations_backup_plans_backups_create_execute(builder)
 }
@@ -2740,6 +2955,17 @@ pub fn gkebackup_projects_locations_backup_plans_backups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
 /// Deletes an existing Backup.
 ///
@@ -2752,9 +2978,7 @@ pub fn gkebackup_projects_locations_backup_plans_backups_delete_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_backups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    force: Option<bool>,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2764,7 +2988,10 @@ pub fn gkebackup_projects_locations_backup_plans_backups_delete(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_backup_plans_backups_delete_builder(
-        client, name, etag, force,
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.force,
     )?;
     gkebackup_projects_locations_backup_plans_backups_delete_execute(builder)
 }
@@ -2859,6 +3086,13 @@ pub fn gkebackup_projects_locations_backup_plans_backups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
 /// Retrieve the details of a single Backup.
 ///
@@ -2871,12 +3105,13 @@ pub fn gkebackup_projects_locations_backup_plans_backups_get_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_backups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_backup_plans_backups_get_builder(client, name)?;
+    let builder =
+        gkebackup_projects_locations_backup_plans_backups_get_builder(client, &args.name)?;
     gkebackup_projects_locations_backup_plans_backups_get_execute(builder)
 }
 
@@ -2974,6 +3209,13 @@ pub fn gkebackup_projects_locations_backup_plans_backups_get_backup_index_downlo
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsGetBackupIndexDownloadUrlArgs {
+    /// Path parameter: backup
+    pub backup: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:getBackupIndexDownloadUrl
 /// Retrieve the link to the `backupIndex`.
 ///
@@ -2986,7 +3228,7 @@ pub fn gkebackup_projects_locations_backup_plans_backups_get_backup_index_downlo
 
 pub fn gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url(
     client: &SimpleHttpClient,
-    backup: &str,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsGetBackupIndexDownloadUrlArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetBackupIndexDownloadUrlResponse>, ApiError>,
@@ -2997,7 +3239,8 @@ pub fn gkebackup_projects_locations_backup_plans_backups_get_backup_index_downlo
 > {
     let builder =
         gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_builder(
-            client, backup,
+            client,
+            &args.backup,
         )?;
     gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_execute(builder)
 }
@@ -3104,6 +3347,15 @@ pub fn gkebackup_projects_locations_backup_plans_backups_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -3116,16 +3368,15 @@ pub fn gkebackup_projects_locations_backup_plans_backups_get_iam_policy_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_backups_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkebackup_projects_locations_backup_plans_backups_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     gkebackup_projects_locations_backup_plans_backups_get_iam_policy_execute(builder)
 }
@@ -3250,6 +3501,23 @@ pub fn gkebackup_projects_locations_backup_plans_backups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups
 /// Lists the Backups for a given BackupPlan.
 ///
@@ -3262,12 +3530,7 @@ pub fn gkebackup_projects_locations_backup_plans_backups_list_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_backups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3276,12 +3539,12 @@ pub fn gkebackup_projects_locations_backup_plans_backups_list(
 > {
     let builder = gkebackup_projects_locations_backup_plans_backups_list_builder(
         client,
-        parent,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     gkebackup_projects_locations_backup_plans_backups_list_execute(builder)
 }
@@ -3395,6 +3658,17 @@ pub fn gkebackup_projects_locations_backup_plans_backups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
 /// Update a Backup.
 ///
@@ -3407,9 +3681,7 @@ pub fn gkebackup_projects_locations_backup_plans_backups_patch_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_backups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Backup,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3419,7 +3691,10 @@ pub fn gkebackup_projects_locations_backup_plans_backups_patch(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_backup_plans_backups_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     gkebackup_projects_locations_backup_plans_backups_patch_execute(builder)
 }
@@ -3517,6 +3792,15 @@ pub fn gkebackup_projects_locations_backup_plans_backups_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3529,14 +3813,15 @@ pub fn gkebackup_projects_locations_backup_plans_backups_set_iam_policy_execute(
 
 pub fn gkebackup_projects_locations_backup_plans_backups_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkebackup_projects_locations_backup_plans_backups_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     gkebackup_projects_locations_backup_plans_backups_set_iam_policy_execute(builder)
 }
@@ -3638,6 +3923,15 @@ pub fn gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3650,8 +3944,7 @@ pub fn gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_ex
 
 pub fn gkebackup_projects_locations_backup_plans_backups_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3661,7 +3954,9 @@ pub fn gkebackup_projects_locations_backup_plans_backups_test_iam_permissions(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_execute(builder)
 }
@@ -3758,6 +4053,13 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_volume_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}
 /// Retrieve the details of a single VolumeBackup.
 ///
@@ -3770,15 +4072,16 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_exec
 
 pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VolumeBackup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        gkebackup_projects_locations_backup_plans_backups_volume_backups_get_builder(client, name)?;
+    let builder = gkebackup_projects_locations_backup_plans_backups_volume_backups_get_builder(
+        client, &args.name,
+    )?;
     gkebackup_projects_locations_backup_plans_backups_volume_backups_get_execute(builder)
 }
 
@@ -3884,6 +4187,15 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -3896,8 +4208,7 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_
 
 pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -3905,8 +4216,8 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_
     let builder =
         gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_builder(
             client,
-            resource,
-            options_requestedPolicyVersion,
+            &args.resource,
+            args.options_requestedPolicyVersion,
         )?;
     gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_execute(builder)
 }
@@ -4027,6 +4338,21 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_list_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_volume_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups
 /// Lists the VolumeBackups for a given Backup.
 ///
@@ -4039,11 +4365,7 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_list_exe
 
 pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListVolumeBackupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4051,7 +4373,12 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_list(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_backup_plans_backups_volume_backups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     gkebackup_projects_locations_backup_plans_backups_volume_backups_list_execute(builder)
 }
@@ -4149,6 +4476,15 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -4161,15 +4497,16 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_
 
 pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_execute(builder)
 }
@@ -4271,6 +4608,15 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -4283,8 +4629,7 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam
 
 pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -4293,7 +4638,7 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam
         + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_builder(client, resource, body)?;
+    let builder = gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_execute(
         builder,
     )
@@ -4392,6 +4737,15 @@ pub fn gkebackup_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -4404,13 +4758,13 @@ pub fn gkebackup_projects_locations_operations_cancel_execute(
 
 pub fn gkebackup_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &GkebackupProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        gkebackup_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     gkebackup_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -4504,6 +4858,13 @@ pub fn gkebackup_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -4516,12 +4877,12 @@ pub fn gkebackup_projects_locations_operations_delete_execute(
 
 pub fn gkebackup_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkebackupProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_operations_delete_builder(client, name)?;
+    let builder = gkebackup_projects_locations_operations_delete_builder(client, &args.name)?;
     gkebackup_projects_locations_operations_delete_execute(builder)
 }
 
@@ -4619,6 +4980,13 @@ pub fn gkebackup_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -4631,7 +4999,7 @@ pub fn gkebackup_projects_locations_operations_get_execute(
 
 pub fn gkebackup_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkebackupProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4640,7 +5008,7 @@ pub fn gkebackup_projects_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_operations_get_builder(client, name)?;
+    let builder = gkebackup_projects_locations_operations_get_builder(client, &args.name)?;
     gkebackup_projects_locations_operations_get_execute(builder)
 }
 
@@ -4763,6 +5131,21 @@ pub fn gkebackup_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -4775,11 +5158,7 @@ pub fn gkebackup_projects_locations_operations_list_execute(
 
 pub fn gkebackup_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &GkebackupProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -4790,11 +5169,11 @@ pub fn gkebackup_projects_locations_operations_list(
 > {
     let builder = gkebackup_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     gkebackup_projects_locations_operations_list_execute(builder)
 }
@@ -4908,6 +5287,17 @@ pub fn gkebackup_projects_locations_restore_channels_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_channels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestoreChannelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: restoreChannelId
+    pub restoreChannelId: Option<String>,
+    /// Request body.
+    pub body: RestoreChannel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels
 /// Creates a new RestoreChannel in a given location.
 ///
@@ -4920,9 +5310,7 @@ pub fn gkebackup_projects_locations_restore_channels_create_execute(
 
 pub fn gkebackup_projects_locations_restore_channels_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    restoreChannelId: Option<&str>,
-    body: &RestoreChannel,
+    args: &GkebackupProjectsLocationsRestoreChannelsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4933,9 +5321,9 @@ pub fn gkebackup_projects_locations_restore_channels_create(
 > {
     let builder = gkebackup_projects_locations_restore_channels_create_builder(
         client,
-        parent,
-        restoreChannelId,
-        body,
+        &args.parent,
+        args.restoreChannelId.as_deref(),
+        &args.body,
     )?;
     gkebackup_projects_locations_restore_channels_create_execute(builder)
 }
@@ -5046,6 +5434,15 @@ pub fn gkebackup_projects_locations_restore_channels_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_channels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestoreChannelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
 /// Deletes an existing RestoreChannel.
 ///
@@ -5058,8 +5455,7 @@ pub fn gkebackup_projects_locations_restore_channels_delete_execute(
 
 pub fn gkebackup_projects_locations_restore_channels_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &GkebackupProjectsLocationsRestoreChannelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5068,7 +5464,11 @@ pub fn gkebackup_projects_locations_restore_channels_delete(
         + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_restore_channels_delete_builder(client, name, etag)?;
+    let builder = gkebackup_projects_locations_restore_channels_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     gkebackup_projects_locations_restore_channels_delete_execute(builder)
 }
 
@@ -5164,6 +5564,13 @@ pub fn gkebackup_projects_locations_restore_channels_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_channels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestoreChannelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
 /// Retrieve the details of a single RestoreChannel.
 ///
@@ -5176,14 +5583,14 @@ pub fn gkebackup_projects_locations_restore_channels_get_execute(
 
 pub fn gkebackup_projects_locations_restore_channels_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkebackupProjectsLocationsRestoreChannelsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RestoreChannel>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_restore_channels_get_builder(client, name)?;
+    let builder = gkebackup_projects_locations_restore_channels_get_builder(client, &args.name)?;
     gkebackup_projects_locations_restore_channels_get_execute(builder)
 }
 
@@ -5305,6 +5712,21 @@ pub fn gkebackup_projects_locations_restore_channels_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_channels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestoreChannelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels
 /// Lists RestoreChannels in a given location.
 ///
@@ -5317,11 +5739,7 @@ pub fn gkebackup_projects_locations_restore_channels_list_execute(
 
 pub fn gkebackup_projects_locations_restore_channels_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GkebackupProjectsLocationsRestoreChannelsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListRestoreChannelsResponse>, ApiError>,
@@ -5331,7 +5749,12 @@ pub fn gkebackup_projects_locations_restore_channels_list(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_restore_channels_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     gkebackup_projects_locations_restore_channels_list_execute(builder)
 }
@@ -5445,6 +5868,17 @@ pub fn gkebackup_projects_locations_restore_channels_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_channels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestoreChannelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: RestoreChannel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
 /// Update a RestoreChannel.
 ///
@@ -5457,9 +5891,7 @@ pub fn gkebackup_projects_locations_restore_channels_patch_execute(
 
 pub fn gkebackup_projects_locations_restore_channels_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &RestoreChannel,
+    args: &GkebackupProjectsLocationsRestoreChannelsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5469,7 +5901,10 @@ pub fn gkebackup_projects_locations_restore_channels_patch(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_restore_channels_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     gkebackup_projects_locations_restore_channels_patch_execute(builder)
 }
@@ -5566,6 +6001,13 @@ pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_channels_restore_plan_bindings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}/restorePlanBindings/{restorePlanBindingsId}
 /// Retrieve the details of a single RestorePlanBinding.
 ///
@@ -5578,7 +6020,7 @@ pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_e
 
 pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RestorePlanBinding>, ApiError>, P = ApiPending>
         + Send
@@ -5586,7 +6028,7 @@ pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_get(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_execute(builder)
 }
@@ -5709,6 +6151,21 @@ pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_channels_restore_plan_bindings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}/restorePlanBindings
 /// Lists RestorePlanBindings in a given location.
 ///
@@ -5721,11 +6178,7 @@ pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_
 
 pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListRestorePlanBindingsResponse>, ApiError>,
@@ -5735,7 +6188,12 @@ pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_list(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_execute(builder)
 }
@@ -5849,6 +6307,17 @@ pub fn gkebackup_projects_locations_restore_plans_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: restorePlanId
+    pub restorePlanId: Option<String>,
+    /// Request body.
+    pub body: RestorePlan,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans
 /// Creates a new RestorePlan in a given location.
 ///
@@ -5861,9 +6330,7 @@ pub fn gkebackup_projects_locations_restore_plans_create_execute(
 
 pub fn gkebackup_projects_locations_restore_plans_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    restorePlanId: Option<&str>,
-    body: &RestorePlan,
+    args: &GkebackupProjectsLocationsRestorePlansCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5874,9 +6341,9 @@ pub fn gkebackup_projects_locations_restore_plans_create(
 > {
     let builder = gkebackup_projects_locations_restore_plans_create_builder(
         client,
-        parent,
-        restorePlanId,
-        body,
+        &args.parent,
+        args.restorePlanId.as_deref(),
+        &args.body,
     )?;
     gkebackup_projects_locations_restore_plans_create_execute(builder)
 }
@@ -5991,6 +6458,17 @@ pub fn gkebackup_projects_locations_restore_plans_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
 /// Deletes an existing RestorePlan.
 ///
@@ -6003,9 +6481,7 @@ pub fn gkebackup_projects_locations_restore_plans_delete_execute(
 
 pub fn gkebackup_projects_locations_restore_plans_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    force: Option<bool>,
+    args: &GkebackupProjectsLocationsRestorePlansDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6014,8 +6490,12 @@ pub fn gkebackup_projects_locations_restore_plans_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        gkebackup_projects_locations_restore_plans_delete_builder(client, name, etag, force)?;
+    let builder = gkebackup_projects_locations_restore_plans_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.force,
+    )?;
     gkebackup_projects_locations_restore_plans_delete_execute(builder)
 }
 
@@ -6109,6 +6589,13 @@ pub fn gkebackup_projects_locations_restore_plans_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
 /// Retrieve the details of a single RestorePlan.
 ///
@@ -6121,12 +6608,12 @@ pub fn gkebackup_projects_locations_restore_plans_get_execute(
 
 pub fn gkebackup_projects_locations_restore_plans_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkebackupProjectsLocationsRestorePlansGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RestorePlan>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_restore_plans_get_builder(client, name)?;
+    let builder = gkebackup_projects_locations_restore_plans_get_builder(client, &args.name)?;
     gkebackup_projects_locations_restore_plans_get_execute(builder)
 }
 
@@ -6232,6 +6719,15 @@ pub fn gkebackup_projects_locations_restore_plans_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -6244,16 +6740,15 @@ pub fn gkebackup_projects_locations_restore_plans_get_iam_policy_execute(
 
 pub fn gkebackup_projects_locations_restore_plans_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &GkebackupProjectsLocationsRestorePlansGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkebackup_projects_locations_restore_plans_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     gkebackup_projects_locations_restore_plans_get_iam_policy_execute(builder)
 }
@@ -6350,6 +6845,13 @@ pub fn gkebackup_projects_locations_restore_plans_get_tags_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_get_tags`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansGetTagsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:getTags
 /// Returns tags directly bound to a GCP resource.
 ///
@@ -6362,14 +6864,14 @@ pub fn gkebackup_projects_locations_restore_plans_get_tags_execute(
 
 pub fn gkebackup_projects_locations_restore_plans_get_tags(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkebackupProjectsLocationsRestorePlansGetTagsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GetTagsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_restore_plans_get_tags_builder(client, name)?;
+    let builder = gkebackup_projects_locations_restore_plans_get_tags_builder(client, &args.name)?;
     gkebackup_projects_locations_restore_plans_get_tags_execute(builder)
 }
 
@@ -6489,6 +6991,21 @@ pub fn gkebackup_projects_locations_restore_plans_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans
 /// Lists RestorePlans in a given location.
 ///
@@ -6501,11 +7018,7 @@ pub fn gkebackup_projects_locations_restore_plans_list_execute(
 
 pub fn gkebackup_projects_locations_restore_plans_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GkebackupProjectsLocationsRestorePlansListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRestorePlansResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6513,7 +7026,12 @@ pub fn gkebackup_projects_locations_restore_plans_list(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_restore_plans_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     gkebackup_projects_locations_restore_plans_list_execute(builder)
 }
@@ -6627,6 +7145,17 @@ pub fn gkebackup_projects_locations_restore_plans_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: RestorePlan,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
 /// Update a RestorePlan.
 ///
@@ -6639,9 +7168,7 @@ pub fn gkebackup_projects_locations_restore_plans_patch_execute(
 
 pub fn gkebackup_projects_locations_restore_plans_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &RestorePlan,
+    args: &GkebackupProjectsLocationsRestorePlansPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6650,8 +7177,12 @@ pub fn gkebackup_projects_locations_restore_plans_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        gkebackup_projects_locations_restore_plans_patch_builder(client, name, updateMask, body)?;
+    let builder = gkebackup_projects_locations_restore_plans_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     gkebackup_projects_locations_restore_plans_patch_execute(builder)
 }
 
@@ -6748,6 +7279,15 @@ pub fn gkebackup_projects_locations_restore_plans_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -6760,14 +7300,16 @@ pub fn gkebackup_projects_locations_restore_plans_set_iam_policy_execute(
 
 pub fn gkebackup_projects_locations_restore_plans_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &GkebackupProjectsLocationsRestorePlansSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gkebackup_projects_locations_restore_plans_set_iam_policy_builder(client, resource, body)?;
+    let builder = gkebackup_projects_locations_restore_plans_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     gkebackup_projects_locations_restore_plans_set_iam_policy_execute(builder)
 }
 
@@ -6866,6 +7408,15 @@ pub fn gkebackup_projects_locations_restore_plans_set_tags_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_set_tags`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansSetTagsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SetTagsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:setTags
 /// Updates tags directly bound to a GCP resource.
 ///
@@ -6878,15 +7429,16 @@ pub fn gkebackup_projects_locations_restore_plans_set_tags_execute(
 
 pub fn gkebackup_projects_locations_restore_plans_set_tags(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SetTagsRequest,
+    args: &GkebackupProjectsLocationsRestorePlansSetTagsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SetTagsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_restore_plans_set_tags_builder(client, name, body)?;
+    let builder = gkebackup_projects_locations_restore_plans_set_tags_builder(
+        client, &args.name, &args.body,
+    )?;
     gkebackup_projects_locations_restore_plans_set_tags_execute(builder)
 }
 
@@ -6987,6 +7539,15 @@ pub fn gkebackup_projects_locations_restore_plans_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -6999,8 +7560,7 @@ pub fn gkebackup_projects_locations_restore_plans_test_iam_permissions_execute(
 
 pub fn gkebackup_projects_locations_restore_plans_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &GkebackupProjectsLocationsRestorePlansTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -7010,7 +7570,9 @@ pub fn gkebackup_projects_locations_restore_plans_test_iam_permissions(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_restore_plans_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     gkebackup_projects_locations_restore_plans_test_iam_permissions_execute(builder)
 }
@@ -7124,6 +7686,17 @@ pub fn gkebackup_projects_locations_restore_plans_restores_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: restoreId
+    pub restoreId: Option<String>,
+    /// Request body.
+    pub body: Restore,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores
 /// Creates a new Restore for the given RestorePlan.
 ///
@@ -7136,9 +7709,7 @@ pub fn gkebackup_projects_locations_restore_plans_restores_create_execute(
 
 pub fn gkebackup_projects_locations_restore_plans_restores_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    restoreId: Option<&str>,
-    body: &Restore,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7148,7 +7719,10 @@ pub fn gkebackup_projects_locations_restore_plans_restores_create(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_restore_plans_restores_create_builder(
-        client, parent, restoreId, body,
+        client,
+        &args.parent,
+        args.restoreId.as_deref(),
+        &args.body,
     )?;
     gkebackup_projects_locations_restore_plans_restores_create_execute(builder)
 }
@@ -7263,6 +7837,17 @@ pub fn gkebackup_projects_locations_restore_plans_restores_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
 /// Deletes an existing Restore.
 ///
@@ -7275,9 +7860,7 @@ pub fn gkebackup_projects_locations_restore_plans_restores_delete_execute(
 
 pub fn gkebackup_projects_locations_restore_plans_restores_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    force: Option<bool>,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7287,7 +7870,10 @@ pub fn gkebackup_projects_locations_restore_plans_restores_delete(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_restore_plans_restores_delete_builder(
-        client, name, etag, force,
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.force,
     )?;
     gkebackup_projects_locations_restore_plans_restores_delete_execute(builder)
 }
@@ -7382,6 +7968,13 @@ pub fn gkebackup_projects_locations_restore_plans_restores_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
 /// Retrieves the details of a single Restore.
 ///
@@ -7394,12 +7987,13 @@ pub fn gkebackup_projects_locations_restore_plans_restores_get_execute(
 
 pub fn gkebackup_projects_locations_restore_plans_restores_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Restore>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_restore_plans_restores_get_builder(client, name)?;
+    let builder =
+        gkebackup_projects_locations_restore_plans_restores_get_builder(client, &args.name)?;
     gkebackup_projects_locations_restore_plans_restores_get_execute(builder)
 }
 
@@ -7505,6 +8099,15 @@ pub fn gkebackup_projects_locations_restore_plans_restores_get_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -7517,16 +8120,15 @@ pub fn gkebackup_projects_locations_restore_plans_restores_get_iam_policy_execut
 
 pub fn gkebackup_projects_locations_restore_plans_restores_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkebackup_projects_locations_restore_plans_restores_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     gkebackup_projects_locations_restore_plans_restores_get_iam_policy_execute(builder)
 }
@@ -7647,6 +8249,21 @@ pub fn gkebackup_projects_locations_restore_plans_restores_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores
 /// Lists the Restores for a given RestorePlan.
 ///
@@ -7659,11 +8276,7 @@ pub fn gkebackup_projects_locations_restore_plans_restores_list_execute(
 
 pub fn gkebackup_projects_locations_restore_plans_restores_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRestoresResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7671,7 +8284,12 @@ pub fn gkebackup_projects_locations_restore_plans_restores_list(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_restore_plans_restores_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     gkebackup_projects_locations_restore_plans_restores_list_execute(builder)
 }
@@ -7785,6 +8403,17 @@ pub fn gkebackup_projects_locations_restore_plans_restores_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Restore,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
 /// Update a Restore.
 ///
@@ -7797,9 +8426,7 @@ pub fn gkebackup_projects_locations_restore_plans_restores_patch_execute(
 
 pub fn gkebackup_projects_locations_restore_plans_restores_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Restore,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7809,7 +8436,10 @@ pub fn gkebackup_projects_locations_restore_plans_restores_patch(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_restore_plans_restores_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     gkebackup_projects_locations_restore_plans_restores_patch_execute(builder)
 }
@@ -7907,6 +8537,15 @@ pub fn gkebackup_projects_locations_restore_plans_restores_set_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -7919,14 +8558,15 @@ pub fn gkebackup_projects_locations_restore_plans_restores_set_iam_policy_execut
 
 pub fn gkebackup_projects_locations_restore_plans_restores_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkebackup_projects_locations_restore_plans_restores_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     gkebackup_projects_locations_restore_plans_restores_set_iam_policy_execute(builder)
 }
@@ -8028,6 +8668,15 @@ pub fn gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -8040,8 +8689,7 @@ pub fn gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_
 
 pub fn gkebackup_projects_locations_restore_plans_restores_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -8051,7 +8699,9 @@ pub fn gkebackup_projects_locations_restore_plans_restores_test_iam_permissions(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_execute(builder)
 }
@@ -8148,6 +8798,13 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_volume_restores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}
 /// Retrieve the details of a single VolumeRestore.
 ///
@@ -8160,7 +8817,7 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_e
 
 pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VolumeRestore>, ApiError>, P = ApiPending>
         + Send
@@ -8168,7 +8825,7 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_restore_plans_restores_volume_restores_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     gkebackup_projects_locations_restore_plans_restores_volume_restores_get_execute(builder)
 }
@@ -8275,6 +8932,15 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_i
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -8287,8 +8953,7 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_i
 
 pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -8296,8 +8961,8 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_i
     let builder =
         gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_builder(
             client,
-            resource,
-            options_requestedPolicyVersion,
+            &args.resource,
+            args.options_requestedPolicyVersion,
         )?;
     gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_execute(
         builder,
@@ -8422,6 +9087,21 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_list_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_volume_restores_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores
 /// Lists the VolumeRestores for a given Restore.
 ///
@@ -8434,11 +9114,7 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_list_
 
 pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListVolumeRestoresResponse>, ApiError>,
@@ -8448,7 +9124,12 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_list(
     ApiError,
 > {
     let builder = gkebackup_projects_locations_restore_plans_restores_volume_restores_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     gkebackup_projects_locations_restore_plans_restores_volume_restores_list_execute(builder)
 }
@@ -8546,6 +9227,15 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_set_i
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -8558,15 +9248,16 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_set_i
 
 pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_execute(
         builder,
@@ -8670,6 +9361,15 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_test_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -8682,8 +9382,7 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_test_
 
 pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -8692,7 +9391,7 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_test_
         + 'static,
     ApiError,
 > {
-    let builder = gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_builder(client, resource, body)?;
+    let builder = gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_execute(
         builder,
     )

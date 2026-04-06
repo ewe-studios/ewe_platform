@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/records:queryHistoryRecord
 /// Queries the Chrome User Experience Report for a timeseries history record for a given site. Returns a history record that contains one or more metric timeseries corresponding to performance data about the requested site.
@@ -107,6 +109,13 @@ pub fn chromeuxreport_records_query_history_record_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromeuxreport_records_query_history_record`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromeuxreportRecordsQueryHistoryRecordArgs {
+    /// Request body.
+    pub body: QueryHistoryRequest,
+}
+
 /// GET v1/records:queryHistoryRecord
 /// Queries the Chrome User Experience Report for a timeseries history record for a given site. Returns a history record that contains one or more metric timeseries corresponding to performance data about the requested site.
 ///
@@ -119,14 +128,14 @@ pub fn chromeuxreport_records_query_history_record_execute(
 
 pub fn chromeuxreport_records_query_history_record(
     client: &SimpleHttpClient,
-    body: &QueryHistoryRequest,
+    args: &ChromeuxreportRecordsQueryHistoryRecordArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryHistoryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = chromeuxreport_records_query_history_record_builder(client, body)?;
+    let builder = chromeuxreport_records_query_history_record_builder(client, &args.body)?;
     chromeuxreport_records_query_history_record_execute(builder)
 }
 
@@ -221,6 +230,13 @@ pub fn chromeuxreport_records_query_record_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromeuxreport_records_query_record`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromeuxreportRecordsQueryRecordArgs {
+    /// Request body.
+    pub body: QueryRequest,
+}
+
 /// GET v1/records:queryRecord
 /// Queries the Chrome User Experience for a single record for a given site. Returns a record that contains one or more metrics corresponding to performance data about the requested site.
 ///
@@ -233,13 +249,13 @@ pub fn chromeuxreport_records_query_record_execute(
 
 pub fn chromeuxreport_records_query_record(
     client: &SimpleHttpClient,
-    body: &QueryRequest,
+    args: &ChromeuxreportRecordsQueryRecordArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = chromeuxreport_records_query_record_builder(client, body)?;
+    let builder = chromeuxreport_records_query_record_builder(client, &args.body)?;
     chromeuxreport_records_query_record_execute(builder)
 }

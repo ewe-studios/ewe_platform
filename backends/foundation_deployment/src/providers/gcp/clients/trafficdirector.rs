@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v3/discovery:client_status
 ///
@@ -107,6 +109,13 @@ pub fn trafficdirector_discovery_client_status_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`trafficdirector_discovery_client_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TrafficdirectorDiscoveryClientStatusArgs {
+    /// Request body.
+    pub body: ClientStatusRequest,
+}
+
 /// GET v3/discovery:client_status
 ///
 ///
@@ -119,13 +128,13 @@ pub fn trafficdirector_discovery_client_status_execute(
 
 pub fn trafficdirector_discovery_client_status(
     client: &SimpleHttpClient,
-    body: &ClientStatusRequest,
+    args: &TrafficdirectorDiscoveryClientStatusArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ClientStatusResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = trafficdirector_discovery_client_status_builder(client, body)?;
+    let builder = trafficdirector_discovery_client_status_builder(client, &args.body)?;
     trafficdirector_discovery_client_status_execute(builder)
 }

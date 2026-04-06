@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/projects/{projectsId}/profiles
 /// CreateProfile creates a new profile resource in the online mode. _Direct use of this API is discouraged, please use a [supported profiler agent](<https://cloud.google.`com/profiler/docs/about-profiler`#profiling_agent>) instead for profile collection._ The server ensures that the new profiles are created at a constant rate per deployment, so the creation request may hang for some time until the next profile session is available. The request may fail with ABORTED error if the creation is not available within ~1m, the response will indicate the duration of the backoff the client should take before attempting creating a profile again. The backoff duration is returned in google.rpc.RetryInfo extension on the response status. To a `gRPC` client, the extension will be return as a binary-serialized proto in the trailing metadata item named "google.rpc.retryinfo-bin".
@@ -109,6 +111,15 @@ pub fn cloudprofiler_projects_profiles_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudprofiler_projects_profiles_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudprofilerProjectsProfilesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateProfileRequest,
+}
+
 /// GET v2/projects/{projectsId}/profiles
 /// CreateProfile creates a new profile resource in the online mode. _Direct use of this API is discouraged, please use a [supported profiler agent](<https://cloud.google.`com/profiler/docs/about-profiler`#profiling_agent>) instead for profile collection._ The server ensures that the new profiles are created at a constant rate per deployment, so the creation request may hang for some time until the next profile session is available. The request may fail with ABORTED error if the creation is not available within ~1m, the response will indicate the duration of the backoff the client should take before attempting creating a profile again. The backoff duration is returned in google.rpc.RetryInfo extension on the response status. To a `gRPC` client, the extension will be return as a binary-serialized proto in the trailing metadata item named "google.rpc.retryinfo-bin".
 ///
@@ -121,13 +132,12 @@ pub fn cloudprofiler_projects_profiles_create_execute(
 
 pub fn cloudprofiler_projects_profiles_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateProfileRequest,
+    args: &CloudprofilerProjectsProfilesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudprofiler_projects_profiles_create_builder(client, parent, body)?;
+    let builder = cloudprofiler_projects_profiles_create_builder(client, &args.parent, &args.body)?;
     cloudprofiler_projects_profiles_create_execute(builder)
 }
 
@@ -224,6 +234,15 @@ pub fn cloudprofiler_projects_profiles_create_offline_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudprofiler_projects_profiles_create_offline`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudprofilerProjectsProfilesCreateOfflineArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Profile,
+}
+
 /// GET v2/projects/{projectsId}/profiles:createOffline
 /// CreateOfflineProfile creates a new profile resource in the offline mode. The client provides the profile to create along with the profile bytes, the server records it. _Direct use of this API is discouraged, please use a [supported profiler agent](<https://cloud.google.`com/profiler/docs/about-profiler`#profiling_agent>) instead for profile collection._
 ///
@@ -236,13 +255,13 @@ pub fn cloudprofiler_projects_profiles_create_offline_execute(
 
 pub fn cloudprofiler_projects_profiles_create_offline(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Profile,
+    args: &CloudprofilerProjectsProfilesCreateOfflineArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudprofiler_projects_profiles_create_offline_builder(client, parent, body)?;
+    let builder =
+        cloudprofiler_projects_profiles_create_offline_builder(client, &args.parent, &args.body)?;
     cloudprofiler_projects_profiles_create_offline_execute(builder)
 }
 
@@ -354,6 +373,17 @@ pub fn cloudprofiler_projects_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudprofiler_projects_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudprofilerProjectsProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/profiles
 /// Lists profiles which have been collected so far and for which the caller has permission to view.
 ///
@@ -366,17 +396,19 @@ pub fn cloudprofiler_projects_profiles_list_execute(
 
 pub fn cloudprofiler_projects_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudprofilerProjectsProfilesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListProfilesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudprofiler_projects_profiles_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = cloudprofiler_projects_profiles_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     cloudprofiler_projects_profiles_list_execute(builder)
 }
 
@@ -485,6 +517,17 @@ pub fn cloudprofiler_projects_profiles_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudprofiler_projects_profiles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudprofilerProjectsProfilesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Profile,
+}
+
 /// GET v2/projects/{projectsId}/profiles/{profilesId}
 /// UpdateProfile updates the profile bytes and labels on the profile resource created in the online mode. Updating the bytes for profiles created in the offline mode is currently not supported: the profile content must be provided at the time of the profile creation. _Direct use of this API is discouraged, please use a [supported profiler agent](<https://cloud.google.`com/profiler/docs/about-profiler`#profiling_agent>) instead for profile collection._
 ///
@@ -497,13 +540,16 @@ pub fn cloudprofiler_projects_profiles_patch_execute(
 
 pub fn cloudprofiler_projects_profiles_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Profile,
+    args: &CloudprofilerProjectsProfilesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudprofiler_projects_profiles_patch_builder(client, name, updateMask, body)?;
+    let builder = cloudprofiler_projects_profiles_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudprofiler_projects_profiles_patch_execute(builder)
 }

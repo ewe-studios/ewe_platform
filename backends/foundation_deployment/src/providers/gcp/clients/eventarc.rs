@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn eventarc_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn eventarc_projects_locations_get_execute(
 
 pub fn eventarc_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EventarcProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = eventarc_projects_locations_get_builder(client, name)?;
+    let builder = eventarc_projects_locations_get_builder(client, &args.name)?;
     eventarc_projects_locations_get_execute(builder)
 }
 
@@ -219,6 +228,13 @@ pub fn eventarc_projects_locations_get_google_channel_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_get_google_channel_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsGetGoogleChannelConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/googleChannelConfig
 /// Get a GoogleChannelConfig. The name of the GoogleChannelConfig in the response is ALWAYS coded with `projectID`.
 ///
@@ -231,14 +247,15 @@ pub fn eventarc_projects_locations_get_google_channel_config_execute(
 
 pub fn eventarc_projects_locations_get_google_channel_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EventarcProjectsLocationsGetGoogleChannelConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleChannelConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = eventarc_projects_locations_get_google_channel_config_builder(client, name)?;
+    let builder =
+        eventarc_projects_locations_get_google_channel_config_builder(client, &args.name)?;
     eventarc_projects_locations_get_google_channel_config_execute(builder)
 }
 
@@ -358,6 +375,21 @@ pub fn eventarc_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -370,11 +402,7 @@ pub fn eventarc_projects_locations_list_execute(
 
 pub fn eventarc_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &EventarcProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -383,11 +411,11 @@ pub fn eventarc_projects_locations_list(
 > {
     let builder = eventarc_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     eventarc_projects_locations_list_execute(builder)
 }
@@ -499,6 +527,17 @@ pub fn eventarc_projects_locations_update_google_channel_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_update_google_channel_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsUpdateGoogleChannelConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleChannelConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/googleChannelConfig
 /// Update a single GoogleChannelConfig
 ///
@@ -511,9 +550,7 @@ pub fn eventarc_projects_locations_update_google_channel_config_execute(
 
 pub fn eventarc_projects_locations_update_google_channel_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleChannelConfig,
+    args: &EventarcProjectsLocationsUpdateGoogleChannelConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleChannelConfig>, ApiError>, P = ApiPending>
         + Send
@@ -521,7 +558,10 @@ pub fn eventarc_projects_locations_update_google_channel_config(
     ApiError,
 > {
     let builder = eventarc_projects_locations_update_google_channel_config_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     eventarc_projects_locations_update_google_channel_config_execute(builder)
 }
@@ -635,6 +675,17 @@ pub fn eventarc_projects_locations_channel_connections_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_channel_connections_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsChannelConnectionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: channelConnectionId
+    pub channelConnectionId: Option<String>,
+    /// Request body.
+    pub body: ChannelConnection,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/channelConnections
 /// Create a new ChannelConnection in a particular project and location.
 ///
@@ -647,9 +698,7 @@ pub fn eventarc_projects_locations_channel_connections_create_execute(
 
 pub fn eventarc_projects_locations_channel_connections_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    channelConnectionId: Option<&str>,
-    body: &ChannelConnection,
+    args: &EventarcProjectsLocationsChannelConnectionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -660,9 +709,9 @@ pub fn eventarc_projects_locations_channel_connections_create(
 > {
     let builder = eventarc_projects_locations_channel_connections_create_builder(
         client,
-        parent,
-        channelConnectionId,
-        body,
+        &args.parent,
+        args.channelConnectionId.as_deref(),
+        &args.body,
     )?;
     eventarc_projects_locations_channel_connections_create_execute(builder)
 }
@@ -761,6 +810,13 @@ pub fn eventarc_projects_locations_channel_connections_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_channel_connections_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsChannelConnectionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/channelConnections/{channelConnectionsId}
 /// Delete a single ChannelConnection.
 ///
@@ -773,7 +829,7 @@ pub fn eventarc_projects_locations_channel_connections_delete_execute(
 
 pub fn eventarc_projects_locations_channel_connections_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EventarcProjectsLocationsChannelConnectionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -782,7 +838,8 @@ pub fn eventarc_projects_locations_channel_connections_delete(
         + 'static,
     ApiError,
 > {
-    let builder = eventarc_projects_locations_channel_connections_delete_builder(client, name)?;
+    let builder =
+        eventarc_projects_locations_channel_connections_delete_builder(client, &args.name)?;
     eventarc_projects_locations_channel_connections_delete_execute(builder)
 }
 
@@ -878,6 +935,13 @@ pub fn eventarc_projects_locations_channel_connections_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_channel_connections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsChannelConnectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/channelConnections/{channelConnectionsId}
 /// Get a single ChannelConnection.
 ///
@@ -890,14 +954,14 @@ pub fn eventarc_projects_locations_channel_connections_get_execute(
 
 pub fn eventarc_projects_locations_channel_connections_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EventarcProjectsLocationsChannelConnectionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ChannelConnection>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = eventarc_projects_locations_channel_connections_get_builder(client, name)?;
+    let builder = eventarc_projects_locations_channel_connections_get_builder(client, &args.name)?;
     eventarc_projects_locations_channel_connections_get_execute(builder)
 }
 
@@ -1003,6 +1067,15 @@ pub fn eventarc_projects_locations_channel_connections_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_channel_connections_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsChannelConnectionsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/channelConnections/{channelConnectionsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1015,16 +1088,15 @@ pub fn eventarc_projects_locations_channel_connections_get_iam_policy_execute(
 
 pub fn eventarc_projects_locations_channel_connections_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &EventarcProjectsLocationsChannelConnectionsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = eventarc_projects_locations_channel_connections_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     eventarc_projects_locations_channel_connections_get_iam_policy_execute(builder)
 }
@@ -1139,6 +1211,17 @@ pub fn eventarc_projects_locations_channel_connections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_channel_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsChannelConnectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/channelConnections
 /// List channel connections.
 ///
@@ -1151,9 +1234,7 @@ pub fn eventarc_projects_locations_channel_connections_list_execute(
 
 pub fn eventarc_projects_locations_channel_connections_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &EventarcProjectsLocationsChannelConnectionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListChannelConnectionsResponse>, ApiError>,
@@ -1163,7 +1244,10 @@ pub fn eventarc_projects_locations_channel_connections_list(
     ApiError,
 > {
     let builder = eventarc_projects_locations_channel_connections_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     eventarc_projects_locations_channel_connections_list_execute(builder)
 }
@@ -1261,6 +1345,15 @@ pub fn eventarc_projects_locations_channel_connections_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_channel_connections_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsChannelConnectionsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/channelConnections/{channelConnectionsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1273,14 +1366,15 @@ pub fn eventarc_projects_locations_channel_connections_set_iam_policy_execute(
 
 pub fn eventarc_projects_locations_channel_connections_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &EventarcProjectsLocationsChannelConnectionsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = eventarc_projects_locations_channel_connections_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     eventarc_projects_locations_channel_connections_set_iam_policy_execute(builder)
 }
@@ -1382,6 +1476,15 @@ pub fn eventarc_projects_locations_channel_connections_test_iam_permissions_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_channel_connections_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsChannelConnectionsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/channelConnections/{channelConnectionsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1394,8 +1497,7 @@ pub fn eventarc_projects_locations_channel_connections_test_iam_permissions_exec
 
 pub fn eventarc_projects_locations_channel_connections_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &EventarcProjectsLocationsChannelConnectionsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1405,7 +1507,9 @@ pub fn eventarc_projects_locations_channel_connections_test_iam_permissions(
     ApiError,
 > {
     let builder = eventarc_projects_locations_channel_connections_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     eventarc_projects_locations_channel_connections_test_iam_permissions_execute(builder)
 }
@@ -1523,6 +1627,19 @@ pub fn eventarc_projects_locations_channels_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_channels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsChannelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: channelId
+    pub channelId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/channels
 /// Create a new channel in a particular project and location.
 ///
@@ -1535,10 +1652,7 @@ pub fn eventarc_projects_locations_channels_create_execute(
 
 pub fn eventarc_projects_locations_channels_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    channelId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Channel,
+    args: &EventarcProjectsLocationsChannelsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1549,10 +1663,10 @@ pub fn eventarc_projects_locations_channels_create(
 > {
     let builder = eventarc_projects_locations_channels_create_builder(
         client,
-        parent,
-        channelId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.channelId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     eventarc_projects_locations_channels_create_execute(builder)
 }
@@ -1663,6 +1777,15 @@ pub fn eventarc_projects_locations_channels_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_channels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsChannelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/channels/{channelsId}
 /// Delete a single channel.
 ///
@@ -1675,8 +1798,7 @@ pub fn eventarc_projects_locations_channels_delete_execute(
 
 pub fn eventarc_projects_locations_channels_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    validateOnly: Option<bool>,
+    args: &EventarcProjectsLocationsChannelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1685,7 +1807,8 @@ pub fn eventarc_projects_locations_channels_delete(
         + 'static,
     ApiError,
 > {
-    let builder = eventarc_projects_locations_channels_delete_builder(client, name, validateOnly)?;
+    let builder =
+        eventarc_projects_locations_channels_delete_builder(client, &args.name, args.validateOnly)?;
     eventarc_projects_locations_channels_delete_execute(builder)
 }
 
@@ -1779,6 +1902,13 @@ pub fn eventarc_projects_locations_channels_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_channels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsChannelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/channels/{channelsId}
 /// Get a single Channel.
 ///
@@ -1791,12 +1921,12 @@ pub fn eventarc_projects_locations_channels_get_execute(
 
 pub fn eventarc_projects_locations_channels_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EventarcProjectsLocationsChannelsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = eventarc_projects_locations_channels_get_builder(client, name)?;
+    let builder = eventarc_projects_locations_channels_get_builder(client, &args.name)?;
     eventarc_projects_locations_channels_get_execute(builder)
 }
 
@@ -1902,6 +2032,15 @@ pub fn eventarc_projects_locations_channels_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_channels_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsChannelsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/channels/{channelsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1914,16 +2053,15 @@ pub fn eventarc_projects_locations_channels_get_iam_policy_execute(
 
 pub fn eventarc_projects_locations_channels_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &EventarcProjectsLocationsChannelsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = eventarc_projects_locations_channels_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     eventarc_projects_locations_channels_get_iam_policy_execute(builder)
 }
@@ -2040,6 +2178,19 @@ pub fn eventarc_projects_locations_channels_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_channels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsChannelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/channels
 /// List channels.
 ///
@@ -2052,10 +2203,7 @@ pub fn eventarc_projects_locations_channels_list_execute(
 
 pub fn eventarc_projects_locations_channels_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &EventarcProjectsLocationsChannelsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListChannelsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2063,7 +2211,11 @@ pub fn eventarc_projects_locations_channels_list(
     ApiError,
 > {
     let builder = eventarc_projects_locations_channels_list_builder(
-        client, parent, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     eventarc_projects_locations_channels_list_execute(builder)
 }
@@ -2181,6 +2333,19 @@ pub fn eventarc_projects_locations_channels_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_channels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsChannelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/channels/{channelsId}
 /// Update a single channel.
 ///
@@ -2193,10 +2358,7 @@ pub fn eventarc_projects_locations_channels_patch_execute(
 
 pub fn eventarc_projects_locations_channels_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Channel,
+    args: &EventarcProjectsLocationsChannelsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2207,10 +2369,10 @@ pub fn eventarc_projects_locations_channels_patch(
 > {
     let builder = eventarc_projects_locations_channels_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     eventarc_projects_locations_channels_patch_execute(builder)
 }
@@ -2308,6 +2470,15 @@ pub fn eventarc_projects_locations_channels_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_channels_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsChannelsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/channels/{channelsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -2320,14 +2491,16 @@ pub fn eventarc_projects_locations_channels_set_iam_policy_execute(
 
 pub fn eventarc_projects_locations_channels_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &EventarcProjectsLocationsChannelsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        eventarc_projects_locations_channels_set_iam_policy_builder(client, resource, body)?;
+    let builder = eventarc_projects_locations_channels_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     eventarc_projects_locations_channels_set_iam_policy_execute(builder)
 }
 
@@ -2428,6 +2601,15 @@ pub fn eventarc_projects_locations_channels_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_channels_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsChannelsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/channels/{channelsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2440,8 +2622,7 @@ pub fn eventarc_projects_locations_channels_test_iam_permissions_execute(
 
 pub fn eventarc_projects_locations_channels_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &EventarcProjectsLocationsChannelsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2450,8 +2631,11 @@ pub fn eventarc_projects_locations_channels_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        eventarc_projects_locations_channels_test_iam_permissions_builder(client, resource, body)?;
+    let builder = eventarc_projects_locations_channels_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     eventarc_projects_locations_channels_test_iam_permissions_execute(builder)
 }
 
@@ -2568,6 +2752,19 @@ pub fn eventarc_projects_locations_enrollments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_enrollments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsEnrollmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: enrollmentId
+    pub enrollmentId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Enrollment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/enrollments
 /// Create a new Enrollment in a particular project and location.
 ///
@@ -2580,10 +2777,7 @@ pub fn eventarc_projects_locations_enrollments_create_execute(
 
 pub fn eventarc_projects_locations_enrollments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    enrollmentId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Enrollment,
+    args: &EventarcProjectsLocationsEnrollmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2594,10 +2788,10 @@ pub fn eventarc_projects_locations_enrollments_create(
 > {
     let builder = eventarc_projects_locations_enrollments_create_builder(
         client,
-        parent,
-        enrollmentId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.enrollmentId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     eventarc_projects_locations_enrollments_create_execute(builder)
 }
@@ -2716,6 +2910,19 @@ pub fn eventarc_projects_locations_enrollments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_enrollments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsEnrollmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/enrollments/{enrollmentsId}
 /// Delete a single Enrollment.
 ///
@@ -2728,10 +2935,7 @@ pub fn eventarc_projects_locations_enrollments_delete_execute(
 
 pub fn eventarc_projects_locations_enrollments_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &EventarcProjectsLocationsEnrollmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2742,10 +2946,10 @@ pub fn eventarc_projects_locations_enrollments_delete(
 > {
     let builder = eventarc_projects_locations_enrollments_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.validateOnly,
     )?;
     eventarc_projects_locations_enrollments_delete_execute(builder)
 }
@@ -2840,6 +3044,13 @@ pub fn eventarc_projects_locations_enrollments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_enrollments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsEnrollmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/enrollments/{enrollmentsId}
 /// Get a single Enrollment.
 ///
@@ -2852,12 +3063,12 @@ pub fn eventarc_projects_locations_enrollments_get_execute(
 
 pub fn eventarc_projects_locations_enrollments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EventarcProjectsLocationsEnrollmentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Enrollment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = eventarc_projects_locations_enrollments_get_builder(client, name)?;
+    let builder = eventarc_projects_locations_enrollments_get_builder(client, &args.name)?;
     eventarc_projects_locations_enrollments_get_execute(builder)
 }
 
@@ -2963,6 +3174,15 @@ pub fn eventarc_projects_locations_enrollments_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_enrollments_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsEnrollmentsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/enrollments/{enrollmentsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2975,16 +3195,15 @@ pub fn eventarc_projects_locations_enrollments_get_iam_policy_execute(
 
 pub fn eventarc_projects_locations_enrollments_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &EventarcProjectsLocationsEnrollmentsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = eventarc_projects_locations_enrollments_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     eventarc_projects_locations_enrollments_get_iam_policy_execute(builder)
 }
@@ -3105,6 +3324,21 @@ pub fn eventarc_projects_locations_enrollments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_enrollments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsEnrollmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/enrollments
 /// List Enrollments.
 ///
@@ -3117,11 +3351,7 @@ pub fn eventarc_projects_locations_enrollments_list_execute(
 
 pub fn eventarc_projects_locations_enrollments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &EventarcProjectsLocationsEnrollmentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListEnrollmentsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3129,7 +3359,12 @@ pub fn eventarc_projects_locations_enrollments_list(
     ApiError,
 > {
     let builder = eventarc_projects_locations_enrollments_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     eventarc_projects_locations_enrollments_list_execute(builder)
 }
@@ -3251,6 +3486,21 @@ pub fn eventarc_projects_locations_enrollments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_enrollments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsEnrollmentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Enrollment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/enrollments/{enrollmentsId}
 /// Update a single Enrollment.
 ///
@@ -3263,11 +3513,7 @@ pub fn eventarc_projects_locations_enrollments_patch_execute(
 
 pub fn eventarc_projects_locations_enrollments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Enrollment,
+    args: &EventarcProjectsLocationsEnrollmentsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3278,11 +3524,11 @@ pub fn eventarc_projects_locations_enrollments_patch(
 > {
     let builder = eventarc_projects_locations_enrollments_patch_builder(
         client,
-        name,
-        allowMissing,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     eventarc_projects_locations_enrollments_patch_execute(builder)
 }
@@ -3380,6 +3626,15 @@ pub fn eventarc_projects_locations_enrollments_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_enrollments_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsEnrollmentsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/enrollments/{enrollmentsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3392,14 +3647,16 @@ pub fn eventarc_projects_locations_enrollments_set_iam_policy_execute(
 
 pub fn eventarc_projects_locations_enrollments_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &EventarcProjectsLocationsEnrollmentsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        eventarc_projects_locations_enrollments_set_iam_policy_builder(client, resource, body)?;
+    let builder = eventarc_projects_locations_enrollments_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     eventarc_projects_locations_enrollments_set_iam_policy_execute(builder)
 }
 
@@ -3500,6 +3757,15 @@ pub fn eventarc_projects_locations_enrollments_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_enrollments_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsEnrollmentsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/enrollments/{enrollmentsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3512,8 +3778,7 @@ pub fn eventarc_projects_locations_enrollments_test_iam_permissions_execute(
 
 pub fn eventarc_projects_locations_enrollments_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &EventarcProjectsLocationsEnrollmentsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3523,7 +3788,9 @@ pub fn eventarc_projects_locations_enrollments_test_iam_permissions(
     ApiError,
 > {
     let builder = eventarc_projects_locations_enrollments_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     eventarc_projects_locations_enrollments_test_iam_permissions_execute(builder)
 }
@@ -3641,6 +3908,19 @@ pub fn eventarc_projects_locations_google_api_sources_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_google_api_sources_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsGoogleApiSourcesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: googleApiSourceId
+    pub googleApiSourceId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleApiSource,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/googleApiSources
 /// Create a new GoogleApiSource in a particular project and location.
 ///
@@ -3653,10 +3933,7 @@ pub fn eventarc_projects_locations_google_api_sources_create_execute(
 
 pub fn eventarc_projects_locations_google_api_sources_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    googleApiSourceId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleApiSource,
+    args: &EventarcProjectsLocationsGoogleApiSourcesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3667,10 +3944,10 @@ pub fn eventarc_projects_locations_google_api_sources_create(
 > {
     let builder = eventarc_projects_locations_google_api_sources_create_builder(
         client,
-        parent,
-        googleApiSourceId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.googleApiSourceId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     eventarc_projects_locations_google_api_sources_create_execute(builder)
 }
@@ -3789,6 +4066,19 @@ pub fn eventarc_projects_locations_google_api_sources_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_google_api_sources_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsGoogleApiSourcesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/googleApiSources/{googleApiSourcesId}
 /// Delete a single GoogleApiSource.
 ///
@@ -3801,10 +4091,7 @@ pub fn eventarc_projects_locations_google_api_sources_delete_execute(
 
 pub fn eventarc_projects_locations_google_api_sources_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &EventarcProjectsLocationsGoogleApiSourcesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3815,10 +4102,10 @@ pub fn eventarc_projects_locations_google_api_sources_delete(
 > {
     let builder = eventarc_projects_locations_google_api_sources_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.validateOnly,
     )?;
     eventarc_projects_locations_google_api_sources_delete_execute(builder)
 }
@@ -3915,6 +4202,13 @@ pub fn eventarc_projects_locations_google_api_sources_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_google_api_sources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsGoogleApiSourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/googleApiSources/{googleApiSourcesId}
 /// Get a single GoogleApiSource.
 ///
@@ -3927,14 +4221,14 @@ pub fn eventarc_projects_locations_google_api_sources_get_execute(
 
 pub fn eventarc_projects_locations_google_api_sources_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EventarcProjectsLocationsGoogleApiSourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApiSource>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = eventarc_projects_locations_google_api_sources_get_builder(client, name)?;
+    let builder = eventarc_projects_locations_google_api_sources_get_builder(client, &args.name)?;
     eventarc_projects_locations_google_api_sources_get_execute(builder)
 }
 
@@ -4040,6 +4334,15 @@ pub fn eventarc_projects_locations_google_api_sources_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_google_api_sources_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsGoogleApiSourcesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/googleApiSources/{googleApiSourcesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -4052,16 +4355,15 @@ pub fn eventarc_projects_locations_google_api_sources_get_iam_policy_execute(
 
 pub fn eventarc_projects_locations_google_api_sources_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &EventarcProjectsLocationsGoogleApiSourcesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = eventarc_projects_locations_google_api_sources_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     eventarc_projects_locations_google_api_sources_get_iam_policy_execute(builder)
 }
@@ -4184,6 +4486,21 @@ pub fn eventarc_projects_locations_google_api_sources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_google_api_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsGoogleApiSourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/googleApiSources
 /// List GoogleApiSources.
 ///
@@ -4196,11 +4513,7 @@ pub fn eventarc_projects_locations_google_api_sources_list_execute(
 
 pub fn eventarc_projects_locations_google_api_sources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &EventarcProjectsLocationsGoogleApiSourcesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListGoogleApiSourcesResponse>, ApiError>,
@@ -4210,7 +4523,12 @@ pub fn eventarc_projects_locations_google_api_sources_list(
     ApiError,
 > {
     let builder = eventarc_projects_locations_google_api_sources_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     eventarc_projects_locations_google_api_sources_list_execute(builder)
 }
@@ -4332,6 +4650,21 @@ pub fn eventarc_projects_locations_google_api_sources_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_google_api_sources_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsGoogleApiSourcesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleApiSource,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/googleApiSources/{googleApiSourcesId}
 /// Update a single GoogleApiSource.
 ///
@@ -4344,11 +4677,7 @@ pub fn eventarc_projects_locations_google_api_sources_patch_execute(
 
 pub fn eventarc_projects_locations_google_api_sources_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleApiSource,
+    args: &EventarcProjectsLocationsGoogleApiSourcesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4359,11 +4688,11 @@ pub fn eventarc_projects_locations_google_api_sources_patch(
 > {
     let builder = eventarc_projects_locations_google_api_sources_patch_builder(
         client,
-        name,
-        allowMissing,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     eventarc_projects_locations_google_api_sources_patch_execute(builder)
 }
@@ -4461,6 +4790,15 @@ pub fn eventarc_projects_locations_google_api_sources_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_google_api_sources_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsGoogleApiSourcesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/googleApiSources/{googleApiSourcesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -4473,14 +4811,15 @@ pub fn eventarc_projects_locations_google_api_sources_set_iam_policy_execute(
 
 pub fn eventarc_projects_locations_google_api_sources_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &EventarcProjectsLocationsGoogleApiSourcesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = eventarc_projects_locations_google_api_sources_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     eventarc_projects_locations_google_api_sources_set_iam_policy_execute(builder)
 }
@@ -4582,6 +4921,15 @@ pub fn eventarc_projects_locations_google_api_sources_test_iam_permissions_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_google_api_sources_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsGoogleApiSourcesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/googleApiSources/{googleApiSourcesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -4594,8 +4942,7 @@ pub fn eventarc_projects_locations_google_api_sources_test_iam_permissions_execu
 
 pub fn eventarc_projects_locations_google_api_sources_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &EventarcProjectsLocationsGoogleApiSourcesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -4605,7 +4952,9 @@ pub fn eventarc_projects_locations_google_api_sources_test_iam_permissions(
     ApiError,
 > {
     let builder = eventarc_projects_locations_google_api_sources_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     eventarc_projects_locations_google_api_sources_test_iam_permissions_execute(builder)
 }
@@ -4723,6 +5072,19 @@ pub fn eventarc_projects_locations_message_buses_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_message_buses_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsMessageBusesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: messageBusId
+    pub messageBusId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: MessageBus,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/messageBuses
 /// Create a new MessageBus in a particular project and location.
 ///
@@ -4735,10 +5097,7 @@ pub fn eventarc_projects_locations_message_buses_create_execute(
 
 pub fn eventarc_projects_locations_message_buses_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    messageBusId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &MessageBus,
+    args: &EventarcProjectsLocationsMessageBusesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4749,10 +5108,10 @@ pub fn eventarc_projects_locations_message_buses_create(
 > {
     let builder = eventarc_projects_locations_message_buses_create_builder(
         client,
-        parent,
-        messageBusId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.messageBusId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     eventarc_projects_locations_message_buses_create_execute(builder)
 }
@@ -4871,6 +5230,19 @@ pub fn eventarc_projects_locations_message_buses_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_message_buses_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsMessageBusesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/messageBuses/{messageBusesId}
 /// Delete a single message bus.
 ///
@@ -4883,10 +5255,7 @@ pub fn eventarc_projects_locations_message_buses_delete_execute(
 
 pub fn eventarc_projects_locations_message_buses_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &EventarcProjectsLocationsMessageBusesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4897,10 +5266,10 @@ pub fn eventarc_projects_locations_message_buses_delete(
 > {
     let builder = eventarc_projects_locations_message_buses_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.validateOnly,
     )?;
     eventarc_projects_locations_message_buses_delete_execute(builder)
 }
@@ -4995,6 +5364,13 @@ pub fn eventarc_projects_locations_message_buses_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_message_buses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsMessageBusesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/messageBuses/{messageBusesId}
 /// Get a single MessageBus.
 ///
@@ -5007,12 +5383,12 @@ pub fn eventarc_projects_locations_message_buses_get_execute(
 
 pub fn eventarc_projects_locations_message_buses_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EventarcProjectsLocationsMessageBusesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MessageBus>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = eventarc_projects_locations_message_buses_get_builder(client, name)?;
+    let builder = eventarc_projects_locations_message_buses_get_builder(client, &args.name)?;
     eventarc_projects_locations_message_buses_get_execute(builder)
 }
 
@@ -5118,6 +5494,15 @@ pub fn eventarc_projects_locations_message_buses_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_message_buses_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsMessageBusesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/messageBuses/{messageBusesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -5130,16 +5515,15 @@ pub fn eventarc_projects_locations_message_buses_get_iam_policy_execute(
 
 pub fn eventarc_projects_locations_message_buses_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &EventarcProjectsLocationsMessageBusesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = eventarc_projects_locations_message_buses_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     eventarc_projects_locations_message_buses_get_iam_policy_execute(builder)
 }
@@ -5260,6 +5644,21 @@ pub fn eventarc_projects_locations_message_buses_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_message_buses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsMessageBusesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/messageBuses
 /// List message buses.
 ///
@@ -5272,11 +5671,7 @@ pub fn eventarc_projects_locations_message_buses_list_execute(
 
 pub fn eventarc_projects_locations_message_buses_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &EventarcProjectsLocationsMessageBusesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListMessageBusesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5284,7 +5679,12 @@ pub fn eventarc_projects_locations_message_buses_list(
     ApiError,
 > {
     let builder = eventarc_projects_locations_message_buses_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     eventarc_projects_locations_message_buses_list_execute(builder)
 }
@@ -5399,6 +5799,17 @@ pub fn eventarc_projects_locations_message_buses_list_enrollments_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_message_buses_list_enrollments`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsMessageBusesListEnrollmentsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/messageBuses/{messageBusesId}:listEnrollments
 /// List message bus enrollments.
 ///
@@ -5411,9 +5822,7 @@ pub fn eventarc_projects_locations_message_buses_list_enrollments_execute(
 
 pub fn eventarc_projects_locations_message_buses_list_enrollments(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &EventarcProjectsLocationsMessageBusesListEnrollmentsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMessageBusEnrollmentsResponse>, ApiError>,
@@ -5423,7 +5832,10 @@ pub fn eventarc_projects_locations_message_buses_list_enrollments(
     ApiError,
 > {
     let builder = eventarc_projects_locations_message_buses_list_enrollments_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     eventarc_projects_locations_message_buses_list_enrollments_execute(builder)
 }
@@ -5545,6 +5957,21 @@ pub fn eventarc_projects_locations_message_buses_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_message_buses_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsMessageBusesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: MessageBus,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/messageBuses/{messageBusesId}
 /// Update a single message bus.
 ///
@@ -5557,11 +5984,7 @@ pub fn eventarc_projects_locations_message_buses_patch_execute(
 
 pub fn eventarc_projects_locations_message_buses_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &MessageBus,
+    args: &EventarcProjectsLocationsMessageBusesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5572,11 +5995,11 @@ pub fn eventarc_projects_locations_message_buses_patch(
 > {
     let builder = eventarc_projects_locations_message_buses_patch_builder(
         client,
-        name,
-        allowMissing,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     eventarc_projects_locations_message_buses_patch_execute(builder)
 }
@@ -5674,6 +6097,15 @@ pub fn eventarc_projects_locations_message_buses_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_message_buses_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsMessageBusesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/messageBuses/{messageBusesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -5686,14 +6118,16 @@ pub fn eventarc_projects_locations_message_buses_set_iam_policy_execute(
 
 pub fn eventarc_projects_locations_message_buses_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &EventarcProjectsLocationsMessageBusesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        eventarc_projects_locations_message_buses_set_iam_policy_builder(client, resource, body)?;
+    let builder = eventarc_projects_locations_message_buses_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     eventarc_projects_locations_message_buses_set_iam_policy_execute(builder)
 }
 
@@ -5794,6 +6228,15 @@ pub fn eventarc_projects_locations_message_buses_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_message_buses_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsMessageBusesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/messageBuses/{messageBusesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -5806,8 +6249,7 @@ pub fn eventarc_projects_locations_message_buses_test_iam_permissions_execute(
 
 pub fn eventarc_projects_locations_message_buses_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &EventarcProjectsLocationsMessageBusesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -5817,7 +6259,9 @@ pub fn eventarc_projects_locations_message_buses_test_iam_permissions(
     ApiError,
 > {
     let builder = eventarc_projects_locations_message_buses_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     eventarc_projects_locations_message_buses_test_iam_permissions_execute(builder)
 }
@@ -5915,6 +6359,15 @@ pub fn eventarc_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -5927,13 +6380,13 @@ pub fn eventarc_projects_locations_operations_cancel_execute(
 
 pub fn eventarc_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &EventarcProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = eventarc_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        eventarc_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     eventarc_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -6027,6 +6480,13 @@ pub fn eventarc_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -6039,12 +6499,12 @@ pub fn eventarc_projects_locations_operations_delete_execute(
 
 pub fn eventarc_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EventarcProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = eventarc_projects_locations_operations_delete_builder(client, name)?;
+    let builder = eventarc_projects_locations_operations_delete_builder(client, &args.name)?;
     eventarc_projects_locations_operations_delete_execute(builder)
 }
 
@@ -6142,6 +6602,13 @@ pub fn eventarc_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -6154,7 +6621,7 @@ pub fn eventarc_projects_locations_operations_get_execute(
 
 pub fn eventarc_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EventarcProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6163,7 +6630,7 @@ pub fn eventarc_projects_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = eventarc_projects_locations_operations_get_builder(client, name)?;
+    let builder = eventarc_projects_locations_operations_get_builder(client, &args.name)?;
     eventarc_projects_locations_operations_get_execute(builder)
 }
 
@@ -6286,6 +6753,21 @@ pub fn eventarc_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -6298,11 +6780,7 @@ pub fn eventarc_projects_locations_operations_list_execute(
 
 pub fn eventarc_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &EventarcProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -6313,11 +6791,11 @@ pub fn eventarc_projects_locations_operations_list(
 > {
     let builder = eventarc_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     eventarc_projects_locations_operations_list_execute(builder)
 }
@@ -6435,6 +6913,19 @@ pub fn eventarc_projects_locations_pipelines_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_pipelines_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsPipelinesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pipelineId
+    pub pipelineId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Pipeline,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines
 /// Create a new Pipeline in a particular project and location.
 ///
@@ -6447,10 +6938,7 @@ pub fn eventarc_projects_locations_pipelines_create_execute(
 
 pub fn eventarc_projects_locations_pipelines_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    pipelineId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Pipeline,
+    args: &EventarcProjectsLocationsPipelinesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6461,10 +6949,10 @@ pub fn eventarc_projects_locations_pipelines_create(
 > {
     let builder = eventarc_projects_locations_pipelines_create_builder(
         client,
-        parent,
-        pipelineId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.pipelineId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     eventarc_projects_locations_pipelines_create_execute(builder)
 }
@@ -6583,6 +7071,19 @@ pub fn eventarc_projects_locations_pipelines_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_pipelines_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsPipelinesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}
 /// Delete a single pipeline.
 ///
@@ -6595,10 +7096,7 @@ pub fn eventarc_projects_locations_pipelines_delete_execute(
 
 pub fn eventarc_projects_locations_pipelines_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &EventarcProjectsLocationsPipelinesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6609,10 +7107,10 @@ pub fn eventarc_projects_locations_pipelines_delete(
 > {
     let builder = eventarc_projects_locations_pipelines_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.validateOnly,
     )?;
     eventarc_projects_locations_pipelines_delete_execute(builder)
 }
@@ -6707,6 +7205,13 @@ pub fn eventarc_projects_locations_pipelines_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_pipelines_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsPipelinesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}
 /// Get a single Pipeline.
 ///
@@ -6719,12 +7224,12 @@ pub fn eventarc_projects_locations_pipelines_get_execute(
 
 pub fn eventarc_projects_locations_pipelines_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EventarcProjectsLocationsPipelinesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Pipeline>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = eventarc_projects_locations_pipelines_get_builder(client, name)?;
+    let builder = eventarc_projects_locations_pipelines_get_builder(client, &args.name)?;
     eventarc_projects_locations_pipelines_get_execute(builder)
 }
 
@@ -6830,6 +7335,15 @@ pub fn eventarc_projects_locations_pipelines_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_pipelines_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsPipelinesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -6842,16 +7356,15 @@ pub fn eventarc_projects_locations_pipelines_get_iam_policy_execute(
 
 pub fn eventarc_projects_locations_pipelines_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &EventarcProjectsLocationsPipelinesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = eventarc_projects_locations_pipelines_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     eventarc_projects_locations_pipelines_get_iam_policy_execute(builder)
 }
@@ -6972,6 +7485,21 @@ pub fn eventarc_projects_locations_pipelines_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_pipelines_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsPipelinesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines
 /// List pipelines.
 ///
@@ -6984,11 +7512,7 @@ pub fn eventarc_projects_locations_pipelines_list_execute(
 
 pub fn eventarc_projects_locations_pipelines_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &EventarcProjectsLocationsPipelinesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPipelinesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6996,7 +7520,12 @@ pub fn eventarc_projects_locations_pipelines_list(
     ApiError,
 > {
     let builder = eventarc_projects_locations_pipelines_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     eventarc_projects_locations_pipelines_list_execute(builder)
 }
@@ -7118,6 +7647,21 @@ pub fn eventarc_projects_locations_pipelines_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_pipelines_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsPipelinesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Pipeline,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}
 /// Update a single pipeline.
 ///
@@ -7130,11 +7674,7 @@ pub fn eventarc_projects_locations_pipelines_patch_execute(
 
 pub fn eventarc_projects_locations_pipelines_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Pipeline,
+    args: &EventarcProjectsLocationsPipelinesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7145,11 +7685,11 @@ pub fn eventarc_projects_locations_pipelines_patch(
 > {
     let builder = eventarc_projects_locations_pipelines_patch_builder(
         client,
-        name,
-        allowMissing,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     eventarc_projects_locations_pipelines_patch_execute(builder)
 }
@@ -7247,6 +7787,15 @@ pub fn eventarc_projects_locations_pipelines_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_pipelines_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsPipelinesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -7259,14 +7808,16 @@ pub fn eventarc_projects_locations_pipelines_set_iam_policy_execute(
 
 pub fn eventarc_projects_locations_pipelines_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &EventarcProjectsLocationsPipelinesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        eventarc_projects_locations_pipelines_set_iam_policy_builder(client, resource, body)?;
+    let builder = eventarc_projects_locations_pipelines_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     eventarc_projects_locations_pipelines_set_iam_policy_execute(builder)
 }
 
@@ -7367,6 +7918,15 @@ pub fn eventarc_projects_locations_pipelines_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_pipelines_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsPipelinesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelines/{pipelinesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -7379,8 +7939,7 @@ pub fn eventarc_projects_locations_pipelines_test_iam_permissions_execute(
 
 pub fn eventarc_projects_locations_pipelines_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &EventarcProjectsLocationsPipelinesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -7389,8 +7948,11 @@ pub fn eventarc_projects_locations_pipelines_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        eventarc_projects_locations_pipelines_test_iam_permissions_builder(client, resource, body)?;
+    let builder = eventarc_projects_locations_pipelines_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     eventarc_projects_locations_pipelines_test_iam_permissions_execute(builder)
 }
 
@@ -7484,6 +8046,13 @@ pub fn eventarc_projects_locations_providers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_providers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsProvidersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/providers/{providersId}
 /// Get a single Provider.
 ///
@@ -7496,12 +8065,12 @@ pub fn eventarc_projects_locations_providers_get_execute(
 
 pub fn eventarc_projects_locations_providers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EventarcProjectsLocationsProvidersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Provider>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = eventarc_projects_locations_providers_get_builder(client, name)?;
+    let builder = eventarc_projects_locations_providers_get_builder(client, &args.name)?;
     eventarc_projects_locations_providers_get_execute(builder)
 }
 
@@ -7621,6 +8190,21 @@ pub fn eventarc_projects_locations_providers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_providers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsProvidersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/providers
 /// List providers.
 ///
@@ -7633,11 +8217,7 @@ pub fn eventarc_projects_locations_providers_list_execute(
 
 pub fn eventarc_projects_locations_providers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &EventarcProjectsLocationsProvidersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListProvidersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7645,7 +8225,12 @@ pub fn eventarc_projects_locations_providers_list(
     ApiError,
 > {
     let builder = eventarc_projects_locations_providers_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     eventarc_projects_locations_providers_list_execute(builder)
 }
@@ -7763,6 +8348,19 @@ pub fn eventarc_projects_locations_triggers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_triggers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsTriggersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: triggerId
+    pub triggerId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Trigger,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/triggers
 /// Create a new trigger in a particular project and location.
 ///
@@ -7775,10 +8373,7 @@ pub fn eventarc_projects_locations_triggers_create_execute(
 
 pub fn eventarc_projects_locations_triggers_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    triggerId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Trigger,
+    args: &EventarcProjectsLocationsTriggersCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7789,10 +8384,10 @@ pub fn eventarc_projects_locations_triggers_create(
 > {
     let builder = eventarc_projects_locations_triggers_create_builder(
         client,
-        parent,
-        triggerId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.triggerId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     eventarc_projects_locations_triggers_create_execute(builder)
 }
@@ -7911,6 +8506,19 @@ pub fn eventarc_projects_locations_triggers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_triggers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsTriggersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/triggers/{triggersId}
 /// Delete a single trigger.
 ///
@@ -7923,10 +8531,7 @@ pub fn eventarc_projects_locations_triggers_delete_execute(
 
 pub fn eventarc_projects_locations_triggers_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &EventarcProjectsLocationsTriggersDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7937,10 +8542,10 @@ pub fn eventarc_projects_locations_triggers_delete(
 > {
     let builder = eventarc_projects_locations_triggers_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.validateOnly,
     )?;
     eventarc_projects_locations_triggers_delete_execute(builder)
 }
@@ -8035,6 +8640,13 @@ pub fn eventarc_projects_locations_triggers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_triggers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsTriggersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/triggers/{triggersId}
 /// Get a single trigger.
 ///
@@ -8047,12 +8659,12 @@ pub fn eventarc_projects_locations_triggers_get_execute(
 
 pub fn eventarc_projects_locations_triggers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EventarcProjectsLocationsTriggersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Trigger>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = eventarc_projects_locations_triggers_get_builder(client, name)?;
+    let builder = eventarc_projects_locations_triggers_get_builder(client, &args.name)?;
     eventarc_projects_locations_triggers_get_execute(builder)
 }
 
@@ -8158,6 +8770,15 @@ pub fn eventarc_projects_locations_triggers_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_triggers_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsTriggersGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/triggers/{triggersId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -8170,16 +8791,15 @@ pub fn eventarc_projects_locations_triggers_get_iam_policy_execute(
 
 pub fn eventarc_projects_locations_triggers_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &EventarcProjectsLocationsTriggersGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = eventarc_projects_locations_triggers_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     eventarc_projects_locations_triggers_get_iam_policy_execute(builder)
 }
@@ -8300,6 +8920,21 @@ pub fn eventarc_projects_locations_triggers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_triggers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsTriggersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/triggers
 /// List triggers.
 ///
@@ -8312,11 +8947,7 @@ pub fn eventarc_projects_locations_triggers_list_execute(
 
 pub fn eventarc_projects_locations_triggers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &EventarcProjectsLocationsTriggersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTriggersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8324,7 +8955,12 @@ pub fn eventarc_projects_locations_triggers_list(
     ApiError,
 > {
     let builder = eventarc_projects_locations_triggers_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     eventarc_projects_locations_triggers_list_execute(builder)
 }
@@ -8446,6 +9082,21 @@ pub fn eventarc_projects_locations_triggers_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_triggers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsTriggersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Trigger,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/triggers/{triggersId}
 /// Update a single trigger.
 ///
@@ -8458,11 +9109,7 @@ pub fn eventarc_projects_locations_triggers_patch_execute(
 
 pub fn eventarc_projects_locations_triggers_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Trigger,
+    args: &EventarcProjectsLocationsTriggersPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -8473,11 +9120,11 @@ pub fn eventarc_projects_locations_triggers_patch(
 > {
     let builder = eventarc_projects_locations_triggers_patch_builder(
         client,
-        name,
-        allowMissing,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     eventarc_projects_locations_triggers_patch_execute(builder)
 }
@@ -8575,6 +9222,15 @@ pub fn eventarc_projects_locations_triggers_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_triggers_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsTriggersSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/triggers/{triggersId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -8587,14 +9243,16 @@ pub fn eventarc_projects_locations_triggers_set_iam_policy_execute(
 
 pub fn eventarc_projects_locations_triggers_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &EventarcProjectsLocationsTriggersSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        eventarc_projects_locations_triggers_set_iam_policy_builder(client, resource, body)?;
+    let builder = eventarc_projects_locations_triggers_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     eventarc_projects_locations_triggers_set_iam_policy_execute(builder)
 }
 
@@ -8695,6 +9353,15 @@ pub fn eventarc_projects_locations_triggers_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`eventarc_projects_locations_triggers_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EventarcProjectsLocationsTriggersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/triggers/{triggersId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -8707,8 +9374,7 @@ pub fn eventarc_projects_locations_triggers_test_iam_permissions_execute(
 
 pub fn eventarc_projects_locations_triggers_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &EventarcProjectsLocationsTriggersTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -8717,7 +9383,10 @@ pub fn eventarc_projects_locations_triggers_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        eventarc_projects_locations_triggers_test_iam_permissions_builder(client, resource, body)?;
+    let builder = eventarc_projects_locations_triggers_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     eventarc_projects_locations_triggers_test_iam_permissions_execute(builder)
 }

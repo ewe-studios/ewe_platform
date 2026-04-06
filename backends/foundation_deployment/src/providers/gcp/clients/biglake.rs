@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/catalogs/{catalogsId}:getIamPolicy
 /// Gets the IAM policy for the specified Catalog.
@@ -118,6 +120,15 @@ pub fn biglake_projects_catalogs_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_catalogs_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsCatalogsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/catalogs/{catalogsId}:getIamPolicy
 /// Gets the IAM policy for the specified Catalog.
 ///
@@ -130,16 +141,15 @@ pub fn biglake_projects_catalogs_get_iam_policy_execute(
 
 pub fn biglake_projects_catalogs_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &BiglakeProjectsCatalogsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = biglake_projects_catalogs_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     biglake_projects_catalogs_get_iam_policy_execute(builder)
 }
@@ -237,6 +247,15 @@ pub fn biglake_projects_catalogs_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_catalogs_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsCatalogsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/catalogs/{catalogsId}:setIamPolicy
 /// Sets the IAM policy for the specified catalog.
 ///
@@ -249,13 +268,13 @@ pub fn biglake_projects_catalogs_set_iam_policy_execute(
 
 pub fn biglake_projects_catalogs_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BiglakeProjectsCatalogsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = biglake_projects_catalogs_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        biglake_projects_catalogs_set_iam_policy_builder(client, &args.resource, &args.body)?;
     biglake_projects_catalogs_set_iam_policy_execute(builder)
 }
 
@@ -356,6 +375,15 @@ pub fn biglake_projects_catalogs_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_catalogs_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsCatalogsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/catalogs/{catalogsId}:testIamPermissions
 /// Tests the IAM permissions for the specified catalog.
 ///
@@ -368,8 +396,7 @@ pub fn biglake_projects_catalogs_test_iam_permissions_execute(
 
 pub fn biglake_projects_catalogs_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BiglakeProjectsCatalogsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -378,7 +405,8 @@ pub fn biglake_projects_catalogs_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = biglake_projects_catalogs_test_iam_permissions_builder(client, resource, body)?;
+    let builder =
+        biglake_projects_catalogs_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     biglake_projects_catalogs_test_iam_permissions_execute(builder)
 }
 
@@ -484,6 +512,15 @@ pub fn biglake_projects_catalogs_namespaces_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_catalogs_namespaces_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsCatalogsNamespacesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/catalogs/{catalogsId}/namespaces/{namespacesId}:getIamPolicy
 /// Gets the IAM policy for the specified Catalog.
 ///
@@ -496,16 +533,15 @@ pub fn biglake_projects_catalogs_namespaces_get_iam_policy_execute(
 
 pub fn biglake_projects_catalogs_namespaces_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &BiglakeProjectsCatalogsNamespacesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = biglake_projects_catalogs_namespaces_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     biglake_projects_catalogs_namespaces_get_iam_policy_execute(builder)
 }
@@ -603,6 +639,15 @@ pub fn biglake_projects_catalogs_namespaces_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_catalogs_namespaces_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsCatalogsNamespacesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/catalogs/{catalogsId}/namespaces/{namespacesId}:setIamPolicy
 /// Sets the IAM policy for the specified catalog.
 ///
@@ -615,14 +660,16 @@ pub fn biglake_projects_catalogs_namespaces_set_iam_policy_execute(
 
 pub fn biglake_projects_catalogs_namespaces_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BiglakeProjectsCatalogsNamespacesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        biglake_projects_catalogs_namespaces_set_iam_policy_builder(client, resource, body)?;
+    let builder = biglake_projects_catalogs_namespaces_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     biglake_projects_catalogs_namespaces_set_iam_policy_execute(builder)
 }
 
@@ -723,6 +770,15 @@ pub fn biglake_projects_catalogs_namespaces_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_catalogs_namespaces_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsCatalogsNamespacesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/catalogs/{catalogsId}/namespaces/{namespacesId}:testIamPermissions
 /// Tests the IAM permissions for the specified namespace.
 ///
@@ -735,8 +791,7 @@ pub fn biglake_projects_catalogs_namespaces_test_iam_permissions_execute(
 
 pub fn biglake_projects_catalogs_namespaces_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BiglakeProjectsCatalogsNamespacesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -745,8 +800,11 @@ pub fn biglake_projects_catalogs_namespaces_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        biglake_projects_catalogs_namespaces_test_iam_permissions_builder(client, resource, body)?;
+    let builder = biglake_projects_catalogs_namespaces_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     biglake_projects_catalogs_namespaces_test_iam_permissions_execute(builder)
 }
 
@@ -852,6 +910,15 @@ pub fn biglake_projects_catalogs_namespaces_tables_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_catalogs_namespaces_tables_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsCatalogsNamespacesTablesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/catalogs/{catalogsId}/namespaces/{namespacesId}/tables/{tablesId}:getIamPolicy
 /// Gets the IAM policy for the specified Catalog.
 ///
@@ -864,16 +931,15 @@ pub fn biglake_projects_catalogs_namespaces_tables_get_iam_policy_execute(
 
 pub fn biglake_projects_catalogs_namespaces_tables_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &BiglakeProjectsCatalogsNamespacesTablesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = biglake_projects_catalogs_namespaces_tables_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     biglake_projects_catalogs_namespaces_tables_get_iam_policy_execute(builder)
 }
@@ -971,6 +1037,15 @@ pub fn biglake_projects_catalogs_namespaces_tables_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_catalogs_namespaces_tables_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsCatalogsNamespacesTablesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/catalogs/{catalogsId}/namespaces/{namespacesId}/tables/{tablesId}:setIamPolicy
 /// Sets the IAM policy for the specified catalog.
 ///
@@ -983,14 +1058,16 @@ pub fn biglake_projects_catalogs_namespaces_tables_set_iam_policy_execute(
 
 pub fn biglake_projects_catalogs_namespaces_tables_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BiglakeProjectsCatalogsNamespacesTablesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        biglake_projects_catalogs_namespaces_tables_set_iam_policy_builder(client, resource, body)?;
+    let builder = biglake_projects_catalogs_namespaces_tables_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     biglake_projects_catalogs_namespaces_tables_set_iam_policy_execute(builder)
 }
 
@@ -1091,6 +1168,15 @@ pub fn biglake_projects_catalogs_namespaces_tables_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_catalogs_namespaces_tables_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsCatalogsNamespacesTablesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/catalogs/{catalogsId}/namespaces/{namespacesId}/tables/{tablesId}:testIamPermissions
 /// Tests the IAM permissions for the specified table.
 ///
@@ -1103,8 +1189,7 @@ pub fn biglake_projects_catalogs_namespaces_tables_test_iam_permissions_execute(
 
 pub fn biglake_projects_catalogs_namespaces_tables_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BiglakeProjectsCatalogsNamespacesTablesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1114,7 +1199,9 @@ pub fn biglake_projects_catalogs_namespaces_tables_test_iam_permissions(
     ApiError,
 > {
     let builder = biglake_projects_catalogs_namespaces_tables_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     biglake_projects_catalogs_namespaces_tables_test_iam_permissions_execute(builder)
 }
@@ -1224,6 +1311,17 @@ pub fn biglake_projects_locations_catalogs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_locations_catalogs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsLocationsCatalogsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: catalogId
+    pub catalogId: Option<String>,
+    /// Request body.
+    pub body: Catalog,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs
 /// Creates a new catalog.
 ///
@@ -1236,15 +1334,17 @@ pub fn biglake_projects_locations_catalogs_create_execute(
 
 pub fn biglake_projects_locations_catalogs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    catalogId: Option<&str>,
-    body: &Catalog,
+    args: &BiglakeProjectsLocationsCatalogsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Catalog>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        biglake_projects_locations_catalogs_create_builder(client, parent, catalogId, body)?;
+    let builder = biglake_projects_locations_catalogs_create_builder(
+        client,
+        &args.parent,
+        args.catalogId.as_deref(),
+        &args.body,
+    )?;
     biglake_projects_locations_catalogs_create_execute(builder)
 }
 
@@ -1338,6 +1438,13 @@ pub fn biglake_projects_locations_catalogs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_locations_catalogs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsLocationsCatalogsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}
 /// Deletes an existing catalog specified by the catalog ID.
 ///
@@ -1350,12 +1457,12 @@ pub fn biglake_projects_locations_catalogs_delete_execute(
 
 pub fn biglake_projects_locations_catalogs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BiglakeProjectsLocationsCatalogsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Catalog>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = biglake_projects_locations_catalogs_delete_builder(client, name)?;
+    let builder = biglake_projects_locations_catalogs_delete_builder(client, &args.name)?;
     biglake_projects_locations_catalogs_delete_execute(builder)
 }
 
@@ -1449,6 +1556,13 @@ pub fn biglake_projects_locations_catalogs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_locations_catalogs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsLocationsCatalogsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}
 /// Gets the catalog specified by the resource name.
 ///
@@ -1461,12 +1575,12 @@ pub fn biglake_projects_locations_catalogs_get_execute(
 
 pub fn biglake_projects_locations_catalogs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BiglakeProjectsLocationsCatalogsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Catalog>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = biglake_projects_locations_catalogs_get_builder(client, name)?;
+    let builder = biglake_projects_locations_catalogs_get_builder(client, &args.name)?;
     biglake_projects_locations_catalogs_get_execute(builder)
 }
 
@@ -1578,6 +1692,17 @@ pub fn biglake_projects_locations_catalogs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_locations_catalogs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsLocationsCatalogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs
 /// List all catalogs in a specified project.
 ///
@@ -1590,17 +1715,19 @@ pub fn biglake_projects_locations_catalogs_list_execute(
 
 pub fn biglake_projects_locations_catalogs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BiglakeProjectsLocationsCatalogsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCatalogsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        biglake_projects_locations_catalogs_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = biglake_projects_locations_catalogs_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     biglake_projects_locations_catalogs_list_execute(builder)
 }
 
@@ -1709,6 +1836,17 @@ pub fn biglake_projects_locations_catalogs_databases_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_locations_catalogs_databases_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsLocationsCatalogsDatabasesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: databaseId
+    pub databaseId: Option<String>,
+    /// Request body.
+    pub body: Database,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases
 /// Creates a new database.
 ///
@@ -1721,15 +1859,16 @@ pub fn biglake_projects_locations_catalogs_databases_create_execute(
 
 pub fn biglake_projects_locations_catalogs_databases_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    databaseId: Option<&str>,
-    body: &Database,
+    args: &BiglakeProjectsLocationsCatalogsDatabasesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Database>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = biglake_projects_locations_catalogs_databases_create_builder(
-        client, parent, databaseId, body,
+        client,
+        &args.parent,
+        args.databaseId.as_deref(),
+        &args.body,
     )?;
     biglake_projects_locations_catalogs_databases_create_execute(builder)
 }
@@ -1824,6 +1963,13 @@ pub fn biglake_projects_locations_catalogs_databases_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_locations_catalogs_databases_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsLocationsCatalogsDatabasesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}
 /// Deletes an existing database specified by the database ID.
 ///
@@ -1836,12 +1982,12 @@ pub fn biglake_projects_locations_catalogs_databases_delete_execute(
 
 pub fn biglake_projects_locations_catalogs_databases_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BiglakeProjectsLocationsCatalogsDatabasesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Database>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = biglake_projects_locations_catalogs_databases_delete_builder(client, name)?;
+    let builder = biglake_projects_locations_catalogs_databases_delete_builder(client, &args.name)?;
     biglake_projects_locations_catalogs_databases_delete_execute(builder)
 }
 
@@ -1935,6 +2081,13 @@ pub fn biglake_projects_locations_catalogs_databases_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_locations_catalogs_databases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsLocationsCatalogsDatabasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}
 /// Gets the database specified by the resource name.
 ///
@@ -1947,12 +2100,12 @@ pub fn biglake_projects_locations_catalogs_databases_get_execute(
 
 pub fn biglake_projects_locations_catalogs_databases_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BiglakeProjectsLocationsCatalogsDatabasesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Database>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = biglake_projects_locations_catalogs_databases_get_builder(client, name)?;
+    let builder = biglake_projects_locations_catalogs_databases_get_builder(client, &args.name)?;
     biglake_projects_locations_catalogs_databases_get_execute(builder)
 }
 
@@ -2064,6 +2217,17 @@ pub fn biglake_projects_locations_catalogs_databases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_locations_catalogs_databases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsLocationsCatalogsDatabasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases
 /// List all databases in a specified catalog.
 ///
@@ -2076,9 +2240,7 @@ pub fn biglake_projects_locations_catalogs_databases_list_execute(
 
 pub fn biglake_projects_locations_catalogs_databases_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BiglakeProjectsLocationsCatalogsDatabasesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDatabasesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2086,7 +2248,10 @@ pub fn biglake_projects_locations_catalogs_databases_list(
     ApiError,
 > {
     let builder = biglake_projects_locations_catalogs_databases_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     biglake_projects_locations_catalogs_databases_list_execute(builder)
 }
@@ -2196,6 +2361,17 @@ pub fn biglake_projects_locations_catalogs_databases_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_locations_catalogs_databases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsLocationsCatalogsDatabasesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Database,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}
 /// Updates an existing database specified by the database ID.
 ///
@@ -2208,15 +2384,16 @@ pub fn biglake_projects_locations_catalogs_databases_patch_execute(
 
 pub fn biglake_projects_locations_catalogs_databases_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Database,
+    args: &BiglakeProjectsLocationsCatalogsDatabasesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Database>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = biglake_projects_locations_catalogs_databases_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     biglake_projects_locations_catalogs_databases_patch_execute(builder)
 }
@@ -2326,6 +2503,17 @@ pub fn biglake_projects_locations_catalogs_databases_tables_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_locations_catalogs_databases_tables_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsLocationsCatalogsDatabasesTablesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: tableId
+    pub tableId: Option<String>,
+    /// Request body.
+    pub body: Table,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}/tables
 /// Creates a new table.
 ///
@@ -2338,15 +2526,16 @@ pub fn biglake_projects_locations_catalogs_databases_tables_create_execute(
 
 pub fn biglake_projects_locations_catalogs_databases_tables_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    tableId: Option<&str>,
-    body: &Table,
+    args: &BiglakeProjectsLocationsCatalogsDatabasesTablesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = biglake_projects_locations_catalogs_databases_tables_create_builder(
-        client, parent, tableId, body,
+        client,
+        &args.parent,
+        args.tableId.as_deref(),
+        &args.body,
     )?;
     biglake_projects_locations_catalogs_databases_tables_create_execute(builder)
 }
@@ -2441,6 +2630,13 @@ pub fn biglake_projects_locations_catalogs_databases_tables_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_locations_catalogs_databases_tables_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsLocationsCatalogsDatabasesTablesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}/tables/{tablesId}
 /// Deletes an existing table specified by the table ID.
 ///
@@ -2453,13 +2649,13 @@ pub fn biglake_projects_locations_catalogs_databases_tables_delete_execute(
 
 pub fn biglake_projects_locations_catalogs_databases_tables_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BiglakeProjectsLocationsCatalogsDatabasesTablesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        biglake_projects_locations_catalogs_databases_tables_delete_builder(client, name)?;
+        biglake_projects_locations_catalogs_databases_tables_delete_builder(client, &args.name)?;
     biglake_projects_locations_catalogs_databases_tables_delete_execute(builder)
 }
 
@@ -2553,6 +2749,13 @@ pub fn biglake_projects_locations_catalogs_databases_tables_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_locations_catalogs_databases_tables_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsLocationsCatalogsDatabasesTablesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}/tables/{tablesId}
 /// Gets the table specified by the resource name.
 ///
@@ -2565,12 +2768,13 @@ pub fn biglake_projects_locations_catalogs_databases_tables_get_execute(
 
 pub fn biglake_projects_locations_catalogs_databases_tables_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BiglakeProjectsLocationsCatalogsDatabasesTablesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = biglake_projects_locations_catalogs_databases_tables_get_builder(client, name)?;
+    let builder =
+        biglake_projects_locations_catalogs_databases_tables_get_builder(client, &args.name)?;
     biglake_projects_locations_catalogs_databases_tables_get_execute(builder)
 }
 
@@ -2686,6 +2890,19 @@ pub fn biglake_projects_locations_catalogs_databases_tables_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_locations_catalogs_databases_tables_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsLocationsCatalogsDatabasesTablesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}/tables
 /// List all tables in a specified database.
 ///
@@ -2698,10 +2915,7 @@ pub fn biglake_projects_locations_catalogs_databases_tables_list_execute(
 
 pub fn biglake_projects_locations_catalogs_databases_tables_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &BiglakeProjectsLocationsCatalogsDatabasesTablesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTablesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2709,7 +2923,11 @@ pub fn biglake_projects_locations_catalogs_databases_tables_list(
     ApiError,
 > {
     let builder = biglake_projects_locations_catalogs_databases_tables_list_builder(
-        client, parent, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     biglake_projects_locations_catalogs_databases_tables_list_execute(builder)
 }
@@ -2819,6 +3037,17 @@ pub fn biglake_projects_locations_catalogs_databases_tables_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_locations_catalogs_databases_tables_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsLocationsCatalogsDatabasesTablesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Table,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}/tables/{tablesId}
 /// Updates an existing table specified by the table ID.
 ///
@@ -2831,15 +3060,16 @@ pub fn biglake_projects_locations_catalogs_databases_tables_patch_execute(
 
 pub fn biglake_projects_locations_catalogs_databases_tables_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Table,
+    args: &BiglakeProjectsLocationsCatalogsDatabasesTablesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = biglake_projects_locations_catalogs_databases_tables_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     biglake_projects_locations_catalogs_databases_tables_patch_execute(builder)
 }
@@ -2937,6 +3167,15 @@ pub fn biglake_projects_locations_catalogs_databases_tables_rename_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`biglake_projects_locations_catalogs_databases_tables_rename`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BiglakeProjectsLocationsCatalogsDatabasesTablesRenameArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RenameTableRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}/tables/{tablesId}:rename
 /// Renames an existing table specified by the table ID.
 ///
@@ -2949,13 +3188,13 @@ pub fn biglake_projects_locations_catalogs_databases_tables_rename_execute(
 
 pub fn biglake_projects_locations_catalogs_databases_tables_rename(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RenameTableRequest,
+    args: &BiglakeProjectsLocationsCatalogsDatabasesTablesRenameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        biglake_projects_locations_catalogs_databases_tables_rename_builder(client, name, body)?;
+    let builder = biglake_projects_locations_catalogs_databases_tables_rename_builder(
+        client, &args.name, &args.body,
+    )?;
     biglake_projects_locations_catalogs_databases_tables_rename_execute(builder)
 }

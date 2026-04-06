@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/callback:generateToken
 /// Receives the auth code and auth config id to combine that with the client id and secret to retrieve access tokens from the token endpoint. Returns either a success or error message when it's done.
@@ -135,6 +137,21 @@ pub fn integrations_callback_generate_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_callback_generate_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsCallbackGenerateTokenArgs {
+    /// Query parameter: code
+    pub code: Option<String>,
+    /// Query parameter: gcpProjectId
+    pub gcpProjectId: Option<String>,
+    /// Query parameter: product
+    pub product: Option<String>,
+    /// Query parameter: redirectUri
+    pub redirectUri: Option<String>,
+    /// Query parameter: state
+    pub state: Option<String>,
+}
+
 /// GET v1/callback:generateToken
 /// Receives the auth code and auth config id to combine that with the client id and secret to retrieve access tokens from the token endpoint. Returns either a success or error message when it's done.
 ///
@@ -147,11 +164,7 @@ pub fn integrations_callback_generate_token_execute(
 
 pub fn integrations_callback_generate_token(
     client: &SimpleHttpClient,
-    code: Option<&str>,
-    gcpProjectId: Option<&str>,
-    product: Option<&str>,
-    redirectUri: Option<&str>,
-    state: Option<&str>,
+    args: &IntegrationsCallbackGenerateTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaGenerateTokenResponse>, ApiError>,
@@ -162,11 +175,11 @@ pub fn integrations_callback_generate_token(
 > {
     let builder = integrations_callback_generate_token_builder(
         client,
-        code,
-        gcpProjectId,
-        product,
-        redirectUri,
-        state,
+        args.code.as_deref(),
+        args.gcpProjectId.as_deref(),
+        args.product.as_deref(),
+        args.redirectUri.as_deref(),
+        args.state.as_deref(),
     )?;
     integrations_callback_generate_token_execute(builder)
 }
@@ -388,6 +401,13 @@ pub fn integrations_projects_get_clientmetadata_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_get_clientmetadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsGetClientmetadataArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/clientmetadata
 /// Gets the metadata info for the requested client
 ///
@@ -400,7 +420,7 @@ pub fn integrations_projects_get_clientmetadata_execute(
 
 pub fn integrations_projects_get_clientmetadata(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &IntegrationsProjectsGetClientmetadataArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -412,7 +432,7 @@ pub fn integrations_projects_get_clientmetadata(
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_get_clientmetadata_builder(client, parent)?;
+    let builder = integrations_projects_get_clientmetadata_builder(client, &args.parent)?;
     integrations_projects_get_clientmetadata_execute(builder)
 }
 
@@ -517,6 +537,15 @@ pub fn integrations_projects_locations_generate_open_api_spec_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_generate_open_api_spec`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsGenerateOpenApiSpecArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:generateOpenApiSpec
 /// Generate OpenAPI spec for the requested integrations and api triggers
 ///
@@ -529,8 +558,7 @@ pub fn integrations_projects_locations_generate_open_api_spec_execute(
 
 pub fn integrations_projects_locations_generate_open_api_spec(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecRequest,
+    args: &IntegrationsProjectsLocationsGenerateOpenApiSpecArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -542,8 +570,9 @@ pub fn integrations_projects_locations_generate_open_api_spec(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_generate_open_api_spec_builder(client, name, body)?;
+    let builder = integrations_projects_locations_generate_open_api_spec_builder(
+        client, &args.name, &args.body,
+    )?;
     integrations_projects_locations_generate_open_api_spec_execute(builder)
 }
 
@@ -642,6 +671,13 @@ pub fn integrations_projects_locations_get_clients_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_get_clients`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsGetClientsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clients
 /// Gets the client configuration for the given project and location resource name
 ///
@@ -654,7 +690,7 @@ pub fn integrations_projects_locations_get_clients_execute(
 
 pub fn integrations_projects_locations_get_clients(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &IntegrationsProjectsLocationsGetClientsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaGetClientResponse>, ApiError>,
@@ -663,7 +699,7 @@ pub fn integrations_projects_locations_get_clients(
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_get_clients_builder(client, parent)?;
+    let builder = integrations_projects_locations_get_clients_builder(client, &args.parent)?;
     integrations_projects_locations_get_clients_execute(builder)
 }
 
@@ -768,6 +804,15 @@ pub fn integrations_projects_locations_apps_script_projects_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_apps_script_projects_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsAppsScriptProjectsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appsScriptProjects
 /// Creates an Apps Script project.
 ///
@@ -780,8 +825,7 @@ pub fn integrations_projects_locations_apps_script_projects_create_execute(
 
 pub fn integrations_projects_locations_apps_script_projects_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectRequest,
+    args: &IntegrationsProjectsLocationsAppsScriptProjectsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -793,8 +837,11 @@ pub fn integrations_projects_locations_apps_script_projects_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_apps_script_projects_create_builder(client, parent, body)?;
+    let builder = integrations_projects_locations_apps_script_projects_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     integrations_projects_locations_apps_script_projects_create_execute(builder)
 }
 
@@ -899,6 +946,15 @@ pub fn integrations_projects_locations_apps_script_projects_link_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_apps_script_projects_link`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsAppsScriptProjectsLinkArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appsScriptProjects:link
 /// Links a existing Apps Script project.
 ///
@@ -911,8 +967,7 @@ pub fn integrations_projects_locations_apps_script_projects_link_execute(
 
 pub fn integrations_projects_locations_apps_script_projects_link(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectRequest,
+    args: &IntegrationsProjectsLocationsAppsScriptProjectsLinkArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -924,8 +979,11 @@ pub fn integrations_projects_locations_apps_script_projects_link(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_apps_script_projects_link_builder(client, parent, body)?;
+    let builder = integrations_projects_locations_apps_script_projects_link_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     integrations_projects_locations_apps_script_projects_link_execute(builder)
 }
 
@@ -1046,6 +1104,21 @@ pub fn integrations_projects_locations_auth_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_auth_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsAuthConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: clientCertificate_encryptedPrivateKey
+    pub clientCertificate_encryptedPrivateKey: Option<String>,
+    /// Query parameter: clientCertificate_passphrase
+    pub clientCertificate_passphrase: Option<String>,
+    /// Query parameter: clientCertificate_sslCertificate
+    pub clientCertificate_sslCertificate: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaAuthConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authConfigs
 /// Creates an auth config record. Fetch corresponding credentials for specific auth types, e.g. access token for OAuth 2.0, JWT token for JWT. Encrypt the auth config with Cloud KMS and store the encrypted credentials in Spanner. Returns the encrypted auth config.
 ///
@@ -1058,11 +1131,7 @@ pub fn integrations_projects_locations_auth_configs_create_execute(
 
 pub fn integrations_projects_locations_auth_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    clientCertificate_encryptedPrivateKey: Option<&str>,
-    clientCertificate_passphrase: Option<&str>,
-    clientCertificate_sslCertificate: Option<&str>,
-    body: &GoogleCloudIntegrationsV1alphaAuthConfig,
+    args: &IntegrationsProjectsLocationsAuthConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaAuthConfig>, ApiError>,
@@ -1073,11 +1142,11 @@ pub fn integrations_projects_locations_auth_configs_create(
 > {
     let builder = integrations_projects_locations_auth_configs_create_builder(
         client,
-        parent,
-        clientCertificate_encryptedPrivateKey,
-        clientCertificate_passphrase,
-        clientCertificate_sslCertificate,
-        body,
+        &args.parent,
+        args.clientCertificate_encryptedPrivateKey.as_deref(),
+        args.clientCertificate_passphrase.as_deref(),
+        args.clientCertificate_sslCertificate.as_deref(),
+        &args.body,
     )?;
     integrations_projects_locations_auth_configs_create_execute(builder)
 }
@@ -1174,6 +1243,13 @@ pub fn integrations_projects_locations_auth_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_auth_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsAuthConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authConfigs/{authConfigsId}
 /// Deletes an auth config.
 ///
@@ -1186,14 +1262,14 @@ pub fn integrations_projects_locations_auth_configs_delete_execute(
 
 pub fn integrations_projects_locations_auth_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsAuthConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_auth_configs_delete_builder(client, name)?;
+    let builder = integrations_projects_locations_auth_configs_delete_builder(client, &args.name)?;
     integrations_projects_locations_auth_configs_delete_execute(builder)
 }
 
@@ -1291,6 +1367,13 @@ pub fn integrations_projects_locations_auth_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_auth_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsAuthConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authConfigs/{authConfigsId}
 /// Gets a complete auth config. If the auth config doesn't exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
 ///
@@ -1303,7 +1386,7 @@ pub fn integrations_projects_locations_auth_configs_get_execute(
 
 pub fn integrations_projects_locations_auth_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsAuthConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaAuthConfig>, ApiError>,
@@ -1312,7 +1395,7 @@ pub fn integrations_projects_locations_auth_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_auth_configs_get_builder(client, name)?;
+    let builder = integrations_projects_locations_auth_configs_get_builder(client, &args.name)?;
     integrations_projects_locations_auth_configs_get_execute(builder)
 }
 
@@ -1438,6 +1521,21 @@ pub fn integrations_projects_locations_auth_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_auth_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsAuthConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authConfigs
 /// Lists all auth configs that match the filter. Restrict to auth configs belong to the current client only.
 ///
@@ -1450,11 +1548,7 @@ pub fn integrations_projects_locations_auth_configs_list_execute(
 
 pub fn integrations_projects_locations_auth_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &IntegrationsProjectsLocationsAuthConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1467,7 +1561,12 @@ pub fn integrations_projects_locations_auth_configs_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_auth_configs_list_builder(
-        client, parent, filter, pageSize, pageToken, readMask,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
     )?;
     integrations_projects_locations_auth_configs_list_execute(builder)
 }
@@ -1593,6 +1692,23 @@ pub fn integrations_projects_locations_auth_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_auth_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsAuthConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: clientCertificate_encryptedPrivateKey
+    pub clientCertificate_encryptedPrivateKey: Option<String>,
+    /// Query parameter: clientCertificate_passphrase
+    pub clientCertificate_passphrase: Option<String>,
+    /// Query parameter: clientCertificate_sslCertificate
+    pub clientCertificate_sslCertificate: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaAuthConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authConfigs/{authConfigsId}
 /// Updates an auth config. If credential is updated, fetch the encrypted auth config from Spanner, decrypt with Cloud KMS key, update the credential fields, re-encrypt with Cloud KMS key and update the Spanner record. For other fields, directly update the Spanner record. Returns the encrypted auth config.
 ///
@@ -1605,12 +1721,7 @@ pub fn integrations_projects_locations_auth_configs_patch_execute(
 
 pub fn integrations_projects_locations_auth_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    clientCertificate_encryptedPrivateKey: Option<&str>,
-    clientCertificate_passphrase: Option<&str>,
-    clientCertificate_sslCertificate: Option<&str>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudIntegrationsV1alphaAuthConfig,
+    args: &IntegrationsProjectsLocationsAuthConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaAuthConfig>, ApiError>,
@@ -1621,12 +1732,12 @@ pub fn integrations_projects_locations_auth_configs_patch(
 > {
     let builder = integrations_projects_locations_auth_configs_patch_builder(
         client,
-        name,
-        clientCertificate_encryptedPrivateKey,
-        clientCertificate_passphrase,
-        clientCertificate_sslCertificate,
-        updateMask,
-        body,
+        &args.name,
+        args.clientCertificate_encryptedPrivateKey.as_deref(),
+        args.clientCertificate_passphrase.as_deref(),
+        args.clientCertificate_sslCertificate.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     integrations_projects_locations_auth_configs_patch_execute(builder)
 }
@@ -1728,6 +1839,15 @@ pub fn integrations_projects_locations_certificates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_certificates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsCertificatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaCertificate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificates
 /// Creates a new certificate. The certificate will be registered to the trawler service and will be encrypted using cloud KMS and stored in Spanner Returns the certificate.
 ///
@@ -1740,8 +1860,7 @@ pub fn integrations_projects_locations_certificates_create_execute(
 
 pub fn integrations_projects_locations_certificates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaCertificate,
+    args: &IntegrationsProjectsLocationsCertificatesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaCertificate>, ApiError>,
@@ -1750,8 +1869,11 @@ pub fn integrations_projects_locations_certificates_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_certificates_create_builder(client, parent, body)?;
+    let builder = integrations_projects_locations_certificates_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     integrations_projects_locations_certificates_create_execute(builder)
 }
 
@@ -1847,6 +1969,13 @@ pub fn integrations_projects_locations_certificates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_certificates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsCertificatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificates/{certificatesId}
 /// Delete a certificate
 ///
@@ -1859,14 +1988,14 @@ pub fn integrations_projects_locations_certificates_delete_execute(
 
 pub fn integrations_projects_locations_certificates_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsCertificatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_certificates_delete_builder(client, name)?;
+    let builder = integrations_projects_locations_certificates_delete_builder(client, &args.name)?;
     integrations_projects_locations_certificates_delete_execute(builder)
 }
 
@@ -1964,6 +2093,13 @@ pub fn integrations_projects_locations_certificates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_certificates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsCertificatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificates/{certificatesId}
 /// Get a certificates in the specified project.
 ///
@@ -1976,7 +2112,7 @@ pub fn integrations_projects_locations_certificates_get_execute(
 
 pub fn integrations_projects_locations_certificates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsCertificatesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaCertificate>, ApiError>,
@@ -1985,7 +2121,7 @@ pub fn integrations_projects_locations_certificates_get(
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_certificates_get_builder(client, name)?;
+    let builder = integrations_projects_locations_certificates_get_builder(client, &args.name)?;
     integrations_projects_locations_certificates_get_execute(builder)
 }
 
@@ -2111,6 +2247,21 @@ pub fn integrations_projects_locations_certificates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_certificates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsCertificatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificates
 /// List all the certificates that match the filter. Restrict to certificate of current client only.
 ///
@@ -2123,11 +2274,7 @@ pub fn integrations_projects_locations_certificates_list_execute(
 
 pub fn integrations_projects_locations_certificates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &IntegrationsProjectsLocationsCertificatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2140,7 +2287,12 @@ pub fn integrations_projects_locations_certificates_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_certificates_list_builder(
-        client, parent, filter, pageSize, pageToken, readMask,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
     )?;
     integrations_projects_locations_certificates_list_execute(builder)
 }
@@ -2254,6 +2406,17 @@ pub fn integrations_projects_locations_certificates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_certificates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsCertificatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaCertificate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificates/{certificatesId}
 /// Updates the certificate by id. If new certificate file is updated, it will register with the trawler service, re-encrypt with cloud KMS and update the Spanner record. Other fields will directly update the Spanner record. Returns the Certificate.
 ///
@@ -2266,9 +2429,7 @@ pub fn integrations_projects_locations_certificates_patch_execute(
 
 pub fn integrations_projects_locations_certificates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudIntegrationsV1alphaCertificate,
+    args: &IntegrationsProjectsLocationsCertificatesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaCertificate>, ApiError>,
@@ -2277,8 +2438,12 @@ pub fn integrations_projects_locations_certificates_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_certificates_patch_builder(client, name, updateMask, body)?;
+    let builder = integrations_projects_locations_certificates_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     integrations_projects_locations_certificates_patch_execute(builder)
 }
 
@@ -2383,6 +2548,15 @@ pub fn integrations_projects_locations_clients_change_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_clients_change_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsClientsChangeConfigArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaChangeCustomerConfigRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clients:changeConfig
 /// Updates the client customer configuration for the given project and location resource name
 ///
@@ -2395,8 +2569,7 @@ pub fn integrations_projects_locations_clients_change_config_execute(
 
 pub fn integrations_projects_locations_clients_change_config(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaChangeCustomerConfigRequest,
+    args: &IntegrationsProjectsLocationsClientsChangeConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2408,8 +2581,11 @@ pub fn integrations_projects_locations_clients_change_config(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_clients_change_config_builder(client, parent, body)?;
+    let builder = integrations_projects_locations_clients_change_config_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     integrations_projects_locations_clients_change_config_execute(builder)
 }
 
@@ -2508,6 +2684,15 @@ pub fn integrations_projects_locations_clients_deprovision_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_clients_deprovision`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsClientsDeprovisionArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaDeprovisionClientRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clients:deprovision
 /// Perform the deprovisioning steps to disable a user GCP project to use IP and purge all related data in a wipeout-compliant way.
 ///
@@ -2520,16 +2705,18 @@ pub fn integrations_projects_locations_clients_deprovision_execute(
 
 pub fn integrations_projects_locations_clients_deprovision(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaDeprovisionClientRequest,
+    args: &IntegrationsProjectsLocationsClientsDeprovisionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_clients_deprovision_builder(client, parent, body)?;
+    let builder = integrations_projects_locations_clients_deprovision_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     integrations_projects_locations_clients_deprovision_execute(builder)
 }
 
@@ -2628,6 +2815,15 @@ pub fn integrations_projects_locations_clients_provision_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_clients_provision`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsClientsProvisionArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaProvisionClientRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clients:provision
 /// Perform the provisioning steps to enable a user GCP project to use IP. If GCP project already registered on IP end via Apigee Integration, provisioning will fail.
 ///
@@ -2640,15 +2836,18 @@ pub fn integrations_projects_locations_clients_provision_execute(
 
 pub fn integrations_projects_locations_clients_provision(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaProvisionClientRequest,
+    args: &IntegrationsProjectsLocationsClientsProvisionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_clients_provision_builder(client, parent, body)?;
+    let builder = integrations_projects_locations_clients_provision_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     integrations_projects_locations_clients_provision_execute(builder)
 }
 
@@ -2753,6 +2952,15 @@ pub fn integrations_projects_locations_clients_provision_client_post_processor_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_clients_provision_client_post_processor`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsClientsProvisionClientPostProcessorArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clients:provisionClientPostProcessor
 /// Perform post provisioning steps after client is provisioned.
 ///
@@ -2765,8 +2973,7 @@ pub fn integrations_projects_locations_clients_provision_client_post_processor_e
 
 pub fn integrations_projects_locations_clients_provision_client_post_processor(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorRequest,
+    args: &IntegrationsProjectsLocationsClientsProvisionClientPostProcessorArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2779,7 +2986,9 @@ pub fn integrations_projects_locations_clients_provision_client_post_processor(
     ApiError,
 > {
     let builder = integrations_projects_locations_clients_provision_client_post_processor_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     integrations_projects_locations_clients_provision_client_post_processor_execute(builder)
 }
@@ -2879,6 +3088,15 @@ pub fn integrations_projects_locations_clients_replace_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_clients_replace`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsClientsReplaceArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaReplaceServiceAccountRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clients:replace
 /// Update run-as service account for provisioned client
 ///
@@ -2891,15 +3109,15 @@ pub fn integrations_projects_locations_clients_replace_execute(
 
 pub fn integrations_projects_locations_clients_replace(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaReplaceServiceAccountRequest,
+    args: &IntegrationsProjectsLocationsClientsReplaceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_clients_replace_builder(client, parent, body)?;
+    let builder =
+        integrations_projects_locations_clients_replace_builder(client, &args.parent, &args.body)?;
     integrations_projects_locations_clients_replace_execute(builder)
 }
 
@@ -2998,6 +3216,15 @@ pub fn integrations_projects_locations_clients_switch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_clients_switch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsClientsSwitchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSwitchEncryptionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clients:switch
 /// Update client from GMEK to CMEK
 ///
@@ -3010,15 +3237,15 @@ pub fn integrations_projects_locations_clients_switch_execute(
 
 pub fn integrations_projects_locations_clients_switch(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaSwitchEncryptionRequest,
+    args: &IntegrationsProjectsLocationsClientsSwitchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_clients_switch_builder(client, parent, body)?;
+    let builder =
+        integrations_projects_locations_clients_switch_builder(client, &args.parent, &args.body)?;
     integrations_projects_locations_clients_switch_execute(builder)
 }
 
@@ -3117,6 +3344,15 @@ pub fn integrations_projects_locations_clients_switch_variable_masking_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_clients_switch_variable_masking`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsClientsSwitchVariableMaskingArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSwitchVariableMaskingRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clients:switchVariableMasking
 /// Update variable masking for provisioned client
 ///
@@ -3129,8 +3365,7 @@ pub fn integrations_projects_locations_clients_switch_variable_masking_execute(
 
 pub fn integrations_projects_locations_clients_switch_variable_masking(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaSwitchVariableMaskingRequest,
+    args: &IntegrationsProjectsLocationsClientsSwitchVariableMaskingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -3138,7 +3373,9 @@ pub fn integrations_projects_locations_clients_switch_variable_masking(
     ApiError,
 > {
     let builder = integrations_projects_locations_clients_switch_variable_masking_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     integrations_projects_locations_clients_switch_variable_masking_execute(builder)
 }
@@ -3238,6 +3475,15 @@ pub fn integrations_projects_locations_clients_toggle_http_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_clients_toggle_http`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsClientsToggleHttpArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaToggleHttpRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clients:toggleHttp
 /// E`nable/Disable` http call for provisioned client
 ///
@@ -3250,16 +3496,18 @@ pub fn integrations_projects_locations_clients_toggle_http_execute(
 
 pub fn integrations_projects_locations_clients_toggle_http(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaToggleHttpRequest,
+    args: &IntegrationsProjectsLocationsClientsToggleHttpArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_clients_toggle_http_builder(client, parent, body)?;
+    let builder = integrations_projects_locations_clients_toggle_http_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     integrations_projects_locations_clients_toggle_http_execute(builder)
 }
 
@@ -3364,6 +3612,15 @@ pub fn integrations_projects_locations_cloud_functions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_cloud_functions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsCloudFunctionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaCreateCloudFunctionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudFunctions
 /// Creates a cloud function project.
 ///
@@ -3376,8 +3633,7 @@ pub fn integrations_projects_locations_cloud_functions_create_execute(
 
 pub fn integrations_projects_locations_cloud_functions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaCreateCloudFunctionRequest,
+    args: &IntegrationsProjectsLocationsCloudFunctionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3389,8 +3645,11 @@ pub fn integrations_projects_locations_cloud_functions_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_cloud_functions_create_builder(client, parent, body)?;
+    let builder = integrations_projects_locations_cloud_functions_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     integrations_projects_locations_cloud_functions_create_execute(builder)
 }
 
@@ -3492,6 +3751,13 @@ pub fn integrations_projects_locations_connections_get_connection_schema_metadat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_connections_get_connection_schema_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsConnectionsGetConnectionSchemaMetadataArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/connectionSchemaMetadata
 /// Lists the available entities and actions associated with a Connection.
 ///
@@ -3504,7 +3770,7 @@ pub fn integrations_projects_locations_connections_get_connection_schema_metadat
 
 pub fn integrations_projects_locations_connections_get_connection_schema_metadata(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsConnectionsGetConnectionSchemaMetadataArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3518,7 +3784,7 @@ pub fn integrations_projects_locations_connections_get_connection_schema_metadat
 > {
     let builder =
         integrations_projects_locations_connections_get_connection_schema_metadata_builder(
-            client, name,
+            client, &args.name,
         )?;
     integrations_projects_locations_connections_get_connection_schema_metadata_execute(builder)
 }
@@ -3645,6 +3911,21 @@ pub fn integrations_projects_locations_connections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsConnectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections
 /// Lists Connections in a given project and location.
 ///
@@ -3657,11 +3938,7 @@ pub fn integrations_projects_locations_connections_list_execute(
 
 pub fn integrations_projects_locations_connections_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &IntegrationsProjectsLocationsConnectionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3674,7 +3951,12 @@ pub fn integrations_projects_locations_connections_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_connections_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     integrations_projects_locations_connections_list_execute(builder)
 }
@@ -3797,6 +4079,19 @@ pub fn integrations_projects_locations_connections_runtime_action_schemas_list_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_connections_runtime_action_schemas_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsConnectionsRuntimeActionSchemasListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/runtimeActionSchemas
 /// Lists the JSON schemas for the inputs and outputs of actions, filtered by action name.
 ///
@@ -3809,10 +4104,7 @@ pub fn integrations_projects_locations_connections_runtime_action_schemas_list_e
 
 pub fn integrations_projects_locations_connections_runtime_action_schemas_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &IntegrationsProjectsLocationsConnectionsRuntimeActionSchemasListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3825,7 +4117,11 @@ pub fn integrations_projects_locations_connections_runtime_action_schemas_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_connections_runtime_action_schemas_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     integrations_projects_locations_connections_runtime_action_schemas_list_execute(builder)
 }
@@ -3948,6 +4244,19 @@ pub fn integrations_projects_locations_connections_runtime_entity_schemas_list_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_connections_runtime_entity_schemas_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsConnectionsRuntimeEntitySchemasListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/runtimeEntitySchemas
 /// Lists the JSON schemas for the properties of runtime entities, filtered by entity name.
 ///
@@ -3960,10 +4269,7 @@ pub fn integrations_projects_locations_connections_runtime_entity_schemas_list_e
 
 pub fn integrations_projects_locations_connections_runtime_entity_schemas_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &IntegrationsProjectsLocationsConnectionsRuntimeEntitySchemasListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3976,7 +4282,11 @@ pub fn integrations_projects_locations_connections_runtime_entity_schemas_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_connections_runtime_entity_schemas_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     integrations_projects_locations_connections_runtime_entity_schemas_list_execute(builder)
 }
@@ -4073,6 +4383,13 @@ pub fn integrations_projects_locations_integrations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}
 /// Delete the selected integration and all versions inside
 ///
@@ -4085,14 +4402,14 @@ pub fn integrations_projects_locations_integrations_delete_execute(
 
 pub fn integrations_projects_locations_integrations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsIntegrationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_integrations_delete_builder(client, name)?;
+    let builder = integrations_projects_locations_integrations_delete_builder(client, &args.name)?;
     integrations_projects_locations_integrations_delete_execute(builder)
 }
 
@@ -4197,6 +4514,15 @@ pub fn integrations_projects_locations_integrations_execute_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_execute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecuteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaExecuteIntegrationsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}:execute
 /// Executes integrations synchronously by passing the trigger id in the request body. The request is not returned until the requested executions are either fulfilled or experienced an error. If the integration name is not specified (passing -), all of the associated integration under the given trigger_id will be executed. Otherwise only the specified integration for the given trigger_id is executed. This is helpful for execution the integration from UI.
 ///
@@ -4209,8 +4535,7 @@ pub fn integrations_projects_locations_integrations_execute_execute(
 
 pub fn integrations_projects_locations_integrations_execute(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaExecuteIntegrationsRequest,
+    args: &IntegrationsProjectsLocationsIntegrationsExecuteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4222,7 +4547,9 @@ pub fn integrations_projects_locations_integrations_execute(
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_integrations_execute_builder(client, name, body)?;
+    let builder = integrations_projects_locations_integrations_execute_builder(
+        client, &args.name, &args.body,
+    )?;
     integrations_projects_locations_integrations_execute_execute(builder)
 }
 
@@ -4333,6 +4660,15 @@ pub fn integrations_projects_locations_integrations_execute_event_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_execute_event`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecuteEventArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: triggerId
+    pub triggerId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}:executeEvent
 /// Executes an integration on receiving events from Integration Connector triggers, Eventarc or CPS Trigger. Input data to integration is received in body in json format
 ///
@@ -4345,8 +4681,7 @@ pub fn integrations_projects_locations_integrations_execute_event_execute(
 
 pub fn integrations_projects_locations_integrations_execute_event(
     client: &SimpleHttpClient,
-    name: &str,
-    triggerId: Option<&str>,
+    args: &IntegrationsProjectsLocationsIntegrationsExecuteEventArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaExecuteEventResponse>, ApiError>,
@@ -4356,7 +4691,9 @@ pub fn integrations_projects_locations_integrations_execute_event(
     ApiError,
 > {
     let builder = integrations_projects_locations_integrations_execute_event_builder(
-        client, name, triggerId,
+        client,
+        &args.name,
+        args.triggerId.as_deref(),
     )?;
     integrations_projects_locations_integrations_execute_event_execute(builder)
 }
@@ -4483,6 +4820,21 @@ pub fn integrations_projects_locations_integrations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations
 /// Returns the list of all integrations in the specified project.
 ///
@@ -4495,11 +4847,7 @@ pub fn integrations_projects_locations_integrations_list_execute(
 
 pub fn integrations_projects_locations_integrations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &IntegrationsProjectsLocationsIntegrationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4512,7 +4860,12 @@ pub fn integrations_projects_locations_integrations_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_integrations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     integrations_projects_locations_integrations_list_execute(builder)
 }
@@ -4618,6 +4971,15 @@ pub fn integrations_projects_locations_integrations_schedule_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_schedule`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsScheduleArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}:schedule
 /// Schedules an integration for execution by passing the trigger id and the scheduled time in the request body.
 ///
@@ -4630,8 +4992,7 @@ pub fn integrations_projects_locations_integrations_schedule_execute(
 
 pub fn integrations_projects_locations_integrations_schedule(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest,
+    args: &IntegrationsProjectsLocationsIntegrationsScheduleArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4643,8 +5004,9 @@ pub fn integrations_projects_locations_integrations_schedule(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_integrations_schedule_builder(client, name, body)?;
+    let builder = integrations_projects_locations_integrations_schedule_builder(
+        client, &args.name, &args.body,
+    )?;
     integrations_projects_locations_integrations_schedule_execute(builder)
 }
 
@@ -4774,6 +5136,23 @@ pub fn integrations_projects_locations_integrations_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: enableNaturalLanguageQueryUnderstanding
+    pub enableNaturalLanguageQueryUnderstanding: Option<bool>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations:search
 /// Searches and returns the list of integrations in the specified project.
 ///
@@ -4786,12 +5165,7 @@ pub fn integrations_projects_locations_integrations_search_execute(
 
 pub fn integrations_projects_locations_integrations_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    enableNaturalLanguageQueryUnderstanding: Option<bool>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    args: &IntegrationsProjectsLocationsIntegrationsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4805,12 +5179,12 @@ pub fn integrations_projects_locations_integrations_search(
 > {
     let builder = integrations_projects_locations_integrations_search_builder(
         client,
-        parent,
-        enableNaturalLanguageQueryUnderstanding,
-        filter,
-        pageSize,
-        pageToken,
-        query,
+        &args.parent,
+        args.enableNaturalLanguageQueryUnderstanding,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
     )?;
     integrations_projects_locations_integrations_search_execute(builder)
 }
@@ -4916,6 +5290,15 @@ pub fn integrations_projects_locations_integrations_test_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_test`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsTestArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTestIntegrationsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}:test
 /// Execute the integration in draft state
 ///
@@ -4928,8 +5311,7 @@ pub fn integrations_projects_locations_integrations_test_execute(
 
 pub fn integrations_projects_locations_integrations_test(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaTestIntegrationsRequest,
+    args: &IntegrationsProjectsLocationsIntegrationsTestArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4941,7 +5323,8 @@ pub fn integrations_projects_locations_integrations_test(
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_integrations_test_builder(client, name, body)?;
+    let builder =
+        integrations_projects_locations_integrations_test_builder(client, &args.name, &args.body)?;
     integrations_projects_locations_integrations_test_execute(builder)
 }
 
@@ -5046,6 +5429,15 @@ pub fn integrations_projects_locations_integrations_executions_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_executions_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecutionsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaCancelExecutionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/executions/{executionsId}:cancel
 /// Cancellation of an execution and associated sub-executions. This will not cancel an IN_PROCESS or completed(SUCCESSFUL, FAILED or CANCELLED) executions.
 ///
@@ -5058,8 +5450,7 @@ pub fn integrations_projects_locations_integrations_executions_cancel_execute(
 
 pub fn integrations_projects_locations_integrations_executions_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaCancelExecutionRequest,
+    args: &IntegrationsProjectsLocationsIntegrationsExecutionsCancelArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5071,8 +5462,9 @@ pub fn integrations_projects_locations_integrations_executions_cancel(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_integrations_executions_cancel_builder(client, name, body)?;
+    let builder = integrations_projects_locations_integrations_executions_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     integrations_projects_locations_integrations_executions_cancel_execute(builder)
 }
 
@@ -5174,6 +5566,13 @@ pub fn integrations_projects_locations_integrations_executions_download_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_executions_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecutionsDownloadArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/executions/{executionsId}:download
 /// Download the execution.
 ///
@@ -5186,7 +5585,7 @@ pub fn integrations_projects_locations_integrations_executions_download_execute(
 
 pub fn integrations_projects_locations_integrations_executions_download(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsIntegrationsExecutionsDownloadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5198,8 +5597,9 @@ pub fn integrations_projects_locations_integrations_executions_download(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_integrations_executions_download_builder(client, name)?;
+    let builder = integrations_projects_locations_integrations_executions_download_builder(
+        client, &args.name,
+    )?;
     integrations_projects_locations_integrations_executions_download_execute(builder)
 }
 
@@ -5298,6 +5698,13 @@ pub fn integrations_projects_locations_integrations_executions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_executions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecutionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/executions/{executionsId}
 /// Get an execution in the specified project.
 ///
@@ -5310,7 +5717,7 @@ pub fn integrations_projects_locations_integrations_executions_get_execute(
 
 pub fn integrations_projects_locations_integrations_executions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsIntegrationsExecutionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaExecution>, ApiError>,
@@ -5320,7 +5727,7 @@ pub fn integrations_projects_locations_integrations_executions_get(
     ApiError,
 > {
     let builder =
-        integrations_projects_locations_integrations_executions_get_builder(client, name)?;
+        integrations_projects_locations_integrations_executions_get_builder(client, &args.name)?;
     integrations_projects_locations_integrations_executions_get_execute(builder)
 }
 
@@ -5507,6 +5914,53 @@ pub fn integrations_projects_locations_integrations_executions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_executions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecutionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: filterParams_customFilter
+    pub filterParams_customFilter: Option<String>,
+    /// Query parameter: filterParams_endTime
+    pub filterParams_endTime: Option<String>,
+    /// Query parameter: filterParams_eventStatuses
+    pub filterParams_eventStatuses: Option<String>,
+    /// Query parameter: filterParams_executionId
+    pub filterParams_executionId: Option<String>,
+    /// Query parameter: filterParams_parameterKey
+    pub filterParams_parameterKey: Option<String>,
+    /// Query parameter: filterParams_parameterPairKey
+    pub filterParams_parameterPairKey: Option<String>,
+    /// Query parameter: filterParams_parameterPairValue
+    pub filterParams_parameterPairValue: Option<String>,
+    /// Query parameter: filterParams_parameterType
+    pub filterParams_parameterType: Option<String>,
+    /// Query parameter: filterParams_parameterValue
+    pub filterParams_parameterValue: Option<String>,
+    /// Query parameter: filterParams_startTime
+    pub filterParams_startTime: Option<String>,
+    /// Query parameter: filterParams_taskStatuses
+    pub filterParams_taskStatuses: Option<String>,
+    /// Query parameter: filterParams_workflowName
+    pub filterParams_workflowName: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+    /// Query parameter: refreshAcl
+    pub refreshAcl: Option<bool>,
+    /// Query parameter: snapshotMetadataWithoutParams
+    pub snapshotMetadataWithoutParams: Option<bool>,
+    /// Query parameter: truncateParams
+    pub truncateParams: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/executions
 /// Lists the results of all the integration executions. The response includes the same information as the [execution log](<https://cloud.google.`com/application-integration/docs/viewing-logs`>) in the Integration UI.
 ///
@@ -5519,27 +5973,7 @@ pub fn integrations_projects_locations_integrations_executions_list_execute(
 
 pub fn integrations_projects_locations_integrations_executions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    filterParams_customFilter: Option<&str>,
-    filterParams_endTime: Option<&str>,
-    filterParams_eventStatuses: Option<&str>,
-    filterParams_executionId: Option<&str>,
-    filterParams_parameterKey: Option<&str>,
-    filterParams_parameterPairKey: Option<&str>,
-    filterParams_parameterPairValue: Option<&str>,
-    filterParams_parameterType: Option<&str>,
-    filterParams_parameterValue: Option<&str>,
-    filterParams_startTime: Option<&str>,
-    filterParams_taskStatuses: Option<&str>,
-    filterParams_workflowName: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
-    refreshAcl: Option<bool>,
-    snapshotMetadataWithoutParams: Option<bool>,
-    truncateParams: Option<bool>,
+    args: &IntegrationsProjectsLocationsIntegrationsExecutionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaListExecutionsResponse>, ApiError>,
@@ -5550,27 +5984,27 @@ pub fn integrations_projects_locations_integrations_executions_list(
 > {
     let builder = integrations_projects_locations_integrations_executions_list_builder(
         client,
-        parent,
-        filter,
-        filterParams_customFilter,
-        filterParams_endTime,
-        filterParams_eventStatuses,
-        filterParams_executionId,
-        filterParams_parameterKey,
-        filterParams_parameterPairKey,
-        filterParams_parameterPairValue,
-        filterParams_parameterType,
-        filterParams_parameterValue,
-        filterParams_startTime,
-        filterParams_taskStatuses,
-        filterParams_workflowName,
-        orderBy,
-        pageSize,
-        pageToken,
-        readMask,
-        refreshAcl,
-        snapshotMetadataWithoutParams,
-        truncateParams,
+        &args.parent,
+        args.filter.as_deref(),
+        args.filterParams_customFilter.as_deref(),
+        args.filterParams_endTime.as_deref(),
+        args.filterParams_eventStatuses.as_deref(),
+        args.filterParams_executionId.as_deref(),
+        args.filterParams_parameterKey.as_deref(),
+        args.filterParams_parameterPairKey.as_deref(),
+        args.filterParams_parameterPairValue.as_deref(),
+        args.filterParams_parameterType.as_deref(),
+        args.filterParams_parameterValue.as_deref(),
+        args.filterParams_startTime.as_deref(),
+        args.filterParams_taskStatuses.as_deref(),
+        args.filterParams_workflowName.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
+        args.refreshAcl,
+        args.snapshotMetadataWithoutParams,
+        args.truncateParams,
     )?;
     integrations_projects_locations_integrations_executions_list_execute(builder)
 }
@@ -5676,6 +6110,15 @@ pub fn integrations_projects_locations_integrations_executions_replay_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_executions_replay`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecutionsReplayArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaReplayExecutionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/executions/{executionsId}:replay
 /// Re-execute an existing execution, with same request parameters and execution strategy.
 ///
@@ -5688,8 +6131,7 @@ pub fn integrations_projects_locations_integrations_executions_replay_execute(
 
 pub fn integrations_projects_locations_integrations_executions_replay(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaReplayExecutionRequest,
+    args: &IntegrationsProjectsLocationsIntegrationsExecutionsReplayArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5701,8 +6143,9 @@ pub fn integrations_projects_locations_integrations_executions_replay(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_integrations_executions_replay_builder(client, name, body)?;
+    let builder = integrations_projects_locations_integrations_executions_replay_builder(
+        client, &args.name, &args.body,
+    )?;
     integrations_projects_locations_integrations_executions_replay_execute(builder)
 }
 
@@ -5804,6 +6247,15 @@ pub fn integrations_projects_locations_integrations_executions_suspensions_lift_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_executions_suspensions_lift`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsLiftArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaLiftSuspensionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/executions/{executionsId}/suspensions/{suspensionsId}:lift
 /// * Lifts suspension for the Suspension task. Fetch corresponding suspension with provided suspension Id, resolve suspension, and set up suspension result for the Suspension Task.
 ///
@@ -5816,8 +6268,7 @@ pub fn integrations_projects_locations_integrations_executions_suspensions_lift_
 
 pub fn integrations_projects_locations_integrations_executions_suspensions_lift(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaLiftSuspensionRequest,
+    args: &IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsLiftArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaLiftSuspensionResponse>, ApiError>,
@@ -5827,7 +6278,7 @@ pub fn integrations_projects_locations_integrations_executions_suspensions_lift(
     ApiError,
 > {
     let builder = integrations_projects_locations_integrations_executions_suspensions_lift_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     integrations_projects_locations_integrations_executions_suspensions_lift_execute(builder)
 }
@@ -5954,6 +6405,21 @@ pub fn integrations_projects_locations_integrations_executions_suspensions_list_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_executions_suspensions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/executions/{executionsId}/suspensions
 /// * Lists suspensions associated with a specific execution. Only those with permissions to resolve the relevant suspensions will be able to view them.
 ///
@@ -5966,11 +6432,7 @@ pub fn integrations_projects_locations_integrations_executions_suspensions_list_
 
 pub fn integrations_projects_locations_integrations_executions_suspensions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5983,7 +6445,12 @@ pub fn integrations_projects_locations_integrations_executions_suspensions_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_integrations_executions_suspensions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     integrations_projects_locations_integrations_executions_suspensions_list_execute(builder)
 }
@@ -6089,6 +6556,15 @@ pub fn integrations_projects_locations_integrations_executions_suspensions_resol
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_executions_suspensions_resolve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsResolveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaResolveSuspensionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/executions/{executionsId}/suspensions/{suspensionsId}:resolve
 /// * Resolves (`lifts/rejects`) any number of suspensions. If the integration is already running, only the status of the suspension is updated. Otherwise, the suspended integration will begin execution again.
 ///
@@ -6101,8 +6577,7 @@ pub fn integrations_projects_locations_integrations_executions_suspensions_resol
 
 pub fn integrations_projects_locations_integrations_executions_suspensions_resolve(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaResolveSuspensionRequest,
+    args: &IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsResolveArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -6116,7 +6591,7 @@ pub fn integrations_projects_locations_integrations_executions_suspensions_resol
 > {
     let builder =
         integrations_projects_locations_integrations_executions_suspensions_resolve_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     integrations_projects_locations_integrations_executions_suspensions_resolve_execute(builder)
 }
@@ -6235,6 +6710,19 @@ pub fn integrations_projects_locations_integrations_versions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: createSampleIntegrations
+    pub createSampleIntegrations: Option<bool>,
+    /// Query parameter: newIntegration
+    pub newIntegration: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaIntegrationVersion,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions
 /// Create a integration with a draft version in the specified project.
 ///
@@ -6247,10 +6735,7 @@ pub fn integrations_projects_locations_integrations_versions_create_execute(
 
 pub fn integrations_projects_locations_integrations_versions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    createSampleIntegrations: Option<bool>,
-    newIntegration: Option<bool>,
-    body: &GoogleCloudIntegrationsV1alphaIntegrationVersion,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaIntegrationVersion>, ApiError>,
@@ -6261,10 +6746,10 @@ pub fn integrations_projects_locations_integrations_versions_create(
 > {
     let builder = integrations_projects_locations_integrations_versions_create_builder(
         client,
-        parent,
-        createSampleIntegrations,
-        newIntegration,
-        body,
+        &args.parent,
+        args.createSampleIntegrations,
+        args.newIntegration,
+        &args.body,
     )?;
     integrations_projects_locations_integrations_versions_create_execute(builder)
 }
@@ -6361,6 +6846,13 @@ pub fn integrations_projects_locations_integrations_versions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}
 /// Soft-deletes the integration. Changes the status of the integration to ARCHIVED. If the integration being ARCHIVED is tagged as "HEAD", the tag is removed from this snapshot and set to the previous non-ARCHIVED snapshot. The PUBLISH_REQUESTED, DUE_FOR_DELETION tags are removed too. This RPC throws an exception if the version being deleted is DRAFT, and if the locked_by user is not the same as the user performing the Delete. Audit fields updated include last_modified_timestamp, last_modified_by. Any existing lock is released when Deleting a integration. Currently, there is no undelete mechanism.
 ///
@@ -6373,7 +6865,7 @@ pub fn integrations_projects_locations_integrations_versions_delete_execute(
 
 pub fn integrations_projects_locations_integrations_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -6381,7 +6873,7 @@ pub fn integrations_projects_locations_integrations_versions_delete(
     ApiError,
 > {
     let builder =
-        integrations_projects_locations_integrations_versions_delete_builder(client, name)?;
+        integrations_projects_locations_integrations_versions_delete_builder(client, &args.name)?;
     integrations_projects_locations_integrations_versions_delete_execute(builder)
 }
 
@@ -6499,6 +6991,17 @@ pub fn integrations_projects_locations_integrations_versions_download_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsDownloadArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: fileFormat
+    pub fileFormat: Option<String>,
+    /// Query parameter: files
+    pub files: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}:download
 /// Downloads an integration. Retrieves the IntegrationVersion for a given integration_id and returns the response as a string.
 ///
@@ -6511,9 +7014,7 @@ pub fn integrations_projects_locations_integrations_versions_download_execute(
 
 pub fn integrations_projects_locations_integrations_versions_download(
     client: &SimpleHttpClient,
-    name: &str,
-    fileFormat: Option<&str>,
-    files: Option<&str>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsDownloadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -6526,7 +7027,10 @@ pub fn integrations_projects_locations_integrations_versions_download(
     ApiError,
 > {
     let builder = integrations_projects_locations_integrations_versions_download_builder(
-        client, name, fileFormat, files,
+        client,
+        &args.name,
+        args.fileFormat.as_deref(),
+        args.files.as_deref(),
     )?;
     integrations_projects_locations_integrations_versions_download_execute(builder)
 }
@@ -6641,6 +7145,15 @@ pub fn integrations_projects_locations_integrations_versions_download_json_packa
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_download_json_package`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsDownloadJsonPackageArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: files
+    pub files: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}:downloadJsonPackage
 /// Downloads an Integration version package like IntegrationVersion,Integration Config etc. Retrieves the IntegrationVersion package for a given integration_id and returns the response as a JSON.
 ///
@@ -6653,8 +7166,7 @@ pub fn integrations_projects_locations_integrations_versions_download_json_packa
 
 pub fn integrations_projects_locations_integrations_versions_download_json_package(
     client: &SimpleHttpClient,
-    name: &str,
-    files: Option<&str>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsDownloadJsonPackageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -6668,7 +7180,9 @@ pub fn integrations_projects_locations_integrations_versions_download_json_packa
 > {
     let builder =
         integrations_projects_locations_integrations_versions_download_json_package_builder(
-            client, name, files,
+            client,
+            &args.name,
+            args.files.as_deref(),
         )?;
     integrations_projects_locations_integrations_versions_download_json_package_execute(builder)
 }
@@ -6768,6 +7282,13 @@ pub fn integrations_projects_locations_integrations_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}
 /// Get a integration in the specified project.
 ///
@@ -6780,7 +7301,7 @@ pub fn integrations_projects_locations_integrations_versions_get_execute(
 
 pub fn integrations_projects_locations_integrations_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaIntegrationVersion>, ApiError>,
@@ -6789,7 +7310,8 @@ pub fn integrations_projects_locations_integrations_versions_get(
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_integrations_versions_get_builder(client, name)?;
+    let builder =
+        integrations_projects_locations_integrations_versions_get_builder(client, &args.name)?;
     integrations_projects_locations_integrations_versions_get_execute(builder)
 }
 
@@ -6919,6 +7441,23 @@ pub fn integrations_projects_locations_integrations_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: fieldMask
+    pub fieldMask: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions
 /// Returns the list of all integration versions in the specified project.
 ///
@@ -6931,12 +7470,7 @@ pub fn integrations_projects_locations_integrations_versions_list_execute(
 
 pub fn integrations_projects_locations_integrations_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    fieldMask: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -6949,7 +7483,13 @@ pub fn integrations_projects_locations_integrations_versions_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_integrations_versions_list_builder(
-        client, parent, fieldMask, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.fieldMask.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     integrations_projects_locations_integrations_versions_list_execute(builder)
 }
@@ -7064,6 +7604,17 @@ pub fn integrations_projects_locations_integrations_versions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaIntegrationVersion,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}
 /// Update a integration with a draft version in the specified project.
 ///
@@ -7076,9 +7627,7 @@ pub fn integrations_projects_locations_integrations_versions_patch_execute(
 
 pub fn integrations_projects_locations_integrations_versions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudIntegrationsV1alphaIntegrationVersion,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaIntegrationVersion>, ApiError>,
@@ -7088,7 +7637,10 @@ pub fn integrations_projects_locations_integrations_versions_patch(
     ApiError,
 > {
     let builder = integrations_projects_locations_integrations_versions_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     integrations_projects_locations_integrations_versions_patch_execute(builder)
 }
@@ -7194,6 +7746,15 @@ pub fn integrations_projects_locations_integrations_versions_publish_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_publish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsPublishArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaPublishIntegrationVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}:publish
 /// This RPC throws an exception if the integration is in ARCHIVED or `ACTIVE` state. This RPC throws an exception if the version being published is DRAFT, and if the locked_by user is not the same as the user performing the Publish. Audit fields updated include last_published_timestamp, last_published_by, last_modified_timestamp, last_modified_by. Any existing lock is on this integration is released.
 ///
@@ -7206,8 +7767,7 @@ pub fn integrations_projects_locations_integrations_versions_publish_execute(
 
 pub fn integrations_projects_locations_integrations_versions_publish(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaPublishIntegrationVersionRequest,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsPublishArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -7219,8 +7779,9 @@ pub fn integrations_projects_locations_integrations_versions_publish(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_integrations_versions_publish_builder(client, name, body)?;
+    let builder = integrations_projects_locations_integrations_versions_publish_builder(
+        client, &args.name, &args.body,
+    )?;
     integrations_projects_locations_integrations_versions_publish_execute(builder)
 }
 
@@ -7325,6 +7886,15 @@ pub fn integrations_projects_locations_integrations_versions_test_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_test`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTestIntegrationsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}:test
 /// Execute the integration in draft state
 ///
@@ -7337,8 +7907,7 @@ pub fn integrations_projects_locations_integrations_versions_test_execute(
 
 pub fn integrations_projects_locations_integrations_versions_test(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaTestIntegrationsRequest,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -7350,8 +7919,9 @@ pub fn integrations_projects_locations_integrations_versions_test(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_integrations_versions_test_builder(client, name, body)?;
+    let builder = integrations_projects_locations_integrations_versions_test_builder(
+        client, &args.name, &args.body,
+    )?;
     integrations_projects_locations_integrations_versions_test_execute(builder)
 }
 
@@ -7450,6 +8020,15 @@ pub fn integrations_projects_locations_integrations_versions_unpublish_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_unpublish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsUnpublishArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaUnpublishIntegrationVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}:unpublish
 /// Sets the status of the `ACTIVE` integration to SNAPSHOT with a new tag "PREVIOUSLY_PUBLISHED" after validating it. The "HEAD" and "PUBLISH_REQUESTED" tags do not change. This RPC throws an exception if the version being snapshot is not `ACTIVE`. Audit fields added include action, action_by, action_timestamp.
 ///
@@ -7462,8 +8041,7 @@ pub fn integrations_projects_locations_integrations_versions_unpublish_execute(
 
 pub fn integrations_projects_locations_integrations_versions_unpublish(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaUnpublishIntegrationVersionRequest,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsUnpublishArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -7471,7 +8049,7 @@ pub fn integrations_projects_locations_integrations_versions_unpublish(
     ApiError,
 > {
     let builder = integrations_projects_locations_integrations_versions_unpublish_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     integrations_projects_locations_integrations_versions_unpublish_execute(builder)
 }
@@ -7577,6 +8155,15 @@ pub fn integrations_projects_locations_integrations_versions_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaUploadIntegrationVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions:upload
 /// Uploads an integration. The content can be a previously downloaded integration. Performs the same function as CreateDraftIntegrationVersion, but accepts input in a string format, which holds the complete representation of the IntegrationVersion content.
 ///
@@ -7589,8 +8176,7 @@ pub fn integrations_projects_locations_integrations_versions_upload_execute(
 
 pub fn integrations_projects_locations_integrations_versions_upload(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaUploadIntegrationVersionRequest,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsUploadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -7602,8 +8188,11 @@ pub fn integrations_projects_locations_integrations_versions_upload(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_integrations_versions_upload_builder(client, parent, body)?;
+    let builder = integrations_projects_locations_integrations_versions_upload_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     integrations_projects_locations_integrations_versions_upload_execute(builder)
 }
 
@@ -7716,6 +8305,17 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_create_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_test_cases_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: testCaseId
+    pub testCaseId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTestCase,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases
 /// Creates a new test case
 ///
@@ -7728,9 +8328,7 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_create_e
 
 pub fn integrations_projects_locations_integrations_versions_test_cases_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    testCaseId: Option<&str>,
-    body: &GoogleCloudIntegrationsV1alphaTestCase,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaTestCase>, ApiError>,
@@ -7740,7 +8338,10 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_create(
     ApiError,
 > {
     let builder = integrations_projects_locations_integrations_versions_test_cases_create_builder(
-        client, parent, testCaseId, body,
+        client,
+        &args.parent,
+        args.testCaseId.as_deref(),
+        &args.body,
     )?;
     integrations_projects_locations_integrations_versions_test_cases_create_execute(builder)
 }
@@ -7837,6 +8438,13 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_delete_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_test_cases_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases/{testCasesId}
 /// Deletes a test case
 ///
@@ -7849,7 +8457,7 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_delete_e
 
 pub fn integrations_projects_locations_integrations_versions_test_cases_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -7857,7 +8465,7 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_delete(
     ApiError,
 > {
     let builder = integrations_projects_locations_integrations_versions_test_cases_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     integrations_projects_locations_integrations_versions_test_cases_delete_execute(builder)
 }
@@ -7972,6 +8580,15 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_download
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_test_cases_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesDownloadArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: fileFormat
+    pub fileFormat: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases/{testCasesId}:download
 /// Downloads a test case. Retrieves the TestCase for a given test_case_id and returns the response as a string.
 ///
@@ -7984,8 +8601,7 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_download
 
 pub fn integrations_projects_locations_integrations_versions_test_cases_download(
     client: &SimpleHttpClient,
-    name: &str,
-    fileFormat: Option<&str>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesDownloadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -7999,7 +8615,9 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_download
 > {
     let builder =
         integrations_projects_locations_integrations_versions_test_cases_download_builder(
-            client, name, fileFormat,
+            client,
+            &args.name,
+            args.fileFormat.as_deref(),
         )?;
     integrations_projects_locations_integrations_versions_test_cases_download_execute(builder)
 }
@@ -8105,6 +8723,15 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_execute_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_test_cases_execute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesExecuteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaExecuteTestCasesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases:execute
 /// Executes all test cases in an integration version.
 ///
@@ -8117,8 +8744,7 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_execute_
 
 pub fn integrations_projects_locations_integrations_versions_test_cases_execute(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaExecuteTestCasesRequest,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesExecuteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -8131,7 +8757,9 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_execute(
     ApiError,
 > {
     let builder = integrations_projects_locations_integrations_versions_test_cases_execute_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     integrations_projects_locations_integrations_versions_test_cases_execute_execute(builder)
 }
@@ -8237,6 +8865,15 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_execute_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_test_cases_execute_test`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesExecuteTestArgs {
+    /// Path parameter: testCaseName
+    pub testCaseName: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaExecuteTestCaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases/{testCasesId}:executeTest
 /// Executes functional test
 ///
@@ -8249,8 +8886,7 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_execute_
 
 pub fn integrations_projects_locations_integrations_versions_test_cases_execute_test(
     client: &SimpleHttpClient,
-    testCaseName: &str,
-    body: &GoogleCloudIntegrationsV1alphaExecuteTestCaseRequest,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesExecuteTestArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -8265,8 +8901,8 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_execute_
     let builder =
         integrations_projects_locations_integrations_versions_test_cases_execute_test_builder(
             client,
-            testCaseName,
-            body,
+            &args.testCaseName,
+            &args.body,
         )?;
     integrations_projects_locations_integrations_versions_test_cases_execute_test_execute(builder)
 }
@@ -8365,6 +9001,13 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_get_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_test_cases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases/{testCasesId}
 /// Get a test case
 ///
@@ -8377,7 +9020,7 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_get_exec
 
 pub fn integrations_projects_locations_integrations_versions_test_cases_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaTestCase>, ApiError>,
@@ -8386,8 +9029,9 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_integrations_versions_test_cases_get_builder(client, name)?;
+    let builder = integrations_projects_locations_integrations_versions_test_cases_get_builder(
+        client, &args.name,
+    )?;
     integrations_projects_locations_integrations_versions_test_cases_get_execute(builder)
 }
 
@@ -8514,6 +9158,23 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_list_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_test_cases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases
 /// Lists all the test cases that satisfy the filters.
 ///
@@ -8526,12 +9187,7 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_list_exe
 
 pub fn integrations_projects_locations_integrations_versions_test_cases_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaListTestCasesResponse>, ApiError>,
@@ -8541,7 +9197,13 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_integrations_versions_test_cases_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, readMask,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
     )?;
     integrations_projects_locations_integrations_versions_test_cases_list_execute(builder)
 }
@@ -8655,6 +9317,17 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_patch_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_test_cases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTestCase,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases/{testCasesId}
 /// Updates a test case
 ///
@@ -8667,9 +9340,7 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_patch_ex
 
 pub fn integrations_projects_locations_integrations_versions_test_cases_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudIntegrationsV1alphaTestCase,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaTestCase>, ApiError>,
@@ -8679,7 +9350,10 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_patch(
     ApiError,
 > {
     let builder = integrations_projects_locations_integrations_versions_test_cases_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     integrations_projects_locations_integrations_versions_test_cases_patch_execute(builder)
 }
@@ -8781,6 +9455,15 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_takeover
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_test_cases_takeover_edit_lock`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesTakeoverEditLockArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTakeoverTestCaseEditLockRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases/{testCasesId}:takeoverEditLock
 /// Clear the lock fields and assign them to current user
 ///
@@ -8793,8 +9476,7 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_takeover
 
 pub fn integrations_projects_locations_integrations_versions_test_cases_takeover_edit_lock(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaTakeoverTestCaseEditLockRequest,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesTakeoverEditLockArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaTestCase>, ApiError>,
@@ -8803,7 +9485,7 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_takeover
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_integrations_versions_test_cases_takeover_edit_lock_builder(client, name, body)?;
+    let builder = integrations_projects_locations_integrations_versions_test_cases_takeover_edit_lock_builder(client, &args.name, &args.body)?;
     integrations_projects_locations_integrations_versions_test_cases_takeover_edit_lock_execute(
         builder,
     )
@@ -8907,6 +9589,15 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_upload_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_integrations_versions_test_cases_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaUploadTestCaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases:upload
 /// Uploads a test case. The content can be a previously downloaded test case. Performs the same function as CreateTestCase, but accepts input in a string format, which holds the complete representation of the TestCase content.
 ///
@@ -8919,8 +9610,7 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_upload_e
 
 pub fn integrations_projects_locations_integrations_versions_test_cases_upload(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaUploadTestCaseRequest,
+    args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesUploadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaUploadTestCaseResponse>, ApiError>,
@@ -8930,7 +9620,9 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_upload(
     ApiError,
 > {
     let builder = integrations_projects_locations_integrations_versions_test_cases_upload_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     integrations_projects_locations_integrations_versions_test_cases_upload_execute(builder)
 }
@@ -9052,6 +9744,21 @@ pub fn integrations_projects_locations_products_auth_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_auth_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsAuthConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: clientCertificate_encryptedPrivateKey
+    pub clientCertificate_encryptedPrivateKey: Option<String>,
+    /// Query parameter: clientCertificate_passphrase
+    pub clientCertificate_passphrase: Option<String>,
+    /// Query parameter: clientCertificate_sslCertificate
+    pub clientCertificate_sslCertificate: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaAuthConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/authConfigs
 /// Creates an auth config record. Fetch corresponding credentials for specific auth types, e.g. access token for OAuth 2.0, JWT token for JWT. Encrypt the auth config with Cloud KMS and store the encrypted credentials in Spanner. Returns the encrypted auth config.
 ///
@@ -9064,11 +9771,7 @@ pub fn integrations_projects_locations_products_auth_configs_create_execute(
 
 pub fn integrations_projects_locations_products_auth_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    clientCertificate_encryptedPrivateKey: Option<&str>,
-    clientCertificate_passphrase: Option<&str>,
-    clientCertificate_sslCertificate: Option<&str>,
-    body: &GoogleCloudIntegrationsV1alphaAuthConfig,
+    args: &IntegrationsProjectsLocationsProductsAuthConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaAuthConfig>, ApiError>,
@@ -9079,11 +9782,11 @@ pub fn integrations_projects_locations_products_auth_configs_create(
 > {
     let builder = integrations_projects_locations_products_auth_configs_create_builder(
         client,
-        parent,
-        clientCertificate_encryptedPrivateKey,
-        clientCertificate_passphrase,
-        clientCertificate_sslCertificate,
-        body,
+        &args.parent,
+        args.clientCertificate_encryptedPrivateKey.as_deref(),
+        args.clientCertificate_passphrase.as_deref(),
+        args.clientCertificate_sslCertificate.as_deref(),
+        &args.body,
     )?;
     integrations_projects_locations_products_auth_configs_create_execute(builder)
 }
@@ -9180,6 +9883,13 @@ pub fn integrations_projects_locations_products_auth_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_auth_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsAuthConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/authConfigs/{authConfigsId}
 /// Deletes an auth config.
 ///
@@ -9192,7 +9902,7 @@ pub fn integrations_projects_locations_products_auth_configs_delete_execute(
 
 pub fn integrations_projects_locations_products_auth_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsProductsAuthConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -9200,7 +9910,7 @@ pub fn integrations_projects_locations_products_auth_configs_delete(
     ApiError,
 > {
     let builder =
-        integrations_projects_locations_products_auth_configs_delete_builder(client, name)?;
+        integrations_projects_locations_products_auth_configs_delete_builder(client, &args.name)?;
     integrations_projects_locations_products_auth_configs_delete_execute(builder)
 }
 
@@ -9298,6 +10008,13 @@ pub fn integrations_projects_locations_products_auth_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_auth_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsAuthConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/authConfigs/{authConfigsId}
 /// Gets a complete auth config. If the auth config doesn't exist, Code.NOT_FOUND exception will be thrown. Returns the decrypted auth config.
 ///
@@ -9310,7 +10027,7 @@ pub fn integrations_projects_locations_products_auth_configs_get_execute(
 
 pub fn integrations_projects_locations_products_auth_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsProductsAuthConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaAuthConfig>, ApiError>,
@@ -9319,7 +10036,8 @@ pub fn integrations_projects_locations_products_auth_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_products_auth_configs_get_builder(client, name)?;
+    let builder =
+        integrations_projects_locations_products_auth_configs_get_builder(client, &args.name)?;
     integrations_projects_locations_products_auth_configs_get_execute(builder)
 }
 
@@ -9445,6 +10163,21 @@ pub fn integrations_projects_locations_products_auth_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_auth_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsAuthConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/authConfigs
 /// Lists all auth configs that match the filter. Restrict to auth configs belong to the current client only.
 ///
@@ -9457,11 +10190,7 @@ pub fn integrations_projects_locations_products_auth_configs_list_execute(
 
 pub fn integrations_projects_locations_products_auth_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &IntegrationsProjectsLocationsProductsAuthConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -9474,7 +10203,12 @@ pub fn integrations_projects_locations_products_auth_configs_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_products_auth_configs_list_builder(
-        client, parent, filter, pageSize, pageToken, readMask,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
     )?;
     integrations_projects_locations_products_auth_configs_list_execute(builder)
 }
@@ -9600,6 +10334,23 @@ pub fn integrations_projects_locations_products_auth_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_auth_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsAuthConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: clientCertificate_encryptedPrivateKey
+    pub clientCertificate_encryptedPrivateKey: Option<String>,
+    /// Query parameter: clientCertificate_passphrase
+    pub clientCertificate_passphrase: Option<String>,
+    /// Query parameter: clientCertificate_sslCertificate
+    pub clientCertificate_sslCertificate: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaAuthConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/authConfigs/{authConfigsId}
 /// Updates an auth config. If credential is updated, fetch the encrypted auth config from Spanner, decrypt with Cloud KMS key, update the credential fields, re-encrypt with Cloud KMS key and update the Spanner record. For other fields, directly update the Spanner record. Returns the encrypted auth config.
 ///
@@ -9612,12 +10363,7 @@ pub fn integrations_projects_locations_products_auth_configs_patch_execute(
 
 pub fn integrations_projects_locations_products_auth_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    clientCertificate_encryptedPrivateKey: Option<&str>,
-    clientCertificate_passphrase: Option<&str>,
-    clientCertificate_sslCertificate: Option<&str>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudIntegrationsV1alphaAuthConfig,
+    args: &IntegrationsProjectsLocationsProductsAuthConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaAuthConfig>, ApiError>,
@@ -9628,12 +10374,12 @@ pub fn integrations_projects_locations_products_auth_configs_patch(
 > {
     let builder = integrations_projects_locations_products_auth_configs_patch_builder(
         client,
-        name,
-        clientCertificate_encryptedPrivateKey,
-        clientCertificate_passphrase,
-        clientCertificate_sslCertificate,
-        updateMask,
-        body,
+        &args.name,
+        args.clientCertificate_encryptedPrivateKey.as_deref(),
+        args.clientCertificate_passphrase.as_deref(),
+        args.clientCertificate_sslCertificate.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     integrations_projects_locations_products_auth_configs_patch_execute(builder)
 }
@@ -9735,6 +10481,15 @@ pub fn integrations_projects_locations_products_certificates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_certificates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsCertificatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaCertificate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/certificates
 /// Creates a new certificate. The certificate will be registered to the trawler service and will be encrypted using cloud KMS and stored in Spanner Returns the certificate.
 ///
@@ -9747,8 +10502,7 @@ pub fn integrations_projects_locations_products_certificates_create_execute(
 
 pub fn integrations_projects_locations_products_certificates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaCertificate,
+    args: &IntegrationsProjectsLocationsProductsCertificatesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaCertificate>, ApiError>,
@@ -9757,8 +10511,11 @@ pub fn integrations_projects_locations_products_certificates_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_products_certificates_create_builder(client, parent, body)?;
+    let builder = integrations_projects_locations_products_certificates_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     integrations_projects_locations_products_certificates_create_execute(builder)
 }
 
@@ -9854,6 +10611,13 @@ pub fn integrations_projects_locations_products_certificates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_certificates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsCertificatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/certificates/{certificatesId}
 /// Delete a certificate
 ///
@@ -9866,7 +10630,7 @@ pub fn integrations_projects_locations_products_certificates_delete_execute(
 
 pub fn integrations_projects_locations_products_certificates_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsProductsCertificatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -9874,7 +10638,7 @@ pub fn integrations_projects_locations_products_certificates_delete(
     ApiError,
 > {
     let builder =
-        integrations_projects_locations_products_certificates_delete_builder(client, name)?;
+        integrations_projects_locations_products_certificates_delete_builder(client, &args.name)?;
     integrations_projects_locations_products_certificates_delete_execute(builder)
 }
 
@@ -9972,6 +10736,13 @@ pub fn integrations_projects_locations_products_certificates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_certificates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsCertificatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/certificates/{certificatesId}
 /// Get a certificates in the specified project.
 ///
@@ -9984,7 +10755,7 @@ pub fn integrations_projects_locations_products_certificates_get_execute(
 
 pub fn integrations_projects_locations_products_certificates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsProductsCertificatesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaCertificate>, ApiError>,
@@ -9993,7 +10764,8 @@ pub fn integrations_projects_locations_products_certificates_get(
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_products_certificates_get_builder(client, name)?;
+    let builder =
+        integrations_projects_locations_products_certificates_get_builder(client, &args.name)?;
     integrations_projects_locations_products_certificates_get_execute(builder)
 }
 
@@ -10119,6 +10891,21 @@ pub fn integrations_projects_locations_products_certificates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_certificates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsCertificatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/certificates
 /// List all the certificates that match the filter. Restrict to certificate of current client only.
 ///
@@ -10131,11 +10918,7 @@ pub fn integrations_projects_locations_products_certificates_list_execute(
 
 pub fn integrations_projects_locations_products_certificates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &IntegrationsProjectsLocationsProductsCertificatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -10148,7 +10931,12 @@ pub fn integrations_projects_locations_products_certificates_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_products_certificates_list_builder(
-        client, parent, filter, pageSize, pageToken, readMask,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
     )?;
     integrations_projects_locations_products_certificates_list_execute(builder)
 }
@@ -10262,6 +11050,17 @@ pub fn integrations_projects_locations_products_certificates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_certificates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsCertificatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaCertificate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/certificates/{certificatesId}
 /// Updates the certificate by id. If new certificate file is updated, it will register with the trawler service, re-encrypt with cloud KMS and update the Spanner record. Other fields will directly update the Spanner record. Returns the Certificate.
 ///
@@ -10274,9 +11073,7 @@ pub fn integrations_projects_locations_products_certificates_patch_execute(
 
 pub fn integrations_projects_locations_products_certificates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudIntegrationsV1alphaCertificate,
+    args: &IntegrationsProjectsLocationsProductsCertificatesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaCertificate>, ApiError>,
@@ -10286,7 +11083,10 @@ pub fn integrations_projects_locations_products_certificates_patch(
     ApiError,
 > {
     let builder = integrations_projects_locations_products_certificates_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     integrations_projects_locations_products_certificates_patch_execute(builder)
 }
@@ -10392,6 +11192,15 @@ pub fn integrations_projects_locations_products_cloud_functions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_cloud_functions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsCloudFunctionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaCreateCloudFunctionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/cloudFunctions
 /// Creates a cloud function project.
 ///
@@ -10404,8 +11213,7 @@ pub fn integrations_projects_locations_products_cloud_functions_create_execute(
 
 pub fn integrations_projects_locations_products_cloud_functions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaCreateCloudFunctionRequest,
+    args: &IntegrationsProjectsLocationsProductsCloudFunctionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -10418,7 +11226,9 @@ pub fn integrations_projects_locations_products_cloud_functions_create(
     ApiError,
 > {
     let builder = integrations_projects_locations_products_cloud_functions_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     integrations_projects_locations_products_cloud_functions_create_execute(builder)
 }
@@ -10524,6 +11334,15 @@ pub fn integrations_projects_locations_products_integrations_execute_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_execute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsExecuteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaExecuteIntegrationsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}:execute
 /// Executes integrations synchronously by passing the trigger id in the request body. The request is not returned until the requested executions are either fulfilled or experienced an error. If the integration name is not specified (passing -), all of the associated integration under the given trigger_id will be executed. Otherwise only the specified integration for the given trigger_id is executed. This is helpful for execution the integration from UI.
 ///
@@ -10536,8 +11355,7 @@ pub fn integrations_projects_locations_products_integrations_execute_execute(
 
 pub fn integrations_projects_locations_products_integrations_execute(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaExecuteIntegrationsRequest,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsExecuteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -10549,8 +11367,9 @@ pub fn integrations_projects_locations_products_integrations_execute(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_products_integrations_execute_builder(client, name, body)?;
+    let builder = integrations_projects_locations_products_integrations_execute_builder(
+        client, &args.name, &args.body,
+    )?;
     integrations_projects_locations_products_integrations_execute_execute(builder)
 }
 
@@ -10676,6 +11495,21 @@ pub fn integrations_projects_locations_products_integrations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations
 /// Returns the list of all integrations in the specified project.
 ///
@@ -10688,11 +11522,7 @@ pub fn integrations_projects_locations_products_integrations_list_execute(
 
 pub fn integrations_projects_locations_products_integrations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -10705,7 +11535,12 @@ pub fn integrations_projects_locations_products_integrations_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_products_integrations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     integrations_projects_locations_products_integrations_list_execute(builder)
 }
@@ -10811,6 +11646,15 @@ pub fn integrations_projects_locations_products_integrations_schedule_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_schedule`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsScheduleArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}:schedule
 /// Schedules an integration for execution by passing the trigger id and the scheduled time in the request body.
 ///
@@ -10823,8 +11667,7 @@ pub fn integrations_projects_locations_products_integrations_schedule_execute(
 
 pub fn integrations_projects_locations_products_integrations_schedule(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsScheduleArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -10836,8 +11679,9 @@ pub fn integrations_projects_locations_products_integrations_schedule(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_products_integrations_schedule_builder(client, name, body)?;
+    let builder = integrations_projects_locations_products_integrations_schedule_builder(
+        client, &args.name, &args.body,
+    )?;
     integrations_projects_locations_products_integrations_schedule_execute(builder)
 }
 
@@ -10942,6 +11786,15 @@ pub fn integrations_projects_locations_products_integrations_test_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_test`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsTestArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTestIntegrationsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}:test
 /// Execute the integration in draft state
 ///
@@ -10954,8 +11807,7 @@ pub fn integrations_projects_locations_products_integrations_test_execute(
 
 pub fn integrations_projects_locations_products_integrations_test(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaTestIntegrationsRequest,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsTestArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -10967,8 +11819,9 @@ pub fn integrations_projects_locations_products_integrations_test(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_products_integrations_test_builder(client, name, body)?;
+    let builder = integrations_projects_locations_products_integrations_test_builder(
+        client, &args.name, &args.body,
+    )?;
     integrations_projects_locations_products_integrations_test_execute(builder)
 }
 
@@ -11070,6 +11923,13 @@ pub fn integrations_projects_locations_products_integrations_executions_download
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_executions_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsExecutionsDownloadArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/executions/{executionsId}:download
 /// Download the execution.
 ///
@@ -11082,7 +11942,7 @@ pub fn integrations_projects_locations_products_integrations_executions_download
 
 pub fn integrations_projects_locations_products_integrations_executions_download(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsExecutionsDownloadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -11096,7 +11956,7 @@ pub fn integrations_projects_locations_products_integrations_executions_download
 > {
     let builder =
         integrations_projects_locations_products_integrations_executions_download_builder(
-            client, name,
+            client, &args.name,
         )?;
     integrations_projects_locations_products_integrations_executions_download_execute(builder)
 }
@@ -11196,6 +12056,13 @@ pub fn integrations_projects_locations_products_integrations_executions_get_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_executions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsExecutionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/executions/{executionsId}
 /// Get an execution in the specified project.
 ///
@@ -11208,7 +12075,7 @@ pub fn integrations_projects_locations_products_integrations_executions_get_exec
 
 pub fn integrations_projects_locations_products_integrations_executions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsExecutionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaExecution>, ApiError>,
@@ -11217,8 +12084,9 @@ pub fn integrations_projects_locations_products_integrations_executions_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_products_integrations_executions_get_builder(client, name)?;
+    let builder = integrations_projects_locations_products_integrations_executions_get_builder(
+        client, &args.name,
+    )?;
     integrations_projects_locations_products_integrations_executions_get_execute(builder)
 }
 
@@ -11405,6 +12273,53 @@ pub fn integrations_projects_locations_products_integrations_executions_list_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_executions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsExecutionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: filterParams_customFilter
+    pub filterParams_customFilter: Option<String>,
+    /// Query parameter: filterParams_endTime
+    pub filterParams_endTime: Option<String>,
+    /// Query parameter: filterParams_eventStatuses
+    pub filterParams_eventStatuses: Option<String>,
+    /// Query parameter: filterParams_executionId
+    pub filterParams_executionId: Option<String>,
+    /// Query parameter: filterParams_parameterKey
+    pub filterParams_parameterKey: Option<String>,
+    /// Query parameter: filterParams_parameterPairKey
+    pub filterParams_parameterPairKey: Option<String>,
+    /// Query parameter: filterParams_parameterPairValue
+    pub filterParams_parameterPairValue: Option<String>,
+    /// Query parameter: filterParams_parameterType
+    pub filterParams_parameterType: Option<String>,
+    /// Query parameter: filterParams_parameterValue
+    pub filterParams_parameterValue: Option<String>,
+    /// Query parameter: filterParams_startTime
+    pub filterParams_startTime: Option<String>,
+    /// Query parameter: filterParams_taskStatuses
+    pub filterParams_taskStatuses: Option<String>,
+    /// Query parameter: filterParams_workflowName
+    pub filterParams_workflowName: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+    /// Query parameter: refreshAcl
+    pub refreshAcl: Option<bool>,
+    /// Query parameter: snapshotMetadataWithoutParams
+    pub snapshotMetadataWithoutParams: Option<bool>,
+    /// Query parameter: truncateParams
+    pub truncateParams: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/executions
 /// Lists the results of all the integration executions. The response includes the same information as the [execution log](<https://cloud.google.`com/application-integration/docs/viewing-logs`>) in the Integration UI.
 ///
@@ -11417,27 +12332,7 @@ pub fn integrations_projects_locations_products_integrations_executions_list_exe
 
 pub fn integrations_projects_locations_products_integrations_executions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    filterParams_customFilter: Option<&str>,
-    filterParams_endTime: Option<&str>,
-    filterParams_eventStatuses: Option<&str>,
-    filterParams_executionId: Option<&str>,
-    filterParams_parameterKey: Option<&str>,
-    filterParams_parameterPairKey: Option<&str>,
-    filterParams_parameterPairValue: Option<&str>,
-    filterParams_parameterType: Option<&str>,
-    filterParams_parameterValue: Option<&str>,
-    filterParams_startTime: Option<&str>,
-    filterParams_taskStatuses: Option<&str>,
-    filterParams_workflowName: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
-    refreshAcl: Option<bool>,
-    snapshotMetadataWithoutParams: Option<bool>,
-    truncateParams: Option<bool>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsExecutionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaListExecutionsResponse>, ApiError>,
@@ -11448,27 +12343,27 @@ pub fn integrations_projects_locations_products_integrations_executions_list(
 > {
     let builder = integrations_projects_locations_products_integrations_executions_list_builder(
         client,
-        parent,
-        filter,
-        filterParams_customFilter,
-        filterParams_endTime,
-        filterParams_eventStatuses,
-        filterParams_executionId,
-        filterParams_parameterKey,
-        filterParams_parameterPairKey,
-        filterParams_parameterPairValue,
-        filterParams_parameterType,
-        filterParams_parameterValue,
-        filterParams_startTime,
-        filterParams_taskStatuses,
-        filterParams_workflowName,
-        orderBy,
-        pageSize,
-        pageToken,
-        readMask,
-        refreshAcl,
-        snapshotMetadataWithoutParams,
-        truncateParams,
+        &args.parent,
+        args.filter.as_deref(),
+        args.filterParams_customFilter.as_deref(),
+        args.filterParams_endTime.as_deref(),
+        args.filterParams_eventStatuses.as_deref(),
+        args.filterParams_executionId.as_deref(),
+        args.filterParams_parameterKey.as_deref(),
+        args.filterParams_parameterPairKey.as_deref(),
+        args.filterParams_parameterPairValue.as_deref(),
+        args.filterParams_parameterType.as_deref(),
+        args.filterParams_parameterValue.as_deref(),
+        args.filterParams_startTime.as_deref(),
+        args.filterParams_taskStatuses.as_deref(),
+        args.filterParams_workflowName.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
+        args.refreshAcl,
+        args.snapshotMetadataWithoutParams,
+        args.truncateParams,
     )?;
     integrations_projects_locations_products_integrations_executions_list_execute(builder)
 }
@@ -11571,6 +12466,15 @@ pub fn integrations_projects_locations_products_integrations_executions_suspensi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_executions_suspensions_lift`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspensionsLiftArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaLiftSuspensionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/executions/{executionsId}/suspensions/{suspensionsId}:lift
 /// * Lifts suspension for the Suspension task. Fetch corresponding suspension with provided suspension Id, resolve suspension, and set up suspension result for the Suspension Task.
 ///
@@ -11583,8 +12487,7 @@ pub fn integrations_projects_locations_products_integrations_executions_suspensi
 
 pub fn integrations_projects_locations_products_integrations_executions_suspensions_lift(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaLiftSuspensionRequest,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspensionsLiftArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaLiftSuspensionResponse>, ApiError>,
@@ -11595,7 +12498,7 @@ pub fn integrations_projects_locations_products_integrations_executions_suspensi
 > {
     let builder =
         integrations_projects_locations_products_integrations_executions_suspensions_lift_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     integrations_projects_locations_products_integrations_executions_suspensions_lift_execute(
         builder,
@@ -11724,6 +12627,21 @@ pub fn integrations_projects_locations_products_integrations_executions_suspensi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_executions_suspensions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspensionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/executions/{executionsId}/suspensions
 /// * Lists suspensions associated with a specific execution. Only those with permissions to resolve the relevant suspensions will be able to view them.
 ///
@@ -11736,11 +12654,7 @@ pub fn integrations_projects_locations_products_integrations_executions_suspensi
 
 pub fn integrations_projects_locations_products_integrations_executions_suspensions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspensionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -11754,7 +12668,12 @@ pub fn integrations_projects_locations_products_integrations_executions_suspensi
 > {
     let builder =
         integrations_projects_locations_products_integrations_executions_suspensions_list_builder(
-            client, parent, filter, orderBy, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     integrations_projects_locations_products_integrations_executions_suspensions_list_execute(
         builder,
@@ -11862,6 +12781,15 @@ pub fn integrations_projects_locations_products_integrations_executions_suspensi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_executions_suspensions_resolve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspensionsResolveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaResolveSuspensionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/executions/{executionsId}/suspensions/{suspensionsId}:resolve
 /// * Resolves (`lifts/rejects`) any number of suspensions. If the integration is already running, only the status of the suspension is updated. Otherwise, the suspended integration will begin execution again.
 ///
@@ -11874,8 +12802,7 @@ pub fn integrations_projects_locations_products_integrations_executions_suspensi
 
 pub fn integrations_projects_locations_products_integrations_executions_suspensions_resolve(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaResolveSuspensionRequest,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspensionsResolveArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -11887,7 +12814,7 @@ pub fn integrations_projects_locations_products_integrations_executions_suspensi
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_products_integrations_executions_suspensions_resolve_builder(client, name, body)?;
+    let builder = integrations_projects_locations_products_integrations_executions_suspensions_resolve_builder(client, &args.name, &args.body)?;
     integrations_projects_locations_products_integrations_executions_suspensions_resolve_execute(
         builder,
     )
@@ -12007,6 +12934,19 @@ pub fn integrations_projects_locations_products_integrations_versions_create_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: createSampleIntegrations
+    pub createSampleIntegrations: Option<bool>,
+    /// Query parameter: newIntegration
+    pub newIntegration: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaIntegrationVersion,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions
 /// Create a integration with a draft version in the specified project.
 ///
@@ -12019,10 +12959,7 @@ pub fn integrations_projects_locations_products_integrations_versions_create_exe
 
 pub fn integrations_projects_locations_products_integrations_versions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    createSampleIntegrations: Option<bool>,
-    newIntegration: Option<bool>,
-    body: &GoogleCloudIntegrationsV1alphaIntegrationVersion,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaIntegrationVersion>, ApiError>,
@@ -12033,10 +12970,10 @@ pub fn integrations_projects_locations_products_integrations_versions_create(
 > {
     let builder = integrations_projects_locations_products_integrations_versions_create_builder(
         client,
-        parent,
-        createSampleIntegrations,
-        newIntegration,
-        body,
+        &args.parent,
+        args.createSampleIntegrations,
+        args.newIntegration,
+        &args.body,
     )?;
     integrations_projects_locations_products_integrations_versions_create_execute(builder)
 }
@@ -12133,6 +13070,13 @@ pub fn integrations_projects_locations_products_integrations_versions_delete_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions/{versionsId}
 /// Soft-deletes the integration. Changes the status of the integration to ARCHIVED. If the integration being ARCHIVED is tagged as "HEAD", the tag is removed from this snapshot and set to the previous non-ARCHIVED snapshot. The PUBLISH_REQUESTED, DUE_FOR_DELETION tags are removed too. This RPC throws an exception if the version being deleted is DRAFT, and if the locked_by user is not the same as the user performing the Delete. Audit fields updated include last_modified_timestamp, last_modified_by. Any existing lock is released when Deleting a integration. Currently, there is no undelete mechanism.
 ///
@@ -12145,7 +13089,7 @@ pub fn integrations_projects_locations_products_integrations_versions_delete_exe
 
 pub fn integrations_projects_locations_products_integrations_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -12153,7 +13097,7 @@ pub fn integrations_projects_locations_products_integrations_versions_delete(
     ApiError,
 > {
     let builder = integrations_projects_locations_products_integrations_versions_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     integrations_projects_locations_products_integrations_versions_delete_execute(builder)
 }
@@ -12272,6 +13216,17 @@ pub fn integrations_projects_locations_products_integrations_versions_download_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_versions_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsDownloadArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: fileFormat
+    pub fileFormat: Option<String>,
+    /// Query parameter: files
+    pub files: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions/{versionsId}:download
 /// Downloads an integration. Retrieves the IntegrationVersion for a given integration_id and returns the response as a string.
 ///
@@ -12284,9 +13239,7 @@ pub fn integrations_projects_locations_products_integrations_versions_download_e
 
 pub fn integrations_projects_locations_products_integrations_versions_download(
     client: &SimpleHttpClient,
-    name: &str,
-    fileFormat: Option<&str>,
-    files: Option<&str>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsDownloadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -12299,7 +13252,10 @@ pub fn integrations_projects_locations_products_integrations_versions_download(
     ApiError,
 > {
     let builder = integrations_projects_locations_products_integrations_versions_download_builder(
-        client, name, fileFormat, files,
+        client,
+        &args.name,
+        args.fileFormat.as_deref(),
+        args.files.as_deref(),
     )?;
     integrations_projects_locations_products_integrations_versions_download_execute(builder)
 }
@@ -12399,6 +13355,13 @@ pub fn integrations_projects_locations_products_integrations_versions_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions/{versionsId}
 /// Get a integration in the specified project.
 ///
@@ -12411,7 +13374,7 @@ pub fn integrations_projects_locations_products_integrations_versions_get_execut
 
 pub fn integrations_projects_locations_products_integrations_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaIntegrationVersion>, ApiError>,
@@ -12420,8 +13383,9 @@ pub fn integrations_projects_locations_products_integrations_versions_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_products_integrations_versions_get_builder(client, name)?;
+    let builder = integrations_projects_locations_products_integrations_versions_get_builder(
+        client, &args.name,
+    )?;
     integrations_projects_locations_products_integrations_versions_get_execute(builder)
 }
 
@@ -12551,6 +13515,23 @@ pub fn integrations_projects_locations_products_integrations_versions_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: fieldMask
+    pub fieldMask: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions
 /// Returns the list of all integration versions in the specified project.
 ///
@@ -12563,12 +13544,7 @@ pub fn integrations_projects_locations_products_integrations_versions_list_execu
 
 pub fn integrations_projects_locations_products_integrations_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    fieldMask: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -12581,7 +13557,13 @@ pub fn integrations_projects_locations_products_integrations_versions_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_products_integrations_versions_list_builder(
-        client, parent, fieldMask, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.fieldMask.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     integrations_projects_locations_products_integrations_versions_list_execute(builder)
 }
@@ -12696,6 +13678,17 @@ pub fn integrations_projects_locations_products_integrations_versions_patch_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_versions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaIntegrationVersion,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions/{versionsId}
 /// Update a integration with a draft version in the specified project.
 ///
@@ -12708,9 +13701,7 @@ pub fn integrations_projects_locations_products_integrations_versions_patch_exec
 
 pub fn integrations_projects_locations_products_integrations_versions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudIntegrationsV1alphaIntegrationVersion,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaIntegrationVersion>, ApiError>,
@@ -12720,7 +13711,10 @@ pub fn integrations_projects_locations_products_integrations_versions_patch(
     ApiError,
 > {
     let builder = integrations_projects_locations_products_integrations_versions_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     integrations_projects_locations_products_integrations_versions_patch_execute(builder)
 }
@@ -12826,6 +13820,15 @@ pub fn integrations_projects_locations_products_integrations_versions_publish_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_versions_publish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsPublishArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaPublishIntegrationVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions/{versionsId}:publish
 /// This RPC throws an exception if the integration is in ARCHIVED or `ACTIVE` state. This RPC throws an exception if the version being published is DRAFT, and if the locked_by user is not the same as the user performing the Publish. Audit fields updated include last_published_timestamp, last_published_by, last_modified_timestamp, last_modified_by. Any existing lock is on this integration is released.
 ///
@@ -12838,8 +13841,7 @@ pub fn integrations_projects_locations_products_integrations_versions_publish_ex
 
 pub fn integrations_projects_locations_products_integrations_versions_publish(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaPublishIntegrationVersionRequest,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsPublishArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -12852,7 +13854,7 @@ pub fn integrations_projects_locations_products_integrations_versions_publish(
     ApiError,
 > {
     let builder = integrations_projects_locations_products_integrations_versions_publish_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     integrations_projects_locations_products_integrations_versions_publish_execute(builder)
 }
@@ -12958,6 +13960,15 @@ pub fn integrations_projects_locations_products_integrations_versions_takeover_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_versions_takeover_edit_lock`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsTakeoverEditLockArgs {
+    /// Path parameter: integrationVersion
+    pub integrationVersion: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTakeoverEditLockRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions/{versionsId}:takeoverEditLock
 /// Clears the locked_by and locked_at_timestampin the DRAFT version of this integration. It then performs the same action as the CreateDraftIntegrationVersion (i.e., copies the DRAFT version of the integration as a SNAPSHOT and then creates a new DRAFT version with the locked_by set to the user_taking_over and the locked_at_timestamp set to the current timestamp). Both the locked_by and user_taking_over are notified via email about the takeover. This RPC throws an exception if the integration is not in DRAFT status or if the locked_by and locked_at_timestamp fields are not set.The TakeoverEdit lock is treated the same as an edit of the integration, and hence shares ACLs with edit. Audit fields updated include last_modified_timestamp, last_modified_by.
 ///
@@ -12970,8 +13981,7 @@ pub fn integrations_projects_locations_products_integrations_versions_takeover_e
 
 pub fn integrations_projects_locations_products_integrations_versions_takeover_edit_lock(
     client: &SimpleHttpClient,
-    integrationVersion: &str,
-    body: &GoogleCloudIntegrationsV1alphaTakeoverEditLockRequest,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsTakeoverEditLockArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -12986,8 +13996,8 @@ pub fn integrations_projects_locations_products_integrations_versions_takeover_e
     let builder =
         integrations_projects_locations_products_integrations_versions_takeover_edit_lock_builder(
             client,
-            integrationVersion,
-            body,
+            &args.integrationVersion,
+            &args.body,
         )?;
     integrations_projects_locations_products_integrations_versions_takeover_edit_lock_execute(
         builder,
@@ -13089,6 +14099,15 @@ pub fn integrations_projects_locations_products_integrations_versions_unpublish_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_versions_unpublish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsUnpublishArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaUnpublishIntegrationVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions/{versionsId}:unpublish
 /// Sets the status of the `ACTIVE` integration to SNAPSHOT with a new tag "PREVIOUSLY_PUBLISHED" after validating it. The "HEAD" and "PUBLISH_REQUESTED" tags do not change. This RPC throws an exception if the version being snapshot is not `ACTIVE`. Audit fields added include action, action_by, action_timestamp.
 ///
@@ -13101,8 +14120,7 @@ pub fn integrations_projects_locations_products_integrations_versions_unpublish_
 
 pub fn integrations_projects_locations_products_integrations_versions_unpublish(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaUnpublishIntegrationVersionRequest,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsUnpublishArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -13110,7 +14128,7 @@ pub fn integrations_projects_locations_products_integrations_versions_unpublish(
     ApiError,
 > {
     let builder = integrations_projects_locations_products_integrations_versions_unpublish_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     integrations_projects_locations_products_integrations_versions_unpublish_execute(builder)
 }
@@ -13216,6 +14234,15 @@ pub fn integrations_projects_locations_products_integrations_versions_upload_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_integrations_versions_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaUploadIntegrationVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions:upload
 /// Uploads an integration. The content can be a previously downloaded integration. Performs the same function as CreateDraftIntegrationVersion, but accepts input in a string format, which holds the complete representation of the IntegrationVersion content.
 ///
@@ -13228,8 +14255,7 @@ pub fn integrations_projects_locations_products_integrations_versions_upload_exe
 
 pub fn integrations_projects_locations_products_integrations_versions_upload(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaUploadIntegrationVersionRequest,
+    args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsUploadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -13242,7 +14268,9 @@ pub fn integrations_projects_locations_products_integrations_versions_upload(
     ApiError,
 > {
     let builder = integrations_projects_locations_products_integrations_versions_upload_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     integrations_projects_locations_products_integrations_versions_upload_execute(builder)
 }
@@ -13345,6 +14373,15 @@ pub fn integrations_projects_locations_products_sfdc_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_sfdc_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSfdcInstance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances
 /// Creates an sfdc instance record. Store the sfdc instance in Spanner. Returns the sfdc instance.
 ///
@@ -13357,8 +14394,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_create_execute(
 
 pub fn integrations_projects_locations_products_sfdc_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaSfdcInstance,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaSfdcInstance>, ApiError>,
@@ -13368,7 +14404,9 @@ pub fn integrations_projects_locations_products_sfdc_instances_create(
     ApiError,
 > {
     let builder = integrations_projects_locations_products_sfdc_instances_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     integrations_projects_locations_products_sfdc_instances_create_execute(builder)
 }
@@ -13465,6 +14503,13 @@ pub fn integrations_projects_locations_products_sfdc_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_sfdc_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}
 /// Deletes an sfdc instance.
 ///
@@ -13477,7 +14522,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_delete_execute(
 
 pub fn integrations_projects_locations_products_sfdc_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -13485,7 +14530,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_delete(
     ApiError,
 > {
     let builder =
-        integrations_projects_locations_products_sfdc_instances_delete_builder(client, name)?;
+        integrations_projects_locations_products_sfdc_instances_delete_builder(client, &args.name)?;
     integrations_projects_locations_products_sfdc_instances_delete_execute(builder)
 }
 
@@ -13584,6 +14629,13 @@ pub fn integrations_projects_locations_products_sfdc_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_sfdc_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}
 /// Gets an sfdc instance. If the instance doesn't exist, Code.NOT_FOUND exception will be thrown.
 ///
@@ -13596,7 +14648,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_get_execute(
 
 pub fn integrations_projects_locations_products_sfdc_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaSfdcInstance>, ApiError>,
@@ -13606,7 +14658,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_get(
     ApiError,
 > {
     let builder =
-        integrations_projects_locations_products_sfdc_instances_get_builder(client, name)?;
+        integrations_projects_locations_products_sfdc_instances_get_builder(client, &args.name)?;
     integrations_projects_locations_products_sfdc_instances_get_execute(builder)
 }
 
@@ -13732,6 +14784,21 @@ pub fn integrations_projects_locations_products_sfdc_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_sfdc_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances
 /// Lists all sfdc instances that match the filter. Restrict to sfdc instances belonging to the current client only.
 ///
@@ -13744,11 +14811,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_list_execute(
 
 pub fn integrations_projects_locations_products_sfdc_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -13761,7 +14824,12 @@ pub fn integrations_projects_locations_products_sfdc_instances_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_products_sfdc_instances_list_builder(
-        client, parent, filter, pageSize, pageToken, readMask,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
     )?;
     integrations_projects_locations_products_sfdc_instances_list_execute(builder)
 }
@@ -13876,6 +14944,17 @@ pub fn integrations_projects_locations_products_sfdc_instances_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_sfdc_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSfdcInstance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}
 /// Updates an sfdc instance. Updates the sfdc instance in spanner. Returns the sfdc instance.
 ///
@@ -13888,9 +14967,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_patch_execute(
 
 pub fn integrations_projects_locations_products_sfdc_instances_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudIntegrationsV1alphaSfdcInstance,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaSfdcInstance>, ApiError>,
@@ -13900,7 +14977,10 @@ pub fn integrations_projects_locations_products_sfdc_instances_patch(
     ApiError,
 > {
     let builder = integrations_projects_locations_products_sfdc_instances_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     integrations_projects_locations_products_sfdc_instances_patch_execute(builder)
 }
@@ -14002,6 +15082,15 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_cre
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_sfdc_instances_sfdc_channels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSfdcChannel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels
 /// Creates an sfdc channel record. Store the sfdc channel in Spanner. Returns the sfdc channel.
 ///
@@ -14014,8 +15103,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_cre
 
 pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaSfdcChannel,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaSfdcChannel>, ApiError>,
@@ -14026,7 +15114,9 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_cre
 > {
     let builder =
         integrations_projects_locations_products_sfdc_instances_sfdc_channels_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     integrations_projects_locations_products_sfdc_instances_sfdc_channels_create_execute(builder)
 }
@@ -14123,6 +15213,13 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_del
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_sfdc_instances_sfdc_channels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}
 /// Deletes an sfdc channel.
 ///
@@ -14135,7 +15232,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_del
 
 pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -14144,7 +15241,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_del
 > {
     let builder =
         integrations_projects_locations_products_sfdc_instances_sfdc_channels_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     integrations_projects_locations_products_sfdc_instances_sfdc_channels_delete_execute(builder)
 }
@@ -14243,6 +15340,13 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_get
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_sfdc_instances_sfdc_channels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}
 /// Gets an sfdc channel. If the channel doesn't exist, Code.NOT_FOUND exception will be thrown.
 ///
@@ -14255,7 +15359,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_get
 
 pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaSfdcChannel>, ApiError>,
@@ -14266,7 +15370,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_get
 > {
     let builder =
         integrations_projects_locations_products_sfdc_instances_sfdc_channels_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     integrations_projects_locations_products_sfdc_instances_sfdc_channels_get_execute(builder)
 }
@@ -14393,6 +15497,21 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_lis
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_sfdc_instances_sfdc_channels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels
 /// Lists all sfdc channels that match the filter. Restrict to sfdc channels belonging to the current client only.
 ///
@@ -14405,11 +15524,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_lis
 
 pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -14423,7 +15538,12 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_lis
 > {
     let builder =
         integrations_projects_locations_products_sfdc_instances_sfdc_channels_list_builder(
-            client, parent, filter, pageSize, pageToken, readMask,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.readMask.as_deref(),
         )?;
     integrations_projects_locations_products_sfdc_instances_sfdc_channels_list_execute(builder)
 }
@@ -14537,6 +15657,17 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_pat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_products_sfdc_instances_sfdc_channels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSfdcChannel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}
 /// Updates an sfdc channel. Updates the sfdc channel in spanner. Returns the sfdc channel.
 ///
@@ -14549,9 +15680,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_pat
 
 pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudIntegrationsV1alphaSfdcChannel,
+    args: &IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaSfdcChannel>, ApiError>,
@@ -14562,7 +15691,10 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_pat
 > {
     let builder =
         integrations_projects_locations_products_sfdc_instances_sfdc_channels_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     integrations_projects_locations_products_sfdc_instances_sfdc_channels_patch_execute(builder)
 }
@@ -14665,6 +15797,15 @@ pub fn integrations_projects_locations_sfdc_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_sfdc_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSfdcInstance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances
 /// Creates an sfdc instance record. Store the sfdc instance in Spanner. Returns the sfdc instance.
 ///
@@ -14677,8 +15818,7 @@ pub fn integrations_projects_locations_sfdc_instances_create_execute(
 
 pub fn integrations_projects_locations_sfdc_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaSfdcInstance,
+    args: &IntegrationsProjectsLocationsSfdcInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaSfdcInstance>, ApiError>,
@@ -14687,8 +15827,11 @@ pub fn integrations_projects_locations_sfdc_instances_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_sfdc_instances_create_builder(client, parent, body)?;
+    let builder = integrations_projects_locations_sfdc_instances_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     integrations_projects_locations_sfdc_instances_create_execute(builder)
 }
 
@@ -14784,6 +15927,13 @@ pub fn integrations_projects_locations_sfdc_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_sfdc_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}
 /// Deletes an sfdc instance.
 ///
@@ -14796,14 +15946,15 @@ pub fn integrations_projects_locations_sfdc_instances_delete_execute(
 
 pub fn integrations_projects_locations_sfdc_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsSfdcInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_sfdc_instances_delete_builder(client, name)?;
+    let builder =
+        integrations_projects_locations_sfdc_instances_delete_builder(client, &args.name)?;
     integrations_projects_locations_sfdc_instances_delete_execute(builder)
 }
 
@@ -14902,6 +16053,13 @@ pub fn integrations_projects_locations_sfdc_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_sfdc_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}
 /// Gets an sfdc instance. If the instance doesn't exist, Code.NOT_FOUND exception will be thrown.
 ///
@@ -14914,7 +16072,7 @@ pub fn integrations_projects_locations_sfdc_instances_get_execute(
 
 pub fn integrations_projects_locations_sfdc_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsSfdcInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaSfdcInstance>, ApiError>,
@@ -14923,7 +16081,7 @@ pub fn integrations_projects_locations_sfdc_instances_get(
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_sfdc_instances_get_builder(client, name)?;
+    let builder = integrations_projects_locations_sfdc_instances_get_builder(client, &args.name)?;
     integrations_projects_locations_sfdc_instances_get_execute(builder)
 }
 
@@ -15049,6 +16207,21 @@ pub fn integrations_projects_locations_sfdc_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_sfdc_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances
 /// Lists all sfdc instances that match the filter. Restrict to sfdc instances belonging to the current client only.
 ///
@@ -15061,11 +16234,7 @@ pub fn integrations_projects_locations_sfdc_instances_list_execute(
 
 pub fn integrations_projects_locations_sfdc_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &IntegrationsProjectsLocationsSfdcInstancesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -15078,7 +16247,12 @@ pub fn integrations_projects_locations_sfdc_instances_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_sfdc_instances_list_builder(
-        client, parent, filter, pageSize, pageToken, readMask,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
     )?;
     integrations_projects_locations_sfdc_instances_list_execute(builder)
 }
@@ -15193,6 +16367,17 @@ pub fn integrations_projects_locations_sfdc_instances_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_sfdc_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSfdcInstance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}
 /// Updates an sfdc instance. Updates the sfdc instance in spanner. Returns the sfdc instance.
 ///
@@ -15205,9 +16390,7 @@ pub fn integrations_projects_locations_sfdc_instances_patch_execute(
 
 pub fn integrations_projects_locations_sfdc_instances_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudIntegrationsV1alphaSfdcInstance,
+    args: &IntegrationsProjectsLocationsSfdcInstancesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaSfdcInstance>, ApiError>,
@@ -15217,7 +16400,10 @@ pub fn integrations_projects_locations_sfdc_instances_patch(
     ApiError,
 > {
     let builder = integrations_projects_locations_sfdc_instances_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     integrations_projects_locations_sfdc_instances_patch_execute(builder)
 }
@@ -15319,6 +16505,15 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_sfdc_instances_sfdc_channels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSfdcChannel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels
 /// Creates an sfdc channel record. Store the sfdc channel in Spanner. Returns the sfdc channel.
 ///
@@ -15331,8 +16526,7 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_create_execu
 
 pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaSfdcChannel,
+    args: &IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaSfdcChannel>, ApiError>,
@@ -15342,7 +16536,9 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_create(
     ApiError,
 > {
     let builder = integrations_projects_locations_sfdc_instances_sfdc_channels_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     integrations_projects_locations_sfdc_instances_sfdc_channels_create_execute(builder)
 }
@@ -15439,6 +16635,13 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_sfdc_instances_sfdc_channels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}
 /// Deletes an sfdc channel.
 ///
@@ -15451,15 +16654,16 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_delete_execu
 
 pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_sfdc_instances_sfdc_channels_delete_builder(client, name)?;
+    let builder = integrations_projects_locations_sfdc_instances_sfdc_channels_delete_builder(
+        client, &args.name,
+    )?;
     integrations_projects_locations_sfdc_instances_sfdc_channels_delete_execute(builder)
 }
 
@@ -15557,6 +16761,13 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_sfdc_instances_sfdc_channels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}
 /// Gets an sfdc channel. If the channel doesn't exist, Code.NOT_FOUND exception will be thrown.
 ///
@@ -15569,7 +16780,7 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_get_execute(
 
 pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaSfdcChannel>, ApiError>,
@@ -15578,8 +16789,9 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_sfdc_instances_sfdc_channels_get_builder(client, name)?;
+    let builder = integrations_projects_locations_sfdc_instances_sfdc_channels_get_builder(
+        client, &args.name,
+    )?;
     integrations_projects_locations_sfdc_instances_sfdc_channels_get_execute(builder)
 }
 
@@ -15705,6 +16917,21 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_sfdc_instances_sfdc_channels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels
 /// Lists all sfdc channels that match the filter. Restrict to sfdc channels belonging to the current client only.
 ///
@@ -15717,11 +16944,7 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_list_execute
 
 pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -15734,7 +16957,12 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_sfdc_instances_sfdc_channels_list_builder(
-        client, parent, filter, pageSize, pageToken, readMask,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
     )?;
     integrations_projects_locations_sfdc_instances_sfdc_channels_list_execute(builder)
 }
@@ -15848,6 +17076,17 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_patch_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_sfdc_instances_sfdc_channels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaSfdcChannel,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}
 /// Updates an sfdc channel. Updates the sfdc channel in spanner. Returns the sfdc channel.
 ///
@@ -15860,9 +17099,7 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_patch_execut
 
 pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudIntegrationsV1alphaSfdcChannel,
+    args: &IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaSfdcChannel>, ApiError>,
@@ -15872,7 +17109,10 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_patch(
     ApiError,
 > {
     let builder = integrations_projects_locations_sfdc_instances_sfdc_channels_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     integrations_projects_locations_sfdc_instances_sfdc_channels_patch_execute(builder)
 }
@@ -15974,6 +17214,15 @@ pub fn integrations_projects_locations_templates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTemplate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/templates
 /// Creates a new template
 ///
@@ -15986,8 +17235,7 @@ pub fn integrations_projects_locations_templates_create_execute(
 
 pub fn integrations_projects_locations_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaTemplate,
+    args: &IntegrationsProjectsLocationsTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaTemplate>, ApiError>,
@@ -15996,7 +17244,8 @@ pub fn integrations_projects_locations_templates_create(
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_templates_create_builder(client, parent, body)?;
+    let builder =
+        integrations_projects_locations_templates_create_builder(client, &args.parent, &args.body)?;
     integrations_projects_locations_templates_create_execute(builder)
 }
 
@@ -16092,6 +17341,13 @@ pub fn integrations_projects_locations_templates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/templates/{templatesId}
 /// Deletes a template
 ///
@@ -16104,14 +17360,14 @@ pub fn integrations_projects_locations_templates_delete_execute(
 
 pub fn integrations_projects_locations_templates_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_templates_delete_builder(client, name)?;
+    let builder = integrations_projects_locations_templates_delete_builder(client, &args.name)?;
     integrations_projects_locations_templates_delete_execute(builder)
 }
 
@@ -16225,6 +17481,15 @@ pub fn integrations_projects_locations_templates_download_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_templates_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesDownloadArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: fileFormat
+    pub fileFormat: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/templates/{templatesId}:download
 /// Downloads a template. Retrieves the Template and returns the response as a string.
 ///
@@ -16237,8 +17502,7 @@ pub fn integrations_projects_locations_templates_download_execute(
 
 pub fn integrations_projects_locations_templates_download(
     client: &SimpleHttpClient,
-    name: &str,
-    fileFormat: Option<&str>,
+    args: &IntegrationsProjectsLocationsTemplatesDownloadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -16250,8 +17514,11 @@ pub fn integrations_projects_locations_templates_download(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_templates_download_builder(client, name, fileFormat)?;
+    let builder = integrations_projects_locations_templates_download_builder(
+        client,
+        &args.name,
+        args.fileFormat.as_deref(),
+    )?;
     integrations_projects_locations_templates_download_execute(builder)
 }
 
@@ -16349,6 +17616,13 @@ pub fn integrations_projects_locations_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/templates/{templatesId}
 /// Get a template in the specified project.
 ///
@@ -16361,7 +17635,7 @@ pub fn integrations_projects_locations_templates_get_execute(
 
 pub fn integrations_projects_locations_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IntegrationsProjectsLocationsTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaTemplate>, ApiError>,
@@ -16370,7 +17644,7 @@ pub fn integrations_projects_locations_templates_get(
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_templates_get_builder(client, name)?;
+    let builder = integrations_projects_locations_templates_get_builder(client, &args.name)?;
     integrations_projects_locations_templates_get_execute(builder)
 }
 
@@ -16472,6 +17746,15 @@ pub fn integrations_projects_locations_templates_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_templates_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesImportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaImportTemplateRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/templates/{templatesId}:import
 /// Import the template to an existing integration. This api would keep track of usage_count and last_used_time. PERMISSION_DENIED would be thrown if template is not accessible by client.
 ///
@@ -16484,8 +17767,7 @@ pub fn integrations_projects_locations_templates_import_execute(
 
 pub fn integrations_projects_locations_templates_import(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaImportTemplateRequest,
+    args: &IntegrationsProjectsLocationsTemplatesImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaImportTemplateResponse>, ApiError>,
@@ -16494,7 +17776,8 @@ pub fn integrations_projects_locations_templates_import(
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_templates_import_builder(client, name, body)?;
+    let builder =
+        integrations_projects_locations_templates_import_builder(client, &args.name, &args.body)?;
     integrations_projects_locations_templates_import_execute(builder)
 }
 
@@ -16621,6 +17904,23 @@ pub fn integrations_projects_locations_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/templates
 /// Lists all templates matching the filter.
 ///
@@ -16633,12 +17933,7 @@ pub fn integrations_projects_locations_templates_list_execute(
 
 pub fn integrations_projects_locations_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &IntegrationsProjectsLocationsTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaListTemplatesResponse>, ApiError>,
@@ -16648,7 +17943,13 @@ pub fn integrations_projects_locations_templates_list(
     ApiError,
 > {
     let builder = integrations_projects_locations_templates_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, readMask,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
     )?;
     integrations_projects_locations_templates_list_execute(builder)
 }
@@ -16762,6 +18063,17 @@ pub fn integrations_projects_locations_templates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_templates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaTemplate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/templates/{templatesId}
 /// Updates the template by given id.
 ///
@@ -16774,9 +18086,7 @@ pub fn integrations_projects_locations_templates_patch_execute(
 
 pub fn integrations_projects_locations_templates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudIntegrationsV1alphaTemplate,
+    args: &IntegrationsProjectsLocationsTemplatesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaTemplate>, ApiError>,
@@ -16785,8 +18095,12 @@ pub fn integrations_projects_locations_templates_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        integrations_projects_locations_templates_patch_builder(client, name, updateMask, body)?;
+    let builder = integrations_projects_locations_templates_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     integrations_projects_locations_templates_patch_execute(builder)
 }
 
@@ -16924,6 +18238,27 @@ pub fn integrations_projects_locations_templates_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_templates_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: enableNaturalLanguageQueryUnderstanding
+    pub enableNaturalLanguageQueryUnderstanding: Option<bool>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/templates:search
 /// Search templates based on user query and filters. This api would query the templates and return a list of templates based on the user filter.
 ///
@@ -16936,14 +18271,7 @@ pub fn integrations_projects_locations_templates_search_execute(
 
 pub fn integrations_projects_locations_templates_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    enableNaturalLanguageQueryUnderstanding: Option<bool>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
-    readMask: Option<&str>,
+    args: &IntegrationsProjectsLocationsTemplatesSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -16957,14 +18285,14 @@ pub fn integrations_projects_locations_templates_search(
 > {
     let builder = integrations_projects_locations_templates_search_builder(
         client,
-        parent,
-        enableNaturalLanguageQueryUnderstanding,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        query,
-        readMask,
+        &args.parent,
+        args.enableNaturalLanguageQueryUnderstanding,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
+        args.readMask.as_deref(),
     )?;
     integrations_projects_locations_templates_search_execute(builder)
 }
@@ -17064,6 +18392,15 @@ pub fn integrations_projects_locations_templates_share_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_templates_share`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesShareArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaShareTemplateRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/templates/{templatesId}:share
 /// Share a template with other clients. Only the template owner can share the templates with other projects. PERMISSION_DENIED would be thrown if the request is not from the owner.
 ///
@@ -17076,15 +18413,15 @@ pub fn integrations_projects_locations_templates_share_execute(
 
 pub fn integrations_projects_locations_templates_share(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaShareTemplateRequest,
+    args: &IntegrationsProjectsLocationsTemplatesShareArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_templates_share_builder(client, name, body)?;
+    let builder =
+        integrations_projects_locations_templates_share_builder(client, &args.name, &args.body)?;
     integrations_projects_locations_templates_share_execute(builder)
 }
 
@@ -17183,6 +18520,15 @@ pub fn integrations_projects_locations_templates_unshare_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_templates_unshare`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesUnshareArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaUnshareTemplateRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/templates/{templatesId}:unshare
 /// Unshare a template from given clients. Owner of the template can unshare template with clients. Shared client can only unshare the template from itself. PERMISSION_DENIED would be thrown if request is not from owner or for unsharing itself.
 ///
@@ -17195,15 +18541,15 @@ pub fn integrations_projects_locations_templates_unshare_execute(
 
 pub fn integrations_projects_locations_templates_unshare(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaUnshareTemplateRequest,
+    args: &IntegrationsProjectsLocationsTemplatesUnshareArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_templates_unshare_builder(client, name, body)?;
+    let builder =
+        integrations_projects_locations_templates_unshare_builder(client, &args.name, &args.body)?;
     integrations_projects_locations_templates_unshare_execute(builder)
 }
 
@@ -17305,6 +18651,15 @@ pub fn integrations_projects_locations_templates_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_templates_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaUploadTemplateRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/templates:upload
 /// Uploads a template. The content can be a previously downloaded template. Performs the same function as CreateTemplate, but accepts input in a string format, which holds the complete representation of the Template content.
 ///
@@ -17317,8 +18672,7 @@ pub fn integrations_projects_locations_templates_upload_execute(
 
 pub fn integrations_projects_locations_templates_upload(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudIntegrationsV1alphaUploadTemplateRequest,
+    args: &IntegrationsProjectsLocationsTemplatesUploadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaUploadTemplateResponse>, ApiError>,
@@ -17327,7 +18681,8 @@ pub fn integrations_projects_locations_templates_upload(
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_templates_upload_builder(client, parent, body)?;
+    let builder =
+        integrations_projects_locations_templates_upload_builder(client, &args.parent, &args.body)?;
     integrations_projects_locations_templates_upload_execute(builder)
 }
 
@@ -17429,6 +18784,15 @@ pub fn integrations_projects_locations_templates_use_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`integrations_projects_locations_templates_use`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IntegrationsProjectsLocationsTemplatesUseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudIntegrationsV1alphaUseTemplateRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/templates/{templatesId}:use
 /// Use the template to create integration. This api would keep track of usage_count and last_used_time. PERMISSION_DENIED would be thrown if template is not accessible by client.
 ///
@@ -17441,8 +18805,7 @@ pub fn integrations_projects_locations_templates_use_execute(
 
 pub fn integrations_projects_locations_templates_use(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudIntegrationsV1alphaUseTemplateRequest,
+    args: &IntegrationsProjectsLocationsTemplatesUseArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudIntegrationsV1alphaUseTemplateResponse>, ApiError>,
@@ -17451,6 +18814,7 @@ pub fn integrations_projects_locations_templates_use(
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_locations_templates_use_builder(client, name, body)?;
+    let builder =
+        integrations_projects_locations_templates_use_builder(client, &args.name, &args.body)?;
     integrations_projects_locations_templates_use_execute(builder)
 }

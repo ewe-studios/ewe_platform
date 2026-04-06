@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/groupItems
 /// Removes an item from a group.
@@ -120,6 +122,15 @@ pub fn youtube_analytics_group_items_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_analytics_group_items_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeAnalyticsGroupItemsDeleteArgs {
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET v2/groupItems
 /// Removes an item from a group.
 ///
@@ -132,15 +143,18 @@ pub fn youtube_analytics_group_items_delete_execute(
 
 pub fn youtube_analytics_group_items_delete(
     client: &SimpleHttpClient,
-    id: Option<&str>,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubeAnalyticsGroupItemsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EmptyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = youtube_analytics_group_items_delete_builder(client, id, onBehalfOfContentOwner)?;
+    let builder = youtube_analytics_group_items_delete_builder(
+        client,
+        args.id.as_deref(),
+        args.onBehalfOfContentOwner.as_deref(),
+    )?;
     youtube_analytics_group_items_delete_execute(builder)
 }
 
@@ -245,6 +259,15 @@ pub fn youtube_analytics_group_items_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_analytics_group_items_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeAnalyticsGroupItemsInsertArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Request body.
+    pub body: GroupItem,
+}
+
 /// GET v2/groupItems
 /// Creates a group item.
 ///
@@ -257,14 +280,16 @@ pub fn youtube_analytics_group_items_insert_execute(
 
 pub fn youtube_analytics_group_items_insert(
     client: &SimpleHttpClient,
-    onBehalfOfContentOwner: Option<&str>,
-    body: &GroupItem,
+    args: &YoutubeAnalyticsGroupItemsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GroupItem>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        youtube_analytics_group_items_insert_builder(client, onBehalfOfContentOwner, body)?;
+    let builder = youtube_analytics_group_items_insert_builder(
+        client,
+        args.onBehalfOfContentOwner.as_deref(),
+        &args.body,
+    )?;
     youtube_analytics_group_items_insert_execute(builder)
 }
 
@@ -372,6 +397,15 @@ pub fn youtube_analytics_group_items_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_analytics_group_items_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeAnalyticsGroupItemsListArgs {
+    /// Query parameter: groupId
+    pub groupId: Option<String>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET v2/groupItems
 /// Returns a collection of group items that match the API request parameters.
 ///
@@ -384,16 +418,18 @@ pub fn youtube_analytics_group_items_list_execute(
 
 pub fn youtube_analytics_group_items_list(
     client: &SimpleHttpClient,
-    groupId: Option<&str>,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubeAnalyticsGroupItemsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGroupItemsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        youtube_analytics_group_items_list_builder(client, groupId, onBehalfOfContentOwner)?;
+    let builder = youtube_analytics_group_items_list_builder(
+        client,
+        args.groupId.as_deref(),
+        args.onBehalfOfContentOwner.as_deref(),
+    )?;
     youtube_analytics_group_items_list_execute(builder)
 }
 
@@ -501,6 +537,15 @@ pub fn youtube_analytics_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_analytics_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeAnalyticsGroupsDeleteArgs {
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET v2/groups
 /// Deletes a group.
 ///
@@ -513,15 +558,18 @@ pub fn youtube_analytics_groups_delete_execute(
 
 pub fn youtube_analytics_groups_delete(
     client: &SimpleHttpClient,
-    id: Option<&str>,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubeAnalyticsGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EmptyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = youtube_analytics_groups_delete_builder(client, id, onBehalfOfContentOwner)?;
+    let builder = youtube_analytics_groups_delete_builder(
+        client,
+        args.id.as_deref(),
+        args.onBehalfOfContentOwner.as_deref(),
+    )?;
     youtube_analytics_groups_delete_execute(builder)
 }
 
@@ -626,6 +674,15 @@ pub fn youtube_analytics_groups_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_analytics_groups_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeAnalyticsGroupsInsertArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Request body.
+    pub body: Group,
+}
+
 /// GET v2/groups
 /// Creates a group.
 ///
@@ -638,13 +695,16 @@ pub fn youtube_analytics_groups_insert_execute(
 
 pub fn youtube_analytics_groups_insert(
     client: &SimpleHttpClient,
-    onBehalfOfContentOwner: Option<&str>,
-    body: &Group,
+    args: &YoutubeAnalyticsGroupsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_analytics_groups_insert_builder(client, onBehalfOfContentOwner, body)?;
+    let builder = youtube_analytics_groups_insert_builder(
+        client,
+        args.onBehalfOfContentOwner.as_deref(),
+        &args.body,
+    )?;
     youtube_analytics_groups_insert_execute(builder)
 }
 
@@ -760,6 +820,19 @@ pub fn youtube_analytics_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_analytics_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeAnalyticsGroupsListArgs {
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: mine
+    pub mine: Option<bool>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/groups
 /// Returns a collection of groups that match the API request parameters. For example, you can retrieve all groups that the authenticated user owns, or you can retrieve one or more groups by their unique IDs.
 ///
@@ -772,18 +845,20 @@ pub fn youtube_analytics_groups_list_execute(
 
 pub fn youtube_analytics_groups_list(
     client: &SimpleHttpClient,
-    id: Option<&str>,
-    mine: Option<bool>,
-    onBehalfOfContentOwner: Option<&str>,
-    pageToken: Option<&str>,
+    args: &YoutubeAnalyticsGroupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGroupsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        youtube_analytics_groups_list_builder(client, id, mine, onBehalfOfContentOwner, pageToken)?;
+    let builder = youtube_analytics_groups_list_builder(
+        client,
+        args.id.as_deref(),
+        args.mine,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.pageToken.as_deref(),
+    )?;
     youtube_analytics_groups_list_execute(builder)
 }
 
@@ -888,6 +963,15 @@ pub fn youtube_analytics_groups_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_analytics_groups_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeAnalyticsGroupsUpdateArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Request body.
+    pub body: Group,
+}
+
 /// GET v2/groups
 /// Modifies a group. For example, you could change a group's title.
 ///
@@ -900,13 +984,16 @@ pub fn youtube_analytics_groups_update_execute(
 
 pub fn youtube_analytics_groups_update(
     client: &SimpleHttpClient,
-    onBehalfOfContentOwner: Option<&str>,
-    body: &Group,
+    args: &YoutubeAnalyticsGroupsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_analytics_groups_update_builder(client, onBehalfOfContentOwner, body)?;
+    let builder = youtube_analytics_groups_update_builder(
+        client,
+        args.onBehalfOfContentOwner.as_deref(),
+        &args.body,
+    )?;
     youtube_analytics_groups_update_execute(builder)
 }
 
@@ -1050,6 +1137,33 @@ pub fn youtube_analytics_reports_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_analytics_reports_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeAnalyticsReportsQueryArgs {
+    /// Query parameter: currency
+    pub currency: Option<String>,
+    /// Query parameter: dimensions
+    pub dimensions: Option<String>,
+    /// Query parameter: endDate
+    pub endDate: Option<String>,
+    /// Query parameter: filters
+    pub filters: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: includeHistoricalChannelData
+    pub includeHistoricalChannelData: Option<bool>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: metrics
+    pub metrics: Option<String>,
+    /// Query parameter: sort
+    pub sort: Option<String>,
+    /// Query parameter: startDate
+    pub startDate: Option<String>,
+    /// Query parameter: startIndex
+    pub startIndex: Option<i32>,
+}
+
 /// GET v2/reports
 /// Retrieve your YouTube Analytics reports.
 ///
@@ -1062,17 +1176,7 @@ pub fn youtube_analytics_reports_query_execute(
 
 pub fn youtube_analytics_reports_query(
     client: &SimpleHttpClient,
-    currency: Option<&str>,
-    dimensions: Option<&str>,
-    endDate: Option<&str>,
-    filters: Option<&str>,
-    ids: Option<&str>,
-    includeHistoricalChannelData: Option<bool>,
-    maxResults: Option<i32>,
-    metrics: Option<&str>,
-    sort: Option<&str>,
-    startDate: Option<&str>,
-    startIndex: Option<i32>,
+    args: &YoutubeAnalyticsReportsQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1081,17 +1185,17 @@ pub fn youtube_analytics_reports_query(
 > {
     let builder = youtube_analytics_reports_query_builder(
         client,
-        currency,
-        dimensions,
-        endDate,
-        filters,
-        ids,
-        includeHistoricalChannelData,
-        maxResults,
-        metrics,
-        sort,
-        startDate,
-        startIndex,
+        args.currency.as_deref(),
+        args.dimensions.as_deref(),
+        args.endDate.as_deref(),
+        args.filters.as_deref(),
+        args.ids.as_deref(),
+        args.includeHistoricalChannelData,
+        args.maxResults,
+        args.metrics.as_deref(),
+        args.sort.as_deref(),
+        args.startDate.as_deref(),
+        args.startIndex,
     )?;
     youtube_analytics_reports_query_execute(builder)
 }

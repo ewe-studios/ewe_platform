@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn datafusion_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn datafusion_projects_locations_get_execute(
 
 pub fn datafusion_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatafusionProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datafusion_projects_locations_get_builder(client, name)?;
+    let builder = datafusion_projects_locations_get_builder(client, &args.name)?;
     datafusion_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn datafusion_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service.
 ///
@@ -255,11 +279,7 @@ pub fn datafusion_projects_locations_list_execute(
 
 pub fn datafusion_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatafusionProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn datafusion_projects_locations_list(
 > {
     let builder = datafusion_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datafusion_projects_locations_list_execute(builder)
 }
@@ -382,6 +402,17 @@ pub fn datafusion_projects_locations_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: instanceId
+    pub instanceId: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
 /// Creates a new Data Fusion instance in the specified project and location.
 ///
@@ -394,15 +425,17 @@ pub fn datafusion_projects_locations_instances_create_execute(
 
 pub fn datafusion_projects_locations_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    instanceId: Option<&str>,
-    body: &Instance,
+    args: &DatafusionProjectsLocationsInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datafusion_projects_locations_instances_create_builder(client, parent, instanceId, body)?;
+    let builder = datafusion_projects_locations_instances_create_builder(
+        client,
+        &args.parent,
+        args.instanceId.as_deref(),
+        &args.body,
+    )?;
     datafusion_projects_locations_instances_create_execute(builder)
 }
 
@@ -508,6 +541,15 @@ pub fn datafusion_projects_locations_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Deletes a single Date Fusion instance.
 ///
@@ -520,13 +562,13 @@ pub fn datafusion_projects_locations_instances_delete_execute(
 
 pub fn datafusion_projects_locations_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &DatafusionProjectsLocationsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datafusion_projects_locations_instances_delete_builder(client, name, force)?;
+    let builder =
+        datafusion_projects_locations_instances_delete_builder(client, &args.name, args.force)?;
     datafusion_projects_locations_instances_delete_execute(builder)
 }
 
@@ -620,6 +662,13 @@ pub fn datafusion_projects_locations_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Gets details of a single Data Fusion instance.
 ///
@@ -632,12 +681,12 @@ pub fn datafusion_projects_locations_instances_get_execute(
 
 pub fn datafusion_projects_locations_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatafusionProjectsLocationsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datafusion_projects_locations_instances_get_builder(client, name)?;
+    let builder = datafusion_projects_locations_instances_get_builder(client, &args.name)?;
     datafusion_projects_locations_instances_get_execute(builder)
 }
 
@@ -743,6 +792,15 @@ pub fn datafusion_projects_locations_instances_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_instances_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsInstancesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -755,16 +813,15 @@ pub fn datafusion_projects_locations_instances_get_iam_policy_execute(
 
 pub fn datafusion_projects_locations_instances_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DatafusionProjectsLocationsInstancesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datafusion_projects_locations_instances_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     datafusion_projects_locations_instances_get_iam_policy_execute(builder)
 }
@@ -885,6 +942,21 @@ pub fn datafusion_projects_locations_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
 /// Lists Data Fusion instances in the specified project and location.
 ///
@@ -897,11 +969,7 @@ pub fn datafusion_projects_locations_instances_list_execute(
 
 pub fn datafusion_projects_locations_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatafusionProjectsLocationsInstancesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -909,7 +977,12 @@ pub fn datafusion_projects_locations_instances_list(
     ApiError,
 > {
     let builder = datafusion_projects_locations_instances_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datafusion_projects_locations_instances_list_execute(builder)
 }
@@ -1019,6 +1092,17 @@ pub fn datafusion_projects_locations_instances_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Updates a single Data Fusion instance.
 ///
@@ -1031,15 +1115,17 @@ pub fn datafusion_projects_locations_instances_patch_execute(
 
 pub fn datafusion_projects_locations_instances_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Instance,
+    args: &DatafusionProjectsLocationsInstancesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datafusion_projects_locations_instances_patch_builder(client, name, updateMask, body)?;
+    let builder = datafusion_projects_locations_instances_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     datafusion_projects_locations_instances_patch_execute(builder)
 }
 
@@ -1136,6 +1222,15 @@ pub fn datafusion_projects_locations_instances_restart_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_instances_restart`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsInstancesRestartArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RestartInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:restart
 /// Restart a single Data Fusion instance. At the end of an operation instance is fully restarted.
 ///
@@ -1148,13 +1243,13 @@ pub fn datafusion_projects_locations_instances_restart_execute(
 
 pub fn datafusion_projects_locations_instances_restart(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RestartInstanceRequest,
+    args: &DatafusionProjectsLocationsInstancesRestartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datafusion_projects_locations_instances_restart_builder(client, name, body)?;
+    let builder =
+        datafusion_projects_locations_instances_restart_builder(client, &args.name, &args.body)?;
     datafusion_projects_locations_instances_restart_execute(builder)
 }
 
@@ -1251,6 +1346,15 @@ pub fn datafusion_projects_locations_instances_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_instances_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsInstancesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1263,14 +1367,16 @@ pub fn datafusion_projects_locations_instances_set_iam_policy_execute(
 
 pub fn datafusion_projects_locations_instances_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DatafusionProjectsLocationsInstancesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datafusion_projects_locations_instances_set_iam_policy_builder(client, resource, body)?;
+    let builder = datafusion_projects_locations_instances_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     datafusion_projects_locations_instances_set_iam_policy_execute(builder)
 }
 
@@ -1371,6 +1477,15 @@ pub fn datafusion_projects_locations_instances_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_instances_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsInstancesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1383,8 +1498,7 @@ pub fn datafusion_projects_locations_instances_test_iam_permissions_execute(
 
 pub fn datafusion_projects_locations_instances_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DatafusionProjectsLocationsInstancesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1394,7 +1508,9 @@ pub fn datafusion_projects_locations_instances_test_iam_permissions(
     ApiError,
 > {
     let builder = datafusion_projects_locations_instances_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     datafusion_projects_locations_instances_test_iam_permissions_execute(builder)
 }
@@ -1504,6 +1620,17 @@ pub fn datafusion_projects_locations_instances_dns_peerings_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_instances_dns_peerings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsInstancesDnsPeeringsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dnsPeeringId
+    pub dnsPeeringId: Option<String>,
+    /// Request body.
+    pub body: DnsPeering,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}/dnsPeerings
 /// Creates DNS peering on the given resource.
 ///
@@ -1516,18 +1643,16 @@ pub fn datafusion_projects_locations_instances_dns_peerings_create_execute(
 
 pub fn datafusion_projects_locations_instances_dns_peerings_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dnsPeeringId: Option<&str>,
-    body: &DnsPeering,
+    args: &DatafusionProjectsLocationsInstancesDnsPeeringsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DnsPeering>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datafusion_projects_locations_instances_dns_peerings_create_builder(
         client,
-        parent,
-        dnsPeeringId,
-        body,
+        &args.parent,
+        args.dnsPeeringId.as_deref(),
+        &args.body,
     )?;
     datafusion_projects_locations_instances_dns_peerings_create_execute(builder)
 }
@@ -1622,6 +1747,13 @@ pub fn datafusion_projects_locations_instances_dns_peerings_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_instances_dns_peerings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsInstancesDnsPeeringsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}/dnsPeerings/{dnsPeeringsId}
 /// Deletes DNS peering on the given resource.
 ///
@@ -1634,13 +1766,13 @@ pub fn datafusion_projects_locations_instances_dns_peerings_delete_execute(
 
 pub fn datafusion_projects_locations_instances_dns_peerings_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatafusionProjectsLocationsInstancesDnsPeeringsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        datafusion_projects_locations_instances_dns_peerings_delete_builder(client, name)?;
+        datafusion_projects_locations_instances_dns_peerings_delete_builder(client, &args.name)?;
     datafusion_projects_locations_instances_dns_peerings_delete_execute(builder)
 }
 
@@ -1752,6 +1884,17 @@ pub fn datafusion_projects_locations_instances_dns_peerings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_instances_dns_peerings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsInstancesDnsPeeringsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}/dnsPeerings
 /// Lists DNS peerings for a given resource.
 ///
@@ -1764,9 +1907,7 @@ pub fn datafusion_projects_locations_instances_dns_peerings_list_execute(
 
 pub fn datafusion_projects_locations_instances_dns_peerings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatafusionProjectsLocationsInstancesDnsPeeringsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDnsPeeringsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1774,7 +1915,10 @@ pub fn datafusion_projects_locations_instances_dns_peerings_list(
     ApiError,
 > {
     let builder = datafusion_projects_locations_instances_dns_peerings_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datafusion_projects_locations_instances_dns_peerings_list_execute(builder)
 }
@@ -1872,6 +2016,15 @@ pub fn datafusion_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1884,13 +2037,13 @@ pub fn datafusion_projects_locations_operations_cancel_execute(
 
 pub fn datafusion_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &DatafusionProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datafusion_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        datafusion_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     datafusion_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -1984,6 +2137,13 @@ pub fn datafusion_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1996,12 +2156,12 @@ pub fn datafusion_projects_locations_operations_delete_execute(
 
 pub fn datafusion_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatafusionProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datafusion_projects_locations_operations_delete_builder(client, name)?;
+    let builder = datafusion_projects_locations_operations_delete_builder(client, &args.name)?;
     datafusion_projects_locations_operations_delete_execute(builder)
 }
 
@@ -2095,6 +2255,13 @@ pub fn datafusion_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2107,12 +2274,12 @@ pub fn datafusion_projects_locations_operations_get_execute(
 
 pub fn datafusion_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatafusionProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datafusion_projects_locations_operations_get_builder(client, name)?;
+    let builder = datafusion_projects_locations_operations_get_builder(client, &args.name)?;
     datafusion_projects_locations_operations_get_execute(builder)
 }
 
@@ -2232,6 +2399,21 @@ pub fn datafusion_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -2244,11 +2426,7 @@ pub fn datafusion_projects_locations_operations_list_execute(
 
 pub fn datafusion_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DatafusionProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2257,11 +2435,11 @@ pub fn datafusion_projects_locations_operations_list(
 > {
     let builder = datafusion_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     datafusion_projects_locations_operations_list_execute(builder)
 }
@@ -2380,6 +2558,19 @@ pub fn datafusion_projects_locations_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datafusion_projects_locations_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatafusionProjectsLocationsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: latestPatchOnly
+    pub latestPatchOnly: Option<bool>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/versions
 /// Lists possible versions for Data Fusion instances in the specified project and location.
 ///
@@ -2392,10 +2583,7 @@ pub fn datafusion_projects_locations_versions_list_execute(
 
 pub fn datafusion_projects_locations_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    latestPatchOnly: Option<bool>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatafusionProjectsLocationsVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAvailableVersionsResponse>, ApiError>,
@@ -2406,10 +2594,10 @@ pub fn datafusion_projects_locations_versions_list(
 > {
     let builder = datafusion_projects_locations_versions_list_builder(
         client,
-        parent,
-        latestPatchOnly,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.latestPatchOnly,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datafusion_projects_locations_versions_list_execute(builder)
 }
