@@ -16,8 +16,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use tracing::{debug, info};
 
-/// Default artifacts directory name (relative to project root).
-pub const DEFAULT_ARTIFACTS_DIR: &str = ".artifacts";
+/// Default artefacts directory name (relative to project root).
+pub const DEFAULT_ARTEFACTS_DIR: &str = "artefacts";
 
 /// Default models subdirectory name.
 pub const MODELS_SUBDIR: &str = "models";
@@ -33,8 +33,8 @@ pub const MODELS_SUBDIR: &str = "models";
 /// let model_path = harness.get_model("unsloth/SmolLM2-360M-Instruct-GGUF", "SmolLM2-360M-Instruct-Q2_K.gguf");
 /// ```
 pub struct TestHarness {
-    /// Root directory for storing downloaded models (artifacts/models/).
-    artifacts_dir: PathBuf,
+    /// Root directory for storing downloaded models (artefacts/models/).
+    artefacts_dir: PathBuf,
 }
 
 impl TestHarness {
@@ -42,16 +42,16 @@ impl TestHarness {
     ///
     /// # Arguments
     ///
-    /// * `project_root` - Root directory of the project (models stored in `.artifacts/models/`)
+    /// * `project_root` - Root directory of the project (models stored in `artefacts/models/`)
     #[must_use]
     pub fn new(project_root: &Path) -> Self {
-        let artifacts_dir = project_root.join(DEFAULT_ARTIFACTS_DIR).join(MODELS_SUBDIR);
-        Self { artifacts_dir }
+        let artefacts_dir = project_root.join(DEFAULT_ARTEFACTS_DIR).join(MODELS_SUBDIR);
+        Self { artefacts_dir }
     }
 
     /// Get or download a model from HuggingFace Hub.
     ///
-    /// Checks if the model exists in the artifacts directory. If not,
+    /// Checks if the model exists in the artefacts directory. If not,
     /// downloads it from HuggingFace Hub.
     ///
     /// # Arguments
@@ -66,7 +66,7 @@ impl TestHarness {
     /// # Errors
     ///
     /// Returns an error if:
-    /// - The artifacts directory cannot be created
+    /// - The artefacts directory cannot be created
     /// - The download fails
     /// - The model file is not found after download
     pub fn get_model(
@@ -74,7 +74,7 @@ impl TestHarness {
         repo_id: &str,
         filename: &str,
     ) -> Result<PathBuf, Box<dyn std::error::Error + Send + Sync>> {
-        let model_path = self.artifacts_dir.join(filename);
+        let model_path = self.artefacts_dir.join(filename);
 
         // Check if model already exists
         if model_path.exists() {
@@ -82,12 +82,12 @@ impl TestHarness {
             return Ok(model_path);
         }
 
-        // Create artifacts directory if it doesn't exist
-        if !self.artifacts_dir.exists() {
-            fs::create_dir_all(&self.artifacts_dir)?;
+        // Create artefacts directory if it doesn't exist
+        if !self.artefacts_dir.exists() {
+            fs::create_dir_all(&self.artefacts_dir)?;
             info!(
-                "Created artifacts directory: {}",
-                self.artifacts_dir.display()
+                "Created artefacts directory: {}",
+                self.artefacts_dir.display()
             );
         }
 
@@ -100,7 +100,7 @@ impl TestHarness {
             &RepoDownloadFileParams {
                 filename: filename.to_string(),
                 revision: None,
-                directory: self.artifacts_dir.clone(),
+                directory: self.artefacts_dir.clone(),
             },
         )?;
 
@@ -161,8 +161,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_artifacts_dir_constant() {
-        assert!(!DEFAULT_ARTIFACTS_DIR.is_empty());
+    fn test_artefacts_dir_constant() {
+        assert!(!DEFAULT_ARTEFACTS_DIR.is_empty());
         assert_eq!(MODELS_SUBDIR, "models");
     }
 
@@ -170,7 +170,7 @@ mod tests {
     fn test_harness_creation() {
         let temp_dir = std::env::temp_dir();
         let harness = TestHarness::new(&temp_dir);
-        assert!(harness.artifacts_dir.ends_with(DEFAULT_ARTIFACTS_DIR));
-        assert!(harness.artifacts_dir.ends_with(MODELS_SUBDIR));
+        assert!(harness.artefacts_dir.ends_with(DEFAULT_ARTEFACTS_DIR));
+        assert!(harness.artefacts_dir.ends_with(MODELS_SUBDIR));
     }
 }
