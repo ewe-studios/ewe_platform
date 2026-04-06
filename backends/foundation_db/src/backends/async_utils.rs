@@ -10,7 +10,7 @@
 //! - **`exec_future`** (legacy): Blocks immediately at the leaf. Use only for
 //!   one-shot initialization (DB connection, migrations), not for trait methods.
 
-use foundation_core::valtron::{execute, from_future, StreamIteratorExt};
+use foundation_core::valtron::{execute, from_future, Stream, StreamIteratorExt};
 
 use crate::errors::StorageError;
 
@@ -69,8 +69,6 @@ where
     T: Send + 'static,
     E: Into<StorageError> + Send + 'static,
 {
-    use foundation_core::valtron::Stream;
-
     let task = from_future(future);
     let stream = execute(task, None)
         .map_err(|e| StorageError::Backend(format!("Valtron execution failed: {e}")))?;
