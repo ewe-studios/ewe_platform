@@ -22072,7 +22072,11 @@
       }
     }
   },
-  "servers": [],
+  "servers": [
+    {
+      "url": "https://api.supabase.com"
+    }
+  ],
   "tags": [
     {
       "description": "Advisors related endpoints",
